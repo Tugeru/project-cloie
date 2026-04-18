@@ -1,17 +1,43 @@
 import { redirect } from "next/navigation";
-import { getSession } from "@/lib/auth/session";
+import type { ReactNode } from "react";
+import type { Role } from "@/lib/constants/roles";
+import { ensureRoleAccess } from "@/modules/identity-access/policies/ensure-role-access";
+import { resolveAuthSession } from "@/modules/identity-access/services/resolve-auth-session";
+import { resolvePostLoginDestination } from "@/modules/identity-access/services/resolve-post-login-destination";
 
-interface SessionGuardProps {
-  children: React.ReactNode;
-}
+type SessionGuardProps = {
+  children: ReactNode;
+  allowedRoles?: Role[];
+};
 
-export async function SessionGuard({ children }: SessionGuardProps) {
-  const session = await getSession();
+export async function SessionGuard({ children, allowedRoles = [] }: SessionGuardProps) {
+  const session = await resolveAuthSession();
 
   if (!session) {
     redirect("/login");
   }
 
-  // Assuming successful authentication, render the protected content
+  if (session.profileGate.status !== "COMPLETE") {
+    redirect(
+      resolvePostLoginDestination({
+        requestedPath: "/dashboard",
+        intent: session.profileGate.status === "STUDENT_ONBOARDING_REQUIRED" ? "student" : null,
+        primaryRole: session.primaryRole,
+        profileGate: session.profileGate,
+      })
+    );
+  }
+
+  if (allowedRoles.length > 0) {
+    const redirectPath = ensureRoleAccess({
+      primaryRole: session.primaryRole,
+      allowedRoles,
+    });
+
+    if (redirectPath) {
+      redirect(redirectPath);
+    }
+  }
+
   return <>{children}</>;
 }

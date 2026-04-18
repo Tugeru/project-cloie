@@ -75,11 +75,11 @@ export function StudentProfileForm({
 
     if (result.error) {
       setGlobalError(result.error);
-    } else if (result.success) {
-      // Navigate cleanly to the protected dashboard
-      router.push("/dashboard");
-      router.refresh();
+      return;
     }
+
+    router.push("/dashboard");
+    router.refresh();
   };
 
   return (
