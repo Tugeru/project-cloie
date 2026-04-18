@@ -47,6 +47,7 @@ prisma/*.db-journal
 
 # agent / ai
 .agent
+.worktrees/
 
 # project docs (kept in repo but ignored in some workflows)
 /docs
