@@ -41,6 +41,21 @@ describe("buildAuthSessionSnapshot", () => {
     expect(session.profileGate).toEqual({ status: "COMPLETE" });
   });
 
+  it("marks graduating students without a profile as requiring onboarding", () => {
+    const session = buildAuthSessionSnapshot({
+      userId: "user-3b",
+      email: "graduating@acd.edu.ph",
+      roles: [ROLES.GRADUATING_STUDENT],
+      studentProfileId: null,
+    });
+
+    expect(session.primaryRole).toBe(ROLES.GRADUATING_STUDENT);
+    expect(session.profileGate).toEqual({
+      status: "STUDENT_ONBOARDING_REQUIRED",
+      intent: "student",
+    });
+  });
+
   it("allows faculty users without student profiles", () => {
     const session = buildAuthSessionSnapshot({
       userId: "user-4",
