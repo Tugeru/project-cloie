@@ -31,7 +31,12 @@ export async function GET(request: Request) {
       // Determine user's role and redirect accordingly if no specific "next" is set
       if (nextUrl === "/dashboard") {
         const primaryRole = await getPrimaryRole(data.user.id);
-        nextUrl = getLandingPageForRole(primaryRole);
+        if (!primaryRole) {
+          const intentParam = searchParams.get("intent") ? `?intent=${searchParams.get("intent")}` : "";
+          nextUrl = `/onboarding${intentParam}`;
+        } else {
+          nextUrl = getLandingPageForRole(primaryRole);
+        }
       }
       
       const forwardedHost = request.headers.get('x-forwarded-host');

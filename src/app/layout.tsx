@@ -54,7 +54,7 @@ export default function RootLayout({
       className={cn("h-full", manrope.variable, inter.variable, "font-sans", geist.variable)}
       suppressHydrationWarning
     >
-      <body className="min-h-full flex flex-col antialiased">{children}</body>
+      <body suppressHydrationWarning className="min-h-full flex flex-col antialiased">{children}</body>
     </html>
   );
 }

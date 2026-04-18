@@ -56,7 +56,20 @@ export default async function LoginPage({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <GoogleSignInButton />
+          <div className="flex flex-col gap-4">
+            <GoogleSignInButton />
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t border-border" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-text-muted">Or</span>
+              </div>
+            </div>
+
+            <GoogleSignInButton intent="student" />
+          </div>
           
           <div className="mt-6 text-center">
             <p className="text-caption text-text-muted mx-auto max-w-[250px]">
