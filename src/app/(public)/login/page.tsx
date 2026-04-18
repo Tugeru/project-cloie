@@ -1,8 +1,17 @@
 import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GoogleSignInButton } from "@/components/auth/google-signin-button";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
-export default function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>
+}) {
+  const resolvedSearchParams = await searchParams;
+  const error = resolvedSearchParams?.error;
+
   return (
     <div className="w-full max-w-md mx-auto">
       <div className="flex flex-col items-center mb-8">
@@ -19,11 +28,31 @@ export default function LoginPage() {
         </p>
       </div>
 
+      {error === "invalid_domain" && (
+        <Alert variant="destructive" className="mb-6 border-red-500/50 bg-red-500/10 text-red-600">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Access Restricted</AlertTitle>
+          <AlertDescription>
+            You must use your official <b>@acd.edu.ph</b> or <b>@acdeducation.com</b> institutional email account to access CLOIE.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {error === "auth-failure" && (
+        <Alert variant="destructive" className="mb-6">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Authentication Failed</AlertTitle>
+          <AlertDescription>
+            There was a problem signing you in. Please try again.
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Card className="border-border shadow-card">
         <CardHeader className="space-y-2 text-center pb-6">
           <CardTitle className="text-heading-lg text-text-primary">Welcome back</CardTitle>
           <CardDescription className="text-body-sm text-text-secondary">
-            Sign in with your institutional Google account to continue.
+            Sign in with your institutional Google account to continue. Access is strictly restricted to ACD domains.
           </CardDescription>
         </CardHeader>
         <CardContent>
