@@ -1,0 +1,77 @@
+/*
+ * CLOIE Design System — CSS Custom Properties
+ * Source: docs/design-system.txt
+ *
+ * These tokens provide the foundational layer for CLOIE's visual system.
+ * Used by both Tailwind @theme and direct CSS references.
+ */
+
+:root {
+  /* ========================================
+   * 1. Core Brand Palette
+   * ======================================== */
+
+  /* Primary — Institutional Blue */
+  --color-primary: #0051C3;
+  --color-primary-hover: #003F99;
+  --color-primary-active: #00357F;
+  --color-on-primary: #FFFFFF;
+
+  /* Primary Tints / Support */
+  --color-primary-soft: #EAF2FF;
+  --color-primary-muted: #C9DCFF;
+  --color-primary-border: #A9C5FF;
+
+  /* Secondary — Accent Gold */
+  --color-secondary: #D49900;
+  --color-secondary-hover: #B88200;
+  --color-secondary-soft: #FFF4D6;
+  --color-on-secondary: #2F2200;
+
+  /* ========================================
+   * 2. Neutral Surfaces
+   * ======================================== */
+  --color-background: #F7F9FC;
+  --color-surface: #FFFFFF;
+  --color-surface-alt: #F1F5F9;
+  --color-surface-muted: #E9EEF5;
+  --color-border: #D6DEE8;
+  --color-border-strong: #C0CCD9;
+
+  /* ========================================
+   * 3. Text Colors
+   * ======================================== */
+  --color-text-primary: #1F2937;
+  --color-text-secondary: #475467;
+  --color-text-muted: #667085;
+  --color-text-on-dark: #FFFFFF;
+
+  /* ========================================
+   * 4. Semantic Colors
+   * ======================================== */
+  --color-success: #127C4F;
+  --color-success-soft: #E8F7EF;
+  --color-warning: #B7791F;
+  --color-warning-soft: #FFF7E8;
+  --color-danger: #C0362C;
+  --color-danger-soft: #FDEDEC;
+  --color-info: #0B63CE;
+  --color-info-soft: #EAF3FF;
+
+  /* ========================================
+   * 5. Shadows
+   * ======================================== */
+  --shadow-card: 0 2px 8px rgba(16, 24, 40, 0.06);
+  --shadow-dropdown: 0 8px 24px rgba(16, 24, 40, 0.10);
+  --shadow-modal: 0 16px 40px rgba(16, 24, 40, 0.14);
+
+  /* ========================================
+   * 6. Border Radius
+   * ======================================== */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --radius-pill: 999px;
+}
