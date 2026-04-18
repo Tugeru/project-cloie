@@ -4,10 +4,10 @@ import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
-    <div className="relative flex min-h-screen flex-col bg-background selection:bg-brand-500/30 overflow-hidden">
+    <div className="relative flex min-h-screen flex-col bg-background selection:bg-info/30 overflow-hidden">
       {/* Background Gradients */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-brand-500/10 blur-[100px] rounded-full pointer-events-none -z-10" />
-      <div className="absolute top-1/4 left-1/3 w-[400px] h-[400px] bg-brand-400/10 blur-[80px] rounded-full pointer-events-none -z-10" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[600px] bg-primary/5 blur-[100px] rounded-full pointer-events-none -z-10" />
+      <div className="absolute top-1/4 left-1/3 w-[400px] h-[400px] bg-info/5 blur-[80px] rounded-full pointer-events-none -z-10" />
 
       {/* Navbar Minimal */}
       <header className="flex items-center justify-between px-6 py-4 md:px-12 backdrop-blur-md border-b border-border/40 fixed top-0 w-full z-50 bg-surface/50">
@@ -23,15 +23,15 @@ export default function Home() {
       {/* Hero Section */}
       <main className="flex-1 flex flex-col items-center justify-center pt-32 pb-16 px-4 sm:px-6 lg:px-8 text-center relative z-10 w-full max-w-7xl mx-auto">
         <div className="mb-8 p-1.5 pr-4 pl-2 rounded-full border border-border/80 bg-surface/60 backdrop-blur-md shadow-sm flex items-center gap-3 transition-colors hover:bg-surface/80">
-          <span className="flex h-5 w-5 rounded-full bg-brand-100 items-center justify-center">
-            <span className="flex h-2 w-2 rounded-full bg-brand-500 animate-pulse"></span>
+          <span className="flex h-5 w-5 rounded-full bg-info-soft items-center justify-center">
+            <span className="flex h-2 w-2 rounded-full bg-info animate-pulse"></span>
           </span>
           <span className="text-body-sm font-medium text-text-secondary tracking-wide">Secure Evaluation Portal</span>
         </div>
 
         <h1 className="text-5xl md:text-6xl lg:text-7xl font-extrabold text-text-primary font-heading tracking-tight max-w-4xl leading-[1.1] mb-6">
           Transforming Academic <br className="hidden md:block" />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 via-brand-500 to-brand-400">
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary via-info to-primary">
             Outcomes Evaluation
           </span>
         </h1>

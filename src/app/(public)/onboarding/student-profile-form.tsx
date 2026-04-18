@@ -84,7 +84,7 @@ export function StudentProfileForm({
 
   return (
     <Card className="border-border shadow-card overflow-hidden">
-      <div className="h-2 w-full bg-gradient-to-r from-brand-600 to-brand-400" />
+      <div className="h-2 w-full bg-gradient-to-r from-primary to-info" />
       <CardHeader className="space-y-1 pb-4">
         <CardTitle className="text-display-sm text-text-primary">Complete Student Profile</CardTitle>
         <CardDescription className="text-body-md text-text-secondary">

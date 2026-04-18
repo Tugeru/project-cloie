@@ -49,7 +49,7 @@ export default async function OnboardingPage({
   return (
     <div className="w-full max-w-md mx-auto">
       <Card className="border-border shadow-card text-center overflow-hidden">
-        <div className="h-2 w-full bg-gradient-to-r from-brand-600 to-brand-400" />
+        <div className="h-2 w-full bg-gradient-to-r from-primary to-info" />
         <CardHeader className="space-y-2 pb-6 mt-2">
           <CardTitle className="text-display-sm font-heading font-bold text-text-primary">Welcome to CLOIE</CardTitle>
           <CardDescription className="text-body-md text-text-secondary mt-2 px-2">
@@ -59,7 +59,7 @@ export default async function OnboardingPage({
         <CardContent className="flex flex-col gap-4">
           <Link
             href="?intent=student"
-            className="inline-flex items-center justify-center h-16 rounded-lg border border-brand-500/30 bg-background text-[17px] font-semibold hover:bg-brand-50 hover:text-brand-700 shadow-sm transition-all duration-300"
+            className="inline-flex items-center justify-center h-16 rounded-lg border border-primary/30 bg-background text-[17px] font-semibold hover:bg-primary-soft hover:text-primary shadow-sm transition-all duration-300"
           >
             I am a Student
           </Link>
