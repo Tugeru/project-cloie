@@ -8,14 +8,16 @@
 /* ========================================
  * CLOIE Design System — Tailwind v4 Theme
  * Registers all design tokens for utility class generation.
+ * Also maps shadcn/ui semantic variables to CLOIE tokens.
  * ======================================== */
 
 @theme inline {
   /* ---------- Fonts ---------- */
-  --font-heading: var(--font-sans);
+  --font-heading: "Manrope", "Inter", "Segoe UI", Arial, sans-serif;
   --font-body: "Inter", "Segoe UI", Arial, sans-serif;
+  --font-sans: "Inter", "Segoe UI", Arial, sans-serif;
 
-  /* ---------- Colors — Primary ---------- */
+  /* ---------- Colors — CLOIE Primary ---------- */
   --color-primary: var(--color-primary);
   --color-primary-hover: var(--color-primary-hover);
   --color-primary-active: var(--color-primary-active);
@@ -24,7 +26,7 @@
   --color-primary-muted: var(--color-primary-muted);
   --color-primary-border: var(--color-primary-border);
 
-  /* ---------- Colors — Secondary ---------- */
+  /* ---------- Colors — CLOIE Secondary ---------- */
   --color-secondary: var(--color-secondary);
   --color-secondary-hover: var(--color-secondary-hover);
   --color-secondary-soft: var(--color-secondary-soft);
@@ -66,50 +68,43 @@
   --radius-lg: 14px;
   --radius-xl: 18px;
   --radius-pill: 999px;
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 
   /* ---------- Typography Scale ---------- */
-  /* Display */
   --font-size-display-lg: 2.5rem;
   --line-height-display-lg: 3rem;
   --font-size-display-md: 2rem;
   --line-height-display-md: 2.5rem;
-
-  /* Headings */
   --font-size-heading-xl: 1.75rem;
   --line-height-heading-xl: 2.25rem;
   --font-size-heading-lg: 1.5rem;
   --line-height-heading-lg: 2rem;
   --font-size-heading-md: 1.25rem;
   --line-height-heading-md: 1.75rem;
-
-  /* Section titles */
   --font-size-title-lg: 1.125rem;
   --line-height-title-lg: 1.625rem;
   --font-size-title-md: 1rem;
   --line-height-title-md: 1.5rem;
   --font-size-title-sm: 0.875rem;
   --line-height-title-sm: 1.375rem;
-
-  /* Body */
   --font-size-body-lg: 1rem;
   --line-height-body-lg: 1.625rem;
   --font-size-body-md: 0.875rem;
   --line-height-body-md: 1.375rem;
   --font-size-body-sm: 0.8125rem;
   --line-height-body-sm: 1.25rem;
-
-  /* Labels */
   --font-size-label-lg: 0.875rem;
   --line-height-label-lg: 1.25rem;
   --font-size-label-md: 0.8125rem;
   --line-height-label-md: 1.125rem;
   --font-size-label-sm: 0.75rem;
   --line-height-label-sm: 1rem;
-
-  /* Caption */
   --font-size-caption: 0.75rem;
   --line-height-caption: 1rem;
-  --font-sans: var(--font-sans);
+
+  /* ---------- shadcn semantic mappings ---------- */
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -137,9 +132,47 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   --color-foreground: var(--foreground);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* ========================================
+ * shadcn/ui semantic variables → CLOIE design system mapping
+ * These are the CSS variables that shadcn components read.
+ * Mapped to CLOIE tokens for visual consistency.
+ * ======================================== */
+
+:root {
+  --background: #F7F9FC;
+  --foreground: #1F2937;
+  --card: #FFFFFF;
+  --card-foreground: #1F2937;
+  --popover: #FFFFFF;
+  --popover-foreground: #1F2937;
+  --primary: #0051C3;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F1F5F9;
+  --secondary-foreground: #1F2937;
+  --muted: #E9EEF5;
+  --muted-foreground: #667085;
+  --accent: #EAF2FF;
+  --accent-foreground: #0051C3;
+  --destructive: #C0362C;
+  --border: #D6DEE8;
+  --input: #D6DEE8;
+  --ring: #0051C3;
+  --chart-1: #0051C3;
+  --chart-2: #D49900;
+  --chart-3: #127C4F;
+  --chart-4: #0B63CE;
+  --chart-5: #B7791F;
+  --radius: 0.625rem;
+  --sidebar: #FFFFFF;
+  --sidebar-foreground: #1F2937;
+  --sidebar-primary: #0051C3;
+  --sidebar-primary-foreground: #FFFFFF;
+  --sidebar-accent: #EAF2FF;
+  --sidebar-accent-foreground: #0051C3;
+  --sidebar-border: #D6DEE8;
+  --sidebar-ring: #0051C3;
 }
 
 /* ========================================
@@ -273,84 +306,9 @@ body {
  * Focus & Interaction
  * ======================================== */
 
-*:focus-visible {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
-}
-
-/* Selection */
 ::selection {
   background-color: var(--color-primary-soft);
   color: var(--color-text-primary);
-}
-
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
-}
-
-.dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
 }
 
 @layer base {
@@ -359,8 +317,5 @@ body {
   }
   body {
     @apply bg-background text-foreground;
-  }
-  html {
-    @apply font-sans;
   }
 }
