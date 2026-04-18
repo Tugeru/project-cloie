@@ -4,12 +4,11 @@ import { createClient } from "@/lib/supabase/server";
 export async function POST(request: Request) {
   const supabase = await createClient();
   
-  // Note: we can't reliably get origin if we are behind a proxy, 
-  // but for simple redirection login page is fine.
   const { origin } = new URL(request.url);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || origin;
 
   await supabase.auth.signOut();
 
   // Return to login page after logout
-  return NextResponse.redirect(`${origin}/login`);
+  return NextResponse.redirect(`${siteUrl}/login`);
 }

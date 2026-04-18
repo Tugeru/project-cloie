@@ -4,7 +4,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
 
-export function GoogleSignInButton() {
+export function GoogleSignInButton({ intent }: { intent?: "student" | "faculty" }) {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignIn = async () => {
@@ -12,10 +12,11 @@ export function GoogleSignInButton() {
       setIsLoading(true);
       const supabase = createClient();
       
+      const intentParam = intent ? `?intent=${intent}` : '';
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/api/auth/callback`,
+          redirectTo: `${window.location.origin}/api/auth/callback${intentParam}`,
         },
       });
 
@@ -23,7 +24,7 @@ export function GoogleSignInButton() {
         console.error("Auth error:", error.message);
         setIsLoading(false);
       }
-    } catch (err) {
+    } catch {
       console.error("Unexpected error during sign in");
       setIsLoading(false);
     }
@@ -55,7 +56,7 @@ export function GoogleSignInButton() {
           ></path>
         </svg>
       )}
-      {isLoading ? "Redirecting..." : "Sign in with Google"}
+      {isLoading ? "Redirecting..." : intent === "student" ? "Sign up as Student" : "Sign in with Google"}
     </Button>
   );
 }
