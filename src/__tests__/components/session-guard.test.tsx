@@ -76,7 +76,24 @@ describe("SessionGuard", () => {
     ).rejects.toThrow(`${REDIRECT_ERROR}:/unauthorized`);
     expect(ensureRoleAccessMock).toHaveBeenCalledWith({
       primaryRole: ROLES.FACULTY,
+      roles: undefined,
       allowedRoles: [ROLES.ADMIN],
+    });
+  });
+
+  it("passes the full session role set to authorization checks", async () => {
+    resolveAuthSessionMock.mockResolvedValue({
+      roles: [ROLES.GRADUATING_STUDENT, ROLES.FACULTY],
+      primaryRole: ROLES.FACULTY,
+      profileGate: { status: "COMPLETE" },
+    });
+
+    await SessionGuard({ children: <div>Protected</div>, allowedRoles: [ROLES.STUDENT] });
+
+    expect(ensureRoleAccessMock).toHaveBeenCalledWith({
+      primaryRole: ROLES.FACULTY,
+      roles: [ROLES.GRADUATING_STUDENT, ROLES.FACULTY],
+      allowedRoles: [ROLES.STUDENT],
     });
   });
 

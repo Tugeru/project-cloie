@@ -31,6 +31,7 @@ export async function SessionGuard({ children, allowedRoles = [] }: SessionGuard
   if (allowedRoles.length > 0) {
     const redirectPath = ensureRoleAccess({
       primaryRole: session.primaryRole,
+      roles: session.roles,
       allowedRoles,
     });
 

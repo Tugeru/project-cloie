@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Role } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import { createClient } from "@/lib/supabase/server";
@@ -8,7 +9,7 @@ type AuthSessionUserRecord = {
   student_profile: { id: string } | null;
 } | null;
 
-export async function resolveAuthSession() {
+export const resolveAuthSession = cache(async function resolveAuthSession() {
   const supabase = await createClient();
   const {
     data: { user },
@@ -36,4 +37,4 @@ export async function resolveAuthSession() {
     roles,
     studentProfileId,
   });
-}
+});

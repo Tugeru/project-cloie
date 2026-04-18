@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ROLES } from "@/lib/constants/roles";
-import { resolveAuthSession } from "@/modules/identity-access/services/resolve-auth-session";
 
 const { getUserMock, findUniqueMock } = vi.hoisted(() => ({
   getUserMock: vi.fn(),
@@ -26,9 +25,11 @@ vi.mock("@/lib/db/prisma", () => ({
 describe("resolveAuthSession", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.resetModules();
   });
 
   it("returns null when Supabase returns an auth error", async () => {
+    const { resolveAuthSession } = await import("@/modules/identity-access/services/resolve-auth-session");
     getUserMock.mockResolvedValue({
       data: { user: null },
       error: new Error("auth failed"),
@@ -39,6 +40,7 @@ describe("resolveAuthSession", () => {
   });
 
   it("returns null when Supabase returns no authenticated user", async () => {
+    const { resolveAuthSession } = await import("@/modules/identity-access/services/resolve-auth-session");
     getUserMock.mockResolvedValue({
       data: { user: null },
       error: null,
@@ -49,6 +51,7 @@ describe("resolveAuthSession", () => {
   });
 
   it("returns role-selection state when the authenticated user has no DB roles", async () => {
+    const { resolveAuthSession } = await import("@/modules/identity-access/services/resolve-auth-session");
     getUserMock.mockResolvedValue({
       data: { user: { id: "user-1", email: "user@acd.edu.ph" } },
       error: null,
@@ -69,6 +72,7 @@ describe("resolveAuthSession", () => {
   });
 
   it("returns onboarding-required state for an authenticated student without a profile", async () => {
+    const { resolveAuthSession } = await import("@/modules/identity-access/services/resolve-auth-session");
     getUserMock.mockResolvedValue({
       data: { user: { id: "user-2", email: "student@acd.edu.ph" } },
       error: null,
@@ -92,6 +96,7 @@ describe("resolveAuthSession", () => {
   });
 
   it("returns complete state for an authenticated student with a profile", async () => {
+    const { resolveAuthSession } = await import("@/modules/identity-access/services/resolve-auth-session");
     getUserMock.mockResolvedValue({
       data: { user: { id: "user-3", email: "student@acd.edu.ph" } },
       error: null,
@@ -111,7 +116,44 @@ describe("resolveAuthSession", () => {
     });
   });
 
+  it("reuses the same resolved session within one request context", async () => {
+    vi.doMock("react", async () => {
+      const actual = await vi.importActual<typeof import("react")>("react");
+
+      return {
+        ...actual,
+        cache: <T extends (...args: never[]) => Promise<unknown>>(fn: T) => {
+          let cached: Promise<unknown> | undefined;
+
+          return ((...args: Parameters<T>) => {
+            cached ??= fn(...args);
+            return cached;
+          }) as T;
+        },
+      };
+    });
+
+    const { resolveAuthSession } = await import("@/modules/identity-access/services/resolve-auth-session");
+    getUserMock.mockResolvedValue({
+      data: { user: { id: "user-3", email: "student@acd.edu.ph" } },
+      error: null,
+    });
+    findUniqueMock.mockResolvedValue({
+      roles: [{ role: { name: ROLES.STUDENT } }],
+      student_profile: { id: "profile-1" },
+    });
+
+    const [first, second] = await Promise.all([resolveAuthSession(), resolveAuthSession()]);
+
+    expect(first).toEqual(second);
+    expect(getUserMock).toHaveBeenCalledTimes(1);
+    expect(findUniqueMock).toHaveBeenCalledTimes(1);
+
+    vi.doUnmock("react");
+  });
+
   it("resolves the expected primary role for a multiple-role user", async () => {
+    const { resolveAuthSession } = await import("@/modules/identity-access/services/resolve-auth-session");
     getUserMock.mockResolvedValue({
       data: { user: { id: "user-4", email: "faculty@acd.edu.ph" } },
       error: null,
