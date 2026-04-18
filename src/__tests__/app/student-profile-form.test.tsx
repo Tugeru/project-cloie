@@ -1,0 +1,125 @@
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const { pushMock, refreshMock, registerStudentProfileMock } = vi.hoisted(() => ({
+  pushMock: vi.fn(),
+  refreshMock: vi.fn(),
+  registerStudentProfileMock: vi.fn(),
+}));
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: pushMock,
+    refresh: refreshMock,
+  }),
+}));
+
+vi.mock("@/lib/actions/onboarding-actions", () => ({
+  registerStudentProfile: registerStudentProfileMock,
+}));
+
+vi.mock("@/lib/supabase/client", () => ({
+  createClient: () => ({
+    auth: { signOut: vi.fn() },
+  }),
+}));
+
+vi.mock("@/lib/forms/zod-resolver", () => ({
+  customZodResolver: vi.fn(() => undefined),
+}));
+
+vi.mock("@/components/ui/card", () => ({
+  Card: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardDescription: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardHeader: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardTitle: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  CardFooter: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+vi.mock("@/components/ui/label", () => ({
+  Label: ({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) => (
+    <label htmlFor={htmlFor}>{children}</label>
+  ),
+}));
+
+vi.mock("@/components/ui/input", () => ({
+  Input: ({ ...props }: React.InputHTMLAttributes<HTMLInputElement>) => <input {...props} />,
+}));
+
+vi.mock("@/components/ui/button", () => ({
+  Button: ({ children, ...props }: React.ButtonHTMLAttributes<HTMLButtonElement>) => (
+    <button {...props}>{children}</button>
+  ),
+}));
+
+vi.mock("@/components/ui/alert", () => ({
+  Alert: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  AlertDescription: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+}));
+
+vi.mock("lucide-react", () => ({
+  AlertCircle: () => <span>Alert</span>,
+}));
+
+vi.mock("@/components/ui/select", () => ({
+  Select: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectContent: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectItem: ({ children, value }: { children: React.ReactNode; value: string }) => (
+    <option value={value}>{children}</option>
+  ),
+  SelectTrigger: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  SelectValue: ({ placeholder }: { placeholder?: string }) => <span>{placeholder}</span>,
+}));
+
+import { StudentProfileForm } from "@/app/(public)/onboarding/student-profile-form";
+
+describe("StudentProfileForm", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("does not redirect when submission returns neither success nor error", async () => {
+    registerStudentProfileMock.mockResolvedValue({});
+
+    render(
+      <StudentProfileForm
+        email="student@acd.edu.ph"
+        initialFirstName="Jamie"
+        initialLastName="Cruz"
+        programs={[]}
+        yearLevels={[]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Complete Registration" }));
+
+    await waitFor(() => {
+      expect(registerStudentProfileMock).toHaveBeenCalledTimes(1);
+    });
+    expect(pushMock).not.toHaveBeenCalled();
+    expect(refreshMock).not.toHaveBeenCalled();
+  });
+
+  it("redirects to the dashboard only when submission succeeds", async () => {
+    registerStudentProfileMock.mockResolvedValue({ success: true });
+
+    render(
+      <StudentProfileForm
+        email="student@acd.edu.ph"
+        initialFirstName="Jamie"
+        initialLastName="Cruz"
+        programs={[]}
+        yearLevels={[]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Complete Registration" }));
+
+    await waitFor(() => {
+      expect(registerStudentProfileMock).toHaveBeenCalledTimes(1);
+    });
+    expect(pushMock).toHaveBeenCalledWith("/dashboard");
+    expect(refreshMock).toHaveBeenCalledTimes(1);
+  });
+});

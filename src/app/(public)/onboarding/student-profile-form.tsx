@@ -78,8 +78,10 @@ export function StudentProfileForm({
       return;
     }
 
-    router.push("/dashboard");
-    router.refresh();
+    if (result.success === true) {
+      router.push("/dashboard");
+      router.refresh();
+    }
   };
 
   return (
