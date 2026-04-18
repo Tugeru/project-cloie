@@ -127,6 +127,28 @@ describe("resolvePostLoginDestination", () => {
     ).toBe("/faculty/dashboard");
   });
 
+  it("fails closed for a complete alumni user instead of looping back to dashboard", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "/dashboard",
+        intent: null,
+        primaryRole: ROLES.ALUMNI,
+        profileGate: { status: "COMPLETE" },
+      })
+    ).toBe("/unauthorized");
+  });
+
+  it("fails closed for a complete industry partner instead of looping back to dashboard", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "/dashboard",
+        intent: null,
+        primaryRole: ROLES.INDUSTRY_PARTNER,
+        profileGate: { status: "COMPLETE" },
+      })
+    ).toBe("/unauthorized");
+  });
+
   it("falls back to the generic dashboard for a complete user with no mapped role", () => {
     expect(
       resolvePostLoginDestination({

@@ -42,6 +42,9 @@ export function resolvePostLoginDestination({
     case ROLES.STUDENT:
     case ROLES.GRADUATING_STUDENT:
       return "/student/dashboard";
+    case ROLES.ALUMNI:
+    case ROLES.INDUSTRY_PARTNER:
+      return "/unauthorized";
     default:
       return "/dashboard";
   }
