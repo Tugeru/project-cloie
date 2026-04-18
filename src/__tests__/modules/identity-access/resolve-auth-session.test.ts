@@ -38,6 +38,16 @@ describe("resolveAuthSession", () => {
     expect(findUniqueMock).not.toHaveBeenCalled();
   });
 
+  it("returns null when Supabase returns no authenticated user", async () => {
+    getUserMock.mockResolvedValue({
+      data: { user: null },
+      error: null,
+    });
+
+    await expect(resolveAuthSession()).resolves.toBeNull();
+    expect(findUniqueMock).not.toHaveBeenCalled();
+  });
+
   it("returns role-selection state when the authenticated user has no DB roles", async () => {
     getUserMock.mockResolvedValue({
       data: { user: { id: "user-1", email: "user@acd.edu.ph" } },
