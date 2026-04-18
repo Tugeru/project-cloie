@@ -81,7 +81,7 @@ describe("auth callback route", () => {
     expect(response.headers.get("location")).toBe("https://cloie.test/faculty/dashboard");
   });
 
-  it("uses the forwarded host outside development", async () => {
+  it("ignores forwarded host overrides and keeps the trusted redirect base", async () => {
     vi.stubEnv("NODE_ENV", "production");
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://public.example");
     exchangeCodeForSessionMock.mockResolvedValue({
@@ -95,6 +95,6 @@ describe("auth callback route", () => {
     });
     const response = await GET(request);
 
-    expect(response.headers.get("location")).toBe("https://app.example.com/admin/dashboard");
+    expect(response.headers.get("location")).toBe("https://public.example/admin/dashboard");
   });
 });

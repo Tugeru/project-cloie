@@ -56,6 +56,18 @@ describe("buildAuthSessionSnapshot", () => {
     });
   });
 
+  it("does not globally force mixed faculty and graduating-student users into onboarding", () => {
+    const session = buildAuthSessionSnapshot({
+      userId: "user-3c",
+      email: "faculty@acd.edu.ph",
+      roles: [ROLES.FACULTY, ROLES.GRADUATING_STUDENT],
+      studentProfileId: null,
+    });
+
+    expect(session.primaryRole).toBe(ROLES.FACULTY);
+    expect(session.profileGate).toEqual({ status: "COMPLETE" });
+  });
+
   it("allows faculty users without student profiles", () => {
     const session = buildAuthSessionSnapshot({
       userId: "user-4",
@@ -66,5 +78,17 @@ describe("buildAuthSessionSnapshot", () => {
 
     expect(session.primaryRole).toBe(ROLES.FACULTY);
     expect(session.profileGate).toEqual({ status: "COMPLETE" });
+  });
+
+  it("treats unknown roles as no valid app role", () => {
+    const session = buildAuthSessionSnapshot({
+      userId: "user-5",
+      email: "unknown@acd.edu.ph",
+      roles: [],
+      studentProfileId: null,
+    });
+
+    expect(session.primaryRole).toBeNull();
+    expect(session.profileGate).toEqual({ status: "ROLE_SELECTION_REQUIRED" });
   });
 });

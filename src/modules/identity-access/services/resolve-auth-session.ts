@@ -1,5 +1,5 @@
 import { cache } from "react";
-import type { Role } from "@/lib/constants/roles";
+import { ROLES, type Role } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { buildAuthSessionSnapshot } from "./build-auth-session-snapshot";
@@ -8,6 +8,12 @@ type AuthSessionUserRecord = {
   roles: Array<{ role: { name: string } }>;
   student_profile: { id: string } | null;
 } | null;
+
+const KNOWN_ROLES = new Set<Role>(Object.values(ROLES));
+
+function isKnownRole(roleName: string): roleName is Role {
+  return KNOWN_ROLES.has(roleName as Role);
+}
 
 export const resolveAuthSession = cache(async function resolveAuthSession() {
   const supabase = await createClient();
@@ -28,7 +34,10 @@ export const resolveAuthSession = cache(async function resolveAuthSession() {
     },
   });
 
-  const roles: Role[] = dbUser?.roles.map((userRole) => userRole.role.name as Role) ?? [];
+  const roles: Role[] =
+    dbUser?.roles
+      .map((userRole) => userRole.role.name)
+      .filter((roleName): roleName is Role => isKnownRole(roleName)) ?? [];
   const studentProfileId = dbUser?.student_profile?.id ?? null;
 
   return buildAuthSessionSnapshot({

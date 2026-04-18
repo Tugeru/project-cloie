@@ -95,6 +95,27 @@ describe("resolveAuthSession", () => {
     });
   });
 
+  it("does not globally force mixed faculty and graduating-student users into onboarding", async () => {
+    const { resolveAuthSession } = await import("@/modules/identity-access/services/resolve-auth-session");
+    getUserMock.mockResolvedValue({
+      data: { user: { id: "user-2b", email: "faculty@acd.edu.ph" } },
+      error: null,
+    });
+    findUniqueMock.mockResolvedValue({
+      roles: [{ role: { name: ROLES.FACULTY } }, { role: { name: ROLES.GRADUATING_STUDENT } }],
+      student_profile: null,
+    });
+
+    await expect(resolveAuthSession()).resolves.toEqual({
+      userId: "user-2b",
+      email: "faculty@acd.edu.ph",
+      roles: [ROLES.FACULTY, ROLES.GRADUATING_STUDENT],
+      primaryRole: ROLES.FACULTY,
+      studentProfileId: null,
+      profileGate: { status: "COMPLETE" },
+    });
+  });
+
   it("returns complete state for an authenticated student with a profile", async () => {
     const { resolveAuthSession } = await import("@/modules/identity-access/services/resolve-auth-session");
     getUserMock.mockResolvedValue({
@@ -170,6 +191,27 @@ describe("resolveAuthSession", () => {
       primaryRole: ROLES.FACULTY,
       studentProfileId: "profile-2",
       profileGate: { status: "COMPLETE" },
+    });
+  });
+
+  it("filters unknown DB role names out of the session snapshot", async () => {
+    const { resolveAuthSession } = await import("@/modules/identity-access/services/resolve-auth-session");
+    getUserMock.mockResolvedValue({
+      data: { user: { id: "user-5", email: "unknown@acd.edu.ph" } },
+      error: null,
+    });
+    findUniqueMock.mockResolvedValue({
+      roles: [{ role: { name: "STALE_ROLE" } }],
+      student_profile: null,
+    });
+
+    await expect(resolveAuthSession()).resolves.toEqual({
+      userId: "user-5",
+      email: "unknown@acd.edu.ph",
+      roles: [],
+      primaryRole: null,
+      studentProfileId: null,
+      profileGate: { status: "ROLE_SELECTION_REQUIRED" },
     });
   });
 });

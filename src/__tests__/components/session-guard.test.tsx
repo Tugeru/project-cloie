@@ -85,6 +85,7 @@ describe("SessionGuard", () => {
     resolveAuthSessionMock.mockResolvedValue({
       roles: [ROLES.GRADUATING_STUDENT, ROLES.FACULTY],
       primaryRole: ROLES.FACULTY,
+      studentProfileId: "profile-1",
       profileGate: { status: "COMPLETE" },
     });
 
@@ -97,9 +98,41 @@ describe("SessionGuard", () => {
     });
   });
 
+  it("redirects mixed-role users to onboarding for protected student access when the student profile is missing", async () => {
+    resolveAuthSessionMock.mockResolvedValue({
+      roles: [ROLES.FACULTY, ROLES.GRADUATING_STUDENT],
+      primaryRole: ROLES.FACULTY,
+      studentProfileId: null,
+      profileGate: { status: "COMPLETE" },
+    });
+
+    await expect(
+      SessionGuard({
+        children: <div>Protected</div>,
+        allowedRoles: [ROLES.STUDENT, ROLES.GRADUATING_STUDENT],
+      })
+    ).rejects.toThrow(`${REDIRECT_ERROR}:/onboarding?intent=student`);
+  });
+
+  it("allows mixed-role users through faculty access without forcing student onboarding", async () => {
+    resolveAuthSessionMock.mockResolvedValue({
+      roles: [ROLES.FACULTY, ROLES.GRADUATING_STUDENT],
+      primaryRole: ROLES.FACULTY,
+      studentProfileId: null,
+      profileGate: { status: "COMPLETE" },
+    });
+
+    const result = await SessionGuard({ children: <div>Faculty Content</div>, allowedRoles: [ROLES.FACULTY] });
+
+    render(result);
+    expect(screen.getByText("Faculty Content")).toBeInTheDocument();
+  });
+
   it("renders children for an allowed complete user", async () => {
     resolveAuthSessionMock.mockResolvedValue({
+      roles: [ROLES.ADMIN],
       primaryRole: ROLES.ADMIN,
+      studentProfileId: null,
       profileGate: { status: "COMPLETE" },
     });
 

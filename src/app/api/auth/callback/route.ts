@@ -7,8 +7,6 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || origin;
-  const forwardedHost = request.headers.get("x-forwarded-host");
-  const isLocalEnv = process.env.NODE_ENV === "development";
 
   if (!code) {
     return NextResponse.redirect(`${siteUrl}/login?error=auth-failure`);
@@ -37,6 +35,5 @@ export async function GET(request: Request) {
     profileGate: session?.profileGate ?? { status: "ROLE_SELECTION_REQUIRED" },
   });
 
-  const redirectBase = !isLocalEnv && forwardedHost ? `https://${forwardedHost}` : siteUrl;
-  return NextResponse.redirect(`${redirectBase}${nextUrl}`);
+  return NextResponse.redirect(`${siteUrl}${nextUrl}`);
 }

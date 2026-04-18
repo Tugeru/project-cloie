@@ -17,14 +17,17 @@ export function buildAuthSessionSnapshot(input: {
   roles: Role[];
   studentProfileId: string | null;
 }): AuthSessionSnapshot {
+  const primaryRole = resolvePrimaryRole(input.roles);
+
   return {
     userId: input.userId,
     email: input.email,
     roles: input.roles,
-    primaryRole: resolvePrimaryRole(input.roles),
+    primaryRole,
     studentProfileId: input.studentProfileId,
     profileGate: resolveProfileGate({
       roles: input.roles,
+      primaryRole,
       studentProfileId: input.studentProfileId,
     }),
   };

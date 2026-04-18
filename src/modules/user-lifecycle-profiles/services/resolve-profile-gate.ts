@@ -7,16 +7,17 @@ export type ProfileGate =
 
 export function resolveProfileGate(input: {
   roles: Role[];
+  primaryRole: Role | null;
   studentProfileId: string | null;
 }): ProfileGate {
   if (input.roles.length === 0) {
     return { status: "ROLE_SELECTION_REQUIRED" };
   }
 
-  const isStudentLikeRole =
-    input.roles.includes(ROLES.STUDENT) || input.roles.includes(ROLES.GRADUATING_STUDENT);
+  const isStudentWorkingRole =
+    input.primaryRole === ROLES.STUDENT || input.primaryRole === ROLES.GRADUATING_STUDENT;
 
-  if (isStudentLikeRole && !input.studentProfileId) {
+  if (isStudentWorkingRole && !input.studentProfileId) {
     return { status: "STUDENT_ONBOARDING_REQUIRED", intent: "student" };
   }
 
