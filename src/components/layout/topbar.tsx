@@ -1,7 +1,17 @@
 import { Bell } from "lucide-react";
 import Image from "next/image";
+import type { Role } from "@/lib/constants/roles";
 
-export function Topbar() {
+interface TopbarProps {
+  user?: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  };
+  roles?: Role[];
+}
+
+export function Topbar({ user }: TopbarProps) {
   return (
     <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-border bg-surface px-4 sm:px-6">
       {/* Mobile left-side branding (hidden on desktop since sidebar has it) */}
@@ -30,7 +40,9 @@ export function Topbar() {
 
         {/* Mobile profile avatar (Desktop has it in sidebar) */}
         <div className="flex size-8 items-center justify-center rounded-full bg-primary text-white lg:hidden">
-          <span className="text-caption font-semibold">T</span>
+          <span className="text-caption font-semibold">
+            {user?.name?.[0] || "U"}
+          </span>
         </div>
       </div>
     </header>

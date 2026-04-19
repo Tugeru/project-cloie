@@ -7,6 +7,16 @@ import {
   FileCheck, 
   Menu 
 } from "lucide-react";
+import type { Role } from "@/lib/constants/roles";
+
+interface MobileNavProps {
+  user?: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  };
+  roles?: Role[];
+}
 
 /**
  * Temporary mock navigation data for mobile bottom bar.
@@ -18,7 +28,7 @@ const MOCK_MOBILE_NAV = [
   { name: "Evaluations", href: "/evaluations", icon: FileCheck },
 ];
 
-export function MobileNav() {
+export function MobileNav({ roles }: MobileNavProps) {
   return (
     <nav className="fixed inset-x-0 bottom-0 z-50 flex h-16 items-center justify-between border-t border-border bg-surface px-6 pb-safe lg:hidden">
       {MOCK_MOBILE_NAV.map((item) => (

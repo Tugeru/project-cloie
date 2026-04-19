@@ -8,6 +8,16 @@ import {
   BarChart, 
   Settings 
 } from "lucide-react";
+import type { Role } from "@/lib/constants/roles";
+
+interface SidebarProps {
+  user?: {
+    name?: string | null;
+    email?: string | null;
+    image?: string | null;
+  };
+  roles?: Role[];
+}
 
 /**
  * Temporary mock navigation data.
@@ -22,7 +32,7 @@ const MOCK_NAV = [
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({ user }: SidebarProps) {
   return (
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-border bg-surface lg:flex">
       <div className="flex h-16 shrink-0 items-center border-b border-border px-6">
@@ -54,11 +64,17 @@ export function Sidebar() {
       <div className="mt-auto border-t border-border p-4">
         <div className="flex items-center gap-3 rounded-md px-3 py-2">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-white">
-            <span className="text-body-sm font-semibold">T</span>
+            <span className="text-body-sm font-semibold">
+              {user?.name?.[0] || "U"}
+            </span>
           </div>
           <div className="flex flex-col">
-            <span className="text-label-md font-semibold text-text-primary">Test User</span>
-            <span className="text-caption text-text-muted">test@acd.edu.ph</span>
+            <span className="text-label-md font-semibold text-text-primary">
+              {user?.name || "User"}
+            </span>
+            <span className="text-caption text-text-muted">
+              {user?.email || "No email provided"}
+            </span>
           </div>
         </div>
       </div>
