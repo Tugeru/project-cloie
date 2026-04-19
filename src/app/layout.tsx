@@ -1,9 +1,7 @@
 import type { Metadata, Viewport } from "next";
-import { Manrope, Inter, Geist } from "next/font/google";
+import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
-
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
 const manrope = Manrope({
   variable: "--font-heading",
@@ -51,7 +49,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={cn("h-full", manrope.variable, inter.variable, "font-sans", geist.variable)}
+      className={cn("h-full", manrope.variable, inter.variable, "font-sans")}
       suppressHydrationWarning
     >
       <body suppressHydrationWarning className="min-h-full flex flex-col antialiased">{children}</body>

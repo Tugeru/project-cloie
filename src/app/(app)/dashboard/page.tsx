@@ -3,18 +3,16 @@ import { resolveAuthSession } from "@/modules/identity-access/services/resolve-a
 import { resolvePostLoginDestination } from "@/modules/identity-access/services/resolve-post-login-destination";
 
 export default async function DashboardPage() {
+  // SessionGuard in the parent layout guarantees a session exists here.
+  // resolveAuthSession is cached per render (React cache), so no extra DB call.
   const session = await resolveAuthSession();
-
-  if (!session) {
-    redirect("/login");
-  }
 
   redirect(
     resolvePostLoginDestination({
       requestedPath: "/dashboard",
       intent: null,
-      primaryRole: session.primaryRole,
-      profileGate: session.profileGate,
+      primaryRole: session!.primaryRole,
+      profileGate: session!.profileGate,
     })
   );
 }
