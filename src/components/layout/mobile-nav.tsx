@@ -40,17 +40,20 @@ export function MobileNav({ roles = [] }: MobileNavProps) {
           </Link>
         );
       })}
-      <button 
-        type="button" 
-        className="flex flex-1 flex-col items-center justify-center gap-1 text-text-muted hover:text-text-primary transition-colors"
-        onClick={() => {
-          // TODO: Open mobile drawer menu (Task 6 or later)
-          console.log("Open drawer");
-        }}
-      >
-        <Menu className="size-6" />
-        <span className="text-[10px] font-medium leading-none">Menu</span>
-      </button>
+      
+      {!isStudent && (
+        <button 
+          type="button" 
+          className="flex flex-1 flex-col items-center justify-center gap-1 text-text-muted hover:text-text-primary transition-colors"
+          onClick={() => {
+            // TODO: Open mobile drawer menu (Task 6 or later)
+            console.log("Open drawer");
+          }}
+        >
+          <Menu className="size-6" />
+          <span className="text-[10px] font-medium leading-none">Menu</span>
+        </button>
+      )}
     </nav>
   );
 }
