@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Eye, Download, Calendar, Hash } from "lucide-react";
+import { FileText, Eye, Calendar } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 export default function StudentHistoryPage() {
@@ -32,7 +32,6 @@ export default function StudentHistoryPage() {
             <TableRow>
               <TableHead className="font-bold text-[10px] uppercase tracking-wider">Evaluation Form</TableHead>
               <TableHead className="font-bold text-[10px] uppercase tracking-wider">Submission Date</TableHead>
-              <TableHead className="font-bold text-[10px] uppercase tracking-wider">Receipt ID</TableHead>
               <TableHead className="font-bold text-[10px] uppercase tracking-wider">Status</TableHead>
               <TableHead className="text-right font-bold text-[10px] uppercase tracking-wider">Actions</TableHead>
             </TableRow>
@@ -47,7 +46,6 @@ export default function StudentHistoryPage() {
                   </div>
                 </TableCell>
                 <TableCell className="text-sm font-medium">{sub.date}</TableCell>
-                <TableCell className="text-xs font-mono text-text-muted">{sub.id}</TableCell>
                 <TableCell>
                   <Badge variant="success" className="text-[10px] uppercase font-bold">Submitted</Badge>
                 </TableCell>
@@ -55,9 +53,6 @@ export default function StudentHistoryPage() {
                   <div className="flex justify-end gap-2">
                     <Button variant="ghost" size="icon-sm" title="View Answers">
                       <Eye className="size-4" />
-                    </Button>
-                    <Button variant="ghost" size="icon-sm" title="Download Receipt">
-                      <Download className="size-4" />
                     </Button>
                   </div>
                 </TableCell>
@@ -80,7 +75,7 @@ export default function StudentHistoryPage() {
                 <Badge variant="success" className="text-[9px] uppercase font-bold shrink-0">Submitted</Badge>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 py-3 border-y border-border/50">
+              <div className="py-3 border-y border-border/50">
                 <div className="flex items-center gap-2">
                   <Calendar className="size-3.5 text-text-muted" />
                   <div className="flex flex-col">
@@ -88,21 +83,11 @@ export default function StudentHistoryPage() {
                     <span className="text-xs font-bold">{sub.date}</span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Hash className="size-3.5 text-text-muted" />
-                  <div className="flex flex-col">
-                    <span className="text-[9px] font-black uppercase text-text-muted tracking-tighter">Receipt</span>
-                    <span className="text-xs font-mono text-text-muted truncate">{sub.id}</span>
-                  </div>
-                </div>
               </div>
 
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" className="flex-1 font-bold gap-2 text-xs">
-                  <Eye className="size-3.5" /> View
-                </Button>
-                <Button variant="outline" size="sm" className="flex-1 font-bold gap-2 text-xs">
-                  <Download className="size-3.5" /> Receipt
+                  <Eye className="size-3.5" /> View Answers
                 </Button>
               </div>
             </CardContent>

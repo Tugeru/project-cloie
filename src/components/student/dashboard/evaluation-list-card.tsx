@@ -4,6 +4,7 @@ import { Progress } from "@/components/ui/progress";
 import Link from "next/link";
 
 interface EvaluationListCardProps {
+  id?: string;
   title: string;
   course: string;
   program: string;
@@ -13,6 +14,7 @@ interface EvaluationListCardProps {
 }
 
 export function EvaluationListCard({ 
+  id = "mock-id",
   title, 
   course, 
   program, 
@@ -52,7 +54,7 @@ export function EvaluationListCard({
             </div>
           )}
           <Button 
-            render={<Link href={`/student/evaluations/mock-id`} />} 
+            render={<Link href={`/student/evaluations/${id}`} />} 
             className="w-full md:w-auto mt-2 font-bold"
           >
             {isResuming ? "Resume" : "Start Evaluation"}
