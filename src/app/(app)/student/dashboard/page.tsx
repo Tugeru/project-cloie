@@ -2,11 +2,27 @@ import { HeroCard } from "@/components/student/dashboard/hero-card";
 import { StatCards } from "@/components/student/dashboard/stat-cards";
 import { EvaluationListCard } from "@/components/student/dashboard/evaluation-list-card";
 import Link from "next/link";
+import { ComponentProps } from "react";
+
+type EvaluationItem = ComponentProps<typeof EvaluationListCard>;
 
 export default function StudentDashboardPage() {
-  const activeEvals = [
-    { title: "Post-Term CILO Evaluation Tool", course: "ITE 18 – Capstone 1", program: "BSIT • 4th Year", deadline: "May 20, 2026", progress: 45, status: "IN_PROGRESS" },
-    { title: "Exit Survey for Graduating Students", course: "Central Deployment", program: "BSIT • 4th Year", deadline: "May 25, 2026", status: "DUE_SOON" },
+  const activeEvals: EvaluationItem[] = [
+    { 
+      title: "Post-Term CILO Evaluation Tool", 
+      course: "ITE 18 – Capstone 1", 
+      program: "BSIT • 4th Year", 
+      deadline: "May 20, 2026", 
+      progress: 45, 
+      status: "IN_PROGRESS" 
+    },
+    { 
+      title: "Exit Survey for Graduating Students", 
+      course: "Central Deployment", 
+      program: "BSIT • 4th Year", 
+      deadline: "May 25, 2026", 
+      status: "DUE_SOON" 
+    },
   ];
 
   return (
