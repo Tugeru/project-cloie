@@ -45,12 +45,16 @@ function Button({
   variant = "default",
   size = "default",
   ...props
-}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants> & { asChild?: boolean }) {
+  // Base UI uses the 'render' prop for delegation, not 'asChild'.
+  // We destructure asChild here to prevent it from being passed to the DOM.
+  const { asChild, ...rest } = props;
+  
   return (
     <ButtonPrimitive
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
-      {...props}
+      {...rest}
     />
   )
 }

@@ -23,7 +23,7 @@ export function AppShell({ children, user, roles }: AppShellProps) {
       {/* Main Content Area */}
       <div className="flex flex-1 flex-col lg:pl-64">
         {/* Top App Bar */}
-        <Topbar user={user} roles={roles} />
+        <Topbar user={user} />
 
         {/* Page Content */}
         <main className="flex-1 overflow-y-auto w-full max-w-[1600px] mx-auto p-4 sm:p-6 pb-24 lg:pb-8">
@@ -31,7 +31,7 @@ export function AppShell({ children, user, roles }: AppShellProps) {
         </main>
 
         {/* Mobile Bottom Navigation */}
-        <MobileNav user={user} roles={roles} />
+        <MobileNav roles={roles} />
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ describe("EvaluationListCard", () => {
     course: "ITE 18",
     program: "BSIT",
     deadline: "May 20",
-    status: "NOT_STARTED"
+    status: "NOT_STARTED" as const
   };
 
   test("renders basic evaluation details", () => {

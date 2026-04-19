@@ -51,10 +51,11 @@ export function EvaluationListCard({
               />
             </div>
           )}
-          <Button asChild className="w-full md:w-auto mt-2">
-            <Link href={`/student/evaluations/mock-id`}>
-              {isResuming ? "Resume" : "Start Evaluation"}
-            </Link>
+          <Button 
+            render={<Link href={`/student/evaluations/mock-id`} />} 
+            className="w-full md:w-auto mt-2 font-bold"
+          >
+            {isResuming ? "Resume" : "Start Evaluation"}
           </Button>
         </div>
       </div>

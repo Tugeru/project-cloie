@@ -8,7 +8,6 @@ import {
   LogOut,
   type LucideIcon
 } from "lucide-react";
-import { ROLES, type Role } from "./roles";
 
 export interface NavItem {
   name: string;
@@ -37,7 +36,6 @@ export const STUDENT_SECONDARY_NAV: NavItem[] = [
   { name: "Logout", href: "/api/auth/logout", icon: LogOut },
 ];
 
-// Fallback for other roles until their dashboards are implemented
 export const DEFAULT_NAV: NavItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
 ];

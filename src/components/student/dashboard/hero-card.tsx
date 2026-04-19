@@ -22,8 +22,12 @@ export function HeroCard({ name, program, year, section }: HeroCardProps) {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button asChild variant="secondary" className="font-semibold">
-            <Link href="/student/evaluations">My Evaluations</Link>
+          <Button 
+            render={<Link href="/student/evaluations" />} 
+            variant="secondary" 
+            className="font-semibold"
+          >
+            My Evaluations
           </Button>
         </div>
       </div>
