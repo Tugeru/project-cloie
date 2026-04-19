@@ -3,7 +3,7 @@ import Link from "next/link";
 import { prisma } from "@/lib/db/prisma";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { resolveAuthSession } from "@/modules/identity-access/services/resolve-auth-session";
+import { resolveAuthSessionFromUser } from "@/modules/identity-access/services/resolve-auth-session";
 import { resolvePostLoginDestination } from "@/modules/identity-access/services/resolve-post-login-destination";
 import { createClient } from "@/lib/supabase/server";
 import { StudentProfileForm } from "./student-profile-form";
@@ -23,7 +23,10 @@ export default async function OnboardingPage({
     redirect("/login");
   }
 
-  const session = await resolveAuthSession();
+  const session = await resolveAuthSessionFromUser({
+    id: user.id,
+    email: user.email ?? null,
+  });
   if (session && session.profileGate.status === "COMPLETE") {
     redirect(
       resolvePostLoginDestination({
@@ -35,9 +38,6 @@ export default async function OnboardingPage({
     );
   }
 
-  const programs = await prisma.program.findMany({ include: { majors: true } });
-  const yearLevels = await prisma.yearLevel.findMany({ orderBy: { order: "asc" } });
-
   const resolvedParams = await searchParams;
   const intent = resolvedParams?.intent as string | undefined;
 
@@ -46,6 +46,9 @@ export default async function OnboardingPage({
   const lastNameFallback = meta.full_name ? meta.full_name.split(" ").slice(1).join(" ") : "";
 
   if (intent === "student") {
+    const programs = await prisma.program.findMany({ include: { majors: true } });
+    const yearLevels = await prisma.yearLevel.findMany({ orderBy: { order: "asc" } });
+
     return (
       <div className="mx-auto w-full max-w-2xl py-8">
         <StudentProfileForm

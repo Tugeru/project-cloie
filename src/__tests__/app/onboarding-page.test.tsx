@@ -7,6 +7,7 @@ const {
   redirectMock,
   getUserMock,
   resolveAuthSessionMock,
+  resolveAuthSessionFromUserMock,
   resolvePostLoginDestinationMock,
   programFindManyMock,
   yearLevelFindManyMock,
@@ -16,6 +17,7 @@ const {
   }),
   getUserMock: vi.fn(),
   resolveAuthSessionMock: vi.fn(),
+  resolveAuthSessionFromUserMock: vi.fn(),
   resolvePostLoginDestinationMock: vi.fn(),
   programFindManyMock: vi.fn(),
   yearLevelFindManyMock: vi.fn(),
@@ -50,6 +52,7 @@ vi.mock("@/lib/db/prisma", () => ({
 
 vi.mock("@/modules/identity-access/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
+  resolveAuthSessionFromUser: resolveAuthSessionFromUserMock,
 }));
 
 vi.mock("@/modules/identity-access/services/resolve-post-login-destination", () => ({
@@ -68,6 +71,7 @@ describe("OnboardingPage", () => {
     getUserMock.mockResolvedValue({
       data: {
         user: {
+          id: "user-1",
           email: "student@acd.edu.ph",
           user_metadata: { full_name: "Jamie Cruz" },
         },
@@ -75,6 +79,10 @@ describe("OnboardingPage", () => {
       error: null,
     });
     resolveAuthSessionMock.mockResolvedValue({
+      primaryRole: null,
+      profileGate: { status: "ROLE_SELECTION_REQUIRED" },
+    });
+    resolveAuthSessionFromUserMock.mockResolvedValue({
       primaryRole: null,
       profileGate: { status: "ROLE_SELECTION_REQUIRED" },
     });
@@ -95,7 +103,7 @@ describe("OnboardingPage", () => {
   });
 
   it("redirects complete users through resolvePostLoginDestination", async () => {
-    resolveAuthSessionMock.mockResolvedValue({
+    resolveAuthSessionFromUserMock.mockResolvedValue({
       primaryRole: "STUDENT",
       profileGate: { status: "COMPLETE" },
     });
@@ -109,6 +117,11 @@ describe("OnboardingPage", () => {
       primaryRole: "STUDENT",
       profileGate: { status: "COMPLETE" },
     });
+    expect(resolveAuthSessionFromUserMock).toHaveBeenCalledWith({
+      id: "user-1",
+      email: "student@acd.edu.ph",
+    });
+    expect(resolveAuthSessionMock).not.toHaveBeenCalled();
   });
 
   it("renders the student form path for incomplete users with intent=student", async () => {
@@ -118,5 +131,9 @@ describe("OnboardingPage", () => {
 
     render(page);
     expect(screen.getByText("Student form for student@acd.edu.ph")).toBeInTheDocument();
+    expect(resolveAuthSessionFromUserMock).toHaveBeenCalledWith({
+      id: "user-1",
+      email: "student@acd.edu.ph",
+    });
   });
 });

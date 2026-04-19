@@ -4,6 +4,11 @@ import { prisma } from "@/lib/db/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { buildAuthSessionSnapshot } from "./build-auth-session-snapshot";
 
+type AuthenticatedUser = {
+  id: string;
+  email: string | null;
+};
+
 type AuthSessionUserRecord = {
   roles: Array<{ role: { name: string } }>;
   student_profile: { id: string } | null;
@@ -15,17 +20,7 @@ function isKnownRole(roleName: string): roleName is Role {
   return KNOWN_ROLES.has(roleName as Role);
 }
 
-export const resolveAuthSession = cache(async function resolveAuthSession() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser();
-
-  if (error || !user) {
-    return null;
-  }
-
+async function resolveAuthSessionFromAuthenticatedUser(user: AuthenticatedUser) {
   const dbUser: AuthSessionUserRecord = await prisma.user.findUnique({
     where: { id: user.id },
     include: {
@@ -42,8 +37,29 @@ export const resolveAuthSession = cache(async function resolveAuthSession() {
 
   return buildAuthSessionSnapshot({
     userId: user.id,
-    email: user.email ?? null,
+    email: user.email,
     roles,
     studentProfileId,
+  });
+}
+
+export async function resolveAuthSessionFromUser(user: AuthenticatedUser) {
+  return resolveAuthSessionFromAuthenticatedUser(user);
+}
+
+export const resolveAuthSession = cache(async function resolveAuthSession() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
+
+  if (error || !user) {
+    return null;
+  }
+
+  return resolveAuthSessionFromAuthenticatedUser({
+    id: user.id,
+    email: user.email ?? null,
   });
 });

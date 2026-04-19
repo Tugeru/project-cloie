@@ -1,10 +1,16 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { exchangeCodeForSessionMock, signOutMock, resolveAuthSessionMock, resolvePostLoginDestinationMock } =
-  vi.hoisted(() => ({
+const {
+  exchangeCodeForSessionMock,
+  signOutMock,
+  resolveAuthSessionMock,
+  resolveAuthSessionFromUserMock,
+  resolvePostLoginDestinationMock,
+} = vi.hoisted(() => ({
     exchangeCodeForSessionMock: vi.fn(),
     signOutMock: vi.fn(),
     resolveAuthSessionMock: vi.fn(),
+    resolveAuthSessionFromUserMock: vi.fn(),
     resolvePostLoginDestinationMock: vi.fn(),
   }));
 
@@ -19,6 +25,7 @@ vi.mock("@/lib/supabase/server", () => ({
 
 vi.mock("@/modules/identity-access/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
+  resolveAuthSessionFromUser: resolveAuthSessionFromUserMock,
 }));
 
 vi.mock("@/modules/identity-access/services/resolve-post-login-destination", () => ({
@@ -33,6 +40,10 @@ describe("auth callback route", () => {
     vi.unstubAllEnvs();
     resolvePostLoginDestinationMock.mockReturnValue("/student/dashboard");
     resolveAuthSessionMock.mockResolvedValue({
+      primaryRole: "STUDENT",
+      profileGate: { status: "COMPLETE" },
+    });
+    resolveAuthSessionFromUserMock.mockResolvedValue({
       primaryRole: "STUDENT",
       profileGate: { status: "COMPLETE" },
     });
@@ -60,9 +71,9 @@ describe("auth callback route", () => {
   it("uses resolvePostLoginDestination for successful redirects", async () => {
     exchangeCodeForSessionMock.mockResolvedValue({
       error: null,
-      data: { user: { email: "user@acd.edu.ph" } },
+      data: { user: { id: "user-1", email: "user@acd.edu.ph" } },
     });
-    resolveAuthSessionMock.mockResolvedValue({
+    resolveAuthSessionFromUserMock.mockResolvedValue({
       primaryRole: "FACULTY",
       profileGate: { status: "COMPLETE" },
     });
@@ -78,6 +89,11 @@ describe("auth callback route", () => {
       primaryRole: "FACULTY",
       profileGate: { status: "COMPLETE" },
     });
+    expect(resolveAuthSessionFromUserMock).toHaveBeenCalledWith({
+      id: "user-1",
+      email: "user@acd.edu.ph",
+    });
+    expect(resolveAuthSessionMock).not.toHaveBeenCalled();
     expect(response.headers.get("location")).toBe("https://cloie.test/faculty/dashboard");
   });
 
@@ -86,7 +102,7 @@ describe("auth callback route", () => {
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://public.example");
     exchangeCodeForSessionMock.mockResolvedValue({
       error: null,
-      data: { user: { email: "user@acd.edu.ph" } },
+      data: { user: { id: "user-2", email: "user@acd.edu.ph" } },
     });
     resolvePostLoginDestinationMock.mockReturnValue("/admin/dashboard");
 
@@ -96,5 +112,22 @@ describe("auth callback route", () => {
     const response = await GET(request);
 
     expect(response.headers.get("location")).toBe("https://public.example/admin/dashboard");
+  });
+
+  it("sanitizes malformed next values before redirecting", async () => {
+    exchangeCodeForSessionMock.mockResolvedValue({
+      error: null,
+      data: { user: { id: "user-3", email: "user@acd.edu.ph" } },
+    });
+
+    const response = await GET(new Request("https://cloie.test/api/auth/callback?code=abc&next=profile"));
+
+    expect(resolvePostLoginDestinationMock).toHaveBeenCalledWith({
+      requestedPath: "profile",
+      intent: null,
+      primaryRole: "STUDENT",
+      profileGate: { status: "COMPLETE" },
+    });
+    expect(response.headers.get("location")).toBe("https://cloie.test/student/dashboard");
   });
 });

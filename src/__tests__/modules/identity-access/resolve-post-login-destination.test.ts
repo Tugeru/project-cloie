@@ -61,6 +61,28 @@ describe("resolvePostLoginDestination", () => {
     ).toBe("/onboarding?intent=student");
   });
 
+  it("ignores a requested deep link until role selection is complete", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "/profile",
+        intent: null,
+        primaryRole: null,
+        profileGate: { status: "ROLE_SELECTION_REQUIRED" },
+      })
+    ).toBe("/onboarding");
+  });
+
+  it("ignores a requested deep link until student onboarding is complete", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "/faculty/dashboard",
+        intent: null,
+        primaryRole: ROLES.STUDENT,
+        profileGate: { status: "STUDENT_ONBOARDING_REQUIRED", intent: "student" },
+      })
+    ).toBe("/onboarding?intent=student");
+  });
+
   it("sends a complete student to the student dashboard", () => {
     expect(
       resolvePostLoginDestination({
@@ -169,5 +191,38 @@ describe("resolvePostLoginDestination", () => {
         profileGate: { status: "COMPLETE" },
       })
     ).toBe("/profile");
+  });
+
+  it("ignores requested paths without a leading slash", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "profile",
+        intent: null,
+        primaryRole: ROLES.ADMIN,
+        profileGate: { status: "COMPLETE" },
+      })
+    ).toBe("/admin/dashboard");
+  });
+
+  it("ignores protocol-relative requested paths", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "//evil.example",
+        intent: null,
+        primaryRole: ROLES.ADMIN,
+        profileGate: { status: "COMPLETE" },
+      })
+    ).toBe("/admin/dashboard");
+  });
+
+  it("ignores onboarding deep links for already-complete users", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "/onboarding?intent=student",
+        intent: null,
+        primaryRole: ROLES.FACULTY,
+        profileGate: { status: "COMPLETE" },
+      })
+    ).toBe("/faculty/dashboard");
   });
 });

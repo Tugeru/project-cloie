@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { resolveAuthSession } from "@/modules/identity-access/services/resolve-auth-session";
+import { resolveAuthSessionFromUser } from "@/modules/identity-access/services/resolve-auth-session";
 import { resolvePostLoginDestination } from "@/modules/identity-access/services/resolve-post-login-destination";
 
 export async function GET(request: Request) {
@@ -27,7 +27,10 @@ export async function GET(request: Request) {
     return NextResponse.redirect(`${siteUrl}/login?error=invalid_domain`);
   }
 
-  const session = await resolveAuthSession();
+  const session = await resolveAuthSessionFromUser({
+    id: data.user.id,
+    email: data.user.email ?? null,
+  });
   const nextUrl = resolvePostLoginDestination({
     requestedPath: searchParams.get("next") ?? "/dashboard",
     intent: searchParams.get("intent"),

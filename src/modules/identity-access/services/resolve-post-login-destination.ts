@@ -1,9 +1,5 @@
 import { ROLES, type Role } from "@/lib/constants/roles";
-
-type ProfileGate =
-  | { status: "ROLE_SELECTION_REQUIRED" }
-  | { status: "STUDENT_ONBOARDING_REQUIRED"; intent: "student" }
-  | { status: "COMPLETE" };
+import type { ProfileGate } from "@/modules/user-lifecycle-profiles/services/resolve-profile-gate";
 
 type DestinationInput = {
   requestedPath?: string | null;
@@ -12,15 +8,29 @@ type DestinationInput = {
   profileGate: ProfileGate;
 };
 
+function sanitizeRequestedPath(requestedPath?: string | null): string | null {
+  if (!requestedPath || requestedPath === "/dashboard") {
+    return null;
+  }
+
+  if (!requestedPath.startsWith("/") || requestedPath.startsWith("//")) {
+    return null;
+  }
+
+  if (/[\u0000-\u001F\u007F\\]/.test(requestedPath)) {
+    return null;
+  }
+
+  return requestedPath;
+}
+
 export function resolvePostLoginDestination({
   requestedPath,
   intent,
   primaryRole,
   profileGate,
 }: DestinationInput): string {
-  if (requestedPath && requestedPath !== "/dashboard") {
-    return requestedPath;
-  }
+  const sanitizedRequestedPath = sanitizeRequestedPath(requestedPath);
 
   if (profileGate.status === "ROLE_SELECTION_REQUIRED") {
     return intent === "student" ? "/onboarding?intent=student" : "/onboarding";
@@ -28,6 +38,10 @@ export function resolvePostLoginDestination({
 
   if (profileGate.status === "STUDENT_ONBOARDING_REQUIRED") {
     return "/onboarding?intent=student";
+  }
+
+  if (sanitizedRequestedPath && !sanitizedRequestedPath.startsWith("/onboarding")) {
+    return sanitizedRequestedPath;
   }
 
   switch (primaryRole) {
