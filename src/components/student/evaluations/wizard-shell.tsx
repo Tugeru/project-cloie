@@ -3,16 +3,66 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Save, CheckCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Save, CheckCircle, CheckCircle2 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { ReviewModal } from "./review-modal";
 
-export function WizardShell({ title, sections }: any) {
+interface Question {
+  id: number;
+  text: string;
+}
+
+interface Section {
+  name: string;
+  description: string;
+  questions: Question[];
+}
+
+interface WizardShellProps {
+  title: string;
+  sections: Section[];
+}
+
+export function WizardShell({ title, sections }: WizardShellProps) {
   const [currentStep, setCurrentStep] = React.useState(0);
+  const [answers, setAnswers] = React.useState<Record<number, number>>({});
+  const [isReviewOpen, setIsReviewOpen] = React.useState(false);
+  const [isSubmitted, setIsSubmitted] = React.useState(false);
   const router = useRouter();
   const totalSteps = sections.length;
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
   const currentSection = sections[currentStep];
+
+  const handleValueChange = (questionId: number, value: number) => {
+    setAnswers(prev => ({
+      ...prev,
+      [questionId]: value
+    }));
+  };
+
+  const handleSubmit = () => {
+    setIsReviewOpen(false);
+    setIsSubmitted(true);
+    window.scrollTo(0, 0);
+  };
+
+  if (isSubmitted) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <div className="size-20 rounded-full bg-success/10 flex items-center justify-center mb-6">
+          <CheckCircle2 className="size-10 text-success" />
+        </div>
+        <h1 className="text-3xl font-black mb-2 font-heading">Evaluation Submitted!</h1>
+        <p className="text-text-secondary max-w-md mb-8">
+          Thank you for completing the {title}. Your feedback has been recorded and will help us improve our quality of service.
+        </p>
+        <Button onClick={() => router.push("/student/dashboard")} className="font-bold px-8">
+          Return to Dashboard
+        </Button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-[calc(100vh-8rem)] relative">
@@ -42,26 +92,34 @@ export function WizardShell({ title, sections }: any) {
         <p className="text-sm text-text-secondary mb-8">{currentSection.description}</p>
         
         <div className="space-y-8">
-          {currentSection.questions.map((q: any) => (
-             <div key={q.id} className="p-4 bg-surface rounded-xl border border-border">
-                <p className="font-semibold mb-4">{q.text}</p>
-                <div className="flex gap-4">
+          {currentSection.questions.map((q) => (
+             <fieldset key={q.id} className="p-4 bg-surface rounded-xl border border-border">
+                <legend className="font-semibold mb-4 px-1">{q.text}</legend>
+                <div role="radiogroup" aria-label={q.text} className="flex gap-4">
                   {[1, 2, 3, 4, 5].map(v => (
                     <label key={v} className="flex flex-col items-center gap-1 cursor-pointer group">
-                      <input type="radio" name={`q-${q.id}`} value={v} className="sr-only peer" />
-                      <div className="size-10 rounded-full border-2 border-border flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary peer-checked:text-white hover:bg-primary-soft hover:border-primary transition-colors">
+                      <input 
+                        type="radio" 
+                        name={`q-${q.id}`} 
+                        value={v} 
+                        checked={answers[q.id] === v}
+                        onChange={() => handleValueChange(q.id, v)}
+                        className="sr-only peer" 
+                        aria-label={`Rate ${v} out of 5`}
+                      />
+                      <div className="size-10 rounded-full border-2 border-border flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary peer-checked:text-white hover:bg-primary-soft hover:border-primary transition-colors focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
                         {v}
                       </div>
                     </label>
                   ))}
                 </div>
-             </div>
+             </fieldset>
           ))}
         </div>
       </div>
 
       {/* Sticky Wizard Footer */}
-      <div className="fixed bottom-0 inset-x-0 lg:left-64 bg-surface border-t border-border p-4 z-30">
+      <div className="fixed bottom-0 inset-x-0 lg:left-64 bg-surface border-t border-border p-4 z-[60] shadow-lg">
         <div className="max-w-[1600px] mx-auto flex justify-between items-center">
           <Button 
             variant="outline" 
@@ -84,8 +142,7 @@ export function WizardShell({ title, sections }: any) {
                 setCurrentStep(prev => prev + 1);
                 window.scrollTo(0, 0);
               } else {
-                console.log("Trigger Review Modal");
-                // This will be connected in Task 5
+                setIsReviewOpen(true);
               }
             }}
           >
@@ -97,6 +154,14 @@ export function WizardShell({ title, sections }: any) {
           </Button>
         </div>
       </div>
+
+      <ReviewModal 
+        isOpen={isReviewOpen}
+        onClose={() => setIsReviewOpen(false)}
+        onSubmit={handleSubmit}
+        sections={sections}
+        answers={answers}
+      />
     </div>
   );
 }
