@@ -27,7 +27,7 @@ describe("HeroCard", () => {
       />
     );
 
-    const link = screen.getByRole("link", { name: /My Evaluations/i });
+    const link = screen.getByRole("button", { name: /My Evaluations/i });
     expect(link.getAttribute("href")).toBe("/student/evaluations");
   });
 });
