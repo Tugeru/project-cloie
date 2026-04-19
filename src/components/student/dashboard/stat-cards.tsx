@@ -1,7 +1,13 @@
 import { Card } from "@/components/ui/card";
 import { FileText, Clock, CheckCircle } from "lucide-react";
 
-export function StatCards({ pending, inProgress, completed }: any) {
+interface StatCardsProps {
+  pending: number;
+  inProgress: number;
+  completed: number;
+}
+
+export function StatCards({ pending, inProgress, completed }: StatCardsProps) {
   const stats = [
     { label: "Pending", value: pending, sub: "Awaiting submission", color: "text-primary", bg: "bg-primary-soft", icon: FileText },
     { label: "In Progress", value: inProgress, sub: "Drafts saved", color: "text-secondary", bg: "bg-secondary-soft", icon: Clock },
@@ -13,13 +19,13 @@ export function StatCards({ pending, inProgress, completed }: any) {
       {stats.map((s) => (
         <Card key={s.label} className="p-5 border-border shadow-sm">
           <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-bold text-text-muted uppercase tracking-wider">{s.label}</span>
+            <span className="text-label-sm font-bold text-text-muted uppercase tracking-wider">{s.label}</span>
             <div className={`p-2 ${s.bg} rounded-lg ${s.color}`}>
               <s.icon className="size-5" />
             </div>
           </div>
-          <div className={`text-3xl font-black ${s.color}`}>{s.value}</div>
-          <div className="text-xs text-text-muted font-medium">{s.sub}</div>
+          <div className={`text-display-md font-black ${s.color}`}>{s.value}</div>
+          <div className="text-body-sm text-text-muted font-medium">{s.sub}</div>
         </Card>
       ))}
     </section>
