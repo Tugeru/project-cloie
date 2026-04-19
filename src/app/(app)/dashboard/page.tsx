@@ -7,12 +7,17 @@ export default async function DashboardPage() {
   // resolveAuthSession is cached per render (React cache), so no extra DB call.
   const session = await resolveAuthSession();
 
+  if (!session) {
+    // Should be unreachable — SessionGuard redirects unauthenticated users.
+    redirect("/login");
+  }
+
   redirect(
     resolvePostLoginDestination({
       requestedPath: "/dashboard",
       intent: null,
-      primaryRole: session!.primaryRole,
-      profileGate: session!.profileGate,
+      primaryRole: session.primaryRole,
+      profileGate: session.profileGate,
     })
   );
 }
