@@ -1,6 +1,5 @@
 import { Bell } from "lucide-react";
 import Image from "next/image";
-import type { Role } from "@/lib/constants/roles";
 
 interface TopbarProps {
   user?: {
@@ -8,7 +7,6 @@ interface TopbarProps {
     email?: string | null;
     image?: string | null;
   };
-  roles?: Role[];
 }
 
 export function Topbar({ user }: TopbarProps) {

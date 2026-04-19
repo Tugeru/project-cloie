@@ -3,9 +3,11 @@
 import * as React from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Save, CheckCircle, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Save, CheckCircle, CheckCircle2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ReviewModal } from "./review-modal";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { cn } from "@/lib/utils";
 
 interface Question {
   id: number;
@@ -28,28 +30,69 @@ export function WizardShell({ title, sections }: WizardShellProps) {
   const [answers, setAnswers] = React.useState<Record<number, number>>({});
   const [isReviewOpen, setIsReviewOpen] = React.useState(false);
   const [isSubmitted, setIsSubmitted] = React.useState(false);
+  const [validationError, setValidationError] = React.useState<string | null>(null);
+  
   const router = useRouter();
   const totalSteps = sections.length;
   const progress = ((currentStep + 1) / totalSteps) * 100;
 
   const currentSection = sections[currentStep];
 
+  const scrollToTop = () => {
+    const mainContainer = document.querySelector('main');
+    if (mainContainer) {
+      mainContainer.scrollTo({ top: 0, behavior: "smooth" });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   const handleValueChange = (questionId: number, value: number) => {
     setAnswers(prev => ({
       ...prev,
       [questionId]: value
     }));
+    setValidationError(null);
+  };
+
+  const validateCurrentSection = () => {
+    const unanswered = currentSection.questions.filter(q => !answers[q.id]);
+    if (unanswered.length > 0) {
+      setValidationError(`Please answer all questions in this section before proceeding (${unanswered.length} remaining).`);
+      return false;
+    }
+    setValidationError(null);
+    return true;
+  };
+
+  const handleNext = () => {
+    if (validateCurrentSection()) {
+      if (currentStep < totalSteps - 1) {
+        setCurrentStep(prev => prev + 1);
+        scrollToTop();
+      } else {
+        setIsReviewOpen(true);
+      }
+    } else {
+      scrollToTop();
+    }
+  };
+
+  const handlePrevious = () => {
+    setCurrentStep(prev => Math.max(0, prev - 1));
+    setValidationError(null);
+    scrollToTop();
   };
 
   const handleSubmit = () => {
     setIsReviewOpen(false);
     setIsSubmitted(true);
-    window.scrollTo(0, 0);
+    scrollToTop();
   };
 
   if (isSubmitted) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center animate-in fade-in zoom-in duration-500">
         <div className="size-20 rounded-full bg-success/10 flex items-center justify-center mb-6">
           <CheckCircle2 className="size-10 text-success" />
         </div>
@@ -87,15 +130,28 @@ export function WizardShell({ title, sections }: WizardShellProps) {
       </div>
 
       {/* Section Content */}
-      <div className="flex-1 pb-24">
+      <div className="flex-1 pb-32">
+        {validationError && (
+          <Alert variant="destructive" className="mb-6 animate-in slide-in-from-top-2">
+            <AlertCircle className="size-4" />
+            <AlertDescription className="font-medium">{validationError}</AlertDescription>
+          </Alert>
+        )}
+
         <h2 className="text-lg font-bold mb-4">{currentSection.name}</h2>
         <p className="text-sm text-text-secondary mb-8">{currentSection.description}</p>
         
         <div className="space-y-8">
           {currentSection.questions.map((q) => (
-             <fieldset key={q.id} className="p-4 bg-surface rounded-xl border border-border">
+             <fieldset 
+               key={q.id} 
+               className={cn(
+                 "p-4 bg-surface rounded-xl border transition-colors",
+                 validationError && !answers[q.id] ? "border-danger bg-danger-soft/30" : "border-border"
+               )}
+             >
                 <legend className="font-semibold mb-4 px-1">{q.text}</legend>
-                <div role="radiogroup" aria-label={q.text} className="flex gap-4">
+                <div role="radiogroup" aria-label={q.text} className="flex flex-wrap gap-4 sm:gap-6">
                   {[1, 2, 3, 4, 5].map(v => (
                     <label key={v} className="flex flex-col items-center gap-1 cursor-pointer group">
                       <input 
@@ -105,9 +161,8 @@ export function WizardShell({ title, sections }: WizardShellProps) {
                         checked={answers[q.id] === v}
                         onChange={() => handleValueChange(q.id, v)}
                         className="sr-only peer" 
-                        aria-label={`Rate ${v} out of 5`}
                       />
-                      <div className="size-10 rounded-full border-2 border-border flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary peer-checked:text-white hover:bg-primary-soft hover:border-primary transition-colors focus-within:ring-2 focus-within:ring-primary focus-within:ring-offset-2">
+                      <div className="size-12 rounded-full border-2 border-border flex items-center justify-center text-lg font-bold peer-checked:bg-primary peer-checked:border-primary peer-checked:text-white hover:bg-primary-soft hover:border-primary transition-all active:scale-90">
                         {v}
                       </div>
                     </label>
@@ -119,32 +174,24 @@ export function WizardShell({ title, sections }: WizardShellProps) {
       </div>
 
       {/* Sticky Wizard Footer */}
-      <div className="fixed bottom-0 inset-x-0 lg:left-64 bg-surface border-t border-border p-4 z-[60] shadow-lg">
+      <div className="fixed bottom-0 inset-x-0 lg:left-64 bg-surface/80 backdrop-blur-md border-t border-border p-4 z-[60]">
         <div className="max-w-[1600px] mx-auto flex justify-between items-center">
           <Button 
             variant="outline" 
-            onClick={() => {
-              setCurrentStep(prev => Math.max(0, prev - 1));
-              window.scrollTo(0, 0);
-            }}
+            onClick={handlePrevious}
             disabled={currentStep === 0}
+            className="font-bold"
           >
             <ArrowLeft className="mr-2 size-4" /> Previous
           </Button>
           
           <div className="hidden sm:flex gap-2">
-            <Button variant="ghost">Save Draft</Button>
+            <Button variant="ghost" className="text-text-muted font-bold">Save Draft</Button>
           </div>
 
           <Button 
-            onClick={() => {
-              if (currentStep < totalSteps - 1) {
-                setCurrentStep(prev => prev + 1);
-                window.scrollTo(0, 0);
-              } else {
-                setIsReviewOpen(true);
-              }
-            }}
+            onClick={handleNext}
+            className="font-bold min-w-[160px]"
           >
             {currentStep === totalSteps - 1 ? (
               <span className="flex items-center">Review & Submit <CheckCircle className="ml-2 size-4" /></span>
