@@ -1,0 +1,37 @@
+# Supabase Cloud Workflow
+
+This repo uses a single hosted Supabase project on the free tier.
+
+## One-time setup
+
+1. Copy `.env.example` to `.env.local`.
+2. Fill the app client variables: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+3. Fill the Prisma connection variables too: `DATABASE_URL` for the pooled runtime connection and `DIRECT_URL` for direct migration diff access.
+4. Fill the CLI workflow variables: `SUPABASE_PROJECT_REF`, `SUPABASE_ACCESS_TOKEN`, and `SUPABASE_DB_PASSWORD`.
+5. `DATABASE_URL` and `DIRECT_URL` are still required even in this Docker-free workflow because the app runs through Prisma and `pnpm supabase:migration:diff` shells out to `prisma migrate diff --from-url`.
+6. If you need to initialize a fresh clone of the repo metadata, run `pnpm supabase:init` once.
+7. Run `pnpm supabase:login`.
+8. Run `pnpm supabase:link`.
+
+## Prisma-owned schema changes
+
+1. Edit `prisma/schema.prisma`.
+2. Run `pnpm supabase:migration:diff -- your_change_name`.
+3. Review the SQL created in `supabase/migrations/`.
+4. Run `pnpm supabase:push:dry-run`.
+5. Run `pnpm supabase:push`.
+6. Run `pnpm supabase:types`.
+
+## Baseline recovery command
+
+- `pnpm supabase:migration:repair-latest` is a baseline/recovery-only command.
+- It is intended for the one-time hosted-project baseline flow when the linked remote migration history is still empty, or for careful recovery of that same empty-history state.
+- The helper now refuses to run if `supabase migration list --linked` shows any remote migrations already applied.
+- Do not use it as a routine follow-up after normal `supabase:push` usage.
+
+## Commands intentionally avoided in this workflow
+
+- `supabase db pull`
+- `supabase db diff --linked`
+
+Those commands rely on Docker-backed tooling. This workflow uses `prisma migrate diff` instead.

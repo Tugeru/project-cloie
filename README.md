@@ -23,13 +23,25 @@ pnpm install
 
 # Set up environment variables
 cp .env.example .env.local
-# Fill in your Supabase credentials
+# Fill in your app credentials and Prisma database URLs:
+# NEXT_PUBLIC_SUPABASE_URL
+# NEXT_PUBLIC_SUPABASE_ANON_KEY
+# DATABASE_URL
+# DIRECT_URL
 
 # Run development server
 pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) to view the application.
+
+## Supabase Workflow
+
+The project uses a single hosted Supabase project with Git-tracked SQL migrations under `supabase/`.
+
+App runtime still requires `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `DATABASE_URL`, and `DIRECT_URL` in `.env.local`.
+
+See `supabase/README.md` for the cloud-only workflow, including the CLI variables such as `SUPABASE_PROJECT_REF`, the baseline-only repair helper guard, and the Docker-free schema migration flow.
 
 ## Project Structure
 
