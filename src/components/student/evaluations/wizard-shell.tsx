@@ -8,28 +8,41 @@ import { useRouter } from "next/navigation";
 import { ReviewModal } from "./review-modal";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
-
-interface Question {
-  id: number;
-  text: string;
-}
-
-interface Section {
-  name: string;
-  description: string;
-  questions: Question[];
-}
+import { buildStudentEvaluationAnswerKey } from "@/modules/student-evaluation-workflow/answer-keys";
+import type { StudentEvaluationSection } from "@/modules/student-evaluation-workflow/types";
 
 interface WizardShellProps {
+  assignmentId: string;
   title: string;
-  sections: Section[];
+  courseTitle?: string;
+  sections: StudentEvaluationSection[];
+  initialAnswers?: Record<string, number | string>;
+  onSaveDraft?: (input: {
+    assignmentId: string;
+    sectionKey: string;
+    answers: Record<string, number | string>;
+  }) => Promise<{ success: boolean; savedAt?: string; error?: string }>;
+  onSubmitResponse?: (input: {
+    assignmentId: string;
+    answers: Record<string, number | string>;
+  }) => Promise<{ success: boolean; responseId?: string; error?: string }>;
 }
 
-export function WizardShell({ title, sections }: WizardShellProps) {
+export function WizardShell({ 
+  assignmentId, 
+  title, 
+  courseTitle,
+  sections,
+  initialAnswers = {},
+  onSaveDraft,
+  onSubmitResponse,
+}: WizardShellProps) {
   const [currentStep, setCurrentStep] = React.useState(0);
-  const [answers, setAnswers] = React.useState<Record<number, number>>({});
+  const [answers, setAnswers] = React.useState<Record<string, number | string>>(initialAnswers);
   const [isReviewOpen, setIsReviewOpen] = React.useState(false);
   const [isSubmitted, setIsSubmitted] = React.useState(false);
+  const [isSaving, setIsSaving] = React.useState(false);
+  const [lastSaved, setLastSaved] = React.useState<Date | null>(null);
   const [validationError, setValidationError] = React.useState<string | null>(null);
   
   const router = useRouter();
@@ -47,16 +60,34 @@ export function WizardShell({ title, sections }: WizardShellProps) {
     }
   };
 
-  const handleValueChange = (questionId: number, value: number) => {
+  const handleValueChange = (itemKey: string, value: number | string) => {
+    const firstItem = currentSection.items.find((item) =>
+      item.kind === "quantitative" ? item.itemKey === itemKey : item.promptKey === itemKey,
+    );
+
+    if (!firstItem) {
+      return;
+    }
+
+    const answerKey = buildStudentEvaluationAnswerKey(
+      currentSection.id,
+      firstItem.kind,
+      itemKey,
+    );
     setAnswers(prev => ({
       ...prev,
-      [questionId]: value
+      [answerKey]: value
     }));
     setValidationError(null);
   };
 
   const validateCurrentSection = () => {
-    const unanswered = currentSection.questions.filter(q => !answers[q.id]);
+    const requiredItems = currentSection.items.filter(item => item.kind === "quantitative");
+    const unanswered = requiredItems.filter(item => {
+      const answerKey = buildStudentEvaluationAnswerKey(currentSection.id, "quantitative", item.itemKey);
+      return !answers[answerKey];
+    });
+    
     if (unanswered.length > 0) {
       setValidationError(`Please answer all questions in this section before proceeding (${unanswered.length} remaining).`);
       return false;
@@ -65,8 +96,36 @@ export function WizardShell({ title, sections }: WizardShellProps) {
     return true;
   };
 
-  const handleNext = () => {
+  const handleSaveDraft = React.useCallback(async () => {
+    if (!onSaveDraft) return;
+    
+    setIsSaving(true);
+    try {
+      const sectionAnswers: Record<string, number | string> = {};
+      for (const [key, value] of Object.entries(answers)) {
+        if (key.startsWith(`${currentSection.id}:`)) {
+          sectionAnswers[key] = value;
+        }
+      }
+      
+      const result = await onSaveDraft({
+        assignmentId,
+        sectionKey: currentSection.id,
+        answers: sectionAnswers,
+      });
+      
+      if (result.success) {
+        setLastSaved(new Date());
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  }, [onSaveDraft, assignmentId, currentSection.id, answers]);
+
+  const handleNext = async () => {
     if (validateCurrentSection()) {
+      await handleSaveDraft();
+      
       if (currentStep < totalSteps - 1) {
         setCurrentStep(prev => prev + 1);
         scrollToTop();
@@ -79,16 +138,38 @@ export function WizardShell({ title, sections }: WizardShellProps) {
   };
 
   const handlePrevious = () => {
+    void handleSaveDraft();
     setCurrentStep(prev => Math.max(0, prev - 1));
     setValidationError(null);
     scrollToTop();
   };
 
-  const handleSubmit = () => {
-    setIsReviewOpen(false);
-    setIsSubmitted(true);
-    scrollToTop();
+  const handleSubmit = async () => {
+    if (!onSubmitResponse) {
+      setIsReviewOpen(false);
+      setIsSubmitted(true);
+      return;
+    }
+    
+    setIsSaving(true);
+    try {
+      const result = await onSubmitResponse({
+        assignmentId,
+        answers,
+      });
+      
+      if (result.success) {
+        setIsReviewOpen(false);
+        setIsSubmitted(true);
+      }
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  const savedTimeText = lastSaved 
+    ? lastSaved.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })
+    : "Not saved";
 
   if (isSubmitted) {
     return (
@@ -116,10 +197,11 @@ export function WizardShell({ title, sections }: WizardShellProps) {
             <ArrowLeft className="mr-2 size-4" /> Back to Dashboard
           </Button>
           <div className="flex items-center gap-2 text-text-muted text-xs font-bold uppercase tracking-wider">
-            <Save className="size-3" /> Draft Saved 2m ago
+            <Save className="size-3" /> {isSaving ? "Saving..." : savedTimeText}
           </div>
         </div>
         <h1 className="text-xl font-black mb-3 font-heading">{title}</h1>
+        {courseTitle && <p className="text-sm text-text-secondary mb-3">{courseTitle}</p>}
         <div className="space-y-1.5">
           <div className="flex justify-between text-[10px] font-bold uppercase text-text-muted">
             <span>Section {currentStep + 1} of {totalSteps}</span>
@@ -142,34 +224,59 @@ export function WizardShell({ title, sections }: WizardShellProps) {
         <p className="text-sm text-text-secondary mb-8">{currentSection.description}</p>
         
         <div className="space-y-8">
-          {currentSection.questions.map((q) => (
-             <fieldset 
-               key={q.id} 
-               className={cn(
-                 "p-4 bg-surface rounded-xl border transition-colors",
-                 validationError && !answers[q.id] ? "border-danger bg-danger-soft/30" : "border-border"
-               )}
-             >
-                <legend className="font-semibold mb-4 px-1">{q.text}</legend>
-                <div role="radiogroup" aria-label={q.text} className="flex flex-wrap gap-4 sm:gap-6">
-                  {[1, 2, 3, 4, 5].map(v => (
-                    <label key={v} className="flex flex-col items-center gap-1 cursor-pointer group">
-                      <input 
-                        type="radio" 
-                        name={`q-${q.id}`} 
-                        value={v} 
-                        checked={answers[q.id] === v}
-                        onChange={() => handleValueChange(q.id, v)}
-                        className="sr-only peer" 
-                      />
-                      <div className="size-12 rounded-full border-2 border-border flex items-center justify-center text-lg font-bold peer-checked:bg-primary peer-checked:border-primary peer-checked:text-white hover:bg-primary-soft hover:border-primary transition-all active:scale-90">
-                        {v}
-                      </div>
-                    </label>
-                  ))}
-                </div>
-             </fieldset>
-          ))}
+          {currentSection.items.map((item) => {
+            if (item.kind === "quantitative") {
+              const typedAnswerKey = buildStudentEvaluationAnswerKey(currentSection.id, "quantitative", item.itemKey);
+              const currentValue = answers[typedAnswerKey];
+              
+              return (
+                <fieldset 
+                  key={item.itemKey} 
+                  className={cn(
+                    "p-4 bg-surface rounded-xl border transition-colors",
+                    validationError && !currentValue ? "border-danger bg-danger-soft/30" : "border-border"
+                  )}
+                >
+                  <legend className="font-semibold mb-4 px-1">{item.prompt}</legend>
+                  <div role="radiogroup" aria-label={item.prompt} className="flex flex-wrap gap-4 sm:gap-6">
+                    {item.scale.map(v => (
+                      <label key={v} className="flex flex-col items-center gap-1 cursor-pointer group">
+                        <input 
+                          type="radio" 
+                          name={`q-${item.itemKey}`} 
+                          value={v} 
+                          checked={currentValue === v}
+                          onChange={() => handleValueChange(item.itemKey, v)}
+                          className="sr-only peer" 
+                        />
+                        <div className="size-12 rounded-full border-2 border-border flex items-center justify-center text-lg font-bold peer-checked:bg-primary peer-checked:border-primary peer-checked:text-white hover:bg-primary-soft hover:border-primary transition-all active:scale-90">
+                          {v}
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+              );
+            } else {
+              const answerKey = buildStudentEvaluationAnswerKey(currentSection.id, "qualitative", item.promptKey);
+              const currentValue = answers[answerKey] as string || "";
+              
+              return (
+                <fieldset 
+                  key={item.promptKey} 
+                  className="p-4 bg-surface rounded-xl border border-border"
+                >
+                  <legend className="font-semibold mb-4 px-1">{item.prompt}</legend>
+                  <textarea
+                    value={currentValue}
+                    onChange={(e) => handleValueChange(item.promptKey, e.target.value)}
+                    placeholder="Enter your response..."
+                    className="w-full min-h-[100px] p-3 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </fieldset>
+              );
+            }
+          })}
         </div>
       </div>
 
@@ -186,12 +293,15 @@ export function WizardShell({ title, sections }: WizardShellProps) {
           </Button>
           
           <div className="hidden sm:flex gap-2">
-            <Button variant="ghost" className="text-text-muted font-bold">Save Draft</Button>
+            <Button variant="ghost" className="text-text-muted font-bold" onClick={handleSaveDraft} disabled={isSaving}>
+              <Save className="mr-2 size-4" /> Save Draft
+            </Button>
           </div>
 
           <Button 
             onClick={handleNext}
             className="font-bold min-w-[160px]"
+            disabled={isSaving}
           >
             {currentStep === totalSteps - 1 ? (
               <span className="flex items-center">Review & Submit <CheckCircle className="ml-2 size-4" /></span>
@@ -206,6 +316,7 @@ export function WizardShell({ title, sections }: WizardShellProps) {
         isOpen={isReviewOpen}
         onClose={() => setIsReviewOpen(false)}
         onSubmit={handleSubmit}
+        isSubmitting={isSaving}
         sections={sections}
         answers={answers}
       />

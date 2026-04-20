@@ -1,24 +1,15 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
-
-interface Question {
-  id: number;
-  text: string;
-}
-
-interface Section {
-  name: string;
-  description: string;
-  questions: Question[];
-}
+import { buildStudentEvaluationAnswerKey } from "@/modules/student-evaluation-workflow/answer-keys";
+import type { StudentEvaluationSection } from "@/modules/student-evaluation-workflow/types";
 
 interface ReviewModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: () => void;
-  sections: Section[];
-  answers: Record<number, number>;
+  sections: StudentEvaluationSection[];
+  answers: Record<string, number | string>;
   isSubmitting?: boolean;
 }
 
@@ -42,18 +33,25 @@ export function ReviewModal({
         
         <div className="flex-1 p-6 overflow-y-auto">
           <div className="space-y-8">
-            {sections.map((s, idx) => (
-              <div key={idx}>
+            {sections.map((s) => (
+              <div key={s.id}>
                 <h3 className="font-bold text-primary mb-4 uppercase text-[10px] tracking-widest">{s.name}</h3>
                 <div className="space-y-4">
-                  {s.questions.map((q) => (
-                    <div key={q.id} className="flex justify-between items-start gap-4 py-3 border-b border-border/50">
-                      <span className="text-sm text-text-secondary">{q.text}</span>
-                      <span className="font-black text-primary px-3 py-1 bg-primary-soft rounded-md shrink-0">
-                        {answers[q.id] || "—"}
-                      </span>
-                    </div>
-                  ))}
+                  {s.items.map((item) => {
+                    const answerKey = item.kind === "quantitative" 
+                      ? buildStudentEvaluationAnswerKey(s.id, "quantitative", item.itemKey)
+                      : buildStudentEvaluationAnswerKey(s.id, "qualitative", item.promptKey);
+                    const answer = answers[answerKey];
+                    
+                    return (
+                      <div key={item.kind === "quantitative" ? item.itemKey : item.promptKey} className="flex justify-between items-start gap-4 py-3 border-b border-border/50">
+                        <span className="text-sm text-text-secondary">{item.prompt}</span>
+                        <span className="font-black text-primary px-3 py-1 bg-primary-soft rounded-md shrink-0">
+                          {answer ?? "—"}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}

@@ -1,0 +1,251 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  buildStudentEvaluationListItem,
+  deriveStudentEvaluationStatus,
+  listStudentCourseBoundEvaluations,
+} from "@/modules/student-evaluation-workflow/services/list-student-course-bound-evaluations";
+
+const { findManyMock, resolveAuthSessionMock } = vi.hoisted(() => ({
+  findManyMock: vi.fn(),
+  resolveAuthSessionMock: vi.fn(),
+}));
+
+vi.mock("@/lib/db/prisma", () => ({
+  prisma: {
+    evaluationAssignment: {
+      findMany: findManyMock,
+    },
+  },
+}));
+
+vi.mock("@/modules/identity-access/services/resolve-auth-session", () => ({
+  resolveAuthSession: resolveAuthSessionMock,
+}));
+
+describe("deriveStudentEvaluationStatus", () => {
+  it("returns NOT_STARTED when no response exists", () => {
+    expect(
+      deriveStudentEvaluationStatus({
+        answeredItems: 0,
+        deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
+        now: new Date("2026-05-10T00:00:00.000Z"),
+        responseId: null,
+        submittedAt: null,
+        totalItems: 6,
+      }),
+    ).toEqual({ progress: 0, status: "NOT_STARTED" });
+  });
+
+  it("returns IN_PROGRESS with 50 progress when 3 of 6 items are answered", () => {
+    expect(
+      deriveStudentEvaluationStatus({
+        answeredItems: 3,
+        deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
+        now: new Date("2026-05-10T00:00:00.000Z"),
+        responseId: "response-1",
+        submittedAt: null,
+        totalItems: 6,
+      }),
+    ).toEqual({ progress: 50, status: "IN_PROGRESS" });
+  });
+
+  it("returns DUE_SOON when the deadline is within 3 days and no response exists", () => {
+    expect(
+      deriveStudentEvaluationStatus({
+        answeredItems: 0,
+        deadlineAt: new Date("2026-05-12T00:00:00.000Z"),
+        now: new Date("2026-05-10T00:00:00.000Z"),
+        responseId: null,
+        submittedAt: null,
+        totalItems: 6,
+      }),
+    ).toEqual({ progress: 0, status: "DUE_SOON" });
+  });
+
+  it("returns SUBMITTED when the session has been submitted", () => {
+    expect(
+      deriveStudentEvaluationStatus({
+        answeredItems: 3,
+        deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
+        now: new Date("2026-05-10T00:00:00.000Z"),
+        responseId: "response-1",
+        submittedAt: new Date("2026-05-11T00:00:00.000Z"),
+        totalItems: 6,
+      }),
+    ).toEqual({ progress: 50, status: "SUBMITTED" });
+  });
+
+  it("returns SUBMITTED when submittedAt exists even if responseId is null", () => {
+    expect(
+      deriveStudentEvaluationStatus({
+        answeredItems: 3,
+        deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
+        now: new Date("2026-05-10T00:00:00.000Z"),
+        responseId: null,
+        submittedAt: new Date("2026-05-11T00:00:00.000Z"),
+        totalItems: 6,
+      }),
+    ).toEqual({ progress: 50, status: "SUBMITTED" });
+  });
+
+  it("returns zero progress for zero-item sessions", () => {
+    expect(
+      deriveStudentEvaluationStatus({
+        answeredItems: 0,
+        deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
+        now: new Date("2026-05-10T00:00:00.000Z"),
+        responseId: "response-1",
+        submittedAt: null,
+        totalItems: 0,
+      }),
+    ).toEqual({ progress: 0, status: "IN_PROGRESS" });
+  });
+
+  it("clamps progress into the 0 to 100 range", () => {
+    expect(
+      deriveStudentEvaluationStatus({
+        answeredItems: 8,
+        deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
+        now: new Date("2026-05-10T00:00:00.000Z"),
+        responseId: "response-1",
+        submittedAt: null,
+        totalItems: 6,
+      }),
+    ).toEqual({ progress: 100, status: "IN_PROGRESS" });
+
+    expect(
+      deriveStudentEvaluationStatus({
+        answeredItems: -2,
+        deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
+        now: new Date("2026-05-10T00:00:00.000Z"),
+        responseId: "response-1",
+        submittedAt: null,
+        totalItems: 6,
+      }),
+    ).toEqual({ progress: 0, status: "IN_PROGRESS" });
+  });
+});
+
+describe("buildStudentEvaluationListItem", () => {
+  it("shapes the workflow list item", () => {
+    expect(
+      buildStudentEvaluationListItem({
+        courseTitle: "ITE 18 - Capstone 1",
+        deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
+        evaluationId: "evaluation-1",
+        evaluationTitle: "Post-Term CILO Evaluation Tool",
+        now: new Date("2026-05-10T00:00:00.000Z"),
+        programLabel: "BSIT • 4th Year",
+        section: {
+          description: "",
+          id: "section-1",
+          items: [],
+          name: "Section A",
+        },
+        session: {
+          answeredItems: 3,
+          responseId: "response-1",
+          submittedAt: null,
+          totalItems: 6,
+        },
+      }),
+    ).toEqual({
+      courseTitle: "ITE 18 - Capstone 1",
+      deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
+      evaluationId: "evaluation-1",
+      evaluationTitle: "Post-Term CILO Evaluation Tool",
+      progress: 50,
+      programLabel: "BSIT • 4th Year",
+      section: {
+        description: "",
+        id: "section-1",
+        items: [],
+        name: "Section A",
+      },
+      session: {
+        answeredItems: 3,
+        responseId: "response-1",
+        submittedAt: null,
+        totalItems: 6,
+      },
+      status: "IN_PROGRESS",
+    });
+  });
+});
+
+describe("listStudentCourseBoundEvaluations", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns active and submitted course-bound assignments with workflow hrefs", async () => {
+    resolveAuthSessionMock.mockResolvedValue({ userId: "user-1" });
+    findManyMock.mockResolvedValue([
+      {
+        course_bound_id: "eval-active",
+        id: "assignment-1",
+        course_bound: {
+          course: { title: "Capstone 1" },
+          deadline_at: new Date("2026-05-20T00:00:00.000Z"),
+          instrument: {
+            structure_snapshot: [
+              { key: "section-a", title: "Section A" },
+            ],
+            template: { name: "Post-Term CILO Evaluation Tool" },
+          },
+          program: { name: "BSIT" },
+        },
+        responses: [
+          {
+            id: "response-1",
+            qual_items: [],
+            quant_items: [{ id: "q-1" }],
+            status: "IN_PROGRESS",
+            submitted_at: null,
+          },
+        ],
+      },
+      {
+        course_bound_id: "eval-submitted",
+        id: "assignment-2",
+        course_bound: {
+          course: { title: "Networks" },
+          deadline_at: new Date("2026-05-10T00:00:00.000Z"),
+          instrument: {
+            structure_snapshot: [
+              { key: "section-b", title: "Section B" },
+            ],
+            template: { name: "Midterm Evaluation" },
+          },
+          program: { name: "BSIT" },
+        },
+        responses: [
+          {
+            id: "response-2",
+            qual_items: [],
+            quant_items: [{ id: "q-1" }],
+            status: "SUBMITTED",
+            submitted_at: new Date("2026-05-09T00:00:00.000Z"),
+          },
+        ],
+      },
+    ]);
+
+    await expect(listStudentCourseBoundEvaluations()).resolves.toEqual({
+      active: [
+        expect.objectContaining({
+          evaluationId: "assignment-1",
+          href: "/student/evaluations/assignment-1",
+          status: "IN_PROGRESS",
+        }),
+      ],
+      submitted: [
+        expect.objectContaining({
+          evaluationId: "assignment-2",
+          href: "/student/history/response-2",
+          status: "SUBMITTED",
+        }),
+      ],
+    });
+  });
+});

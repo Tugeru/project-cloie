@@ -4,17 +4,21 @@ import { expect, test, describe } from "vitest";
 
 describe("EvaluationListCard", () => {
   const mockProps = {
-    title: "Post-Term CILO Evaluation",
-    course: "ITE 18",
-    program: "BSIT",
-    deadline: "May 20",
-    status: "NOT_STARTED" as const
+    evaluationId: "eval-1",
+    evaluationTitle: "Post-Term CILO Evaluation",
+    courseTitle: "ITE 18",
+    programLabel: "BSIT",
+    deadlineAt: new Date("2026-05-20"),
+    status: "NOT_STARTED" as const,
+    progress: 0,
+    section: { id: "section-b", name: "Section B", description: "", items: [] },
+    session: { responseId: null, answeredItems: 0, totalItems: 5, submittedAt: null },
   };
 
   test("renders basic evaluation details", () => {
     render(<EvaluationListCard {...mockProps} />);
 
-    expect(screen.getByText(mockProps.title)).toBeDefined();
+    expect(screen.getByText(/Post-Term CILO Evaluation/i)).toBeDefined();
     expect(screen.getByText(/ITE 18/i)).toBeDefined();
     expect(screen.getByText(/Deadline: May 20/i)).toBeDefined();
   });

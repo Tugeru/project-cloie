@@ -1,28 +1,37 @@
 import { WizardShell } from "@/components/student/evaluations/wizard-shell";
+import { getStudentCourseBoundEvaluationSession } from "@/modules/student-evaluation-workflow/services/get-student-course-bound-evaluation-session";
+import { saveStudentCourseBoundDraftAction, submitStudentCourseBoundResponseAction } from "@/lib/actions/student-evaluation-actions";
+import { notFound, redirect } from "next/navigation";
 
-export default function EvaluationPage() {
-  const mockForm = {
-    title: "Post-Term CILO Evaluation Tool",
-    sections: [
-      { 
-        name: "Section B: Course Intended Learning Outcomes", 
-        description: "Please rate the extent to which the following CILO were attained:",
-        questions: [
-          { id: 1, text: "CILO 1: Analyze complex computing problems and apply principles of computing." },
-          { id: 2, text: "CILO 2: Design, implement, and evaluate a computing-based solution." },
-          { id: 3, text: "CILO 3: Recognize professional responsibilities and make informed judgments." },
-        ]
-      },
-      {
-        name: "Section D: Facilities and Resources",
-        description: "Please rate the level to which the following statements were attained:",
-        questions: [
-          { id: 4, text: "The classrooms were conducive to learning." },
-          { id: 5, text: "Equipment, tools, or software required for the course were adequate." },
-        ]
-      }
-    ]
-  };
+export default async function EvaluationPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = await params;
+  const session = await getStudentCourseBoundEvaluationSession(id);
 
-  return <WizardShell {...mockForm} />;
+  if (!session) {
+    notFound();
+  }
+
+  if (session.session.submittedAt) {
+    if (!session.session.responseId) {
+      notFound();
+    }
+
+    redirect(`/student/history/${session.session.responseId}`);
+  }
+
+  return (
+    <WizardShell
+      assignmentId={session.assignmentId}
+      title={session.evaluationTitle}
+      courseTitle={session.courseTitle}
+      sections={session.sections}
+      initialAnswers={session.savedAnswers}
+      onSaveDraft={saveStudentCourseBoundDraftAction}
+      onSubmitResponse={submitStudentCourseBoundResponseAction}
+    />
+  );
 }
