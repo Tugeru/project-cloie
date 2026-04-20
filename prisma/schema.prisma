@@ -28,6 +28,7 @@ model User {
   roles                UserRole[]
   student_profile      StudentAcademicProfile?
   course_evaluations   CourseBoundEvaluation[]
+  evaluation_assignments  EvaluationAssignment[]
   responses            Response[]
   created_cilos        CILO[]
 
@@ -330,6 +331,7 @@ model EvaluationAssignment {
 
   course_bound            CourseBoundEvaluation? @relation("CourseBoundAssignments", fields: [course_bound_id], references: [id], onDelete: Cascade)
   central_deployment      CentralDeployment?     @relation("CentralDeployments", fields: [central_deployment_id], references: [id], onDelete: Cascade)
+  respondent              User                   @relation(fields: [respondent_id], references: [id], onDelete: Restrict)
   responses               Response[]
 
   @@map("evaluation_assignments")
