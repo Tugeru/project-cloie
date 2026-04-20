@@ -3,13 +3,10 @@ import { EvaluationListCard } from "@/components/student/dashboard/evaluation-li
 import { Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { listStudentCourseBoundEvaluations } from "@/modules/student-evaluation-workflow/services/list-student-course-bound-evaluations";
 
-export default function StudentEvaluationsPage() {
-  const activeEvals = [
-    { title: "Post-Term CILO Evaluation Tool", course: "ITE 18 – Capstone 1", program: "BSIT • 4th Year", deadline: "May 20, 2026", progress: 45, status: "IN_PROGRESS" as const },
-    { title: "Exit Survey for Graduating Students", course: "Central Deployment", program: "BSIT • 4th Year", deadline: "May 25, 2026", status: "DUE_SOON" as const },
-    { title: "Course Feedback - Computer Networks", course: "ITE 12", program: "BSIT • 3rd Year", deadline: "May 30, 2026", status: "NOT_STARTED" as const },
-  ];
+export default async function StudentEvaluationsPage() {
+  const { active, submitted } = await listStudentCourseBoundEvaluations();
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
@@ -27,7 +24,7 @@ export default function StudentEvaluationsPage() {
               value="active" 
               className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 font-bold"
             >
-              Active <span className="ml-2 bg-primary-soft text-primary px-2 py-0.5 rounded-full text-[10px]">3</span>
+              Active <span className="ml-2 bg-primary-soft text-primary px-2 py-0.5 rounded-full text-[10px]">{active.length}</span>
             </TabsTrigger>
             <TabsTrigger 
               value="submitted" 
@@ -56,15 +53,27 @@ export default function StudentEvaluationsPage() {
 
         <TabsContent value="active" className="pt-6">
           <div className="grid gap-4">
-            {activeEvals.map((evalItem, idx) => (
-              <EvaluationListCard key={idx} {...evalItem} />
+            {active.map((evalItem) => (
+              <EvaluationListCard key={evalItem.evaluationId} {...evalItem} />
             ))}
+            {active.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-border rounded-xl">
+                <p className="text-text-muted font-medium">No active evaluations found.</p>
+              </div>
+            )}
           </div>
         </TabsContent>
         
         <TabsContent value="submitted" className="pt-6">
-          <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-border rounded-xl">
-            <p className="text-text-muted font-medium">Your submitted evaluations will appear here.</p>
+          <div className="grid gap-4">
+            {submitted.map((evalItem) => (
+              <EvaluationListCard key={evalItem.evaluationId} {...evalItem} />
+            ))}
+            {submitted.length === 0 && (
+              <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-border rounded-xl">
+                <p className="text-text-muted font-medium">Your submitted evaluations will appear here.</p>
+              </div>
+            )}
           </div>
         </TabsContent>
 
