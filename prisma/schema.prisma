@@ -31,6 +31,8 @@ model User {
   evaluation_assignments  EvaluationAssignment[]
   responses            Response[]
   created_cilos        CILO[]
+  faculty_program_affiliations FacultyProgramAffiliation[]
+  program_head_assignments ProgramHeadAssignment[]
 
   @@map("users")
 }
@@ -73,6 +75,9 @@ model Program {
   plos                 PLO[]
   gos                  GO[]
   course_evaluations   CourseBoundEvaluation[]
+  faculty_program_affiliations FacultyProgramAffiliation[]
+  program_head_assignments ProgramHeadAssignment[]
+  course_bound_targets CourseBoundEvaluationTarget[]
   central_deployments  CentralDeployment[]
 
   @@map("programs")
@@ -128,6 +133,7 @@ model YearLevel {
 
   sections         Section[]
   student_profiles StudentAcademicProfile[]
+  course_bound_targets CourseBoundEvaluationTarget[]
 
   @@map("year_levels")
 }
@@ -145,6 +151,7 @@ model Section {
   year_level       YearLevel @relation(fields: [year_level_id], references: [id], onDelete: Restrict)
   program          Program   @relation(fields: [program_id], references: [id], onDelete: Cascade)
   student_profiles StudentAcademicProfile[]
+  course_bound_targets CourseBoundEvaluationTarget[]
 
   @@map("sections")
 }
@@ -220,6 +227,7 @@ model CILO {
   author        User          @relation(fields: [created_by], references: [id], onDelete: Restrict)
   cilo_mappings CILOMapping[]
 
+  @@unique([course_id, academic_term, order])
   @@map("cilos")
 }
 
@@ -298,8 +306,58 @@ model CourseBoundEvaluation {
   major                 Major?            @relation(fields: [major_id], references: [id], onDelete: SetNull)
   faculty               User              @relation(fields: [faculty_id], references: [id], onDelete: Restrict)
   assignments           EvaluationAssignment[] @relation("CourseBoundAssignments")
+  targets               CourseBoundEvaluationTarget[]
 
+  @@unique([course_id, academic_year, semester, term])
   @@map("course_bound_evaluations")
+}
+
+model FacultyProgramAffiliation {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  faculty_id String   @db.Uuid
+  program_id String   @db.Uuid
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  faculty    User     @relation(fields: [faculty_id], references: [id], onDelete: Cascade)
+  program    Program  @relation(fields: [program_id], references: [id], onDelete: Cascade)
+
+  @@unique([faculty_id, program_id])
+  @@map("faculty_program_affiliations")
+}
+
+model ProgramHeadAssignment {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  program_head_id String   @db.Uuid
+  program_id      String   @db.Uuid
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  program_head    User     @relation(fields: [program_head_id], references: [id], onDelete: Cascade)
+  program         Program  @relation(fields: [program_id], references: [id], onDelete: Cascade)
+
+  @@unique([program_head_id, program_id])
+  @@map("program_head_assignments")
+}
+
+model CourseBoundEvaluationTarget {
+  id                         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  course_bound_evaluation_id String   @db.Uuid
+  program_id                 String   @db.Uuid
+  year_level_id              String?  @db.Uuid
+  section_id                 String?  @db.Uuid
+  created_at                 DateTime @default(now())
+  updated_at                 DateTime @updatedAt
+
+  course_bound_evaluation    CourseBoundEvaluation @relation(fields: [course_bound_evaluation_id], references: [id], onDelete: Cascade)
+  program                    Program               @relation(fields: [program_id], references: [id], onDelete: Cascade)
+  year_level                 YearLevel?            @relation(fields: [year_level_id], references: [id], onDelete: SetNull)
+  section                    Section?              @relation(fields: [section_id], references: [id], onDelete: SetNull)
+
+  @@unique([course_bound_evaluation_id, program_id, year_level_id, section_id])
+  @@map("course_bound_evaluation_targets")
 }
 
 model CentralDeployment {
@@ -332,14 +390,14 @@ model EvaluationAssignment {
   course_bound            CourseBoundEvaluation? @relation("CourseBoundAssignments", fields: [course_bound_id], references: [id], onDelete: Cascade)
   central_deployment      CentralDeployment?     @relation("CentralDeployments", fields: [central_deployment_id], references: [id], onDelete: Cascade)
   respondent              User                   @relation(fields: [respondent_id], references: [id], onDelete: Restrict)
-  responses               Response[]
+  response                Response?
 
   @@map("evaluation_assignments")
 }
 
 model Response {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  assignment_id   String   @db.Uuid
+  assignment_id   String   @unique @db.Uuid
   respondent_id   String   @db.Uuid
   deployment_type String   // COURSE_BOUND or CENTRAL
   deployment_id   String   @db.Uuid

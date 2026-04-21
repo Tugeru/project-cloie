@@ -1,3 +1,6 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import { getSupabaseCommand } from "../../../scripts/supabase-cli";
@@ -170,5 +173,20 @@ describe("supabase workflow helpers", () => {
       "public",
     ]);
     expect(OUTPUT_PATH).toBe("src/types/supabase-database.ts");
+  });
+
+  it("cleans duplicate responses before enforcing assignment uniqueness", async () => {
+    const migration = await readFile(
+      path.join(
+        process.cwd(),
+        "supabase/migrations/20260421103000_add_outline_defense_scope_and_targets.sql",
+      ),
+      "utf8",
+    );
+
+    expect(migration).toContain("ROW_NUMBER() OVER (");
+    expect(migration).toContain('PARTITION BY "assignment_id"');
+    expect(migration).toContain('DELETE FROM "responses"');
+    expect(migration).toContain('CREATE UNIQUE INDEX "responses_assignment_id_key"');
   });
 });

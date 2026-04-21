@@ -60,6 +60,25 @@ describe("supabase client typing", () => {
     expectTypeOf<Awaited<ReturnType<typeof createServerClient>>>().toMatchTypeOf<SupabaseClient<Database>>();
   });
 
+  it("includes the outline defense reviewer scope tables in the generated Database type", () => {
+    expectTypeOf<Database["public"]["Tables"]["faculty_program_affiliations"]["Row"]>().toMatchTypeOf<{
+      faculty_id: string;
+      program_id: string;
+      is_active: boolean;
+    }>();
+    expectTypeOf<Database["public"]["Tables"]["program_head_assignments"]["Row"]>().toMatchTypeOf<{
+      program_head_id: string;
+      program_id: string;
+      is_active: boolean;
+    }>();
+    expectTypeOf<Database["public"]["Tables"]["course_bound_evaluation_targets"]["Row"]>().toMatchTypeOf<{
+      course_bound_evaluation_id: string;
+      program_id: string;
+      year_level_id: string | null;
+      section_id: string | null;
+    }>();
+  });
+
   it("threads the generated Database type through all Supabase client factories", async () => {
     const [clientFile, serverFile, middlewareFile] = await Promise.all([
       readFile(path.join(process.cwd(), "src/lib/supabase/client.ts"), "utf8"),
@@ -95,5 +114,15 @@ describe("supabase client typing", () => {
     expect(projectReadme).toContain("`NEXT_PUBLIC_SUPABASE_URL`");
     expect(projectReadme).toContain("`NEXT_PUBLIC_SUPABASE_ANON_KEY`");
     expect(projectReadme).toContain("`SUPABASE_PROJECT_REF`");
+  });
+
+  it("keeps the generated database file aligned with the outline defense migration", async () => {
+    const databaseTypes = await readFile(path.join(process.cwd(), "src/types/supabase-database.ts"), "utf8");
+
+    expect(databaseTypes).toContain("faculty_program_affiliations:");
+    expect(databaseTypes).toContain("program_head_assignments:");
+    expect(databaseTypes).toContain("course_bound_evaluation_targets:");
+    expect(databaseTypes).toContain('foreignKeyName: "responses_assignment_id_fkey"');
+    expect(databaseTypes).toContain("isOneToOne: true");
   });
 });

@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/modules/identity-access/services/resolve-auth-session";
 import { parseStudentEvaluationAnswerKey } from "@/modules/student-evaluation-workflow/answer-keys";
+import {
+  isCourseBoundEvaluationAvailable,
+  STUDENT_EVALUATION_UNAVAILABLE_ERROR,
+} from "./course-bound-availability";
 
 type StructureSnapshotItem = {
   key: string;
@@ -152,27 +156,30 @@ export async function submitStudentCourseBoundResponse({
     };
   }
 
+  if (!isCourseBoundEvaluationAvailable(assignment.course_bound)) {
+    return {
+      error: STUDENT_EVALUATION_UNAVAILABLE_ERROR,
+      success: false,
+    };
+  }
+
   assertSubmissionIsAllowed({
     answers,
     structureSnapshot: assignment.course_bound.instrument.structure_snapshot,
   });
 
-  const latestResponse = await prisma.response.findFirst({
+  let response = await prisma.response.findUnique({
     where: {
       assignment_id: assignment.id,
-      respondent_id: authSession.userId,
     },
-    orderBy: [{ submitted_at: "desc" }, { updated_at: "desc" }],
   });
 
-  if (latestResponse?.status === "SUBMITTED") {
+  if (response?.status === "SUBMITTED") {
     return {
       error: "This evaluation has already been submitted.",
       success: false,
     };
   }
-
-  let response = latestResponse;
 
   if (!response) {
     response = await prisma.response.create({

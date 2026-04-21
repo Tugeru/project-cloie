@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/modules/identity-access/services/resolve-auth-session";
 import { buildStudentEvaluationAnswerKey } from "@/modules/student-evaluation-workflow/answer-keys";
 import type { StudentEvaluationSection, StudentEvaluationSession } from "@/modules/student-evaluation-workflow/types";
+import { isCourseBoundEvaluationAvailable } from "./course-bound-availability";
 
 type QuantitativeSavedAnswerItem = {
   item_key: string;
@@ -146,14 +147,10 @@ export async function getStudentCourseBoundEvaluationSession(
           program: true,
         },
       },
-      responses: {
+      response: {
         include: {
           qual_items: true,
           quant_items: true,
-        },
-        orderBy: [{ submitted_at: "desc" }, { updated_at: "desc" }],
-        where: {
-          respondent_id: authSession.userId,
         },
       },
     },
@@ -163,10 +160,14 @@ export async function getStudentCourseBoundEvaluationSession(
     return null;
   }
 
+  if (!isCourseBoundEvaluationAvailable(assignment.course_bound)) {
+    return null;
+  }
+
   const sections = mapStructureSnapshotToSections(
     assignment.course_bound.instrument.structure_snapshot,
   );
-  const response = assignment.responses[0] ?? null;
+  const response = assignment.response ?? null;
   const savedAnswers = response
     ? mapSavedAnswerItems({
         qualitativeItems: response.qual_items,

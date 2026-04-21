@@ -8,13 +8,13 @@ import {
 const {
   createMock,
   findAssignmentMock,
-  findResponseMock,
+  findResponseByAssignmentMock,
   resolveAuthSessionMock,
   updateMock,
 } = vi.hoisted(() => ({
   createMock: vi.fn(),
   findAssignmentMock: vi.fn(),
-  findResponseMock: vi.fn(),
+  findResponseByAssignmentMock: vi.fn(),
   resolveAuthSessionMock: vi.fn(),
   updateMock: vi.fn(),
 }));
@@ -34,7 +34,7 @@ vi.mock("@/lib/db/prisma", () => ({
     },
     response: {
       create: createMock,
-      findFirst: findResponseMock,
+      findUnique: findResponseByAssignmentMock,
       update: updateMock,
     },
   },
@@ -105,6 +105,7 @@ describe("buildSubmittedResponsePatch", () => {
 describe("submitStudentCourseBoundResponse", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it("submits a course-bound response and returns its id", async () => {
@@ -113,12 +114,15 @@ describe("submitStudentCourseBoundResponse", () => {
       course_bound_id: "course-bound-1",
       id: "assignment-1",
       course_bound: {
+        activation_at: new Date("2026-04-01T00:00:00.000Z"),
+        deadline_at: new Date("2026-05-20T00:00:00.000Z"),
         instrument: {
           structure_snapshot: structureSnapshot,
         },
+        status: "ACTIVE",
       },
     });
-    findResponseMock.mockResolvedValue({ id: "response-1" });
+    findResponseByAssignmentMock.mockResolvedValue({ id: "response-1" });
     updateMock.mockResolvedValue({ id: "response-1" });
 
     await expect(
@@ -142,12 +146,15 @@ describe("submitStudentCourseBoundResponse", () => {
       course_bound_id: "course-bound-1",
       id: "assignment-1",
       course_bound: {
+        activation_at: new Date("2026-04-01T00:00:00.000Z"),
+        deadline_at: new Date("2026-05-20T00:00:00.000Z"),
         instrument: {
           structure_snapshot: structureSnapshot,
         },
+        status: "ACTIVE",
       },
     });
-    findResponseMock.mockResolvedValue({ id: "response-1", status: "SUBMITTED" });
+    findResponseByAssignmentMock.mockResolvedValue({ id: "response-1", status: "SUBMITTED" });
 
     await expect(
       submitStudentCourseBoundResponse({
@@ -161,5 +168,40 @@ describe("submitStudentCourseBoundResponse", () => {
       error: "This evaluation has already been submitted.",
       success: false,
     });
+  });
+
+  it("rejects submissions when the course-bound evaluation is unavailable", async () => {
+    resolveAuthSessionMock.mockResolvedValue({ userId: "user-1" });
+    findAssignmentMock.mockResolvedValue({
+      course_bound_id: "course-bound-1",
+      id: "assignment-1",
+      course_bound: {
+        activation_at: new Date("2026-05-01T00:00:00.000Z"),
+        deadline_at: new Date("2026-05-05T00:00:00.000Z"),
+        instrument: {
+          structure_snapshot: structureSnapshot,
+        },
+        status: "ACTIVE",
+      },
+    });
+    findResponseByAssignmentMock.mockResolvedValue(null);
+
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-10T00:00:00.000Z"));
+
+    await expect(
+      submitStudentCourseBoundResponse({
+        answers: {
+          "section-a:qualitative:remarks": "Clear and helpful explanations.",
+          "section-a:quantitative:q1": 5,
+        },
+        assignmentId: "assignment-1",
+      }),
+    ).resolves.toEqual({
+      error: "This evaluation is not currently available.",
+      success: false,
+    });
+
+    vi.useRealTimers();
   });
 });

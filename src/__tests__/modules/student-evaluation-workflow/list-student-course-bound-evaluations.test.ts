@@ -176,6 +176,82 @@ describe("buildStudentEvaluationListItem", () => {
 describe("listStudentCourseBoundEvaluations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
+  });
+
+  it("excludes unavailable unsubmitted assignments from the active list", async () => {
+    resolveAuthSessionMock.mockResolvedValue({ userId: "user-1" });
+    findManyMock.mockResolvedValue([
+      {
+        course_bound_id: "eval-scheduled",
+        id: "assignment-scheduled",
+        course_bound: {
+          activation_at: new Date("2026-05-15T00:00:00.000Z"),
+          course: { title: "Capstone 1" },
+          deadline_at: new Date("2026-05-20T00:00:00.000Z"),
+          instrument: {
+            structure_snapshot: [{ key: "section-a", title: "Section A" }],
+            template: { name: "Scheduled Evaluation" },
+          },
+          program: { name: "BSIT" },
+          status: "SCHEDULED",
+        },
+        response: null,
+      },
+      {
+        course_bound_id: "eval-expired",
+        id: "assignment-expired",
+        course_bound: {
+          activation_at: new Date("2026-05-01T00:00:00.000Z"),
+          course: { title: "Networks" },
+          deadline_at: new Date("2026-05-05T00:00:00.000Z"),
+          instrument: {
+            structure_snapshot: [{ key: "section-b", title: "Section B" }],
+            template: { name: "Expired Evaluation" },
+          },
+          program: { name: "BSIT" },
+          status: "ACTIVE",
+        },
+        response: null,
+      },
+      {
+        course_bound_id: "eval-submitted",
+        id: "assignment-submitted",
+        course_bound: {
+          activation_at: new Date("2026-05-01T00:00:00.000Z"),
+          course: { title: "Databases" },
+          deadline_at: new Date("2026-05-05T00:00:00.000Z"),
+          instrument: {
+            structure_snapshot: [{ key: "section-c", title: "Section C" }],
+            template: { name: "Submitted Evaluation" },
+          },
+          program: { name: "BSIT" },
+          status: "ACTIVE",
+        },
+        response: {
+          id: "response-submitted",
+          qual_items: [],
+          quant_items: [],
+          status: "SUBMITTED",
+          submitted_at: new Date("2026-05-04T00:00:00.000Z"),
+        },
+      },
+    ]);
+
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-10T00:00:00.000Z"));
+
+    await expect(listStudentCourseBoundEvaluations()).resolves.toEqual({
+      active: [],
+      submitted: [
+        expect.objectContaining({
+          evaluationId: "assignment-submitted",
+          status: "SUBMITTED",
+        }),
+      ],
+    });
+
+    vi.useRealTimers();
   });
 
   it("returns active and submitted course-bound assignments with workflow hrefs", async () => {
@@ -185,6 +261,7 @@ describe("listStudentCourseBoundEvaluations", () => {
         course_bound_id: "eval-active",
         id: "assignment-1",
         course_bound: {
+          activation_at: new Date("2026-04-01T00:00:00.000Z"),
           course: { title: "Capstone 1" },
           deadline_at: new Date("2026-05-20T00:00:00.000Z"),
           instrument: {
@@ -194,21 +271,21 @@ describe("listStudentCourseBoundEvaluations", () => {
             template: { name: "Post-Term CILO Evaluation Tool" },
           },
           program: { name: "BSIT" },
+          status: "ACTIVE",
         },
-        responses: [
-          {
-            id: "response-1",
-            qual_items: [],
-            quant_items: [{ id: "q-1" }],
-            status: "IN_PROGRESS",
-            submitted_at: null,
-          },
-        ],
+        response: {
+          id: "response-1",
+          qual_items: [],
+          quant_items: [{ id: "q-1" }],
+          status: "IN_PROGRESS",
+          submitted_at: null,
+        },
       },
       {
         course_bound_id: "eval-submitted",
         id: "assignment-2",
         course_bound: {
+          activation_at: new Date("2026-04-01T00:00:00.000Z"),
           course: { title: "Networks" },
           deadline_at: new Date("2026-05-10T00:00:00.000Z"),
           instrument: {
@@ -218,16 +295,15 @@ describe("listStudentCourseBoundEvaluations", () => {
             template: { name: "Midterm Evaluation" },
           },
           program: { name: "BSIT" },
+          status: "ACTIVE",
         },
-        responses: [
-          {
-            id: "response-2",
-            qual_items: [],
-            quant_items: [{ id: "q-1" }],
-            status: "SUBMITTED",
-            submitted_at: new Date("2026-05-09T00:00:00.000Z"),
-          },
-        ],
+        response: {
+          id: "response-2",
+          qual_items: [],
+          quant_items: [{ id: "q-1" }],
+          status: "SUBMITTED",
+          submitted_at: new Date("2026-05-09T00:00:00.000Z"),
+        },
       },
     ]);
 

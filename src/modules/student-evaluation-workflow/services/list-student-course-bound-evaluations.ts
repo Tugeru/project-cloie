@@ -6,6 +6,7 @@ import type {
   StudentEvaluationSection,
   StudentEvaluationSession,
 } from "@/modules/student-evaluation-workflow/types";
+import { isCourseBoundEvaluationAvailable } from "./course-bound-availability";
 import { mapStructureSnapshotToSections } from "./get-student-course-bound-evaluation-session";
 
 const THREE_DAYS_IN_MS = 3 * 24 * 60 * 60 * 1000;
@@ -136,14 +137,10 @@ export async function listStudentCourseBoundEvaluations(): Promise<{
           program: true,
         },
       },
-      responses: {
+      response: {
         include: {
           qual_items: true,
           quant_items: true,
-        },
-        orderBy: [{ submitted_at: "desc" }, { updated_at: "desc" }],
-        where: {
-          respondent_id: authSession.userId,
         },
       },
     },
@@ -152,13 +149,23 @@ export async function listStudentCourseBoundEvaluations(): Promise<{
     },
   });
 
+  const now = new Date();
+
   const items = assignments
     .filter((assignment) => assignment.course_bound)
-    .map((assignment) => {
+    .flatMap((assignment) => {
       const courseBound = assignment.course_bound!;
+      const response = assignment.response ?? null;
+
+      if (
+        !response?.submitted_at &&
+        !isCourseBoundEvaluationAvailable(courseBound, now)
+      ) {
+        return [];
+      }
+
       const sections = mapStructureSnapshotToSections(courseBound.instrument.structure_snapshot);
       const section = sections[0] ?? buildFallbackSection();
-      const response = assignment.responses[0] ?? null;
       const session: StudentEvaluationSession = {
         answeredItems: response ? response.qual_items.length + response.quant_items.length : 0,
         responseId: response?.id ?? null,
@@ -184,6 +191,7 @@ export async function listStudentCourseBoundEvaluations(): Promise<{
         evaluationId: assignment.id,
         evaluationTitle: courseBound.instrument.template.name,
         href,
+        now,
         programLabel: courseBound.major?.name ?? courseBound.program.name,
         section,
         session,

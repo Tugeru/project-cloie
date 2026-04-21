@@ -261,6 +261,65 @@ export type Database = {
           },
         ]
       }
+      course_bound_evaluation_targets: {
+        Row: {
+          course_bound_evaluation_id: string
+          created_at: string
+          id: string
+          program_id: string
+          section_id: string | null
+          updated_at: string
+          year_level_id: string | null
+        }
+        Insert: {
+          course_bound_evaluation_id: string
+          created_at?: string
+          id?: string
+          program_id: string
+          section_id?: string | null
+          updated_at: string
+          year_level_id?: string | null
+        }
+        Update: {
+          course_bound_evaluation_id?: string
+          created_at?: string
+          id?: string
+          program_id?: string
+          section_id?: string | null
+          updated_at?: string
+          year_level_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_bound_evaluation_targets_course_bound_evaluation_id_fkey"
+            columns: ["course_bound_evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "course_bound_evaluations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_bound_evaluation_targets_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_bound_evaluation_targets_section_id_fkey"
+            columns: ["section_id"]
+            isOneToOne: false
+            referencedRelation: "sections"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "course_bound_evaluation_targets_year_level_id_fkey"
+            columns: ["year_level_id"]
+            isOneToOne: false
+            referencedRelation: "year_levels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_types: {
         Row: {
           id: string
@@ -369,6 +428,48 @@ export type Database = {
             columns: ["respondent_id"]
             isOneToOne: false
             referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      faculty_program_affiliations: {
+        Row: {
+          created_at: string
+          faculty_id: string
+          id: string
+          is_active: boolean
+          program_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          faculty_id: string
+          id?: string
+          is_active?: boolean
+          program_id: string
+          updated_at: string
+        }
+        Update: {
+          created_at?: string
+          faculty_id?: string
+          id?: string
+          is_active?: boolean
+          program_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "faculty_program_affiliations_faculty_id_fkey"
+            columns: ["faculty_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "faculty_program_affiliations_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
             referencedColumns: ["id"]
           },
         ]
@@ -561,6 +662,48 @@ export type Database = {
           },
         ]
       }
+      program_head_assignments: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          program_head_id: string
+          program_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          program_head_id: string
+          program_id: string
+          updated_at: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          program_head_id?: string
+          program_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "program_head_assignments_program_head_id_fkey"
+            columns: ["program_head_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "program_head_assignments_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       programs: {
         Row: {
           code: string
@@ -705,7 +848,7 @@ export type Database = {
           {
             foreignKeyName: "responses_assignment_id_fkey"
             columns: ["assignment_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "evaluation_assignments"
             referencedColumns: ["id"]
           },

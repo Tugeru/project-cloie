@@ -104,6 +104,42 @@ describe("mapSavedAnswerItems", () => {
 describe("getStudentCourseBoundEvaluationSession", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
+  });
+
+  it("returns null when the course-bound evaluation is not currently available", async () => {
+    resolveAuthSessionMock.mockResolvedValue({ userId: "user-1" });
+    findFirstMock.mockResolvedValue({
+      course_bound_id: "course-bound-1",
+      id: "assignment-1",
+      course_bound: {
+        activation_at: new Date("2026-05-15T00:00:00.000Z"),
+        course: { title: "Capstone 1" },
+        deadline_at: new Date("2026-05-20T00:00:00.000Z"),
+        instrument: {
+          structure_snapshot: [
+            {
+              items: [
+                { key: "q1", kind: "quantitative", prompt: "Question 1", scale: [1, 2, 3, 4, 5] },
+              ],
+              key: "section-a",
+              title: "Section A",
+            },
+          ],
+          template: { name: "Post-Term CILO Evaluation Tool" },
+        },
+        program: { name: "BSIT" },
+        status: "SCHEDULED",
+      },
+      response: null,
+    });
+
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-10T00:00:00.000Z"));
+
+    await expect(getStudentCourseBoundEvaluationSession("assignment-1")).resolves.toBeNull();
+
+    vi.useRealTimers();
   });
 
   it("loads a course-bound session with saved answers", async () => {
@@ -112,6 +148,7 @@ describe("getStudentCourseBoundEvaluationSession", () => {
       course_bound_id: "course-bound-1",
       id: "assignment-1",
       course_bound: {
+        activation_at: new Date("2026-04-01T00:00:00.000Z"),
         course: { title: "Capstone 1" },
         deadline_at: new Date("2026-05-20T00:00:00.000Z"),
         instrument: {
@@ -128,18 +165,17 @@ describe("getStudentCourseBoundEvaluationSession", () => {
           template: { name: "Post-Term CILO Evaluation Tool" },
         },
         program: { name: "BSIT" },
+        status: "ACTIVE",
       },
-      responses: [
-        {
-          id: "response-1",
-          qual_items: [],
-          quant_items: [
-            { item_key: "q1", rating_value: 4, section_key: "section-a" },
-          ],
-          status: "IN_PROGRESS",
-          submitted_at: null,
-        },
-      ],
+      response: {
+        id: "response-1",
+        qual_items: [],
+        quant_items: [
+          { item_key: "q1", rating_value: 4, section_key: "section-a" },
+        ],
+        status: "IN_PROGRESS",
+        submitted_at: null,
+      },
     });
 
     await expect(getStudentCourseBoundEvaluationSession("assignment-1")).resolves.toEqual(
@@ -152,5 +188,46 @@ describe("getStudentCourseBoundEvaluationSession", () => {
         },
       }),
     );
+  });
+
+  it("loads scheduled evaluations once their activation time has passed", async () => {
+    resolveAuthSessionMock.mockResolvedValue({ userId: "user-1" });
+    findFirstMock.mockResolvedValue({
+      course_bound_id: "course-bound-1",
+      id: "assignment-1",
+      course_bound: {
+        activation_at: new Date("2026-05-15T00:00:00.000Z"),
+        course: { title: "Capstone 1" },
+        deadline_at: new Date("2026-05-20T00:00:00.000Z"),
+        instrument: {
+          structure_snapshot: [
+            {
+              items: [
+                { key: "q1", kind: "quantitative", prompt: "Question 1", scale: [1, 2, 3, 4, 5] },
+              ],
+              key: "section-a",
+              title: "Section A",
+            },
+          ],
+          template: { name: "Post-Term CILO Evaluation Tool" },
+        },
+        program: { name: "BSIT" },
+        status: "SCHEDULED",
+      },
+      response: null,
+    });
+
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-16T00:00:00.000Z"));
+
+    await expect(getStudentCourseBoundEvaluationSession("assignment-1")).resolves.toEqual(
+      expect.objectContaining({
+        assignmentId: "assignment-1",
+        courseTitle: "Capstone 1",
+        evaluationTitle: "Post-Term CILO Evaluation Tool",
+      }),
+    );
+
+    vi.useRealTimers();
   });
 });
