@@ -5,8 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import type { Role } from "@/lib/constants/roles";
-import { STUDENT_NAV, STUDENT_SECONDARY_NAV, DEFAULT_NAV } from "@/lib/constants/navigation";
-import { ROLES } from "@/lib/constants/roles";
+import { getMainNavByRoles, getSecondaryNavByRoles } from "@/lib/constants/navigation";
 
 interface SidebarProps {
   user?: {
@@ -19,10 +18,9 @@ interface SidebarProps {
 
 export function Sidebar({ user, roles = [] }: SidebarProps) {
   const pathname = usePathname();
-  
-  const isStudent = roles.includes(ROLES.STUDENT) || roles.includes(ROLES.GRADUATING_STUDENT);
-  const mainNav = isStudent ? STUDENT_NAV : DEFAULT_NAV;
-  const secondaryNav = isStudent ? STUDENT_SECONDARY_NAV : [];
+
+  const mainNav = getMainNavByRoles(roles);
+  const secondaryNav = getSecondaryNavByRoles(roles);
 
   return (
     <aside className="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r border-border bg-surface lg:flex">
