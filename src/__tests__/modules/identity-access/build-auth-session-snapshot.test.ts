@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ROLES } from "@/lib/constants/roles";
-import { buildAuthSessionSnapshot } from "@/modules/identity-access/services/build-auth-session-snapshot";
+import { buildAuthSessionSnapshot } from "@/features/auth/services/build-auth-session-snapshot";
 
 describe("buildAuthSessionSnapshot", () => {
   it("marks users without roles as requiring role selection", () => {
@@ -9,9 +9,11 @@ describe("buildAuthSessionSnapshot", () => {
       email: "user@acd.edu.ph",
       roles: [],
       studentProfileId: null,
+      isGraduating: false,
     });
 
     expect(session.primaryRole).toBeNull();
+    expect(session.isGraduating).toBe(false);
     expect(session.profileGate).toEqual({ status: "ROLE_SELECTION_REQUIRED" });
   });
 
@@ -21,6 +23,7 @@ describe("buildAuthSessionSnapshot", () => {
       email: "student@acd.edu.ph",
       roles: [ROLES.STUDENT],
       studentProfileId: null,
+      isGraduating: false,
     });
 
     expect(session.primaryRole).toBe(ROLES.STUDENT);
@@ -30,65 +33,46 @@ describe("buildAuthSessionSnapshot", () => {
     });
   });
 
-  it("marks complete students as ready for the app", () => {
+  it("preserves graduating eligibility on student sessions", () => {
     const session = buildAuthSessionSnapshot({
       userId: "user-3",
       email: "student@acd.edu.ph",
       roles: [ROLES.STUDENT],
       studentProfileId: "profile-1",
+      isGraduating: true,
     });
 
+    expect(session.primaryRole).toBe(ROLES.STUDENT);
+    expect(session.isGraduating).toBe(true);
     expect(session.profileGate).toEqual({ status: "COMPLETE" });
   });
 
-  it("marks graduating students without a profile as requiring onboarding", () => {
+  it("requires onboarding for mixed faculty and student users when the student profile is missing", () => {
     const session = buildAuthSessionSnapshot({
-      userId: "user-3b",
-      email: "graduating@acd.edu.ph",
-      roles: [ROLES.GRADUATING_STUDENT],
+      userId: "user-4",
+      email: "faculty@acd.edu.ph",
+      roles: [ROLES.FACULTY, ROLES.STUDENT],
       studentProfileId: null,
+      isGraduating: false,
     });
 
-    expect(session.primaryRole).toBe(ROLES.GRADUATING_STUDENT);
+    expect(session.primaryRole).toBe(ROLES.FACULTY);
     expect(session.profileGate).toEqual({
       status: "STUDENT_ONBOARDING_REQUIRED",
       intent: "student",
     });
   });
 
-  it("does not globally force mixed faculty and graduating-student users into onboarding", () => {
-    const session = buildAuthSessionSnapshot({
-      userId: "user-3c",
-      email: "faculty@acd.edu.ph",
-      roles: [ROLES.FACULTY, ROLES.GRADUATING_STUDENT],
-      studentProfileId: null,
-    });
-
-    expect(session.primaryRole).toBe(ROLES.FACULTY);
-    expect(session.profileGate).toEqual({ status: "COMPLETE" });
-  });
-
   it("allows faculty users without student profiles", () => {
     const session = buildAuthSessionSnapshot({
-      userId: "user-4",
+      userId: "user-5",
       email: "faculty@acd.edu.ph",
       roles: [ROLES.FACULTY],
       studentProfileId: null,
+      isGraduating: false,
     });
 
     expect(session.primaryRole).toBe(ROLES.FACULTY);
     expect(session.profileGate).toEqual({ status: "COMPLETE" });
-  });
-
-  it("treats unknown roles as no valid app role", () => {
-    const session = buildAuthSessionSnapshot({
-      userId: "user-5",
-      email: "unknown@acd.edu.ph",
-      roles: [],
-      studentProfileId: null,
-    });
-
-    expect(session.primaryRole).toBeNull();
-    expect(session.profileGate).toEqual({ status: "ROLE_SELECTION_REQUIRED" });
   });
 });

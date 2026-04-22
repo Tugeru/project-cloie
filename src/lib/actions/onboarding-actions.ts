@@ -1,5 +1,6 @@
 "use server";
 
+import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { studentProfileSchema, type StudentProfileInput } from "@/lib/schemas/student-profile";
@@ -14,15 +15,6 @@ export async function registerStudentProfile(data: StudentProfileInput) {
     }
 
     const validatedData = studentProfileSchema.parse(data);
-
-    // Get the global STUDENT role
-    const studentRole = await prisma.role.findUnique({
-      where: { name: "STUDENT" },
-    });
-
-    if (!studentRole) {
-      return { error: "System initialization error: STUDENT role missing." };
-    }
 
     // Determine current Academic Year
     // TODO: Tech Debt - This naive calendar-year logic fails for overlapping semesters 
@@ -50,11 +42,11 @@ export async function registerStudentProfile(data: StudentProfileInput) {
 
       // 2. Assign Global Role (Idempotent)
       await tx.userRole.upsert({
-        where: { user_id_role_id: { user_id: user.id, role_id: studentRole.id } },
-        update: {}, // Role assignment has no other fields to update
+        where: { user_id_role: { user_id: user.id, role: ROLES.STUDENT } },
+        update: {},
         create: {
           user_id: user.id,
-          role_id: studentRole.id,
+          role: ROLES.STUDENT,
         },
       });
 
@@ -67,6 +59,7 @@ export async function registerStudentProfile(data: StudentProfileInput) {
           year_level_id: validatedData.year_level_id,
           student_id_number: validatedData.student_id_number,
           academic_year: academicYear,
+          is_graduating: false,
         },
         create: {
           user_id: user.id,
@@ -75,6 +68,7 @@ export async function registerStudentProfile(data: StudentProfileInput) {
           year_level_id: validatedData.year_level_id,
           student_id_number: validatedData.student_id_number,
           academic_year: academicYear,
+          is_graduating: false,
         },
       });
     });

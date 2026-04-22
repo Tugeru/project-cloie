@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildSubmittedResponseSections,
   getStudentSubmittedResponseReview,
-} from "@/modules/student-evaluation-workflow/services/get-student-submitted-response-review";
+} from "@/features/responses/services/get-student-submitted-response-review";
 
 const { findFirstMock, resolveAuthSessionMock } = vi.hoisted(() => ({
   findFirstMock: vi.fn(),
@@ -17,7 +17,7 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
-vi.mock("@/modules/identity-access/services/resolve-auth-session", () => ({
+vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
 }));
 

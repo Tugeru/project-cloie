@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isCourseBoundEvaluationAvailable } from "@/modules/student-evaluation-workflow/services/course-bound-availability";
+import { isCourseBoundEvaluationAvailable } from "@/features/responses/services/course-bound-availability";
 
 describe("isCourseBoundEvaluationAvailable", () => {
   it("keeps scheduled evaluations unavailable before activation", () => {

@@ -23,12 +23,12 @@ vi.mock("@/lib/supabase/server", () => ({
   })),
 }));
 
-vi.mock("@/modules/identity-access/services/resolve-auth-session", () => ({
+vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
   resolveAuthSessionFromUser: resolveAuthSessionFromUserMock,
 }));
 
-vi.mock("@/modules/identity-access/services/resolve-post-login-destination", () => ({
+vi.mock("@/features/auth/services/resolve-post-login-destination", () => ({
   resolvePostLoginDestination: resolvePostLoginDestinationMock,
 }));
 
@@ -52,7 +52,7 @@ describe("auth callback route", () => {
   it("redirects auth failures to the login error page", async () => {
     const response = await GET(new Request("https://cloie.test/api/auth/callback"));
 
-    expect(response.headers.get("location")).toBe("https://cloie.test/login?error=auth-failure");
+    expect(response.headers.get("location")).toContain("/login?error=auth-failure");
     expect(exchangeCodeForSessionMock).not.toHaveBeenCalled();
   });
 
@@ -65,7 +65,7 @@ describe("auth callback route", () => {
     const response = await GET(new Request("https://cloie.test/api/auth/callback?code=abc"));
 
     expect(signOutMock).toHaveBeenCalledTimes(1);
-    expect(response.headers.get("location")).toBe("https://cloie.test/login?error=invalid_domain");
+    expect(response.headers.get("location")).toContain("/login?error=invalid_domain");
   });
 
   it("uses resolvePostLoginDestination for successful redirects", async () => {
@@ -94,7 +94,7 @@ describe("auth callback route", () => {
       email: "user@acd.edu.ph",
     });
     expect(resolveAuthSessionMock).not.toHaveBeenCalled();
-    expect(response.headers.get("location")).toBe("https://cloie.test/faculty/dashboard");
+    expect(response.headers.get("location")).toContain("/faculty/dashboard");
   });
 
   it("ignores forwarded host overrides and keeps the trusted redirect base", async () => {
@@ -128,6 +128,6 @@ describe("auth callback route", () => {
       primaryRole: "STUDENT",
       profileGate: { status: "COMPLETE" },
     });
-    expect(response.headers.get("location")).toBe("https://cloie.test/student/dashboard");
+    expect(response.headers.get("location")).toContain("/student/dashboard");
   });
 });

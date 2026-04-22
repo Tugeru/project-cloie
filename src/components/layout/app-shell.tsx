@@ -2,6 +2,7 @@ import * as React from "react";
 import { Sidebar } from "./sidebar";
 import { Topbar } from "./topbar";
 import { MobileNav } from "./mobile-nav";
+import { DevRoleSwitcher } from "@/features/auth/components/dev-role-switcher";
 import type { Role } from "@/lib/constants/roles";
 
 interface AppShellProps {
@@ -33,6 +34,8 @@ export function AppShell({ children, user, roles }: AppShellProps) {
         {/* Mobile Bottom Navigation */}
         <MobileNav roles={roles} />
       </div>
+
+      <DevRoleSwitcher activeEmail={user?.email} />
     </div>
   );
 }

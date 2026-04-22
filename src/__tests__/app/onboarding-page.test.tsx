@@ -50,12 +50,12 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
-vi.mock("@/modules/identity-access/services/resolve-auth-session", () => ({
+vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
   resolveAuthSessionFromUser: resolveAuthSessionFromUserMock,
 }));
 
-vi.mock("@/modules/identity-access/services/resolve-post-login-destination", () => ({
+vi.mock("@/features/auth/services/resolve-post-login-destination", () => ({
   resolvePostLoginDestination: resolvePostLoginDestinationMock,
 }));
 

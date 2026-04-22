@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { AnonymizedResponseDetail } from "@/components/course-bound-review/anonymized-response-detail";
-import type { CourseBoundResponseReview } from "@/modules/analytics-reporting-and-review/types";
+import { AnonymizedResponseDetail } from "@/features/analytics/components/anonymized-response-detail";
+import type { CourseBoundResponseReview } from "@/features/analytics/types";
 
 const response: CourseBoundResponseReview = {
   academicYear: "2025-2026",

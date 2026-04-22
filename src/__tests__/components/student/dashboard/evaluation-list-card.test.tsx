@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { EvaluationListCard } from "@/components/student/dashboard/evaluation-list-card";
+import { EvaluationListCard } from "@/features/users/components/evaluation-list-card";
 import { expect, test, describe } from "vitest";
 
 describe("EvaluationListCard", () => {
@@ -9,6 +9,7 @@ describe("EvaluationListCard", () => {
     courseTitle: "ITE 18",
     programLabel: "BSIT",
     deadlineAt: new Date("2026-05-20"),
+    href: "/student/evaluations/eval-1",
     status: "NOT_STARTED" as const,
     progress: 0,
     section: { id: "section-b", name: "Section B", description: "", items: [] },

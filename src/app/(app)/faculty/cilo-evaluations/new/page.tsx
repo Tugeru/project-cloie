@@ -1,13 +1,13 @@
 import { redirect } from "next/navigation";
-import { PublishCourseBoundEvaluationForm } from "@/components/faculty/publish-course-bound-evaluation-form";
+import { PublishCourseBoundEvaluationForm } from "@/features/evaluations/components/publish-course-bound-evaluation-form";
 import {
   listFacultyCourseContextsAction,
   publishCourseBoundEvaluationAction,
 } from "@/lib/actions/course-bound-evaluation-actions";
 import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
-import { ensureRoleAccess } from "@/modules/identity-access/policies/ensure-role-access";
-import { resolveAuthSession } from "@/modules/identity-access/services/resolve-auth-session";
+import { ensureRoleAccess } from "@/features/auth/policies/ensure-role-access";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 
 export default async function NewFacultyCiloEvaluationPage() {
   const session = await resolveAuthSession();

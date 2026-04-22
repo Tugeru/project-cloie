@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   getSnapshotSectionItems,
   isSnapshotSection,
-} from "@/modules/analytics-reporting-and-review/services/snapshot-structure";
+} from "@/features/analytics/services/snapshot-structure";
 
 describe("snapshot-structure helpers", () => {
   it("accepts only valid snapshot section objects", () => {

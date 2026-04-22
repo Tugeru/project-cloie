@@ -1,9 +1,9 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EvaluationListCard } from "@/components/student/dashboard/evaluation-list-card";
+import { EvaluationListCard } from "@/features/users/components/evaluation-list-card";
 import { Search, Filter } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { listStudentCourseBoundEvaluations } from "@/modules/student-evaluation-workflow/services/list-student-course-bound-evaluations";
+import { listStudentCourseBoundEvaluations } from "@/features/responses/services/list-student-course-bound-evaluations";
 
 export default async function StudentEvaluationsPage() {
   const { active, submitted } = await listStudentCourseBoundEvaluations();

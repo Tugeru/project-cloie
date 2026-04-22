@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { GoogleSignInButton } from "@/components/auth/google-signin-button";
+import { GoogleSignInButton } from "@/features/auth/components/google-signin-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 

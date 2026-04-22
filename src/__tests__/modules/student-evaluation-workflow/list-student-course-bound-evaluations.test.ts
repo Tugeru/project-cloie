@@ -3,7 +3,7 @@ import {
   buildStudentEvaluationListItem,
   deriveStudentEvaluationStatus,
   listStudentCourseBoundEvaluations,
-} from "@/modules/student-evaluation-workflow/services/list-student-course-bound-evaluations";
+} from "@/features/responses/services/list-student-course-bound-evaluations";
 
 const { findManyMock, resolveAuthSessionMock } = vi.hoisted(() => ({
   findManyMock: vi.fn(),
@@ -18,7 +18,7 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
-vi.mock("@/modules/identity-access/services/resolve-auth-session", () => ({
+vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
 }));
 
@@ -134,6 +134,7 @@ describe("buildStudentEvaluationListItem", () => {
         deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
         evaluationId: "evaluation-1",
         evaluationTitle: "Post-Term CILO Evaluation Tool",
+        href: "/student/evaluations/evaluation-1",
         now: new Date("2026-05-10T00:00:00.000Z"),
         programLabel: "BSIT • 4th Year",
         section: {
@@ -154,6 +155,7 @@ describe("buildStudentEvaluationListItem", () => {
       deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
       evaluationId: "evaluation-1",
       evaluationTitle: "Post-Term CILO Evaluation Tool",
+      href: "/student/evaluations/evaluation-1",
       progress: 50,
       programLabel: "BSIT • 4th Year",
       section: {

@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { FileText, Eye, Calendar } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { listStudentCourseBoundEvaluations } from "@/modules/student-evaluation-workflow/services/list-student-course-bound-evaluations";
+import { listStudentCourseBoundEvaluations } from "@/features/responses/services/list-student-course-bound-evaluations";
 import Link from "next/link";
 
 export default async function StudentHistoryPage() {

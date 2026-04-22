@@ -2,8 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CourseBoundReviewTabs } from "@/components/course-bound-review/course-bound-review-tabs";
-import { getCourseBoundReviewDetail } from "@/modules/analytics-reporting-and-review/services/get-course-bound-review-detail";
+import { CourseBoundReviewTabs } from "@/features/analytics/components/course-bound-review-tabs";
+import { getCourseBoundReviewDetail } from "@/features/analytics/services/get-course-bound-review-detail";
 
 export default async function DeanCiloReviewDetailPage({
   params,

@@ -3,7 +3,7 @@ import {
   assertSubmissionIsAllowed,
   buildSubmittedResponsePatch,
   submitStudentCourseBoundResponse,
-} from "@/modules/student-evaluation-workflow/services/submit-student-course-bound-response";
+} from "@/features/responses/services/submit-student-course-bound-response";
 
 const {
   createMock,
@@ -40,7 +40,7 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
-vi.mock("@/modules/identity-access/services/resolve-auth-session", () => ({
+vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
 }));
 

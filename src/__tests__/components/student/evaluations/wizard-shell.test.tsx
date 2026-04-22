@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { WizardShell } from "@/components/student/evaluations/wizard-shell";
+import { WizardShell } from "@/features/responses/components/wizard-shell";
 import { expect, test, describe, vi } from "vitest";
 
 // Mock next/navigation

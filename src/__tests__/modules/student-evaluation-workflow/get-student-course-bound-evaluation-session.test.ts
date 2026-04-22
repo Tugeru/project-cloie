@@ -3,7 +3,7 @@ import {
   getStudentCourseBoundEvaluationSession,
   mapSavedAnswerItems,
   mapStructureSnapshotToSections,
-} from "@/modules/student-evaluation-workflow/services/get-student-course-bound-evaluation-session";
+} from "@/features/responses/services/get-student-course-bound-evaluation-session";
 
 const { findFirstMock, resolveAuthSessionMock } = vi.hoisted(() => ({
   findFirstMock: vi.fn(),
@@ -18,7 +18,7 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
-vi.mock("@/modules/identity-access/services/resolve-auth-session", () => ({
+vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
 }));
 

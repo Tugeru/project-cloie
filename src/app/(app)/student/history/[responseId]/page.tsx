@@ -1,5 +1,5 @@
-import { SubmittedResponseReview } from "@/components/student/evaluations/submitted-response-review";
-import { getStudentSubmittedResponseReview } from "@/modules/student-evaluation-workflow/services/get-student-submitted-response-review";
+import { SubmittedResponseReview } from "@/features/responses/components/submitted-response-review";
+import { getStudentSubmittedResponseReview } from "@/features/responses/services/get-student-submitted-response-review";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";

@@ -3,8 +3,8 @@ import Link from "next/link";
 import { prisma } from "@/lib/db/prisma";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { resolveAuthSessionFromUser } from "@/modules/identity-access/services/resolve-auth-session";
-import { resolvePostLoginDestination } from "@/modules/identity-access/services/resolve-post-login-destination";
+import { resolveAuthSessionFromUser } from "@/features/auth/services/resolve-auth-session";
+import { resolvePostLoginDestination } from "@/features/auth/services/resolve-post-login-destination";
 import { createClient } from "@/lib/supabase/server";
 import { StudentProfileForm } from "./student-profile-form";
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { resolveAuthSessionFromUser } from "@/modules/identity-access/services/resolve-auth-session";
-import { resolvePostLoginDestination } from "@/modules/identity-access/services/resolve-post-login-destination";
+import { resolveAuthSessionFromUser } from "@/features/auth/services/resolve-auth-session";
+import { resolvePostLoginDestination } from "@/features/auth/services/resolve-post-login-destination";
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);

@@ -2,8 +2,8 @@ import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 
-import { CourseBoundReviewTabs } from "@/components/course-bound-review/course-bound-review-tabs";
-import type { CourseBoundReviewDetail } from "@/modules/analytics-reporting-and-review/types";
+import { CourseBoundReviewTabs } from "@/features/analytics/components/course-bound-review-tabs";
+import type { CourseBoundReviewDetail } from "@/features/analytics/types";
 
 const meanBarChartMock = vi.fn();
 const qualitativeWordCloudMock = vi.fn();
@@ -14,14 +14,14 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-vi.mock("@/components/course-bound-review/mean-bar-chart", () => ({
+vi.mock("@/features/analytics/components/mean-bar-chart", () => ({
   MeanBarChart: ({ data, title }: { data: Array<{ label: string; value: number | null }>; title: string }) => {
     meanBarChartMock({ data, title });
     return <div>Mean chart: {title}</div>;
   },
 }));
 
-vi.mock("@/components/course-bound-review/qualitative-word-cloud", () => ({
+vi.mock("@/features/analytics/components/qualitative-word-cloud", () => ({
   QualitativeWordCloud: ({ title, tokens }: { title: string; tokens: Array<{ text: string; value: number }> }) => {
     qualitativeWordCloudMock({ title, tokens });
     return <div>Word cloud: {title}</div>;

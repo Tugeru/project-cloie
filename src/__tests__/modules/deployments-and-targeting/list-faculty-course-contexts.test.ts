@@ -1,22 +1,26 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ROLES } from "@/lib/constants/roles";
-import { listFacultyCourseContexts } from "@/modules/deployments-and-targeting/services/list-faculty-course-contexts";
+import { listFacultyCourseContexts } from "@/features/evaluations/services/list-faculty-course-contexts";
 
-const { courseFindManyMock, resolveAuthSessionMock } = vi.hoisted(() => ({
+const { affiliationFindManyMock, courseFindManyMock, resolveAuthSessionMock } = vi.hoisted(() => ({
+  affiliationFindManyMock: vi.fn(),
   courseFindManyMock: vi.fn(),
   resolveAuthSessionMock: vi.fn(),
 }));
 
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
+    facultyProgramAffiliation: {
+      findMany: affiliationFindManyMock,
+    },
     course: {
       findMany: courseFindManyMock,
     },
   },
 }));
 
-vi.mock("@/modules/identity-access/services/resolve-auth-session", () => ({
+vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
 }));
 
@@ -33,6 +37,7 @@ describe("listFacultyCourseContexts", () => {
     });
 
     await expect(listFacultyCourseContexts()).resolves.toEqual([]);
+    expect(affiliationFindManyMock).not.toHaveBeenCalled();
     expect(courseFindManyMock).not.toHaveBeenCalled();
   });
 
@@ -42,26 +47,41 @@ describe("listFacultyCourseContexts", () => {
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });
-    courseFindManyMock.mockResolvedValue([
+    affiliationFindManyMock.mockResolvedValue([
       {
-        code: "IT-401",
-        id: "course-1",
-        title: "Capstone 1",
+        program_id: "program-1",
         program: {
           code: "BSIT",
           id: "program-1",
+          majors: [],
           name: "Bachelor of Science in Information Technology",
         },
       },
+    ]);
+    courseFindManyMock.mockResolvedValue([
       {
-        code: "IT-402",
-        id: "course-2",
-        title: "Capstone 2",
+        code: "IT-401",
+        course_type: { name: "PROGRAM_SPECIFIC" },
+        id: "course-1",
+        major: null,
+        major_id: null,
         program: {
           code: "BSIT",
           id: "program-1",
           name: "Bachelor of Science in Information Technology",
         },
+        program_id: "program-1",
+        title: "Capstone 1",
+      },
+      {
+        code: "GE-101",
+        course_type: { name: "GENERAL_EDUCATION" },
+        id: "course-2",
+        major: null,
+        major_id: null,
+        program: null,
+        program_id: null,
+        title: "General Education Foundations",
       },
     ]);
 
@@ -70,43 +90,70 @@ describe("listFacultyCourseContexts", () => {
         courseCode: "IT-401",
         courseId: "course-1",
         courseTitle: "Capstone 1",
+        courseType: "PROGRAM_SPECIFIC",
+        majorId: null,
+        majorName: null,
         programCode: "BSIT",
         programId: "program-1",
         programName: "Bachelor of Science in Information Technology",
+        scopeLabel: "BSIT - Shared Program Course",
       },
       {
-        courseCode: "IT-402",
+        courseCode: "GE-101",
         courseId: "course-2",
-        courseTitle: "Capstone 2",
+        courseTitle: "General Education Foundations",
+        courseType: "GENERAL_EDUCATION",
+        majorId: null,
+        majorName: null,
         programCode: "BSIT",
         programId: "program-1",
         programName: "Bachelor of Science in Information Technology",
+        scopeLabel: "BSIT - General Education",
       },
     ]);
 
-    expect(courseFindManyMock).toHaveBeenCalledWith({
-      include: {
-        program: {
-          select: {
-            code: true,
-            id: true,
-            name: true,
-          },
-        },
-      },
-      orderBy: [{ program: { code: "asc" } }, { code: "asc" }],
+    expect(affiliationFindManyMock).toHaveBeenCalledWith({
       where: {
+        faculty_id: "faculty-1",
         is_active: true,
         program: {
-          faculty_program_affiliations: {
-            some: {
-              faculty_id: "faculty-1",
-              is_active: true,
-            },
-          },
           is_active: true,
         },
       },
+      include: {
+        program: {
+          include: {
+            majors: {
+              where: { is_active: true },
+              orderBy: { name: "asc" },
+            },
+          },
+        },
+      },
+      orderBy: { program: { code: "asc" } },
+    });
+    expect(courseFindManyMock).toHaveBeenCalledWith({
+      where: {
+        is_active: true,
+        OR: [
+          {
+            program_id: {
+              in: ["program-1"],
+            },
+          },
+          {
+            course_type: {
+              name: "GENERAL_EDUCATION",
+            },
+          },
+        ],
+      },
+      include: {
+        major: true,
+        course_type: true,
+        program: true,
+      },
+      orderBy: [{ course_type: { name: "asc" } }, { code: "asc" }],
     });
   });
 });

@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { HeroCard } from "@/components/student/dashboard/hero-card";
+import { HeroCard } from "@/features/users/components/hero-card";
 import { expect, test, describe } from "vitest";
 
 describe("HeroCard", () => {

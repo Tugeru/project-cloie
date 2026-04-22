@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ROLES } from "@/lib/constants/roles";
-import { listCourseBoundReviewItems } from "@/modules/analytics-reporting-and-review/services/list-course-bound-review-items";
+import { listCourseBoundReviewItems } from "@/features/analytics/services/list-course-bound-review-items";
 
 const {
   courseBoundEvaluationFindManyMock,
@@ -21,11 +21,11 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
-vi.mock("@/modules/identity-access/services/resolve-auth-session", () => ({
+vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
 }));
 
-vi.mock("@/modules/academic-catalog-and-context/services/resolve-reviewer-program-scope", () => ({
+vi.mock("@/features/academic-structure/services/resolve-reviewer-program-scope", () => ({
   resolveReviewerProgramScope: resolveReviewerProgramScopeMock,
 }));
 

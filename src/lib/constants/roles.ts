@@ -1,24 +1,16 @@
-export const ROLES = {
-  ADMIN: "ADMIN",
-  DEAN: "DEAN",
-  PROGRAM_HEAD: "PROGRAM_HEAD",
-  FACULTY: "FACULTY",
-  STUDENT: "STUDENT",
-  GRADUATING_STUDENT: "GRADUATING_STUDENT",
-  ALUMNI: "ALUMNI",
-  INDUSTRY_PARTNER: "INDUSTRY_PARTNER",
-} as const;
+import { SystemRole } from "@prisma/client";
 
-export type Role = (typeof ROLES)[keyof typeof ROLES];
+export const ROLES = SystemRole;
+
+export type Role = SystemRole;
 
 // Hierarchy for simple role-based UI access where logical
 export const ROLE_LEVELS: Record<Role, number> = {
-  ADMIN: 100,
-  DEAN: 80,
-  PROGRAM_HEAD: 70,
-  FACULTY: 50,
-  STUDENT: 10,
-  GRADUATING_STUDENT: 15,
-  ALUMNI: 20,
-  INDUSTRY_PARTNER: 30,
+  [SystemRole.ADMIN]: 100,
+  [SystemRole.DEAN]: 80,
+  [SystemRole.PROGRAM_HEAD]: 70,
+  [SystemRole.FACULTY]: 50,
+  [SystemRole.STUDENT]: 10,
+  [SystemRole.ALUMNI]: 20,
+  [SystemRole.INDUSTRY_PARTNER]: 30,
 };

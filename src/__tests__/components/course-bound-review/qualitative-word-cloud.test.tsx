@@ -1,6 +1,6 @@
 import { act, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { QualitativeWordCloud } from "@/components/course-bound-review/qualitative-word-cloud";
+import { QualitativeWordCloud } from "@/features/analytics/components/qualitative-word-cloud";
 
 const wordCloudPropsMock = vi.fn();
 const disconnectMock = vi.fn();

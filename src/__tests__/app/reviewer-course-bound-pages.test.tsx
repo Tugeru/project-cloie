@@ -24,29 +24,29 @@ vi.mock("next/navigation", () => ({
   }),
 }));
 
-vi.mock("@/modules/analytics-reporting-and-review/services/list-course-bound-review-items", () => ({
+vi.mock("@/features/analytics/services/list-course-bound-review-items", () => ({
   listCourseBoundReviewItems: listCourseBoundReviewItemsMock,
 }));
 
-vi.mock("@/modules/analytics-reporting-and-review/services/get-course-bound-review-detail", () => ({
+vi.mock("@/features/analytics/services/get-course-bound-review-detail", () => ({
   getCourseBoundReviewDetail: getCourseBoundReviewDetailMock,
 }));
 
-vi.mock("@/modules/analytics-reporting-and-review/services/get-course-bound-response-review", () => ({
+vi.mock("@/features/analytics/services/get-course-bound-response-review", () => ({
   getCourseBoundResponseReview: getCourseBoundResponseReviewMock,
 }));
 
-vi.mock("@/components/course-bound-review/published-course-bound-list", () => ({
+vi.mock("@/features/analytics/components/published-course-bound-list", () => ({
   PublishedCourseBoundList: ({ title }: { title: string }) => <div>Published list: {title}</div>,
 }));
 
-vi.mock("@/components/course-bound-review/course-bound-review-tabs", () => ({
+vi.mock("@/features/analytics/components/course-bound-review-tabs", () => ({
   CourseBoundReviewTabs: ({ responseBasePath }: { responseBasePath: string }) => (
     <div>Tabs base path: {responseBasePath}</div>
   ),
 }));
 
-vi.mock("@/components/course-bound-review/anonymized-response-detail", () => ({
+vi.mock("@/features/analytics/components/anonymized-response-detail", () => ({
   AnonymizedResponseDetail: ({
     response,
   }: {

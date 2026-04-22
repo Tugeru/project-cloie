@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ROLES } from "@/lib/constants/roles";
-import { resolveReviewerProgramScope } from "@/modules/academic-catalog-and-context/services/resolve-reviewer-program-scope";
+import { resolveReviewerProgramScope } from "@/features/academic-structure/services/resolve-reviewer-program-scope";
 
 const { facultyProgramAffiliationFindManyMock, programHeadAssignmentFindManyMock } = vi.hoisted(() => ({
   facultyProgramAffiliationFindManyMock: vi.fn(),

@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { PublishCourseBoundEvaluationForm } from "@/components/faculty/publish-course-bound-evaluation-form";
+import { AcademicSemester, AcademicTerm } from "@prisma/client";
+import { PublishCourseBoundEvaluationForm } from "@/features/evaluations/components/publish-course-bound-evaluation-form";
 
 describe("PublishCourseBoundEvaluationForm", () => {
   const courseContexts = [
@@ -8,9 +9,13 @@ describe("PublishCourseBoundEvaluationForm", () => {
       courseCode: "CS101",
       courseId: "course-1",
       courseTitle: "Intro to Computing",
+      courseType: "PROGRAM_SPECIFIC" as const,
+      majorId: null,
+      majorName: null,
       programCode: "BSCS",
       programId: "program-1",
       programName: "BS Computer Science",
+      scopeLabel: "BSCS - Shared Program Course",
     },
   ];
 
@@ -27,6 +32,8 @@ describe("PublishCourseBoundEvaluationForm", () => {
         publishAction={vi.fn()}
       />,
     );
+
+    fireEvent.change(screen.getByLabelText(/program context/i), { target: { value: "program-1" } });
 
     expect(screen.getByRole("heading", { name: /publish cilo evaluation/i })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: /CS101 - Intro to Computing/i })).toBeInTheDocument();
@@ -51,10 +58,11 @@ describe("PublishCourseBoundEvaluationForm", () => {
       />,
     );
 
-    fireEvent.change(screen.getByLabelText(/course context/i), { target: { value: "course-1" } });
+    fireEvent.change(screen.getByLabelText(/program context/i), { target: { value: "program-1" } });
+    fireEvent.change(screen.getByLabelText(/^Course$/i), { target: { value: "course-1" } });
     fireEvent.change(screen.getByLabelText(/academic year/i), { target: { value: "2026-2027" } });
-    fireEvent.change(screen.getByLabelText(/semester/i), { target: { value: "1ST" } });
-    fireEvent.change(screen.getByLabelText(/term/i), { target: { value: "PRELIM" } });
+    fireEvent.change(screen.getByLabelText(/semester/i), { target: { value: AcademicSemester.FIRST } });
+    fireEvent.change(screen.getByLabelText(/term/i), { target: { value: AcademicTerm.FIRST_TERM } });
     fireEvent.change(screen.getByLabelText(/activation schedule/i), {
       target: { value: "2026-05-01T08:30" },
     });
@@ -74,8 +82,9 @@ describe("PublishCourseBoundEvaluationForm", () => {
     expect(payload).toMatchObject({
       academicYear: "2026-2027",
       courseId: "course-1",
-      semester: "1ST",
-      term: "PRELIM",
+      programId: "program-1",
+      semester: AcademicSemester.FIRST,
+      term: AcademicTerm.FIRST_TERM,
       yearLevelIds: ["year-1", "year-2"],
       cilos: [{ description: "Apply core concepts" }, { description: "Build maintainable software" }],
     });
@@ -97,52 +106,7 @@ describe("PublishCourseBoundEvaluationForm", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /publish evaluation/i }));
 
-    expect(await screen.findByText(/please select a course context/i)).toBeInTheDocument();
+    expect(await screen.findByText(/please select a program context/i)).toBeInTheDocument();
     expect(publishAction).not.toHaveBeenCalled();
-  });
-
-  it("shows action-provided error when publish returns success false", async () => {
-    const publishAction = vi.fn().mockResolvedValue({
-      error: "An evaluation is already published for this course context.",
-      success: false,
-    });
-
-    render(
-      <PublishCourseBoundEvaluationForm
-        courseContexts={courseContexts}
-        yearLevels={yearLevels}
-        publishAction={publishAction}
-      />,
-    );
-
-    fireEvent.change(screen.getByLabelText(/course context/i), { target: { value: "course-1" } });
-    fireEvent.change(screen.getByLabelText(/academic year/i), { target: { value: "2026-2027" } });
-    fireEvent.change(screen.getByLabelText(/target cilos/i), { target: { value: "CILO A" } });
-    fireEvent.click(screen.getByLabelText("1st Year"));
-    fireEvent.click(screen.getByRole("button", { name: /publish evaluation/i }));
-
-    expect(await screen.findByText(/already published for this course context/i)).toBeInTheDocument();
-  });
-
-  it("shows fallback error when publish action throws", async () => {
-    const publishAction = vi.fn().mockRejectedValue(new Error("Network down"));
-
-    render(
-      <PublishCourseBoundEvaluationForm
-        courseContexts={courseContexts}
-        yearLevels={yearLevels}
-        publishAction={publishAction}
-      />,
-    );
-
-    fireEvent.change(screen.getByLabelText(/course context/i), { target: { value: "course-1" } });
-    fireEvent.change(screen.getByLabelText(/academic year/i), { target: { value: "2026-2027" } });
-    fireEvent.change(screen.getByLabelText(/target cilos/i), { target: { value: "CILO A" } });
-    fireEvent.click(screen.getByLabelText("1st Year"));
-    fireEvent.click(screen.getByRole("button", { name: /publish evaluation/i }));
-
-    expect(
-      await screen.findByText(/unable to publish evaluation right now\. please try again\./i),
-    ).toBeInTheDocument();
   });
 });

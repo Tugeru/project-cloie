@@ -2,8 +2,8 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AnonymizedResponseDetail } from "@/components/course-bound-review/anonymized-response-detail";
-import { getCourseBoundResponseReview } from "@/modules/analytics-reporting-and-review/services/get-course-bound-response-review";
+import { AnonymizedResponseDetail } from "@/features/analytics/components/anonymized-response-detail";
+import { getCourseBoundResponseReview } from "@/features/analytics/services/get-course-bound-response-review";
 
 export default async function ProgramHeadCiloResponsePage({
   params,

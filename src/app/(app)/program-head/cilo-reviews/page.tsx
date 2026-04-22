@@ -1,5 +1,5 @@
-import { PublishedCourseBoundList } from "@/components/course-bound-review/published-course-bound-list";
-import { listCourseBoundReviewItems } from "@/modules/analytics-reporting-and-review/services/list-course-bound-review-items";
+import { PublishedCourseBoundList } from "@/features/analytics/components/published-course-bound-list";
+import { listCourseBoundReviewItems } from "@/features/analytics/services/list-course-bound-review-items";
 
 export default async function ProgramHeadCiloReviewsPage() {
   const items = await listCourseBoundReviewItems();

@@ -1,8 +1,9 @@
 import { loadEnvConfig } from "@next/env";
+import { AcademicSemester, AcademicTerm } from "@prisma/client";
 import { pathToFileURL } from "node:url";
 
 import { prisma } from "../src/lib/db/prisma";
-import { ROLES } from "../src/lib/constants/roles";
+import { ROLES, type Role } from "../src/lib/constants/roles";
 
 loadEnvConfig(process.cwd());
 
@@ -77,24 +78,18 @@ async function ensureUser(input: DemoUserInput) {
   });
 }
 
-async function ensureUserRole(userId: string, roleName: string) {
-  const role = await prisma.role.findUnique({ where: { name: roleName } });
-
-  if (!role) {
-    throw new Error(`Missing role ${roleName}. Run prisma seed before bootstrapping the demo.`);
-  }
-
+async function ensureUserRole(userId: string, role: Role) {
   await prisma.userRole.upsert({
     where: {
-      user_id_role_id: {
+      user_id_role: {
         user_id: userId,
-        role_id: role.id,
+        role,
       },
     },
     update: {},
     create: {
       user_id: userId,
-      role_id: role.id,
+      role,
     },
   });
 }
@@ -105,8 +100,8 @@ async function main() {
   const deanEmail = requireEnv("OUTLINE_DEAN_EMAIL");
   const studentEmail = requireEnv("OUTLINE_STUDENT_EMAIL");
   const academicYear = getAcademicYear();
-  const semester = "2nd Semester";
-  const term = "OUTLINE_DEFENSE";
+  const semester = AcademicSemester.SECOND;
+  const term = AcademicTerm.SECOND_TERM;
 
   const [program, yearLevel, course, instrumentVersion] = await Promise.all([
     prisma.program.findUnique({ where: { code: "BSIT" } }),
@@ -219,6 +214,7 @@ async function main() {
     where: { user_id: student.id },
     update: {
       academic_year: academicYear,
+      is_graduating: true,
       program_id: program.id,
       section_id: section.id,
       student_id_number: "OUTLINE-DEMO-001",
@@ -226,6 +222,7 @@ async function main() {
     },
     create: {
       academic_year: academicYear,
+      is_graduating: true,
       program_id: program.id,
       section_id: section.id,
       student_id_number: "OUTLINE-DEMO-001",

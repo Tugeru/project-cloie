@@ -1,10 +1,13 @@
-import { HeroCard } from "@/components/student/dashboard/hero-card";
-import { StatCards } from "@/components/student/dashboard/stat-cards";
-import { EvaluationListCard } from "@/components/student/dashboard/evaluation-list-card";
+import { HeroCard } from "@/features/users/components/hero-card";
+import { StatCards } from "@/features/users/components/stat-cards";
+import { EvaluationListCard } from "@/features/users/components/evaluation-list-card";
 import Link from "next/link";
-import { listStudentCourseBoundEvaluations } from "@/modules/student-evaluation-workflow/services/list-student-course-bound-evaluations";
+import { Card, CardContent } from "@/components/ui/card";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { listStudentCourseBoundEvaluations } from "@/features/responses/services/list-student-course-bound-evaluations";
 
 export default async function StudentDashboardPage() {
+  const session = await resolveAuthSession();
   const { active } = await listStudentCourseBoundEvaluations();
   const inProgressCount = active.filter((item) => item.status === "IN_PROGRESS").length;
 
@@ -12,6 +15,17 @@ export default async function StudentDashboardPage() {
     <div className="animate-in fade-in duration-500">
       <HeroCard name="Andy" program="BSIT" year="4th Year" section="Section A" />
       <StatCards pending={active.length} inProgress={inProgressCount} completed={0} />
+
+      {session?.isGraduating && (
+        <Card className="mt-6 border-primary/30 bg-primary-soft/40">
+          <CardContent className="p-4">
+            <p className="font-semibold text-primary">Graduating Eligibility Active</p>
+            <p className="text-sm text-text-secondary">
+              Graduating-student tools are exposed through your student account based on eligibility, not a separate role.
+            </p>
+          </CardContent>
+        </Card>
+      )}
       
       <section className="mt-8">
         <div className="flex items-center justify-between mb-5">

@@ -11,6 +11,38 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum SystemRole {
+  ADMIN
+  DEAN
+  PROGRAM_HEAD
+  FACULTY
+  STUDENT
+  ALUMNI
+  INDUSTRY_PARTNER
+}
+
+enum AcademicSemester {
+  FIRST  @map("1ST")
+  SECOND @map("2ND")
+  SUMMER
+
+  @@map("academic_semester")
+}
+
+enum AcademicTerm {
+  FIRST_TERM
+  SECOND_TERM
+
+  @@map("academic_term")
+}
+
+enum InviteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REVOKED
+}
+
 // ============================================================================
 // Core Academic Entities
 // ============================================================================
@@ -33,29 +65,20 @@ model User {
   created_cilos        CILO[]
   faculty_program_affiliations FacultyProgramAffiliation[]
   program_head_assignments ProgramHeadAssignment[]
+  created_external_invites ExternalStakeholderInvite[] @relation("ExternalInviteCreator")
 
   @@map("users")
 }
 
-model Role {
-  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String     @unique // ADMIN, DEAN, PROGRAM_HEAD, FACULTY, STUDENT, GRADUATING_STUDENT, ALUMNI, INDUSTRY_PARTNER
-  description String?
-
-  users       UserRole[]
-
-  @@map("roles")
-}
-
 model UserRole {
-  user_id     String   @db.Uuid
-  role_id     String   @db.Uuid
-  assigned_at DateTime @default(now())
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String     @db.Uuid
+  role        SystemRole
+  assigned_at DateTime   @default(now())
 
-  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  role        Role     @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  user        User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@id([user_id, role_id])
+  @@unique([user_id, role])
   @@map("user_roles")
 }
 
@@ -79,6 +102,7 @@ model Program {
   program_head_assignments ProgramHeadAssignment[]
   course_bound_targets CourseBoundEvaluationTarget[]
   central_deployments  CentralDeployment[]
+  external_stakeholder_invites ExternalStakeholderInvite[]
 
   @@map("programs")
 }
@@ -92,9 +116,11 @@ model Major {
   updated_at  DateTime @updatedAt
 
   program              Program                  @relation(fields: [program_id], references: [id], onDelete: Cascade)
+  courses              Course[]
   student_profiles     StudentAcademicProfile[]
   course_evaluations   CourseBoundEvaluation[]
 
+  @@unique([program_id, name])
   @@map("majors")
 }
 
@@ -113,12 +139,14 @@ model Course {
   title          String
   description    String?
   program_id     String?  @db.Uuid
+  major_id       String?  @db.Uuid
   course_type_id String   @db.Uuid
   is_active      Boolean  @default(true)
   created_at     DateTime @default(now())
   updated_at     DateTime @updatedAt
 
   program        Program?    @relation(fields: [program_id], references: [id], onDelete: SetNull)
+  major          Major?      @relation(fields: [major_id], references: [id], onDelete: SetNull)
   course_type    CourseType  @relation(fields: [course_type_id], references: [id], onDelete: Restrict)
   cilos          CILO[]
   evaluations    CourseBoundEvaluation[]
@@ -144,7 +172,7 @@ model Section {
   year_level_id String   @db.Uuid
   program_id    String   @db.Uuid
   academic_year String
-  semester      String
+  semester      AcademicSemester
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
 
@@ -165,6 +193,7 @@ model StudentAcademicProfile {
   section_id        String?  @db.Uuid
   student_id_number String?
   academic_year     String
+  is_graduating     Boolean  @default(false)
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
 
@@ -194,6 +223,7 @@ model PLO {
   program       Program        @relation(fields: [program_id], references: [id], onDelete: Cascade)
   cilo_mappings CILOMapping[]
 
+  @@unique([program_id, code])
   @@map("plos")
 }
 
@@ -210,6 +240,7 @@ model GO {
   program       Program        @relation(fields: [program_id], references: [id], onDelete: Cascade)
   cilo_mappings CILOMapping[]
 
+  @@unique([program_id, code])
   @@map("gos")
 }
 
@@ -287,8 +318,8 @@ model CourseBoundEvaluation {
   course_id             String   @db.Uuid
   program_id            String   @db.Uuid
   major_id              String?  @db.Uuid
-  semester              String
-  term                  String
+  semester              AcademicSemester
+  term                  AcademicTerm
   academic_year         String
   faculty_id            String   @db.Uuid
   cilos_snapshot        Json     // Snapshot of CILOs at time of publishing
@@ -366,7 +397,7 @@ model CentralDeployment {
   program_id            String?  @db.Uuid
   target_stakeholder    String   // GRADUATING_STUDENT, ALUMNI, INDUSTRY_PARTNER
   academic_year         String
-  semester              String
+  semester              AcademicSemester
   activation_at         DateTime?
   deadline_at           DateTime?
   status                String
@@ -378,6 +409,29 @@ model CentralDeployment {
   assignments           EvaluationAssignment[] @relation("CentralDeployments")
 
   @@map("central_deployments")
+}
+
+model ExternalStakeholderInvite {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email            String
+  role             SystemRole
+  program_id       String?      @db.Uuid
+  invited_by       String?      @db.Uuid
+  invitee_name     String?
+  company_name     String?
+  note             String?
+  status           InviteStatus @default(DRAFT)
+  sent_at          DateTime?
+  accepted_at      DateTime?
+  created_at       DateTime     @default(now())
+  updated_at       DateTime     @updatedAt
+
+  inviter          User?        @relation("ExternalInviteCreator", fields: [invited_by], references: [id], onDelete: SetNull)
+  program          Program?     @relation(fields: [program_id], references: [id], onDelete: SetNull)
+
+  @@index([role, status])
+  @@unique([email, role, program_id])
+  @@map("external_stakeholder_invites")
 }
 
 model EvaluationAssignment {

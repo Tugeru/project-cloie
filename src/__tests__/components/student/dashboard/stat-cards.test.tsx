@@ -1,5 +1,5 @@
 import { render, screen } from "@testing-library/react";
-import { StatCards } from "@/components/student/dashboard/stat-cards";
+import { StatCards } from "@/features/users/components/stat-cards";
 import { expect, test, describe } from "vitest";
 
 describe("StatCards", () => {

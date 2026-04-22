@@ -1,5 +1,5 @@
-import { WizardShell } from "@/components/student/evaluations/wizard-shell";
-import { getStudentCourseBoundEvaluationSession } from "@/modules/student-evaluation-workflow/services/get-student-course-bound-evaluation-session";
+import { WizardShell } from "@/features/responses/components/wizard-shell";
+import { getStudentCourseBoundEvaluationSession } from "@/features/responses/services/get-student-course-bound-evaluation-session";
 import { saveStudentCourseBoundDraftAction, submitStudentCourseBoundResponseAction } from "@/lib/actions/student-evaluation-actions";
 import { notFound, redirect } from "next/navigation";
 

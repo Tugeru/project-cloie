@@ -3,7 +3,7 @@ import {
   buildQualitativeUpserts,
   buildQuantitativeUpserts,
   saveStudentCourseBoundDraft,
-} from "@/modules/student-evaluation-workflow/services/save-student-course-bound-draft";
+} from "@/features/responses/services/save-student-course-bound-draft";
 
 const {
   createMock,
@@ -41,7 +41,7 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
-vi.mock("@/modules/identity-access/services/resolve-auth-session", () => ({
+vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
 }));
 
@@ -50,7 +50,7 @@ const section = {
   id: "section-a",
   items: [],
   name: "Section A",
-} as const;
+};
 
 describe("buildQuantitativeUpserts", () => {
   it("creates quantitative upserts only for the current section", () => {
