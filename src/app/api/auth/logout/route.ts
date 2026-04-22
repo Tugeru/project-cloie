@@ -12,3 +12,7 @@ export async function POST(request: Request) {
   // Return to login page after logout
   return NextResponse.redirect(`${siteUrl}/login`);
 }
+
+export async function GET(request: Request) {
+  return POST(request);
+}
