@@ -49,7 +49,7 @@ prisma/*.db-journal
 # agent / ai
 .agent
 .worktrees/
-
+.roo
 # project docs (kept in repo but ignored in some workflows)
 /docs
 
