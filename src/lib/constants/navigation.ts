@@ -3,8 +3,6 @@ import {
   FileText,
   History,
   UserCircle,
-  HelpCircle,
-  Download,
   ClipboardList,
   Building2,
   BookOpen,
@@ -37,10 +35,6 @@ export const STUDENT_MOBILE_NAV: NavItem[] = [
   { name: "Profile", href: "/student/profile", icon: UserCircle },
 ];
 
-export const STUDENT_SECONDARY_NAV: NavItem[] = [
-  { name: "Help", href: "/help", icon: HelpCircle },
-  { name: "Install App", href: "#", icon: Download },
-];
 
 export const FACULTY_NAV: NavItem[] = [
   { name: "Dashboard", href: "/faculty/dashboard", icon: LayoutDashboard },
@@ -86,13 +80,6 @@ export const INDUSTRY_PARTNER_NAV: NavItem[] = [
   { name: "Evaluations", href: "/industry-partner/evaluations", icon: FileText },
 ];
 
-export const FACULTY_SECONDARY_NAV: NavItem[] = [
-  { name: "Help", href: "/help", icon: HelpCircle },
-];
-
-export const ACADEMIC_SECONDARY_NAV: NavItem[] = [
-  { name: "Help", href: "/help", icon: HelpCircle },
-];
 
 export const DEFAULT_NAV: NavItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -158,23 +145,6 @@ export function getMobileNavByRoles(roles: Role[]): NavItem[] {
   }
 }
 
-export function getSecondaryNavByRoles(roles: Role[]): NavItem[] {
-  const highestRole = resolveHighestNavRole(roles);
-
-  switch (highestRole) {
-    case ROLES.ADMIN:
-      return ACADEMIC_SECONDARY_NAV;
-    case ROLES.DEAN:
-    case ROLES.PROGRAM_HEAD:
-      return ACADEMIC_SECONDARY_NAV;
-    case ROLES.FACULTY:
-      return FACULTY_SECONDARY_NAV;
-    case ROLES.STUDENT:
-      return STUDENT_SECONDARY_NAV;
-    case ROLES.ALUMNI:
-    case ROLES.INDUSTRY_PARTNER:
-      return FACULTY_SECONDARY_NAV;
-    default:
-      return [];
-  }
+export function getSecondaryNavByRoles(_roles: Role[]): NavItem[] {
+  return [];
 }

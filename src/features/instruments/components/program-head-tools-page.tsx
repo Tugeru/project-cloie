@@ -21,7 +21,7 @@ import type { ProgramHeadTemplateItem } from "@/features/instruments/services/ma
 import type { ProgramHeadDeploymentItem } from "@/features/evaluations/services/list-program-head-deployments";
 import { MoreVertical, Plus, Copy, Pencil, Send, Eye, XCircle } from "lucide-react";
 
-// ─── Props ───────────────────────────────────────────────────────────────────
+// Props
 
 type ProgramHeadToolsPageProps = {
   templates: ProgramHeadTemplateItem[];
@@ -29,7 +29,7 @@ type ProgramHeadToolsPageProps = {
   program: { id: string; code: string; name: string };
 };
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
+// Helpers
 
 function formatDate(date: Date | string | null): string {
   if (!date) return "—";
@@ -72,7 +72,7 @@ function getStatusColor(status: string): string {
   }
 }
 
-// ─── Main Component ──────────────────────────────────────────────────────────
+// Main Component
 
 export function ProgramHeadToolsPage({
   templates,
@@ -117,12 +117,12 @@ export function ProgramHeadToolsPage({
           </div>
         </div>
 
-        {/* ─── Templates Tab ──────────────────────────────────────────── */}
+        {/* Templates Tab */}
         <TabsContent value="templates" className="pt-6">
           <TemplatesGrid templates={templates} />
         </TabsContent>
 
-        {/* ─── Published Tab ──────────────────────────────────────────── */}
+        {/* Published Tab */}
         <TabsContent value="published" className="pt-6">
           <PublishedList deployments={deployments} />
         </TabsContent>
@@ -131,7 +131,7 @@ export function ProgramHeadToolsPage({
   );
 }
 
-// ─── Templates Grid ──────────────────────────────────────────────────────────
+// Templates Grid
 
 function TemplatesGrid({ templates }: { templates: ProgramHeadTemplateItem[] }) {
   if (templates.length === 0) {
@@ -153,7 +153,7 @@ function TemplatesGrid({ templates }: { templates: ProgramHeadTemplateItem[] }) 
   );
 }
 
-// ─── Template Card ───────────────────────────────────────────────────────────
+// Template Card
 
 function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
   const [isPending, startTransition] = useTransition();
@@ -200,14 +200,8 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
 
         {!isInstitutional && (
           <DropdownMenu>
-            <DropdownMenuTrigger>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                className="opacity-0 transition-opacity group-hover:opacity-100"
-              >
-                <MoreVertical className="size-4" />
-              </Button>
+            <DropdownMenuTrigger className="inline-flex size-7 items-center justify-center rounded-md text-text-muted opacity-0 transition-opacity hover:bg-surface-muted hover:text-text-primary group-hover:opacity-100">
+              <MoreVertical className="size-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" side="bottom">
               <DropdownMenuItem onClick={handleToggleActive}>
@@ -297,7 +291,7 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
   );
 }
 
-// ─── Published List ──────────────────────────────────────────────────────────
+// Published List
 
 function PublishedList({
   deployments,
@@ -334,7 +328,7 @@ function PublishedList({
   );
 }
 
-// ─── Deployment Row ──────────────────────────────────────────────────────────
+// Deployment Row
 
 function DeploymentRow({
   deployment,
@@ -408,14 +402,8 @@ function DeploymentRow({
       {/* Actions */}
       <div className="flex justify-end">
         <DropdownMenu>
-          <DropdownMenuTrigger>
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              className="opacity-0 transition-opacity group-hover:opacity-100"
-            >
-              <MoreVertical className="size-4" />
-            </Button>
+          <DropdownMenuTrigger className="inline-flex size-7 items-center justify-center rounded-md text-text-muted opacity-0 transition-opacity hover:bg-surface-muted hover:text-text-primary group-hover:opacity-100">
+            <MoreVertical className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" side="bottom">
             <DropdownMenuItem>

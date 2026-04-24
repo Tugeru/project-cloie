@@ -13,10 +13,13 @@ type DevRoleSwitcherProps = {
 function useDraggable() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
-  const dragState = useRef<{ startX: number; startY: number; origX: number; origY: number } | null>(
-    null,
-  );
-  const hasDragged = useRef(false);
+  const isDragging = useRef(false);
+  const dragStart = useRef<{
+    pointerX: number;
+    pointerY: number;
+    elX: number;
+    elY: number;
+  } | null>(null);
 
   useEffect(() => {
     const saved = window.localStorage.getItem("cloie-dev-switcher-pos");
@@ -30,59 +33,63 @@ function useDraggable() {
     }
   }, []);
 
-  const onPointerDown = useCallback((e: React.PointerEvent) => {
-    const el = containerRef.current;
-    if (!el) return;
+  const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    const container = containerRef.current;
+    if (!container) return;
 
-    const rect = el.getBoundingClientRect();
-    dragState.current = {
-      startX: e.clientX,
-      startY: e.clientY,
-      origX: rect.left,
-      origY: rect.top,
+    e.preventDefault();
+    e.stopPropagation();
+
+    const rect = container.getBoundingClientRect();
+    dragStart.current = {
+      pointerX: e.clientX,
+      pointerY: e.clientY,
+      elX: rect.left,
+      elY: rect.top,
     };
-    hasDragged.current = false;
-    el.setPointerCapture(e.pointerId);
+    isDragging.current = false;
+
+    // Capture on the handle element itself, not the container
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   }, []);
 
-  const onPointerMove = useCallback((e: React.PointerEvent) => {
-    const state = dragState.current;
-    if (!state) return;
+  const onPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragStart.current) return;
 
-    const dx = e.clientX - state.startX;
-    const dy = e.clientY - state.startY;
+    const dx = e.clientX - dragStart.current.pointerX;
+    const dy = e.clientY - dragStart.current.pointerY;
 
-    if (!hasDragged.current && Math.abs(dx) + Math.abs(dy) < 5) return;
-    hasDragged.current = true;
+    // Require a minimum movement to start dragging
+    if (!isDragging.current && Math.abs(dx) + Math.abs(dy) < 5) return;
+    isDragging.current = true;
 
-    const newX = Math.max(0, Math.min(state.origX + dx, window.innerWidth - 288));
-    const newY = Math.max(0, Math.min(state.origY + dy, window.innerHeight - 60));
+    const newX = Math.max(0, Math.min(dragStart.current.elX + dx, window.innerWidth - 288));
+    const newY = Math.max(0, Math.min(dragStart.current.elY + dy, window.innerHeight - 60));
 
     setPosition({ x: newX, y: newY });
   }, []);
 
-  const onPointerUp = useCallback((e: React.PointerEvent) => {
-    const el = containerRef.current;
-    if (el) el.releasePointerCapture(e.pointerId);
+  const onPointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
 
-    if (hasDragged.current && dragState.current) {
-      const state = dragState.current;
-      const dx = e.clientX - state.startX;
-      const dy = e.clientY - state.startY;
-      const newX = Math.max(0, Math.min(state.origX + dx, window.innerWidth - 288));
-      const newY = Math.max(0, Math.min(state.origY + dy, window.innerHeight - 60));
+    if (isDragging.current && dragStart.current) {
+      const dx = e.clientX - dragStart.current.pointerX;
+      const dy = e.clientY - dragStart.current.pointerY;
+      const newX = Math.max(0, Math.min(dragStart.current.elX + dx, window.innerWidth - 288));
+      const newY = Math.max(0, Math.min(dragStart.current.elY + dy, window.innerHeight - 60));
       const pos = { x: newX, y: newY };
       setPosition(pos);
       window.localStorage.setItem("cloie-dev-switcher-pos", JSON.stringify(pos));
     }
 
-    dragState.current = null;
+    isDragging.current = false;
+    dragStart.current = null;
   }, []);
 
   return {
     containerRef,
     position,
-    hasDragged,
+    isDragging,
     dragHandleProps: {
       onPointerDown,
       onPointerMove,
@@ -95,7 +102,7 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isExpanded, setIsExpanded] = useState(false);
-  const { containerRef, position, hasDragged, dragHandleProps } = useDraggable();
+  const { containerRef, position, isDragging, dragHandleProps } = useDraggable();
 
   if (process.env.NODE_ENV !== "development") {
     return null;
@@ -110,7 +117,7 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
   }, []);
 
   const toggleExpanded = () => {
-    if (hasDragged.current) return;
+    if (isDragging.current) return;
 
     setIsExpanded((previous) => {
       const nextValue = !previous;
@@ -134,6 +141,7 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
         position ? "fixed" : "fixed bottom-4 right-4",
       )}
     >
+      {/* Header — always visible at the top */}
       <div className="flex items-start gap-2">
         {/* Drag handle */}
         <div
@@ -171,6 +179,7 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
         </button>
       </div>
 
+      {/* Expandable list — opens downward below the header */}
       <div
         id="dev-role-switcher-panel"
         className={cn(
