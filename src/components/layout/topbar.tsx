@@ -1,5 +1,15 @@
-import { Bell } from "lucide-react";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { Bell, ChevronDown, LogOut } from "lucide-react";
 import Image from "next/image";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface TopbarProps {
   user?: {
@@ -10,38 +20,71 @@ interface TopbarProps {
 }
 
 export function Topbar({ user }: TopbarProps) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "GET" });
+    router.push("/login");
+    router.refresh();
+  };
+
+  const initials = user?.name?.[0]?.toUpperCase() || "U";
+
   return (
     <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-border bg-surface px-4 sm:px-6">
       {/* Mobile left-side branding (hidden on desktop since sidebar has it) */}
       <div className="flex items-center gap-3 lg:hidden">
-        <Image 
-          src="/logos/cloie-logo.png" 
-          alt="CLOIE Logo" 
-          width={28} 
-          height={28} 
+        <Image
+          src="/logos/cloie-logo.png"
+          alt="CLOIE Logo"
+          width={28}
+          height={28}
           className="rounded"
         />
-        <span className="text-title-md font-bold text-primary tracking-tight">CLOIE</span>
+        <span className="text-title-md font-bold tracking-tight text-primary">CLOIE</span>
       </div>
 
       <div className="hidden lg:flex" /> {/* Empty spacer for desktop */}
 
       {/* Right side actions */}
-      <div className="flex items-center gap-4">
-        <button 
+      <div className="flex items-center gap-3">
+        <button
           type="button"
-          className="relative flex size-9 items-center justify-center rounded-full text-text-muted hover:bg-surface-muted hover:text-text-primary transition-colors"
+          className="relative flex size-9 items-center justify-center rounded-full text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary"
         >
           <Bell className="size-5" />
           <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-danger ring-2 ring-surface" />
         </button>
 
-        {/* Mobile profile avatar (Desktop has it in sidebar) */}
-        <div className="flex size-8 items-center justify-center rounded-full bg-primary text-white lg:hidden">
-          <span className="text-caption font-semibold">
-            {user?.name?.[0] || "U"}
-          </span>
-        </div>
+        {/* Profile avatar + dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-surface-muted focus:outline-none"
+          >
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-white">
+              <span className="text-caption font-semibold">{initials}</span>
+            </div>
+            <ChevronDown className="size-4 text-text-muted" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" sideOffset={8} className="w-56">
+            <div className="px-3 py-2">
+              <p className="text-label-md font-semibold text-text-primary">
+                {user?.name || "User"}
+              </p>
+              <p className="text-caption text-text-muted">
+                {user?.email || "No email"}
+              </p>
+            </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="cursor-pointer gap-2 text-danger focus:text-danger"
+              onClick={handleLogout}
+            >
+              <LogOut className="size-4" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

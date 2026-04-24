@@ -1,11 +1,10 @@
-import { 
-  LayoutDashboard, 
-  FileText, 
-  History, 
+import {
+  LayoutDashboard,
+  FileText,
+  History,
   UserCircle,
   HelpCircle,
   Download,
-  LogOut,
   ClipboardList,
   Building2,
   BookOpen,
@@ -41,7 +40,6 @@ export const STUDENT_MOBILE_NAV: NavItem[] = [
 export const STUDENT_SECONDARY_NAV: NavItem[] = [
   { name: "Help", href: "/help", icon: HelpCircle },
   { name: "Install App", href: "#", icon: Download },
-  { name: "Logout", href: "/api/auth/logout", icon: LogOut },
 ];
 
 export const FACULTY_NAV: NavItem[] = [
@@ -90,12 +88,10 @@ export const INDUSTRY_PARTNER_NAV: NavItem[] = [
 
 export const FACULTY_SECONDARY_NAV: NavItem[] = [
   { name: "Help", href: "/help", icon: HelpCircle },
-  { name: "Logout", href: "/api/auth/logout", icon: LogOut },
 ];
 
 export const ACADEMIC_SECONDARY_NAV: NavItem[] = [
   { name: "Help", href: "/help", icon: HelpCircle },
-  { name: "Logout", href: "/api/auth/logout", icon: LogOut },
 ];
 
 export const DEFAULT_NAV: NavItem[] = [
