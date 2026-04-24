@@ -23,7 +23,7 @@ export interface NavItem {
 
 export const STUDENT_NAV: NavItem[] = [
   { name: "Dashboard", href: "/student/dashboard", icon: LayoutDashboard },
-  { name: "My Evaluations", href: "/student/evaluations", icon: FileText, badgeCount: 3 },
+  { name: "My Evaluations", href: "/student/evaluations", icon: FileText },
   { name: "Submission History", href: "/student/history", icon: History },
   { name: "Profile", href: "/student/profile", icon: UserCircle },
 ];
@@ -74,12 +74,14 @@ export const ALUMNI_NAV: NavItem[] = [
   { name: "Dashboard", href: "/alumni/dashboard", icon: LayoutDashboard },
   { name: "Evaluations", href: "/alumni/evaluations", icon: FileText },
   { name: "History", href: "/alumni/history", icon: History },
+  { name: "Profile", href: "/alumni/profile", icon: UserCircle },
 ];
 
 export const INDUSTRY_PARTNER_NAV: NavItem[] = [
   { name: "Dashboard", href: "/industry-partner/dashboard", icon: LayoutDashboard },
   { name: "Evaluations", href: "/industry-partner/evaluations", icon: FileText },
   { name: "History", href: "/industry-partner/history", icon: History },
+  { name: "Profile", href: "/industry-partner/profile", icon: UserCircle },
 ];
 
 
