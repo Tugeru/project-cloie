@@ -1,6 +1,7 @@
+import { CourseScope } from "@prisma/client";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
-import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import type { FacultyCourseContext } from "../types";
 
 export async function listFacultyCourseContexts(): Promise<FacultyCourseContext[]> {
@@ -46,25 +47,22 @@ export async function listFacultyCourseContexts(): Promise<FacultyCourseContext[
           },
         },
         {
-          course_type: {
-            name: "GENERAL_EDUCATION",
-          },
+          course_scope: CourseScope.GENERAL_EDUCATION,
         },
       ],
     },
     include: {
       major: true,
-      course_type: true,
       program: true,
     },
-    orderBy: [{ course_type: { name: "asc" } }, { code: "asc" }],
+    orderBy: [{ course_scope: "asc" }, { code: "asc" }],
   });
 
   const contexts: FacultyCourseContext[] = [];
 
   for (const affiliation of affiliations) {
     for (const course of courses) {
-      const isGeneralEducation = course.course_type.name === "GENERAL_EDUCATION";
+      const isGeneralEducation = course.course_scope === CourseScope.GENERAL_EDUCATION;
       const isProgramMatch = course.program_id === affiliation.program_id;
 
       if (!isGeneralEducation && !isProgramMatch) {
@@ -75,7 +73,7 @@ export async function listFacultyCourseContexts(): Promise<FacultyCourseContext[
         courseCode: course.code,
         courseId: course.id,
         courseTitle: course.title,
-        courseType: course.course_type.name as FacultyCourseContext["courseType"],
+        courseType: course.course_scope,
         majorId: course.major_id,
         majorName: course.major?.name ?? null,
         programCode: affiliation.program.code,

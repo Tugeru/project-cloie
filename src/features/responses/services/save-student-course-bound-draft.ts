@@ -1,3 +1,4 @@
+import { DeploymentType, ResponseStatus } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import {
@@ -180,7 +181,7 @@ export async function saveStudentCourseBoundDraft({
     },
   });
 
-  if (response?.status === "SUBMITTED") {
+  if (response?.status === ResponseStatus.SUBMITTED) {
     return {
       error: "This evaluation has already been submitted.",
       success: false,
@@ -192,9 +193,9 @@ export async function saveStudentCourseBoundDraft({
       data: {
         assignment_id: assignment.id,
         deployment_id: assignment.course_bound_id!,
-        deployment_type: "COURSE_BOUND",
+        deployment_type: DeploymentType.COURSE_BOUND,
         respondent_id: authSession.userId,
-        status: "IN_PROGRESS",
+        status: ResponseStatus.IN_PROGRESS,
       },
     });
   }

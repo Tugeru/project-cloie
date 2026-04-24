@@ -6,7 +6,7 @@ export default async function ProgramHeadOutcomesPage() {
   const programs = await prisma.program.findMany({
     include: {
       _count: {
-        select: { gos: true, plos: true },
+        select: { gos: true },
       },
     },
     orderBy: { code: "asc" },
@@ -18,7 +18,8 @@ export default async function ProgramHeadOutcomesPage() {
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Program Outcomes</h1>
         <p className="text-sm text-text-secondary">
-          Scaffolded program-head editing flow for PLOs, GOs, and stakeholder-facing summaries.
+          Program heads manage Graduate Outcomes and the mapping context used by later
+          analytics.
         </p>
       </div>
 
@@ -31,7 +32,7 @@ export default async function ProgramHeadOutcomesPage() {
             <div key={program.id} className="rounded-xl border border-border px-4 py-3">
               <p className="font-medium">{program.code}</p>
               <p className="text-sm text-text-muted">
-                {program._count.plos} PLO(s) • {program._count.gos} GO(s)
+                {program._count.gos} GO(s)
               </p>
             </div>
           ))}
@@ -39,13 +40,18 @@ export default async function ProgramHeadOutcomesPage() {
       </Card>
 
       <InteractivePlaceholderForm
-        title="Program Outcome Stub"
-        description="Capture the fields and validation copy for program-head-managed outcome editing."
+        title="Graduate Outcome Stub"
+        description="Capture the fields and validation copy for program-head-managed GO editing."
         submitLabel="Save Outcome Draft"
         fields={[
           { id: "program", kind: "input", label: "Program Code", placeholder: "BSIT" },
-          { id: "code", kind: "input", label: "Outcome Code", placeholder: "PLO2" },
-          { id: "description", kind: "textarea", label: "Outcome Description", placeholder: "Define the program-level outcome..." },
+          { id: "code", kind: "input", label: "Outcome Code", placeholder: "GO2" },
+          {
+            id: "description",
+            kind: "textarea",
+            label: "Outcome Description",
+            placeholder: "Define the graduate outcome...",
+          },
         ]}
       />
     </div>

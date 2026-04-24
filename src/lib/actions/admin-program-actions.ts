@@ -1,0 +1,150 @@
+"use server";
+
+import { revalidatePath } from "next/cache";
+import {
+  createProgramSchema,
+  updateProgramSchema,
+  createMajorSchema,
+  updateMajorSchema,
+} from "@/features/academic-structure/schemas/program";
+import {
+  createProgram,
+  updateProgram,
+  toggleProgramActive,
+  createMajor,
+  updateMajor,
+  toggleMajorActive,
+  deleteMajor,
+} from "@/features/academic-structure/services/manage-programs";
+
+type ActionResult = { success: true } | { success: false; error: string };
+
+export async function createProgramAction(
+  formData: FormData
+): Promise<ActionResult> {
+  const parsed = createProgramSchema.safeParse({
+    code: formData.get("code"),
+    name: formData.get("name"),
+    description: formData.get("description") || undefined,
+  });
+
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  const result = await createProgram(parsed.data);
+
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
+
+  revalidatePath("/admin/programs");
+  return { success: true };
+}
+
+export async function updateProgramAction(
+  formData: FormData
+): Promise<ActionResult> {
+  const parsed = updateProgramSchema.safeParse({
+    id: formData.get("id"),
+    code: formData.get("code"),
+    name: formData.get("name"),
+    description: formData.get("description") || undefined,
+  });
+
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  const result = await updateProgram(parsed.data);
+
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
+
+  revalidatePath("/admin/programs");
+  return { success: true };
+}
+
+export async function toggleProgramActiveAction(
+  id: string,
+  is_active: boolean
+): Promise<ActionResult> {
+  const result = await toggleProgramActive(id, is_active);
+
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
+
+  revalidatePath("/admin/programs");
+  return { success: true };
+}
+
+export async function createMajorAction(
+  formData: FormData
+): Promise<ActionResult> {
+  const parsed = createMajorSchema.safeParse({
+    program_id: formData.get("program_id"),
+    name: formData.get("name"),
+  });
+
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  const result = await createMajor(parsed.data);
+
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
+
+  revalidatePath("/admin/programs");
+  return { success: true };
+}
+
+export async function updateMajorAction(
+  formData: FormData
+): Promise<ActionResult> {
+  const parsed = updateMajorSchema.safeParse({
+    id: formData.get("id"),
+    name: formData.get("name"),
+  });
+
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  const result = await updateMajor(parsed.data);
+
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
+
+  revalidatePath("/admin/programs");
+  return { success: true };
+}
+
+export async function toggleMajorActiveAction(
+  id: string,
+  is_active: boolean
+): Promise<ActionResult> {
+  const result = await toggleMajorActive(id, is_active);
+
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
+
+  revalidatePath("/admin/programs");
+  return { success: true };
+}
+
+export async function deleteMajorAction(id: string): Promise<ActionResult> {
+  const result = await deleteMajor(id);
+
+  if (!result.success) {
+    return { success: false, error: result.error };
+  }
+
+  revalidatePath("/admin/programs");
+  return { success: true };
+}

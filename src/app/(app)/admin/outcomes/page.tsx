@@ -8,7 +8,6 @@ export default async function AdminOutcomesPage() {
       _count: {
         select: {
           gos: true,
-          plos: true,
         },
       },
     },
@@ -18,22 +17,25 @@ export default async function AdminOutcomesPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold">Outcomes Overview</h1>
+        <h1 className="text-2xl font-bold">Graduate Outcomes</h1>
         <p className="text-sm text-text-secondary">
-          Review seeded program outcomes before full CRUD lands in the next pass.
+          The MVP outcome model now centers on Graduate Outcomes and CILO-to-GO mapping.
         </p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Program Outcome Counts</CardTitle>
+          <CardDescription>
+            Graduate Outcomes are stored by program and later connected to course CILOs.
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2">
           {programs.map((program) => (
             <div key={program.id} className="rounded-xl border border-border px-4 py-3">
               <p className="font-medium">{program.code}</p>
               <p className="text-sm text-text-muted">
-                {program._count.plos} PLO(s) • {program._count.gos} GO(s)
+                {program._count.gos} GO(s)
               </p>
             </div>
           ))}
@@ -41,22 +43,18 @@ export default async function AdminOutcomesPage() {
       </Card>
 
       <InteractivePlaceholderForm
-        title="Outcome Editor Stub"
-        description="Prototype outcome capture while keeping persistence deferred."
+        title="Graduate Outcome Editor Stub"
+        description="Prototype GO capture while the full CRUD and mapping matrix are wired."
         submitLabel="Save Outcome Draft"
         fields={[
           { id: "program", kind: "input", label: "Program Code", placeholder: "BSIT" },
+          { id: "code", kind: "input", label: "Outcome Code", placeholder: "GO1" },
           {
-            id: "outcome_type",
-            kind: "select",
-            label: "Outcome Type",
-            options: [
-              { label: "Program Learning Outcome", value: "PLO" },
-              { label: "Graduate Outcome", value: "GO" },
-            ],
+            id: "description",
+            kind: "textarea",
+            label: "Description",
+            placeholder: "Describe the graduate outcome...",
           },
-          { id: "code", kind: "input", label: "Outcome Code", placeholder: "PLO1" },
-          { id: "description", kind: "textarea", label: "Description", placeholder: "Describe the target outcome..." },
         ]}
       />
     </div>

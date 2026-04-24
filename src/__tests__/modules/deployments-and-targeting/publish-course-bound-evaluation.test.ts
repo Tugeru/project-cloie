@@ -1,5 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { AcademicSemester, AcademicTerm } from "@prisma/client";
+import {
+  AcademicSemester,
+  AcademicTerm,
+  CourseScope,
+} from "@prisma/client";
 
 import { ROLES } from "@/lib/constants/roles";
 import { publishCourseBoundEvaluation } from "@/features/evaluations/services/publish-course-bound-evaluation";
@@ -110,7 +114,7 @@ describe("publishCourseBoundEvaluation", () => {
     });
     courseFindFirstMock.mockResolvedValue({
       code: "IT-401",
-      course_type: { name: "PROGRAM_SPECIFIC" },
+      course_scope: CourseScope.PROGRAM_SPECIFIC,
       id: "course-1",
       major: null,
       major_id: null,
@@ -182,7 +186,6 @@ describe("publishCourseBoundEvaluation", () => {
       },
       include: {
         major: true,
-        course_type: true,
         program: {
           select: {
             code: true,
@@ -264,7 +267,7 @@ describe("publishCourseBoundEvaluation", () => {
     });
     courseFindFirstMock.mockResolvedValue({
       code: "MKT301",
-      course_type: { name: "PROGRAM_SPECIFIC" },
+      course_scope: CourseScope.PROGRAM_SPECIFIC,
       id: "course-1",
       major: { id: "major-1", name: "Marketing Management" },
       major_id: "major-1",
@@ -307,7 +310,7 @@ describe("publishCourseBoundEvaluation", () => {
     });
     courseFindFirstMock.mockResolvedValue({
       code: "IT-401",
-      course_type: { name: "PROGRAM_SPECIFIC" },
+      course_scope: CourseScope.PROGRAM_SPECIFIC,
       id: "course-1",
       major: null,
       major_id: null,

@@ -1,10 +1,14 @@
-import { AcademicSemester, AcademicTerm } from "@prisma/client";
+import {
+  AcademicSemester,
+  AcademicTerm,
+  CourseScope,
+} from "@prisma/client";
 
 export type FacultyCourseContext = {
   courseCode: string;
   courseId: string;
   courseTitle: string;
-  courseType: "GENERAL_EDUCATION" | "PROGRAM_SPECIFIC";
+  courseType: CourseScope;
   majorId: string | null;
   majorName: string | null;
   programCode: string;
@@ -35,7 +39,7 @@ export type PublishCourseBoundEvaluationResult =
       error: string;
       success: false;
     }
-  | {
+    | {
       assignmentCount: number;
       evaluationId: string;
       status: "ACTIVE" | "SCHEDULED";

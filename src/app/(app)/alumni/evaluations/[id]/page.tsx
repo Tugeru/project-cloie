@@ -1,6 +1,7 @@
+import { TargetStakeholder } from "@prisma/client";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/db/prisma";
 import { InteractivePlaceholderForm } from "@/components/ui/interactive-placeholder-form";
+import { prisma } from "@/lib/db/prisma";
 
 export default async function AlumniEvaluationPage({
   params,
@@ -11,7 +12,7 @@ export default async function AlumniEvaluationPage({
   const deployment = await prisma.centralDeployment.findFirst({
     where: {
       id,
-      target_stakeholder: "ALUMNI",
+      target_stakeholder: TargetStakeholder.ALUMNI,
     },
     include: {
       instrument: { include: { template: true } },
@@ -28,7 +29,8 @@ export default async function AlumniEvaluationPage({
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">{deployment.instrument.template.name}</h1>
         <p className="text-sm text-text-secondary">
-          {deployment.program?.name ?? "College-wide"} • Scaffolded authenticated alumni response flow
+          {deployment.program?.name ?? "College-wide"} - Scaffolded authenticated alumni
+          response flow
         </p>
       </div>
 
@@ -38,8 +40,18 @@ export default async function AlumniEvaluationPage({
         submitLabel="Save Alumni Draft"
         fields={[
           { id: "employment", kind: "input", label: "Current Role", placeholder: "Systems Analyst" },
-          { id: "readiness", kind: "textarea", label: "Readiness Feedback", placeholder: "Describe how the program supported workplace readiness..." },
-          { id: "recommendation", kind: "textarea", label: "Recommendation", placeholder: "What should the program improve?" },
+          {
+            id: "readiness",
+            kind: "textarea",
+            label: "Readiness Feedback",
+            placeholder: "Describe how the program supported workplace readiness...",
+          },
+          {
+            id: "recommendation",
+            kind: "textarea",
+            label: "Recommendation",
+            placeholder: "What should the program improve?",
+          },
         ]}
       />
     </div>

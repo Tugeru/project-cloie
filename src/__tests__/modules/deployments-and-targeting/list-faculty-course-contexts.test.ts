@@ -61,7 +61,7 @@ describe("listFacultyCourseContexts", () => {
     courseFindManyMock.mockResolvedValue([
       {
         code: "IT-401",
-        course_type: { name: "PROGRAM_SPECIFIC" },
+        course_scope: "PROGRAM_SPECIFIC",
         id: "course-1",
         major: null,
         major_id: null,
@@ -75,7 +75,7 @@ describe("listFacultyCourseContexts", () => {
       },
       {
         code: "GE-101",
-        course_type: { name: "GENERAL_EDUCATION" },
+        course_scope: "GENERAL_EDUCATION",
         id: "course-2",
         major: null,
         major_id: null,
@@ -142,18 +142,15 @@ describe("listFacultyCourseContexts", () => {
             },
           },
           {
-            course_type: {
-              name: "GENERAL_EDUCATION",
-            },
+            course_scope: "GENERAL_EDUCATION",
           },
         ],
       },
       include: {
         major: true,
-        course_type: true,
         program: true,
       },
-      orderBy: [{ course_type: { name: "asc" } }, { code: "asc" }],
+      orderBy: [{ course_scope: "asc" }, { code: "asc" }],
     });
   });
 });

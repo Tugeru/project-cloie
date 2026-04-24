@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { TargetStakeholder } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 
 export default async function IndustryPartnerEvaluationsPage() {
   const deployments = await prisma.centralDeployment.findMany({
-    where: { target_stakeholder: "INDUSTRY_PARTNER" },
+    where: { target_stakeholder: TargetStakeholder.INDUSTRY_PARTNER },
     include: {
       instrument: { include: { template: true } },
       program: true,

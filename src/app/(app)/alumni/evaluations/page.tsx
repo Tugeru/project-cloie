@@ -1,9 +1,10 @@
 import Link from "next/link";
+import { TargetStakeholder } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 
 export default async function AlumniEvaluationsPage() {
   const deployments = await prisma.centralDeployment.findMany({
-    where: { target_stakeholder: "ALUMNI" },
+    where: { target_stakeholder: TargetStakeholder.ALUMNI },
     include: {
       instrument: { include: { template: true } },
       program: true,

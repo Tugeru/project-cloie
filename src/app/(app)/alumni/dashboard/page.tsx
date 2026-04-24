@@ -1,11 +1,12 @@
 import Link from "next/link";
+import { TargetStakeholder } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function AlumniDashboardPage() {
   const deployments = await prisma.centralDeployment.findMany({
     where: {
-      target_stakeholder: "ALUMNI",
+      target_stakeholder: TargetStakeholder.ALUMNI,
     },
     include: {
       instrument: {

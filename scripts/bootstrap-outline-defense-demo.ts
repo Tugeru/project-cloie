@@ -1,5 +1,9 @@
 import { loadEnvConfig } from "@next/env";
-import { AcademicSemester, AcademicTerm } from "@prisma/client";
+import {
+  AcademicSemester,
+  AcademicTerm,
+  DeploymentStatus,
+} from "@prisma/client";
 import { pathToFileURL } from "node:url";
 
 import { prisma } from "../src/lib/db/prisma";
@@ -187,36 +191,12 @@ async function main() {
     },
   });
 
-  const sectionName = "BSIT-4A";
-  let section = await prisma.section.findFirst({
-    where: {
-      academic_year: academicYear,
-      name: sectionName,
-      program_id: program.id,
-      semester,
-      year_level_id: yearLevel.id,
-    },
-  });
-
-  if (!section) {
-    section = await prisma.section.create({
-      data: {
-        academic_year: academicYear,
-        name: sectionName,
-        program_id: program.id,
-        semester,
-        year_level_id: yearLevel.id,
-      },
-    });
-  }
-
   await prisma.studentAcademicProfile.upsert({
     where: { user_id: student.id },
     update: {
       academic_year: academicYear,
       is_graduating: true,
       program_id: program.id,
-      section_id: section.id,
       student_id_number: "OUTLINE-DEMO-001",
       year_level_id: yearLevel.id,
     },
@@ -224,7 +204,6 @@ async function main() {
       academic_year: academicYear,
       is_graduating: true,
       program_id: program.id,
-      section_id: section.id,
       student_id_number: "OUTLINE-DEMO-001",
       user_id: student.id,
       year_level_id: yearLevel.id,
@@ -260,7 +239,7 @@ async function main() {
         program_id: program.id,
         published_at: new Date(),
         semester,
-        status: "ACTIVE",
+        status: DeploymentStatus.ACTIVE,
         term,
       },
     });
@@ -268,10 +247,9 @@ async function main() {
 
   await prisma.courseBoundEvaluationTarget.upsert({
     where: {
-      course_bound_evaluation_id_program_id_year_level_id_section_id: {
+      course_bound_evaluation_id_program_id_year_level_id: {
         course_bound_evaluation_id: evaluation.id,
         program_id: program.id,
-        section_id: section.id,
         year_level_id: yearLevel.id,
       },
     },
@@ -279,7 +257,6 @@ async function main() {
     create: {
       course_bound_evaluation_id: evaluation.id,
       program_id: program.id,
-      section_id: section.id,
       year_level_id: yearLevel.id,
     },
   });
@@ -309,7 +286,7 @@ async function main() {
         faculty: faculty.email,
         program: program.code,
         programHead: programHead.email,
-        section: section.name,
+        yearLevel: yearLevel.name,
         student: student.email,
       },
       null,

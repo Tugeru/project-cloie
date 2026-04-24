@@ -5,11 +5,10 @@ import { InteractivePlaceholderForm } from "@/components/ui/interactive-placehol
 export default async function AdminCoursesPage() {
   const courses = await prisma.course.findMany({
     include: {
-      course_type: true,
       major: true,
       program: true,
     },
-    orderBy: { code: "asc" },
+    orderBy: [{ course_scope: "asc" }, { code: "asc" }],
     take: 12,
   });
 
@@ -18,21 +17,27 @@ export default async function AdminCoursesPage() {
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Courses</h1>
         <p className="text-sm text-text-secondary">
-          Courses support general education, program-specific, and major-specific scoping.
+          Manage the shared course catalog for general education, program-wide, and
+          major-specific contexts.
         </p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Scope Preview</CardTitle>
-          <CardDescription>Shared courses appear without a major; major-scoped courses bind both program and major.</CardDescription>
+          <CardDescription>
+            General education courses stay college-wide. Program-specific courses can
+            optionally narrow into a major.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
           {courses.map((course) => (
             <div key={course.id} className="rounded-xl border border-border px-4 py-3">
-              <p className="font-medium">{course.code} - {course.title}</p>
+              <p className="font-medium">
+                {course.code} - {course.title}
+              </p>
               <p className="text-sm text-text-muted">
-                {course.course_type.name === "GENERAL_EDUCATION"
+                {course.course_scope === "GENERAL_EDUCATION"
                   ? "General Education"
                   : course.major?.name
                     ? `${course.program?.code ?? "Program"} • ${course.major.name}`
@@ -45,15 +50,15 @@ export default async function AdminCoursesPage() {
 
       <InteractivePlaceholderForm
         title="Course Editor Stub"
-        description="Prototype the admin course flow with explicit type, program, and optional major relationships."
+        description="Prototype the admin course flow with explicit scope, program, and optional major."
         submitLabel="Save Course Draft"
         fields={[
           { id: "code", kind: "input", label: "Course Code", placeholder: "IT101" },
           { id: "title", kind: "input", label: "Course Title", placeholder: "Introduction to Computing" },
           {
-            id: "type",
+            id: "scope",
             kind: "select",
-            label: "Course Type",
+            label: "Course Scope",
             options: [
               { label: "General Education", value: "GENERAL_EDUCATION" },
               { label: "Program-Specific", value: "PROGRAM_SPECIFIC" },

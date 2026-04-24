@@ -1,85 +1,104 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { EvaluationListCard } from "@/features/users/components/evaluation-list-card";
-import { Search, Filter } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { Filter, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { listStudentCourseBoundEvaluations } from "@/features/responses/services/list-student-course-bound-evaluations";
+import { EvaluationListCard } from "@/features/users/components/evaluation-list-card";
 
 export default async function StudentEvaluationsPage() {
   const { active, submitted } = await listStudentCourseBoundEvaluations();
+  const pending = active.filter((item) => item.status !== "IN_PROGRESS");
+  const inProgress = active.filter((item) => item.status === "IN_PROGRESS");
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-black font-heading">My Evaluations</h1>
-          <p className="text-text-muted text-sm">View and manage your assigned evaluation forms.</p>
-        </div>
-      </div>
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <section className="rounded-xl bg-surface-container-low p-8">
+        <h1 className="font-heading text-4xl font-bold tracking-tight text-text-primary">
+          My Evaluations
+        </h1>
+        <p className="mt-2 max-w-2xl text-base text-text-secondary">
+          View and complete forms assigned to your academic context. Ensure required
+          evaluations are submitted before their deadlines.
+        </p>
+      </section>
 
-      <Tabs defaultValue="active" className="w-full">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border pb-1">
-          <TabsList className="bg-transparent h-auto p-0 gap-6">
-            <TabsTrigger 
-              value="active" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 font-bold"
+      <Tabs defaultValue="pending" className="w-full">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <TabsList className="h-auto flex-wrap gap-2 bg-transparent p-0">
+            <TabsTrigger
+              value="pending"
+              className="rounded-full bg-surface px-5 py-2 text-sm font-medium text-text-secondary data-[state=active]:bg-primary data-[state=active]:text-white"
             >
-              Active <span className="ml-2 bg-primary-soft text-primary px-2 py-0.5 rounded-full text-[10px]">{active.length}</span>
+              Pending
             </TabsTrigger>
-            <TabsTrigger 
-              value="submitted" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 font-bold"
+            <TabsTrigger
+              value="in-progress"
+              className="rounded-full bg-surface px-5 py-2 text-sm font-medium text-text-secondary data-[state=active]:bg-primary data-[state=active]:text-white"
+            >
+              In Progress
+            </TabsTrigger>
+            <TabsTrigger
+              value="submitted"
+              className="rounded-full bg-surface px-5 py-2 text-sm font-medium text-text-secondary data-[state=active]:bg-primary data-[state=active]:text-white"
             >
               Submitted
             </TabsTrigger>
-            <TabsTrigger 
-              value="closed" 
-              className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 pb-2 font-bold text-text-muted"
-            >
-              Closed
-            </TabsTrigger>
           </TabsList>
 
-          <div className="flex items-center gap-2 mb-2 sm:mb-0">
-            <div className="relative w-full sm:w-64">
-              <Search className="absolute left-2.5 top-2.5 size-4 text-text-muted" />
-              <Input placeholder="Search evaluations..." className="pl-9 h-9" />
+          <div className="flex w-full gap-4 md:w-auto">
+            <div className="relative w-full md:w-64">
+              <Search className="absolute left-3 top-2.5 size-4 text-text-muted" />
+              <Input placeholder="Search evaluations..." className="h-10 pl-9" />
             </div>
-            <Button variant="outline" size="icon-sm" className="shrink-0">
+            <Button variant="outline" className="gap-2">
               <Filter className="size-4" />
+              Filter
             </Button>
           </div>
         </div>
 
-        <TabsContent value="active" className="pt-6">
+        <TabsContent value="pending" className="pt-6">
           <div className="grid gap-4">
-            {active.map((evalItem) => (
+            {pending.map((evalItem) => (
               <EvaluationListCard key={evalItem.evaluationId} {...evalItem} />
             ))}
-            {active.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-border rounded-xl">
-                <p className="text-text-muted font-medium">No active evaluations found.</p>
+            {pending.length === 0 && (
+              <div className="rounded-xl border-2 border-dashed border-border py-12 text-center">
+                <p className="font-medium text-text-muted">
+                  No pending evaluations found.
+                </p>
               </div>
             )}
           </div>
         </TabsContent>
-        
+
+        <TabsContent value="in-progress" className="pt-6">
+          <div className="grid gap-4">
+            {inProgress.map((evalItem) => (
+              <EvaluationListCard key={evalItem.evaluationId} {...evalItem} />
+            ))}
+            {inProgress.length === 0 && (
+              <div className="rounded-xl border-2 border-dashed border-border py-12 text-center">
+                <p className="font-medium text-text-muted">
+                  Your in-progress evaluations will appear here.
+                </p>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
         <TabsContent value="submitted" className="pt-6">
           <div className="grid gap-4">
             {submitted.map((evalItem) => (
               <EvaluationListCard key={evalItem.evaluationId} {...evalItem} />
             ))}
             {submitted.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-border rounded-xl">
-                <p className="text-text-muted font-medium">Your submitted evaluations will appear here.</p>
+              <div className="rounded-xl border-2 border-dashed border-border py-12 text-center">
+                <p className="font-medium text-text-muted">
+                  Your submitted evaluations will appear here.
+                </p>
               </div>
             )}
-          </div>
-        </TabsContent>
-
-        <TabsContent value="closed" className="pt-6">
-           <div className="flex flex-col items-center justify-center py-12 text-center border-2 border-dashed border-border rounded-xl">
-            <p className="text-text-muted font-medium">No closed evaluations found.</p>
           </div>
         </TabsContent>
       </Tabs>

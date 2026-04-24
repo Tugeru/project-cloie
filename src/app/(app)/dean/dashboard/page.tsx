@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { ResponseStatus } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -6,7 +7,7 @@ export default async function DeanDashboardPage() {
   const [programCount, deploymentCount, responseCount] = await Promise.all([
     prisma.program.count({ where: { is_active: true } }),
     prisma.centralDeployment.count(),
-    prisma.response.count({ where: { status: "SUBMITTED" } }),
+    prisma.response.count({ where: { status: ResponseStatus.SUBMITTED } }),
   ]);
 
   return (

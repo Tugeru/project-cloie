@@ -1,57 +1,50 @@
-import { prisma } from "@/lib/db/prisma";
+import { listPrograms } from "@/features/academic-structure/services/manage-programs";
+import { createProgramAction } from "@/lib/actions/admin-program-actions";
+import { ProgramForm } from "@/features/academic-structure/components/program-form";
+import { ProgramList } from "@/features/academic-structure/components/program-list";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { InteractivePlaceholderForm } from "@/components/ui/interactive-placeholder-form";
 
 export default async function AdminProgramsPage() {
-  const programs = await prisma.program.findMany({
-    include: {
-      majors: {
-        where: { is_active: true },
-        orderBy: { name: "asc" },
-      },
-    },
-    orderBy: { code: "asc" },
-  });
+  const programs = await listPrograms();
 
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold">Programs and Majors</h1>
-        <p className="text-sm text-text-secondary">
-          Programs remain fully data-driven. Current ACD offerings are seeded, not hardcoded in business logic.
+        <h1 className="text-heading-lg">Programs and Majors</h1>
+        <p className="text-body-md text-text-secondary">
+          Manage academic programs and their majors. Programs can be activated or deactivated.
+          Majors can be added inline to each program.
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Catalog Snapshot</CardTitle>
-          <CardDescription>Normalized programs can stand alone or contain multiple majors.</CardDescription>
+          <CardTitle>Create New Program</CardTitle>
+          <CardDescription>
+            Add a new academic program to the college. You can add majors after creation.
+          </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2">
-          {programs.map((program) => (
-            <div key={program.id} className="rounded-xl border border-border px-4 py-3">
-              <p className="font-medium">{program.code} - {program.name}</p>
-              <p className="mt-1 text-sm text-text-muted">
-                {program.majors.length > 0
-                  ? program.majors.map((major) => major.name).join(", ")
-                  : "No majors configured"}
-              </p>
-            </div>
-          ))}
+        <CardContent>
+          <ProgramForm action={createProgramAction} submitLabel="Create Program" />
         </CardContent>
       </Card>
 
-      <InteractivePlaceholderForm
-        title="Program Editor Stub"
-        description="Prototype the eventual create or edit flow for programs and majors."
-        submitLabel="Save Program Draft"
-        fields={[
-          { id: "code", kind: "input", label: "Program Code", placeholder: "BSIT" },
-          { id: "name", kind: "input", label: "Program Name", placeholder: "Bachelor of Science in Information Technology" },
-          { id: "description", kind: "textarea", label: "Description", placeholder: "Program summary and accreditation notes..." },
-          { id: "majors", kind: "textarea", label: "Majors", placeholder: "One major per line for normalized programs" },
-        ]}
-      />
+      <div className="space-y-3">
+        <h2 className="text-heading-md">
+          All Programs ({programs.length})
+        </h2>
+        {programs.length === 0 ? (
+          <Card>
+            <CardContent className="py-12 text-center">
+              <p className="text-text-muted">
+                No programs found. Create your first program above.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <ProgramList programs={programs} />
+        )}
+      </div>
     </div>
   );
 }

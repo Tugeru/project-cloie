@@ -1,6 +1,7 @@
+import { TargetStakeholder } from "@prisma/client";
 import { notFound } from "next/navigation";
-import { prisma } from "@/lib/db/prisma";
 import { InteractivePlaceholderForm } from "@/components/ui/interactive-placeholder-form";
+import { prisma } from "@/lib/db/prisma";
 
 export default async function IndustryPartnerEvaluationPage({
   params,
@@ -11,7 +12,7 @@ export default async function IndustryPartnerEvaluationPage({
   const deployment = await prisma.centralDeployment.findFirst({
     where: {
       id,
-      target_stakeholder: "INDUSTRY_PARTNER",
+      target_stakeholder: TargetStakeholder.INDUSTRY_PARTNER,
     },
     include: {
       instrument: { include: { template: true } },
@@ -28,7 +29,8 @@ export default async function IndustryPartnerEvaluationPage({
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">{deployment.instrument.template.name}</h1>
         <p className="text-sm text-text-secondary">
-          {deployment.program?.name ?? "College-wide"} • Scaffolded authenticated industry response flow
+          {deployment.program?.name ?? "College-wide"} - Scaffolded authenticated industry
+          response flow
         </p>
       </div>
 
@@ -38,8 +40,18 @@ export default async function IndustryPartnerEvaluationPage({
         submitLabel="Save Industry Draft"
         fields={[
           { id: "company", kind: "input", label: "Company", placeholder: "ACD Partner Company" },
-          { id: "readiness", kind: "textarea", label: "Readiness Assessment", placeholder: "Describe knowledge, skills, and professionalism observations..." },
-          { id: "recommendation", kind: "textarea", label: "Recommendation", placeholder: "Would you recommend this graduate/intern? Why?" },
+          {
+            id: "readiness",
+            kind: "textarea",
+            label: "Readiness Assessment",
+            placeholder: "Describe knowledge, skills, and professionalism observations...",
+          },
+          {
+            id: "recommendation",
+            kind: "textarea",
+            label: "Recommendation",
+            placeholder: "Would you recommend this graduate or intern? Why?",
+          },
         ]}
       />
     </div>

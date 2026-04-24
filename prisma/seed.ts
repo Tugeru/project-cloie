@@ -2,9 +2,14 @@ import "dotenv/config";
 import {
   AcademicSemester,
   AcademicTerm,
+  CourseScope,
+  DeploymentStatus,
+  DeploymentType,
   InviteStatus,
   Prisma,
+  ResponseStatus,
   SystemRole,
+  TargetStakeholder,
 } from "@prisma/client";
 import { prisma } from "../src/lib/db/prisma";
 
@@ -165,14 +170,18 @@ async function upsertTemplate(
     update: {
       description,
       is_active: true,
+      is_faculty_accessible: false,
       name,
+      program_id: null,
       structure,
     },
     create: {
       code,
       description,
       is_active: true,
+      is_faculty_accessible: false,
       name,
+      program_id: null,
       structure,
     },
   });
@@ -241,14 +250,6 @@ async function main() {
       where: { name: yearLevel.name },
       update: { order: yearLevel.order },
       create: yearLevel,
-    });
-  }
-
-  for (const courseTypeName of ["PROGRAM_SPECIFIC", "GENERAL_EDUCATION"]) {
-    await prisma.courseType.upsert({
-      where: { name: courseTypeName },
-      update: {},
-      create: { name: courseTypeName },
     });
   }
 
@@ -321,26 +322,6 @@ async function main() {
   }
 
   for (const program of programMap.values()) {
-    await prisma.pLO.upsert({
-      where: {
-        program_id_code: {
-          code: `${program.code}-PLO1`,
-          program_id: program.id,
-        },
-      },
-      update: {
-        description: `${program.name} learners demonstrate program-level attainment.`,
-        is_active: true,
-        order: 1,
-      },
-      create: {
-        code: `${program.code}-PLO1`,
-        description: `${program.name} learners demonstrate program-level attainment.`,
-        order: 1,
-        program_id: program.id,
-      },
-    });
-
     await prisma.gO.upsert({
       where: {
         program_id_code: {
@@ -362,72 +343,65 @@ async function main() {
     });
   }
 
-  const courseTypeProgramSpecific = await prisma.courseType.findUniqueOrThrow({
-    where: { name: "PROGRAM_SPECIFIC" },
-  });
-  const courseTypeGeneralEducation = await prisma.courseType.findUniqueOrThrow({
-    where: { name: "GENERAL_EDUCATION" },
-  });
-
   const courseDefinitions: Array<{
     code: string;
-    courseTypeId: string;
+    courseScope: CourseScope;
     title: string;
     programCode?: string;
     majorKey?: string;
   }> = [
     {
       code: "GEGS101",
-      courseTypeId: courseTypeGeneralEducation.id,
+      courseScope: CourseScope.GENERAL_EDUCATION,
       title: "General Education Foundations",
     },
     {
       code: "NSTP1",
-      courseTypeId: courseTypeGeneralEducation.id,
+      courseScope: CourseScope.GENERAL_EDUCATION,
       title: "National Service Training Program 1",
     },
     {
       code: "IT101",
-      courseTypeId: courseTypeProgramSpecific.id,
+      courseScope: CourseScope.PROGRAM_SPECIFIC,
       programCode: "BSIT",
       title: "Introduction to Computing",
     },
     {
       code: "IT-OD-401",
-      courseTypeId: courseTypeProgramSpecific.id,
+      courseScope: CourseScope.PROGRAM_SPECIFIC,
       programCode: "BSIT",
       title: "Outline Defense Demo Course",
     },
     {
       code: "EDUC101",
-      courseTypeId: courseTypeProgramSpecific.id,
+      courseScope: CourseScope.PROGRAM_SPECIFIC,
       programCode: "BSED",
       title: "Foundations of Teaching and Learning",
     },
     {
       code: "ENG201",
-      courseTypeId: courseTypeProgramSpecific.id,
+      courseScope: CourseScope.PROGRAM_SPECIFIC,
       programCode: "BSED",
       majorKey: "BSED:English",
       title: "Language Across the Curriculum",
     },
     {
       code: "MKT301",
-      courseTypeId: courseTypeProgramSpecific.id,
+      courseScope: CourseScope.PROGRAM_SPECIFIC,
       programCode: "BSBA",
       majorKey: "BSBA:Marketing Management",
       title: "Strategic Marketing",
     },
     {
       code: "HRDM302",
-      courseTypeId: courseTypeProgramSpecific.id,
+      courseScope: CourseScope.PROGRAM_SPECIFIC,
       programCode: "BSBA",
       majorKey: "BSBA:Human Resource Development Management",
       title: "People Development and Training",
     },
     {
       code: "FIN303",
-      courseTypeId: courseTypeProgramSpecific.id,
+      courseScope: CourseScope.PROGRAM_SPECIFIC,
       programCode: "BSBA",
       majorKey: "BSBA:Financial Management",
       title: "Financial Analysis and Planning",
@@ -438,7 +412,7 @@ async function main() {
     await prisma.course.upsert({
       where: { code: definition.code },
       update: {
-        course_type_id: definition.courseTypeId,
+        course_scope: definition.courseScope,
         description: `${definition.title} seeded from the flexible academic catalog scaffold.`,
         is_active: true,
         major_id: definition.majorKey ? majorMap.get(definition.majorKey)?.id ?? null : null,
@@ -447,7 +421,7 @@ async function main() {
       },
       create: {
         code: definition.code,
-        course_type_id: definition.courseTypeId,
+        course_scope: definition.courseScope,
         description: `${definition.title} seeded from the flexible academic catalog scaffold.`,
         is_active: true,
         major_id: definition.majorKey ? majorMap.get(definition.majorKey)?.id ?? null : null,
@@ -523,27 +497,6 @@ async function main() {
     throw new Error("Missing seeded BSIT program.");
   }
 
-  const bsitSection = await prisma.section.upsert({
-    where: {
-      id: "99999999-9999-4999-8999-999999999999",
-    },
-    update: {
-      academic_year: "2026-2027",
-      name: "BSIT-4A",
-      program_id: bsit.id,
-      semester: AcademicSemester.SECOND,
-      year_level_id: fourthYear.id,
-    },
-    create: {
-      id: "99999999-9999-4999-8999-999999999999",
-      academic_year: "2026-2027",
-      name: "BSIT-4A",
-      program_id: bsit.id,
-      semester: AcademicSemester.SECOND,
-      year_level_id: fourthYear.id,
-    },
-  });
-
   await prisma.studentAcademicProfile.upsert({
     where: { user_id: "55555555-5555-4555-8555-555555555555" },
     update: {
@@ -551,7 +504,6 @@ async function main() {
       is_graduating: false,
       major_id: null,
       program_id: bsit.id,
-      section_id: bsitSection.id,
       student_id_number: "2026-0001",
       year_level_id: fourthYear.id,
     },
@@ -560,7 +512,6 @@ async function main() {
       is_graduating: false,
       major_id: null,
       program_id: bsit.id,
-      section_id: bsitSection.id,
       student_id_number: "2026-0001",
       user_id: "55555555-5555-4555-8555-555555555555",
       year_level_id: fourthYear.id,
@@ -574,7 +525,6 @@ async function main() {
       is_graduating: true,
       major_id: null,
       program_id: bsit.id,
-      section_id: bsitSection.id,
       student_id_number: "2026-0002",
       year_level_id: fourthYear.id,
     },
@@ -583,7 +533,6 @@ async function main() {
       is_graduating: true,
       major_id: null,
       program_id: bsit.id,
-      section_id: bsitSection.id,
       student_id_number: "2026-0002",
       user_id: "66666666-6666-4666-8666-666666666666",
       year_level_id: fourthYear.id,
@@ -679,7 +628,7 @@ async function main() {
       major_id: null,
       program_id: bsit.id,
       published_at: new Date("2026-04-01T08:00:00.000Z"),
-      status: "ACTIVE",
+      status: DeploymentStatus.ACTIVE,
     },
     create: {
       academic_year: "2026-2027",
@@ -694,17 +643,16 @@ async function main() {
       program_id: bsit.id,
       published_at: new Date("2026-04-01T08:00:00.000Z"),
       semester: AcademicSemester.SECOND,
-      status: "ACTIVE",
+      status: DeploymentStatus.ACTIVE,
       term: AcademicTerm.SECOND_TERM,
     },
   });
 
   await prisma.courseBoundEvaluationTarget.upsert({
     where: {
-      course_bound_evaluation_id_program_id_year_level_id_section_id: {
+      course_bound_evaluation_id_program_id_year_level_id: {
         course_bound_evaluation_id: courseEvaluation.id,
         program_id: bsit.id,
-        section_id: bsitSection.id,
         year_level_id: fourthYear.id,
       },
     },
@@ -712,7 +660,6 @@ async function main() {
     create: {
       course_bound_evaluation_id: courseEvaluation.id,
       program_id: bsit.id,
-      section_id: bsitSection.id,
       year_level_id: fourthYear.id,
     },
   });
@@ -731,19 +678,19 @@ async function main() {
     {
       id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
       respondentId: "66666666-6666-4666-8666-666666666666",
-      target: "GRADUATING_STUDENT",
+      target: TargetStakeholder.GRADUATING_STUDENT,
       versionId: exitSurveyVersion.id,
     },
     {
       id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
       respondentId: "77777777-7777-4777-8777-777777777777",
-      target: "ALUMNI",
+      target: TargetStakeholder.ALUMNI,
       versionId: alumniVersion.id,
     },
     {
       id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
       respondentId: "88888888-8888-4888-8888-888888888888",
-      target: "INDUSTRY_PARTNER",
+      target: TargetStakeholder.INDUSTRY_PARTNER,
       versionId: industryVersion.id,
     },
   ] as const;
@@ -756,10 +703,13 @@ async function main() {
         activation_at: new Date("2026-04-15T08:00:00.000Z"),
         deadline_at: new Date("2026-06-01T23:59:00.000Z"),
         instrument_version_id: deployment.versionId,
+        major_id: null,
         program_id: bsit.id,
         semester: AcademicSemester.SECOND,
-        status: "ACTIVE",
+        status: DeploymentStatus.ACTIVE,
         target_stakeholder: deployment.target,
+        year_level_id:
+          deployment.target === TargetStakeholder.GRADUATING_STUDENT ? fourthYear.id : null,
       },
       create: {
         id: deployment.id,
@@ -767,10 +717,13 @@ async function main() {
         activation_at: new Date("2026-04-15T08:00:00.000Z"),
         deadline_at: new Date("2026-06-01T23:59:00.000Z"),
         instrument_version_id: deployment.versionId,
+        major_id: null,
         program_id: bsit.id,
         semester: AcademicSemester.SECOND,
-        status: "ACTIVE",
+        status: DeploymentStatus.ACTIVE,
         target_stakeholder: deployment.target,
+        year_level_id:
+          deployment.target === TargetStakeholder.GRADUATING_STUDENT ? fourthYear.id : null,
       },
     });
 
@@ -839,6 +792,47 @@ async function main() {
       status: InviteStatus.ACCEPTED,
     },
   });
+
+  await prisma.industryPartnerProfile.upsert({
+    where: { user_id: "88888888-8888-4888-8888-888888888888" },
+    update: {
+      company_name: "Demo Industry Partner",
+      position: "HR and Training Lead",
+      program_id: bsit.id,
+    },
+    create: {
+      company_name: "Demo Industry Partner",
+      position: "HR and Training Lead",
+      program_id: bsit.id,
+      user_id: "88888888-8888-4888-8888-888888888888",
+    },
+  });
+
+  const gradAssignment = await prisma.evaluationAssignment.findFirst({
+    where: {
+      central_deployment_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+      respondent_id: "66666666-6666-4666-8666-666666666666",
+    },
+  });
+
+  if (gradAssignment) {
+    await prisma.response.upsert({
+      where: { assignment_id: gradAssignment.id },
+      update: {
+        deployment_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        deployment_type: DeploymentType.CENTRAL,
+        respondent_id: "66666666-6666-4666-8666-666666666666",
+        status: ResponseStatus.IN_PROGRESS,
+      },
+      create: {
+        assignment_id: gradAssignment.id,
+        deployment_id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa",
+        deployment_type: DeploymentType.CENTRAL,
+        respondent_id: "66666666-6666-4666-8666-666666666666",
+        status: ResponseStatus.IN_PROGRESS,
+      },
+    });
+  }
 
   console.log("Seeding complete.");
 }

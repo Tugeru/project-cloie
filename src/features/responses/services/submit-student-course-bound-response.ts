@@ -1,3 +1,4 @@
+import { DeploymentType, ResponseStatus } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { parseStudentEvaluationAnswerKey } from "@/features/responses/answer-keys";
@@ -116,7 +117,7 @@ export function buildSubmittedResponsePatch({
   submittedAt,
 }: BuildSubmittedResponsePatchInput): SubmittedResponsePatch {
   return {
-    status: "SUBMITTED",
+    status: ResponseStatus.SUBMITTED,
     submittedAt,
   };
 }
@@ -174,7 +175,7 @@ export async function submitStudentCourseBoundResponse({
     },
   });
 
-  if (response?.status === "SUBMITTED") {
+  if (response?.status === ResponseStatus.SUBMITTED) {
     return {
       error: "This evaluation has already been submitted.",
       success: false,
@@ -186,9 +187,9 @@ export async function submitStudentCourseBoundResponse({
       data: {
         assignment_id: assignment.id,
         deployment_id: assignment.course_bound_id!,
-        deployment_type: "COURSE_BOUND",
+        deployment_type: DeploymentType.COURSE_BOUND,
         respondent_id: authSession.userId,
-        status: "IN_PROGRESS",
+        status: ResponseStatus.IN_PROGRESS,
       },
     });
   }
@@ -241,7 +242,7 @@ export async function submitStudentCourseBoundResponse({
 
   await prisma.response.update({
     data: {
-      status: "SUBMITTED",
+      status: ResponseStatus.SUBMITTED,
       submitted_at: new Date(submittedAt),
     },
     where: {
@@ -251,7 +252,7 @@ export async function submitStudentCourseBoundResponse({
 
   return {
     responseId: response.id,
-    status: "SUBMITTED",
+    status: ResponseStatus.SUBMITTED,
     success: true,
   };
 }

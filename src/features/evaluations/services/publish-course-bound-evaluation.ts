@@ -1,6 +1,7 @@
 import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { CourseScope, DeploymentStatus } from "@prisma/client";
 import type {
   PublishCourseBoundEvaluationInput,
   PublishCourseBoundEvaluationResult,
@@ -21,12 +22,14 @@ function buildPublicationContext(input: PublicationContext) {
   };
 }
 
-function buildPublicationStatus(activationAt: Date | null | undefined): "ACTIVE" | "SCHEDULED" {
+function buildPublicationStatus(
+  activationAt: Date | null | undefined,
+): "ACTIVE" | "SCHEDULED" {
   if (activationAt && activationAt.getTime() > Date.now()) {
-    return "SCHEDULED";
+    return DeploymentStatus.SCHEDULED;
   }
 
-  return "ACTIVE";
+  return DeploymentStatus.ACTIVE;
 }
 
 function toUniqueValues(values: string[]) {
@@ -100,7 +103,6 @@ export async function publishCourseBoundEvaluation({
     },
     include: {
       major: true,
-      course_type: true,
       program: {
         select: {
           code: true,
@@ -136,7 +138,7 @@ export async function publishCourseBoundEvaluation({
     };
   }
 
-  const isGeneralEducation = course.course_type.name === "GENERAL_EDUCATION";
+  const isGeneralEducation = course.course_scope === CourseScope.GENERAL_EDUCATION;
 
   if (!isGeneralEducation && course.program_id !== facultyProgram.id) {
     return {
@@ -294,10 +296,10 @@ export async function publishCourseBoundEvaluation({
           course_id: course.id,
           course_info_snapshot: {
             courseCode: course.code,
-          courseTitle: course.title,
+            courseTitle: course.title,
             programCode: facultyProgram.code,
             programName: facultyProgram.name,
-            courseScope: course.course_type.name,
+            courseScope: course.course_scope,
             majorName: resolvedMajorId
               ? facultyProgram.majors.find((major) => major.id === resolvedMajorId)?.name ?? null
               : null,
@@ -318,7 +320,6 @@ export async function publishCourseBoundEvaluation({
         data: normalizedYearLevelIds.map((yearLevelId) => ({
           course_bound_evaluation_id: evaluation.id,
           program_id: facultyProgram.id,
-          section_id: null,
           year_level_id: yearLevelId,
         })),
       });

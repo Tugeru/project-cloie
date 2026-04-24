@@ -1,12 +1,17 @@
 import { prisma } from "@/lib/db/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { InteractivePlaceholderForm } from "@/components/ui/interactive-placeholder-form";
-import { SEMESTER_OPTIONS } from "@/lib/constants/academic";
 
 export default async function AdminYearLevelsPage() {
   const yearLevels = await prisma.yearLevel.findMany({
     include: {
-      sections: true,
+      _count: {
+        select: {
+          student_profiles: true,
+          course_bound_targets: true,
+          central_deployments: true,
+        },
+      },
     },
     orderBy: { order: "asc" },
   });
@@ -14,25 +19,30 @@ export default async function AdminYearLevelsPage() {
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold">Year Levels and Sections</h1>
+        <h1 className="text-2xl font-bold">Year Levels</h1>
         <p className="text-sm text-text-secondary">
-          Configure cohort structure without hardcoding any academic grouping into the app.
+          Student context and targeting now rely on program, optional major, and year
+          level only.
         </p>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Current Levels</CardTitle>
-          <CardDescription>Sections remain tied to academic year and semester context.</CardDescription>
+          <CardTitle>Current Year Levels</CardTitle>
+          <CardDescription>
+            Use these levels for student academic profiles and deployment targeting.
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2">
           {yearLevels.map((yearLevel) => (
             <div key={yearLevel.id} className="rounded-xl border border-border px-4 py-3">
-              <p className="font-medium">{yearLevel.name}</p>
+              <p className="font-medium">
+                {yearLevel.order}. {yearLevel.name}
+              </p>
               <p className="text-sm text-text-muted">
-                {yearLevel.sections.length > 0
-                  ? `${yearLevel.sections.length} configured section(s)`
-                  : "No sections configured yet"}
+                {yearLevel._count.student_profiles} students •{" "}
+                {yearLevel._count.course_bound_targets} course-bound targets •{" "}
+                {yearLevel._count.central_deployments} central deployments
               </p>
             </div>
           ))}
@@ -40,19 +50,12 @@ export default async function AdminYearLevelsPage() {
       </Card>
 
       <InteractivePlaceholderForm
-        title="Section Builder Stub"
-        description="Capture the year-level and section metadata needed for future CRUD."
-        submitLabel="Save Section Draft"
+        title="Year Level Editor Stub"
+        description="This placeholder is aligned to the sectionless MVP model."
+        submitLabel="Save Year Level Draft"
         fields={[
-          { id: "year_level", kind: "input", label: "Year Level", placeholder: "1st Year" },
-          { id: "section", kind: "input", label: "Section Name", placeholder: "Section A" },
-          { id: "academic_year", kind: "input", label: "Academic Year", placeholder: "2026-2027" },
-          {
-            id: "semester",
-            kind: "select",
-            label: "Semester",
-            options: SEMESTER_OPTIONS.map((option) => ({ label: option.label, value: option.value })),
-          },
+          { id: "year_level", kind: "input", label: "Year Level", placeholder: "4th Year" },
+          { id: "order", kind: "input", label: "Display Order", placeholder: "4" },
         ]}
       />
     </div>
