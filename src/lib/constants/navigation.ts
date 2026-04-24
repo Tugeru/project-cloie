@@ -73,11 +73,13 @@ export const DEAN_NAV: NavItem[] = [
 export const ALUMNI_NAV: NavItem[] = [
   { name: "Dashboard", href: "/alumni/dashboard", icon: LayoutDashboard },
   { name: "Evaluations", href: "/alumni/evaluations", icon: FileText },
+  { name: "History", href: "/alumni/history", icon: History },
 ];
 
 export const INDUSTRY_PARTNER_NAV: NavItem[] = [
   { name: "Dashboard", href: "/industry-partner/dashboard", icon: LayoutDashboard },
   { name: "Evaluations", href: "/industry-partner/evaluations", icon: FileText },
+  { name: "History", href: "/industry-partner/history", icon: History },
 ];
 
 

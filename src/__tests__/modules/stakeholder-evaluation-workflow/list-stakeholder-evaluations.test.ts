@@ -33,6 +33,8 @@ function makeAssignment(overrides: {
     id: string;
     status: string;
     submitted_at: Date | null;
+    qual_items?: unknown[];
+    quant_items?: unknown[];
   } | null;
 }) {
   return {
@@ -44,6 +46,7 @@ function makeAssignment(overrides: {
       status: overrides.status,
       deadline_at: overrides.deadlineAt ?? null,
       instrument: {
+        structure_snapshot: undefined,
         template: {
           name: overrides.templateName,
         },
@@ -56,7 +59,13 @@ function makeAssignment(overrides: {
         ? { name: overrides.yearLevelName }
         : null,
     },
-    response: overrides.response ?? null,
+    response: overrides.response
+      ? {
+          ...overrides.response,
+          qual_items: overrides.response.qual_items ?? [],
+          quant_items: overrides.response.quant_items ?? [],
+        }
+      : null,
   };
 }
 
@@ -102,7 +111,7 @@ describe("listStakeholderEvaluations", () => {
 
     expect(result.active).toHaveLength(1);
     expect(result.active[0]).toMatchObject({
-      deploymentId: "deploy-1",
+      evaluationId: "deploy-1",
       assignmentId: "assign-1",
       evaluationTitle: "Alumni Feedback Survey",
       status: "NOT_STARTED",
@@ -170,7 +179,7 @@ describe("listStakeholderEvaluations", () => {
 
     expect(result.submitted).toHaveLength(1);
     expect(result.submitted[0].status).toBe("SUBMITTED");
-    expect(result.submitted[0].responseId).toBe("response-submitted");
+    expect(result.submitted[0].session.responseId).toBe("response-submitted");
   });
 
   it("filters by stakeholder type (ALUMNI vs INDUSTRY_PARTNER)", async () => {

@@ -4,9 +4,14 @@ import { Button } from "@/components/ui/button";
 interface HeroCardProps {
   name: string;
   contextLabel: string;
+  evaluationsHref?: string;
 }
 
-export function HeroCard({ name, contextLabel }: HeroCardProps) {
+export function HeroCard({
+  name,
+  contextLabel,
+  evaluationsHref = "/student/evaluations",
+}: HeroCardProps) {
   return (
     <section className="mb-8 rounded-2xl border border-primary/10 bg-gradient-to-br from-primary to-primary-active p-6 text-on-primary shadow-md lg:p-8">
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
@@ -21,7 +26,7 @@ export function HeroCard({ name, contextLabel }: HeroCardProps) {
         </div>
         <div className="flex gap-3">
           <Button
-            render={<Link href="/student/evaluations" />}
+            render={<Link href={evaluationsHref} />}
             variant="secondary"
             className="font-semibold"
           >

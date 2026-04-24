@@ -1,190 +1,113 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
 import { TargetStakeholder } from "@prisma/client";
-import { ClipboardList, CheckCircle2, Clock } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { listStakeholderEvaluations } from "@/features/responses/services/list-stakeholder-evaluations";
+import { EvaluationListCard } from "@/features/users/components/evaluation-list-card";
+import { HeroCard } from "@/features/users/components/hero-card";
+import { StatCards } from "@/features/users/components/stat-cards";
+import { prisma } from "@/lib/db/prisma";
 
 export default async function AlumniDashboardPage() {
   const session = await resolveAuthSession();
-
-  if (!session) {
-    redirect("/login");
-  }
-
   const { active, submitted } = await listStakeholderEvaluations(
     TargetStakeholder.ALUMNI,
+    "/alumni",
   );
+  const inProgressCount = active.filter((item) => item.status === "IN_PROGRESS").length;
+  const resumeItem =
+    active.find((item) => item.status === "IN_PROGRESS") ?? active[0] ?? null;
 
-  const pendingCount = active.filter((e) => e.status === "NOT_STARTED").length;
-  const inProgressCount = active.filter(
-    (e) => e.status === "IN_PROGRESS",
-  ).length;
+  const user = session
+    ? await prisma.user.findUnique({ where: { id: session.userId } })
+    : null;
+
+  const displayName = user?.first_name ?? "Alumni";
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Page header */}
-      <div className="space-y-1">
-        <h1 className="text-heading-lg">Alumni Dashboard</h1>
-        <p className="text-body-md text-text-secondary">
-          Complete your assigned evaluations and track submission status.
-        </p>
-      </div>
+    <div className="animate-in fade-in duration-500">
+      <HeroCard
+        name={displayName}
+        contextLabel="Alumni Portal"
+        evaluationsHref="/alumni/evaluations"
+      />
+      <StatCards
+        pending={active.length}
+        inProgress={inProgressCount}
+        completed={submitted.length}
+      />
 
-      {/* Stat cards */}
-      <div className="grid gap-4 sm:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-text-secondary">
-              Pending
-            </CardTitle>
-            <Clock className="size-4 text-text-muted" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">
-              {pendingCount + inProgressCount}
+      {resumeItem && (
+        <section className="mt-8 space-y-4">
+          <div>
+            <h3 className="font-heading text-xl font-extrabold">Continue</h3>
+            <p className="text-sm font-medium text-text-muted">
+              Pick up where you left off.
             </p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-text-secondary">
-              In Progress
-            </CardTitle>
-            <ClipboardList className="size-4 text-text-muted" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{inProgressCount}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-text-secondary">
-              Submitted
-            </CardTitle>
-            <CheckCircle2 className="size-4 text-success" />
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{submitted.length}</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Active evaluations */}
-      {active.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="text-lg font-bold">Pending Evaluations</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {active.map((item) => (
-              <Card key={item.assignmentId}>
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-base">
-                      {item.evaluationTitle}
-                    </CardTitle>
-                    <Badge
-                      variant={
-                        item.status === "IN_PROGRESS" ? "secondary" : "default"
-                      }
-                    >
-                      {item.status === "IN_PROGRESS"
-                        ? "In Progress"
-                        : "Pending"}
-                    </Badge>
-                  </div>
-                  <CardDescription>{item.programLabel}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex items-center justify-between">
-                  {item.deadlineAt && (
-                    <p className="text-xs text-text-muted">
-                      Due{" "}
-                      {item.deadlineAt.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </p>
-                  )}
-                  <Button asChild size="sm" className="ml-auto font-bold">
-                    <Link href={`/alumni/evaluations/${item.deploymentId}`}>
-                      {item.status === "IN_PROGRESS" ? "Continue" : "Start"}
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
           </div>
+
+          <Card className="overflow-hidden border-border shadow-sm">
+            <CardContent className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-2">
+                <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                  {resumeItem.status === "IN_PROGRESS" ? "In Progress" : "Pending"}
+                </p>
+                <div>
+                  <h4 className="text-xl font-bold">
+                    {resumeItem.evaluationTitle}
+                  </h4>
+                  <p className="text-sm text-text-secondary">
+                    {resumeItem.programLabel}
+                  </p>
+                </div>
+                {resumeItem.status === "IN_PROGRESS" && (
+                  <p className="text-sm font-medium text-secondary">
+                    {resumeItem.progress}% complete
+                  </p>
+                )}
+              </div>
+
+              {resumeItem.href && (
+                <Button
+                  render={<Link href={resumeItem.href} />}
+                  className="font-semibold"
+                >
+                  {resumeItem.status === "IN_PROGRESS" ? "Resume" : "Start Evaluation"}
+                </Button>
+              )}
+            </CardContent>
+          </Card>
         </section>
       )}
 
-      {/* Submitted evaluations */}
-      {submitted.length > 0 && (
-        <section className="space-y-4">
-          <h2 className="text-lg font-bold">Submitted Evaluations</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {submitted.map((item) => (
-              <Card key={item.assignmentId}>
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-base">
-                      {item.evaluationTitle}
-                    </CardTitle>
-                    <Badge className="bg-success/10 text-success border-success/20">
-                      Submitted
-                    </Badge>
-                  </div>
-                  <CardDescription>{item.programLabel}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex items-center justify-between">
-                  {item.submittedAt && (
-                    <p className="text-xs text-text-muted">
-                      Submitted{" "}
-                      {item.submittedAt.toLocaleDateString("en-US", {
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </p>
-                  )}
-                  <Button
-                    asChild
-                    variant="outline"
-                    size="sm"
-                    className="ml-auto font-bold"
-                  >
-                    <Link
-                      href={`/alumni/evaluations/${item.deploymentId}/submitted`}
-                    >
-                      View Submission
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+      <section className="mt-8">
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <h3 className="font-heading text-xl font-extrabold">Pending Evaluations</h3>
+            <p className="text-sm font-medium text-text-muted">
+              Prioritize forms that are active and closing soon.
+            </p>
           </div>
-        </section>
-      )}
-
-      {/* Empty state */}
-      {active.length === 0 && submitted.length === 0 && (
-        <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border p-12 text-center">
-          <ClipboardList className="size-12 text-text-muted mb-4" />
-          <h3 className="text-lg font-bold mb-1">No Evaluations Assigned</h3>
-          <p className="text-body-md text-text-secondary max-w-md">
-            You currently have no evaluations assigned. Check back later or
-            contact your program administrator.
-          </p>
+          <Link
+            href="/alumni/evaluations"
+            className="text-sm font-bold text-primary hover:underline"
+          >
+            View All
+          </Link>
         </div>
-      )}
+
+        <div className="grid gap-4">
+          {active.slice(0, 3).map((evalItem) => (
+            <EvaluationListCard key={evalItem.assignmentId} {...evalItem} />
+          ))}
+          {active.length === 0 && (
+            <div className="rounded-xl border-2 border-dashed border-border py-12 text-center">
+              <p className="font-medium text-text-muted">No active evaluations found.</p>
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

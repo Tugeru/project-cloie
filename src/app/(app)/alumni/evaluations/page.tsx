@@ -1,112 +1,111 @@
-import Link from "next/link";
-import { redirect } from "next/navigation";
+import { Filter, Search } from "lucide-react";
 import { TargetStakeholder } from "@prisma/client";
-import { ClipboardList } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { listStakeholderEvaluations } from "@/features/responses/services/list-stakeholder-evaluations";
-
-function StatusBadge({ status }: { status: "NOT_STARTED" | "IN_PROGRESS" | "SUBMITTED" }) {
-  switch (status) {
-    case "SUBMITTED":
-      return (
-        <Badge className="bg-success/10 text-success border-success/20">
-          Submitted
-        </Badge>
-      );
-    case "IN_PROGRESS":
-      return <Badge variant="secondary">In Progress</Badge>;
-    default:
-      return <Badge variant="default">Pending</Badge>;
-  }
-}
+import { EvaluationListCard } from "@/features/users/components/evaluation-list-card";
 
 export default async function AlumniEvaluationsPage() {
-  const session = await resolveAuthSession();
-
-  if (!session) {
-    redirect("/login");
-  }
-
   const { active, submitted } = await listStakeholderEvaluations(
     TargetStakeholder.ALUMNI,
+    "/alumni",
   );
-
-  const allItems = [...active, ...submitted];
+  const pending = active.filter((item) => item.status !== "IN_PROGRESS");
+  const inProgress = active.filter((item) => item.status === "IN_PROGRESS");
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="space-y-1">
-        <h1 className="text-heading-lg">Alumni Evaluations</h1>
-        <p className="text-body-md text-text-secondary">
-          View and complete your assigned evaluations.
+    <div className="space-y-8 animate-in fade-in duration-500">
+      <section className="rounded-xl bg-surface-container-low p-8">
+        <h1 className="font-heading text-4xl font-bold tracking-tight text-text-primary">
+          Alumni Evaluations
+        </h1>
+        <p className="mt-2 max-w-2xl text-base text-text-secondary">
+          View and complete evaluations assigned to you as an alumnus. Complete
+          all forms before their deadlines.
         </p>
-      </div>
+      </section>
 
-      {allItems.length === 0 ? (
-        <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border p-12 text-center">
-          <ClipboardList className="size-12 text-text-muted mb-4" />
-          <h3 className="text-lg font-bold mb-1">No Evaluations Assigned</h3>
-          <p className="text-body-md text-text-secondary max-w-md">
-            You currently have no evaluations assigned. Check back later or
-            contact your program administrator.
-          </p>
-        </div>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2">
-          {allItems.map((item) => {
-            const isSubmitted = item.status === "SUBMITTED";
-            const href = isSubmitted
-              ? `/alumni/evaluations/${item.deploymentId}/submitted`
-              : `/alumni/evaluations/${item.deploymentId}`;
+      <Tabs defaultValue="pending" className="w-full">
+        <div className="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+          <TabsList className="h-auto flex-wrap gap-2 bg-transparent p-0">
+            <TabsTrigger
+              value="pending"
+              className="rounded-full bg-surface px-5 py-2 text-sm font-medium text-text-secondary data-[state=active]:bg-primary data-[state=active]:text-white"
+            >
+              Pending
+            </TabsTrigger>
+            <TabsTrigger
+              value="in-progress"
+              className="rounded-full bg-surface px-5 py-2 text-sm font-medium text-text-secondary data-[state=active]:bg-primary data-[state=active]:text-white"
+            >
+              In Progress
+            </TabsTrigger>
+            <TabsTrigger
+              value="submitted"
+              className="rounded-full bg-surface px-5 py-2 text-sm font-medium text-text-secondary data-[state=active]:bg-primary data-[state=active]:text-white"
+            >
+              Submitted
+            </TabsTrigger>
+          </TabsList>
 
-            return (
-              <Card key={item.assignmentId}>
-                <CardHeader>
-                  <div className="flex items-start justify-between gap-2">
-                    <CardTitle className="text-base">
-                      {item.evaluationTitle}
-                    </CardTitle>
-                    <StatusBadge status={item.status} />
-                  </div>
-                  <CardDescription>{item.programLabel}</CardDescription>
-                </CardHeader>
-                <CardContent className="flex items-center justify-between">
-                  <div className="text-xs text-text-muted">
-                    {isSubmitted && item.submittedAt
-                      ? `Submitted ${item.submittedAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
-                      : item.deadlineAt
-                        ? `Due ${item.deadlineAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
-                        : "No deadline"}
-                  </div>
-                  <Button
-                    asChild
-                    size="sm"
-                    variant={isSubmitted ? "outline" : "default"}
-                    className="ml-auto font-bold"
-                  >
-                    <Link href={href}>
-                      {isSubmitted
-                        ? "View Submission"
-                        : item.status === "IN_PROGRESS"
-                          ? "Continue"
-                          : "Start"}
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            );
-          })}
+          <div className="flex w-full gap-4 md:w-auto">
+            <div className="relative w-full md:w-64">
+              <Search className="absolute left-3 top-2.5 size-4 text-text-muted" />
+              <Input placeholder="Search evaluations..." className="h-10 pl-9" />
+            </div>
+            <Button variant="outline" className="gap-2">
+              <Filter className="size-4" />
+              Filter
+            </Button>
+          </div>
         </div>
-      )}
+
+        <TabsContent value="pending" className="pt-6">
+          <div className="grid gap-4">
+            {pending.map((evalItem) => (
+              <EvaluationListCard key={evalItem.assignmentId} {...evalItem} />
+            ))}
+            {pending.length === 0 && (
+              <div className="rounded-xl border-2 border-dashed border-border py-12 text-center">
+                <p className="font-medium text-text-muted">
+                  No pending evaluations found.
+                </p>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="in-progress" className="pt-6">
+          <div className="grid gap-4">
+            {inProgress.map((evalItem) => (
+              <EvaluationListCard key={evalItem.assignmentId} {...evalItem} />
+            ))}
+            {inProgress.length === 0 && (
+              <div className="rounded-xl border-2 border-dashed border-border py-12 text-center">
+                <p className="font-medium text-text-muted">
+                  Your in-progress evaluations will appear here.
+                </p>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="submitted" className="pt-6">
+          <div className="grid gap-4">
+            {submitted.map((evalItem) => (
+              <EvaluationListCard key={evalItem.assignmentId} {...evalItem} />
+            ))}
+            {submitted.length === 0 && (
+              <div className="rounded-xl border-2 border-dashed border-border py-12 text-center">
+                <p className="font-medium text-text-muted">
+                  Your submitted evaluations will appear here.
+                </p>
+              </div>
+            )}
+          </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
