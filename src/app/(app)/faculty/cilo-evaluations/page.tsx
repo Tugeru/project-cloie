@@ -14,9 +14,14 @@ export default async function FacultyCiloEvaluationsPage() {
             Review your scoped course contexts and create a new course-bound CILO evaluation.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/faculty/cilo-evaluations/new">Publish New Evaluation</Link>
-        </Button>
+        <div className="flex flex-wrap gap-3">
+          <Button variant="outline" asChild>
+            <Link href="/faculty/cilos">Manage CILOs</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/faculty/cilo-evaluations/new">Publish New Evaluation</Link>
+          </Button>
+        </div>
       </div>
 
       <section className="rounded-xl border border-border bg-surface p-5">

@@ -30,6 +30,7 @@ export default async function StudentSubmittedResponseReviewPage({
       <SubmittedResponseReview
         evaluationTitle={review.evaluationTitle}
         courseTitle={review.courseTitle}
+        programLabel={review.programLabel}
         submittedAt={review.submittedAt}
         sections={review.sections}
       />

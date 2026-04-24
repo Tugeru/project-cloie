@@ -1,3 +1,4 @@
+import { AcademicSemester } from "@prisma/client";
 import { z } from "zod";
 
 export const publishCentralDeploymentSchema = z.object({
@@ -8,7 +9,7 @@ export const publishCentralDeploymentSchema = z.object({
     "INDUSTRY_PARTNER",
   ]),
   academic_year: z.string().min(1, "Academic year is required."),
-  semester: z.enum(["FIRST", "SECOND", "SUMMER"]),
+  semester: z.nativeEnum(AcademicSemester),
   major_id: z.string().uuid().optional(),
   year_level_id: z.string().uuid().optional(),
   activation_at: z.coerce.date().optional(),

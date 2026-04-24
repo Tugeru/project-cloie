@@ -14,6 +14,9 @@ export default function FacultyDashboardPage() {
           <Link href="/faculty/cilo-evaluations">Go to CILO Evaluations</Link>
         </Button>
         <Button variant="outline" asChild>
+          <Link href="/faculty/cilos">Manage CILOs</Link>
+        </Button>
+        <Button variant="outline" asChild>
           <Link href="/faculty/cilo-evaluations/new">Publish New Evaluation</Link>
         </Button>
       </div>

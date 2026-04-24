@@ -1,29 +1,112 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { TargetStakeholder } from "@prisma/client";
-import { prisma } from "@/lib/db/prisma";
+import { ClipboardList } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { listStakeholderEvaluations } from "@/features/responses/services/list-stakeholder-evaluations";
+
+function StatusBadge({ status }: { status: "NOT_STARTED" | "IN_PROGRESS" | "SUBMITTED" }) {
+  switch (status) {
+    case "SUBMITTED":
+      return (
+        <Badge className="bg-success/10 text-success border-success/20">
+          Submitted
+        </Badge>
+      );
+    case "IN_PROGRESS":
+      return <Badge variant="secondary">In Progress</Badge>;
+    default:
+      return <Badge variant="default">Pending</Badge>;
+  }
+}
 
 export default async function AlumniEvaluationsPage() {
-  const deployments = await prisma.centralDeployment.findMany({
-    where: { target_stakeholder: TargetStakeholder.ALUMNI },
-    include: {
-      instrument: { include: { template: true } },
-      program: true,
-    },
-    orderBy: { created_at: "desc" },
-  });
+  const session = await resolveAuthSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  const { active, submitted } = await listStakeholderEvaluations(
+    TargetStakeholder.ALUMNI,
+  );
+
+  const allItems = [...active, ...submitted];
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold">Alumni Evaluations</h1>
-        <p className="text-sm text-text-secondary">Scaffolded list of deployments prepared for authenticated alumni respondents.</p>
+    <div className="space-y-6 animate-in fade-in duration-500">
+      <div className="space-y-1">
+        <h1 className="text-heading-lg">Alumni Evaluations</h1>
+        <p className="text-body-md text-text-secondary">
+          View and complete your assigned evaluations.
+        </p>
       </div>
-      {deployments.map((deployment) => (
-        <Link key={deployment.id} href={`/alumni/evaluations/${deployment.id}`} className="block rounded-xl border border-border px-4 py-3 hover:border-primary/40 hover:bg-primary-soft/40">
-          <p className="font-medium">{deployment.instrument.template.name}</p>
-          <p className="text-sm text-text-muted">{deployment.program?.name ?? "College-wide"}</p>
-        </Link>
-      ))}
+
+      {allItems.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-border p-12 text-center">
+          <ClipboardList className="size-12 text-text-muted mb-4" />
+          <h3 className="text-lg font-bold mb-1">No Evaluations Assigned</h3>
+          <p className="text-body-md text-text-secondary max-w-md">
+            You currently have no evaluations assigned. Check back later or
+            contact your program administrator.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          {allItems.map((item) => {
+            const isSubmitted = item.status === "SUBMITTED";
+            const href = isSubmitted
+              ? `/alumni/evaluations/${item.deploymentId}/submitted`
+              : `/alumni/evaluations/${item.deploymentId}`;
+
+            return (
+              <Card key={item.assignmentId}>
+                <CardHeader>
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-base">
+                      {item.evaluationTitle}
+                    </CardTitle>
+                    <StatusBadge status={item.status} />
+                  </div>
+                  <CardDescription>{item.programLabel}</CardDescription>
+                </CardHeader>
+                <CardContent className="flex items-center justify-between">
+                  <div className="text-xs text-text-muted">
+                    {isSubmitted && item.submittedAt
+                      ? `Submitted ${item.submittedAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                      : item.deadlineAt
+                        ? `Due ${item.deadlineAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}`
+                        : "No deadline"}
+                  </div>
+                  <Button
+                    asChild
+                    size="sm"
+                    variant={isSubmitted ? "outline" : "default"}
+                    className="ml-auto font-bold"
+                  >
+                    <Link href={href}>
+                      {isSubmitted
+                        ? "View Submission"
+                        : item.status === "IN_PROGRESS"
+                          ? "Continue"
+                          : "Start"}
+                    </Link>
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

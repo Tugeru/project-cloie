@@ -4,6 +4,8 @@ import { join } from "node:path";
 import { loadEnvConfig } from "@next/env";
 import { pathToFileURL } from "node:url";
 
+import { resolveLocalBin } from "./resolve-local-bin";
+
 loadEnvConfig(process.cwd());
 
 type MigrationMode = "baseline" | "diff";
@@ -47,7 +49,6 @@ export function buildMigrationArgs({
 }: BuildMigrationArgsInput) {
   if (mode === "baseline") {
     return [
-      "prisma",
       "migrate",
       "diff",
       "--from-empty",
@@ -64,7 +65,6 @@ export function buildMigrationArgs({
   }
 
   return [
-    "prisma",
     "migrate",
     "diff",
     "--from-url",
@@ -95,10 +95,6 @@ export function parseMigrationCliArgs(args: string[]): ParsedMigrationCliArgs {
   };
 }
 
-function resolvePackageManagerCommand() {
-  return process.platform === "win32" ? "pnpm.cmd" : "pnpm";
-}
-
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const { mode, name, timestamp } = parseMigrationCliArgs(process.argv.slice(2));
 
@@ -118,14 +114,14 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   mkdirSync(join("supabase", "migrations"), { recursive: true });
 
   execFileSync(
-    resolvePackageManagerCommand(),
+    resolveLocalBin("prisma"),
     buildMigrationArgs({
       mode,
       schemaPath: "prisma/schema.prisma",
       outputPath,
       databaseUrl,
     }),
-    { stdio: "inherit" },
+    { shell: process.platform === "win32", stdio: "inherit" },
   );
 
   console.log(`Created migration at ${outputPath}`);

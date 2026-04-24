@@ -19,7 +19,7 @@ describe("Supabase CLI config", () => {
 
     expect(pkg.devDependencies.supabase).toBeDefined();
 
-    expect(pkg.scripts["supabase:init"]).toBe("supabase init");
+    expect(pkg.scripts["supabase:init"]).toBe("tsx scripts/run-supabase-command.ts init");
     expect(pkg.scripts["supabase:login"]).toBe("tsx scripts/supabase-login.ts");
     expect(pkg.scripts["supabase:link"]).toBe("tsx scripts/supabase-link.ts");
     expect(pkg.scripts["supabase:migration:baseline"]).toBe(
@@ -28,15 +28,17 @@ describe("Supabase CLI config", () => {
     expect(pkg.scripts["supabase:migration:diff"]).toBe(
       "tsx scripts/create-supabase-migration.ts diff",
     );
-    expect(pkg.scripts["supabase:migration:list"]).toBe("supabase migration list --linked");
+    expect(pkg.scripts["supabase:migration:list"]).toBe(
+      "tsx scripts/run-supabase-command.ts migration list --linked",
+    );
     expect(pkg.scripts["supabase:migration:repair-latest"]).toBe(
       "tsx scripts/repair-latest-supabase-migration.ts applied",
     );
     expect(pkg.scripts["supabase:types"]).toBe("tsx scripts/generate-supabase-types.ts");
     expect(pkg.scripts["supabase:push:dry-run"]).toBe(
-      "supabase db push --linked --dry-run",
+      "tsx scripts/run-supabase-command.ts db push --linked --dry-run",
     );
-    expect(pkg.scripts["supabase:push"]).toBe("supabase db push --linked");
+    expect(pkg.scripts["supabase:push"]).toBe("tsx scripts/run-supabase-command.ts db push --linked");
 
     expect(envExample).toContain('SUPABASE_PROJECT_REF=""');
     expect(envExample).toContain('SUPABASE_ACCESS_TOKEN=""');

@@ -2,11 +2,11 @@ import { Filter, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { listStudentCourseBoundEvaluations } from "@/features/responses/services/list-student-course-bound-evaluations";
+import { listStudentAssignedEvaluations } from "@/features/responses/services/list-student-assigned-evaluations";
 import { EvaluationListCard } from "@/features/users/components/evaluation-list-card";
 
 export default async function StudentEvaluationsPage() {
-  const { active, submitted } = await listStudentCourseBoundEvaluations();
+  const { active, submitted } = await listStudentAssignedEvaluations();
   const pending = active.filter((item) => item.status !== "IN_PROGRESS");
   const inProgress = active.filter((item) => item.status === "IN_PROGRESS");
 
@@ -17,8 +17,8 @@ export default async function StudentEvaluationsPage() {
           My Evaluations
         </h1>
         <p className="mt-2 max-w-2xl text-base text-text-secondary">
-          View and complete forms assigned to your academic context. Ensure required
-          evaluations are submitted before their deadlines.
+          View and complete forms assigned to your academic context. Required course
+          evaluations and graduating-student surveys appear in one shared workflow.
         </p>
       </section>
 
@@ -60,7 +60,7 @@ export default async function StudentEvaluationsPage() {
         <TabsContent value="pending" className="pt-6">
           <div className="grid gap-4">
             {pending.map((evalItem) => (
-              <EvaluationListCard key={evalItem.evaluationId} {...evalItem} />
+              <EvaluationListCard key={evalItem.assignmentId} {...evalItem} />
             ))}
             {pending.length === 0 && (
               <div className="rounded-xl border-2 border-dashed border-border py-12 text-center">
@@ -75,7 +75,7 @@ export default async function StudentEvaluationsPage() {
         <TabsContent value="in-progress" className="pt-6">
           <div className="grid gap-4">
             {inProgress.map((evalItem) => (
-              <EvaluationListCard key={evalItem.evaluationId} {...evalItem} />
+              <EvaluationListCard key={evalItem.assignmentId} {...evalItem} />
             ))}
             {inProgress.length === 0 && (
               <div className="rounded-xl border-2 border-dashed border-border py-12 text-center">
@@ -90,7 +90,7 @@ export default async function StudentEvaluationsPage() {
         <TabsContent value="submitted" className="pt-6">
           <div className="grid gap-4">
             {submitted.map((evalItem) => (
-              <EvaluationListCard key={evalItem.evaluationId} {...evalItem} />
+              <EvaluationListCard key={evalItem.assignmentId} {...evalItem} />
             ))}
             {submitted.length === 0 && (
               <div className="rounded-xl border-2 border-dashed border-border py-12 text-center">

@@ -1,0 +1,130 @@
+import { prisma } from "@/lib/db/prisma";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { buildStudentEvaluationAnswerKey } from "@/features/responses/answer-keys";
+import {
+  buildSubmittedResponseSections,
+  type SubmittedResponseSection,
+} from "./get-student-submitted-response-review";
+
+// ─── Public types ───────────────────────────────────────────────────────────
+
+export type CentralDeploymentSubmittedReview = {
+  responseId: string;
+  evaluationTitle: string;
+  courseTitle: null;
+  programLabel: string;
+  submittedAt: Date;
+  sections: SubmittedResponseSection[];
+};
+
+// ─── Internal helpers ───────────────────────────────────────────────────────
+
+function buildProgramLabel(input: {
+  majorName: string | null;
+  programCode: string | null;
+  programName: string | null;
+  yearLevelName: string | null;
+}): string {
+  return (
+    [
+      input.programCode ?? input.programName ?? "Program-wide",
+      input.majorName,
+      input.yearLevelName,
+    ]
+      .filter((value): value is string => Boolean(value))
+      .join(" • ") || "College-wide"
+  );
+}
+
+// ─── Service ────────────────────────────────────────────────────────────────
+
+/**
+ * Read-only view of a submitted central deployment response.
+ *
+ * Works for any stakeholder type (ALUMNI, INDUSTRY_PARTNER, GRADUATING_STUDENT).
+ * Authenticates via session — only the respondent who submitted the response
+ * can view it.
+ */
+export async function getCentralDeploymentSubmittedReview(
+  responseId: string,
+): Promise<CentralDeploymentSubmittedReview | null> {
+  const authSession = await resolveAuthSession();
+
+  if (!authSession) {
+    return null;
+  }
+
+  const response = await prisma.response.findFirst({
+    where: {
+      id: responseId,
+      respondent_id: authSession.userId,
+      status: "SUBMITTED",
+      deployment_type: "CENTRAL",
+    },
+    include: {
+      assignment: {
+        include: {
+          central_deployment: {
+            include: {
+              instrument: {
+                include: {
+                  template: true,
+                },
+              },
+              major: true,
+              program: true,
+              year_level: true,
+            },
+          },
+        },
+      },
+      qual_items: true,
+      quant_items: true,
+    },
+  });
+
+  if (!response?.submitted_at || !response.assignment.central_deployment) {
+    return null;
+  }
+
+  const deployment = response.assignment.central_deployment;
+
+  const answers: Record<string, string | number> = {};
+
+  for (const item of response.quant_items) {
+    answers[
+      buildStudentEvaluationAnswerKey(
+        item.section_key,
+        "quantitative",
+        item.item_key,
+      )
+    ] = item.rating_value;
+  }
+
+  for (const item of response.qual_items) {
+    answers[
+      buildStudentEvaluationAnswerKey(
+        item.section_key,
+        "qualitative",
+        item.prompt_key,
+      )
+    ] = item.text_content;
+  }
+
+  return {
+    responseId: response.id,
+    evaluationTitle: deployment.instrument.template.name,
+    courseTitle: null,
+    programLabel: buildProgramLabel({
+      majorName: deployment.major?.name ?? null,
+      programCode: deployment.program?.code ?? null,
+      programName: deployment.program?.name ?? null,
+      yearLevelName: deployment.year_level?.name ?? null,
+    }),
+    submittedAt: response.submitted_at,
+    sections: buildSubmittedResponseSections({
+      answers,
+      structureSnapshot: deployment.instrument.structure_snapshot,
+    }),
+  };
+}

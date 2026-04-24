@@ -9,8 +9,19 @@ export type StudentEvaluationSection = {
   name: string;
   description: string;
   items: Array<
-    | { kind: "quantitative"; itemKey: string; prompt: string; scale: number[] }
-    | { kind: "qualitative"; promptKey: string; prompt: string }
+    | {
+        kind: "quantitative";
+        itemKey: string;
+        prompt: string;
+        scale: number[];
+        descriptorLabels?: string[];
+      }
+    | {
+        kind: "qualitative";
+        promptKey: string;
+        prompt: string;
+        suggestedResponses?: string[];
+      }
   >;
 };
 
@@ -23,9 +34,11 @@ export type StudentEvaluationSession = {
 
 // Shared DTO for student evaluation list views, including active and submitted entries.
 export type StudentEvaluationListItem = {
+  assignmentId: string;
+  deploymentType: "CENTRAL" | "COURSE_BOUND";
   evaluationId: string;
   evaluationTitle: string;
-  courseTitle: string;
+  courseTitle: string | null;
   programLabel: string;
   deadlineAt: Date | null;
   href: string | null;

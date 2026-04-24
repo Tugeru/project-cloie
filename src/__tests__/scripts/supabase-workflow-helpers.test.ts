@@ -28,9 +28,10 @@ describe("supabase workflow helpers", () => {
     expect(buildLoginArgs("sbp_token")).toEqual(["login", "--token", "sbp_token"]);
   });
 
-  it("uses the Supabase package shim command for each platform", () => {
-    expect(getSupabaseCommand("linux")).toBe("supabase");
-    expect(getSupabaseCommand("win32")).toBe("supabase.cmd");
+  it("resolves the local Supabase CLI binary when available", () => {
+    const resolvedCommand = getSupabaseCommand();
+
+    expect(resolvedCommand.toLowerCase()).toContain("supabase");
   });
 
   it("builds link args from project ref and optional password", () => {
@@ -52,7 +53,6 @@ describe("supabase workflow helpers", () => {
         outputPath: "supabase/migrations/20260419000100_init_public_schema.sql",
       }),
     ).toEqual([
-      "prisma",
       "migrate",
       "diff",
       "--from-empty",
@@ -73,7 +73,6 @@ describe("supabase workflow helpers", () => {
         outputPath: "supabase/migrations/20260419001000_add_student_profile_columns.sql",
       }),
     ).toEqual([
-      "prisma",
       "migrate",
       "diff",
       "--from-url",

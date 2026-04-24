@@ -58,7 +58,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const migrationListOutput = execFileSync(
     getSupabaseCommand(),
     ["migration", "list", "--linked"],
-    { encoding: "utf8" },
+    { encoding: "utf8", shell: process.platform === "win32" },
   );
 
   assertBaselineRepairSafe(parseRemoteMigrationVersions(migrationListOutput));
@@ -66,7 +66,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   execFileSync(
     getSupabaseCommand(),
     ["migration", "repair", version, "--status", status, "--linked"],
-    { stdio: "inherit" },
+    { shell: process.platform === "win32", stdio: "inherit" },
   );
 
   console.log(`Repaired linked migration history for ${version} as ${status}`);

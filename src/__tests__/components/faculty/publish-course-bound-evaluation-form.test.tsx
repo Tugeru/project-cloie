@@ -28,20 +28,32 @@ describe("PublishCourseBoundEvaluationForm", () => {
     render(
       <PublishCourseBoundEvaluationForm
         courseContexts={courseContexts}
+        loadManagedCilosAction={vi.fn().mockResolvedValue({
+          ciloAcademicTerm: "2026-2027|FIRST|FIRST_TERM|program-1",
+          hasSavedCilos: false,
+          items: [],
+          success: true,
+        })}
         yearLevels={yearLevels}
         publishAction={vi.fn()}
       />,
     );
 
-    fireEvent.change(screen.getByLabelText(/program context/i), { target: { value: "program-1" } });
+    fireEvent.change(screen.getByLabelText(/program context/i), {
+      target: { value: "program-1" },
+    });
 
-    expect(screen.getByRole("heading", { name: /publish cilo evaluation/i })).toBeInTheDocument();
-    expect(screen.getByRole("option", { name: /CS101 - Intro to Computing/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /publish cilo evaluation/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("option", { name: /CS101 - Intro to Computing/i }),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText("1st Year")).toBeInTheDocument();
     expect(screen.getByLabelText("2nd Year")).toBeInTheDocument();
   });
 
-  it("submits normalized payload to publish action", async () => {
+  it("submits normalized payload to publish action using saved cilos", async () => {
     const publishAction = vi.fn().mockResolvedValue({
       assignmentCount: 40,
       evaluationId: "eval-1",
@@ -49,27 +61,54 @@ describe("PublishCourseBoundEvaluationForm", () => {
       success: true,
       targetCount: 2,
     });
+    const loadManagedCilosAction = vi.fn().mockResolvedValue({
+      ciloAcademicTerm: "2026-2027|FIRST|FIRST_TERM|program-1",
+      hasSavedCilos: true,
+      items: [
+        { description: "Apply core concepts", id: "cilo-1", order: 1 },
+        { description: "Build maintainable software", id: "cilo-2", order: 2 },
+      ],
+      success: true,
+    });
 
     render(
       <PublishCourseBoundEvaluationForm
         courseContexts={courseContexts}
+        loadManagedCilosAction={loadManagedCilosAction}
         yearLevels={yearLevels}
         publishAction={publishAction}
       />,
     );
 
-    fireEvent.change(screen.getByLabelText(/program context/i), { target: { value: "program-1" } });
-    fireEvent.change(screen.getByLabelText(/^Course$/i), { target: { value: "course-1" } });
-    fireEvent.change(screen.getByLabelText(/academic year/i), { target: { value: "2026-2027" } });
-    fireEvent.change(screen.getByLabelText(/semester/i), { target: { value: AcademicSemester.FIRST } });
-    fireEvent.change(screen.getByLabelText(/term/i), { target: { value: AcademicTerm.FIRST_TERM } });
+    fireEvent.change(screen.getByLabelText(/program context/i), {
+      target: { value: "program-1" },
+    });
+    fireEvent.change(screen.getByLabelText(/^course$/i), {
+      target: { value: "course-1" },
+    });
+    fireEvent.change(screen.getByLabelText(/academic year/i), {
+      target: { value: "2026-2027" },
+    });
+    fireEvent.change(screen.getByLabelText(/^semester$/i), {
+      target: { value: AcademicSemester.FIRST },
+    });
+    fireEvent.change(screen.getByLabelText(/term/i), {
+      target: { value: AcademicTerm.FIRST_TERM },
+    });
     fireEvent.change(screen.getByLabelText(/activation schedule/i), {
       target: { value: "2026-05-01T08:30" },
     });
-    fireEvent.change(screen.getByLabelText(/deadline/i), { target: { value: "2026-05-31T23:59" } });
-    fireEvent.change(screen.getByLabelText(/target cilos/i), {
-      target: { value: "Apply core concepts\n\nBuild maintainable software" },
+    fireEvent.change(screen.getByLabelText(/deadline/i), {
+      target: { value: "2026-05-31T23:59" },
     });
+
+    await waitFor(() => {
+      expect(loadManagedCilosAction).toHaveBeenCalledTimes(1);
+    });
+
+    expect(screen.getByText("Apply core concepts")).toBeInTheDocument();
+    expect(screen.getByText("Build maintainable software")).toBeInTheDocument();
+
     fireEvent.click(screen.getByLabelText("1st Year"));
     fireEvent.click(screen.getByLabelText("2nd Year"));
     fireEvent.click(screen.getByRole("button", { name: /publish evaluation/i }));
@@ -81,32 +120,41 @@ describe("PublishCourseBoundEvaluationForm", () => {
     const payload = publishAction.mock.calls[0][0];
     expect(payload).toMatchObject({
       academicYear: "2026-2027",
+      cilos: [
+        { description: "Apply core concepts" },
+        { description: "Build maintainable software" },
+      ],
       courseId: "course-1",
       programId: "program-1",
       semester: AcademicSemester.FIRST,
       term: AcademicTerm.FIRST_TERM,
       yearLevelIds: ["year-1", "year-2"],
-      cilos: [{ description: "Apply core concepts" }, { description: "Build maintainable software" }],
     });
     expect(payload.activationAt).toBeInstanceOf(Date);
     expect(payload.deadlineAt).toBeInstanceOf(Date);
-    expect(screen.getByText(/evaluation published successfully/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/evaluation published successfully/i),
+    ).toBeInTheDocument();
   });
 
-  it("shows validation error when required values are missing", async () => {
+  it("keeps publishing disabled until saved cilos are available", async () => {
     const publishAction = vi.fn();
 
     render(
       <PublishCourseBoundEvaluationForm
         courseContexts={courseContexts}
+        loadManagedCilosAction={vi.fn().mockResolvedValue({
+          ciloAcademicTerm: "2026-2027|FIRST|FIRST_TERM|program-1",
+          hasSavedCilos: false,
+          items: [],
+          success: true,
+        })}
         yearLevels={yearLevels}
         publishAction={publishAction}
       />,
     );
 
-    fireEvent.click(screen.getByRole("button", { name: /publish evaluation/i }));
-
-    expect(await screen.findByText(/please select a program context/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /publish evaluation/i })).toBeDisabled();
     expect(publishAction).not.toHaveBeenCalled();
   });
 });

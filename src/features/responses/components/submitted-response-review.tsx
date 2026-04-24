@@ -2,7 +2,8 @@ import type { SubmittedResponseSection } from "@/features/responses/services/get
 
 interface SubmittedResponseReviewProps {
   evaluationTitle: string;
-  courseTitle: string;
+  courseTitle: string | null;
+  programLabel: string;
   submittedAt: Date;
   sections: SubmittedResponseSection[];
 }
@@ -10,6 +11,7 @@ interface SubmittedResponseReviewProps {
 export function SubmittedResponseReview({
   evaluationTitle,
   courseTitle,
+  programLabel,
   submittedAt,
   sections,
 }: SubmittedResponseReviewProps) {
@@ -27,7 +29,9 @@ export function SubmittedResponseReview({
     <div className="space-y-8 animate-in fade-in duration-500">
       <div>
         <h1 className="text-2xl font-black font-heading">{evaluationTitle}</h1>
-        <p className="text-sm text-text-secondary">{courseTitle}</p>
+        <p className="text-sm text-text-secondary">
+          {courseTitle ? `${courseTitle} • ${programLabel}` : programLabel}
+        </p>
         <p className="text-xs text-text-muted mt-1">
           Submitted on {formatDate(submittedAt)}
         </p>

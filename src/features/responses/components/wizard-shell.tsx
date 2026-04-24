@@ -239,21 +239,29 @@ export function WizardShell({
                 >
                   <legend className="font-semibold mb-4 px-1">{item.prompt}</legend>
                   <div role="radiogroup" aria-label={item.prompt} className="flex flex-wrap gap-4 sm:gap-6">
-                    {item.scale.map(v => (
-                      <label key={v} className="flex flex-col items-center gap-1 cursor-pointer group">
-                        <input 
-                          type="radio" 
-                          name={`q-${item.itemKey}`} 
-                          value={v} 
-                          checked={currentValue === v}
-                          onChange={() => handleValueChange(item.itemKey, v)}
-                          className="sr-only peer" 
-                        />
-                        <div className="size-12 rounded-full border-2 border-border flex items-center justify-center text-lg font-bold peer-checked:bg-primary peer-checked:border-primary peer-checked:text-white hover:bg-primary-soft hover:border-primary transition-all active:scale-90">
-                          {v}
-                        </div>
-                      </label>
-                    ))}
+                    {item.scale.map((v, idx) => {
+                      const descriptorLabel = item.descriptorLabels?.[idx];
+                      return (
+                        <label key={v} className="flex flex-col items-center gap-1 cursor-pointer group">
+                          <input 
+                            type="radio" 
+                            name={`q-${item.itemKey}`} 
+                            value={v} 
+                            checked={currentValue === v}
+                            onChange={() => handleValueChange(item.itemKey, v)}
+                            className="sr-only peer" 
+                          />
+                          <div className="size-12 rounded-full border-2 border-border flex items-center justify-center text-lg font-bold peer-checked:bg-primary peer-checked:border-primary peer-checked:text-white hover:bg-primary-soft hover:border-primary transition-all active:scale-90">
+                            {v}
+                          </div>
+                          {descriptorLabel && (
+                            <span className="text-[10px] text-text-muted text-center max-w-[80px] leading-tight mt-0.5">
+                              {descriptorLabel}
+                            </span>
+                          )}
+                        </label>
+                      );
+                    })}
                   </div>
                 </fieldset>
               );
@@ -267,6 +275,30 @@ export function WizardShell({
                   className="p-4 bg-surface rounded-xl border border-border"
                 >
                   <legend className="font-semibold mb-4 px-1">{item.prompt}</legend>
+
+                  {/* Suggestion chips for guided open-ended questions */}
+                  {item.suggestedResponses && item.suggestedResponses.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {item.suggestedResponses.map((suggestion) => (
+                        <button
+                          key={suggestion}
+                          type="button"
+                          onClick={() => handleValueChange(item.promptKey, suggestion)}
+                          className={cn(
+                            "px-3 py-1.5 rounded-full text-xs font-medium border transition-all",
+                            "hover:bg-primary-soft hover:border-primary hover:text-primary",
+                            "active:scale-95",
+                            currentValue === suggestion
+                              ? "bg-primary/10 border-primary text-primary"
+                              : "bg-surface border-border text-text-secondary",
+                          )}
+                        >
+                          {suggestion}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+
                   <textarea
                     value={currentValue}
                     onChange={(e) => handleValueChange(item.promptKey, e.target.value)}

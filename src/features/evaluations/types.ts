@@ -17,6 +17,48 @@ export type FacultyCourseContext = {
   scopeLabel: string;
 };
 
+export type FacultyManagedCiloContext = {
+  academicYear: string;
+  courseId: string;
+  majorId: string | null;
+  programId: string;
+  semester: AcademicSemester;
+  term: AcademicTerm;
+};
+
+export type FacultyManagedCiloItem = {
+  description: string;
+  id: string;
+  order: number;
+};
+
+export type FacultyManagedCiloLoadResult =
+  | {
+      error: string;
+      success: false;
+    }
+  | {
+      ciloAcademicTerm: string;
+      hasSavedCilos: boolean;
+      items: FacultyManagedCiloItem[];
+      success: true;
+    };
+
+export type FacultyManagedCiloSaveInput = FacultyManagedCiloContext & {
+  items: Array<Pick<FacultyManagedCiloItem, "description">>;
+};
+
+export type FacultyManagedCiloSaveResult =
+  | {
+      error: string;
+      success: false;
+    }
+  | {
+      ciloAcademicTerm: string;
+      items: FacultyManagedCiloItem[];
+      success: true;
+    };
+
 export type CourseBoundPublicationCiloInput = {
   description: string;
 };

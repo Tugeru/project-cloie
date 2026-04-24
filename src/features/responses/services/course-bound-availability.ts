@@ -1,6 +1,6 @@
 import { DeploymentStatus } from "@prisma/client";
 
-type CourseBoundAvailabilityInput = {
+type DeploymentAvailabilityInput = {
   activation_at: Date | null;
   deadline_at: Date | null;
   status: DeploymentStatus;
@@ -8,8 +8,8 @@ type CourseBoundAvailabilityInput = {
 
 export const STUDENT_EVALUATION_UNAVAILABLE_ERROR = "This evaluation is not currently available.";
 
-export function isCourseBoundEvaluationAvailable(
-  evaluation: CourseBoundAvailabilityInput,
+export function isDeploymentAvailable(
+  evaluation: DeploymentAvailabilityInput,
   now = new Date(),
 ) {
   if (
@@ -28,4 +28,18 @@ export function isCourseBoundEvaluationAvailable(
   }
 
   return true;
+}
+
+export function isCourseBoundEvaluationAvailable(
+  evaluation: DeploymentAvailabilityInput,
+  now = new Date(),
+) {
+  return isDeploymentAvailable(evaluation, now);
+}
+
+export function isCentralDeploymentAvailable(
+  evaluation: DeploymentAvailabilityInput,
+  now = new Date(),
+) {
+  return isDeploymentAvailable(evaluation, now);
 }

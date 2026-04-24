@@ -1,6 +1,9 @@
 import { WizardShell } from "@/features/responses/components/wizard-shell";
-import { getStudentCourseBoundEvaluationSession } from "@/features/responses/services/get-student-course-bound-evaluation-session";
-import { saveStudentCourseBoundDraftAction, submitStudentCourseBoundResponseAction } from "@/lib/actions/student-evaluation-actions";
+import { getStudentAssignedEvaluationSession } from "@/features/responses/services/get-student-assigned-evaluation-session";
+import {
+  saveStudentEvaluationDraftAction,
+  submitStudentEvaluationResponseAction,
+} from "@/lib/actions/student-evaluation-actions";
 import { notFound, redirect } from "next/navigation";
 
 export default async function EvaluationPage({
@@ -9,7 +12,7 @@ export default async function EvaluationPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const session = await getStudentCourseBoundEvaluationSession(id);
+  const session = await getStudentAssignedEvaluationSession(id);
 
   if (!session) {
     notFound();
@@ -27,11 +30,11 @@ export default async function EvaluationPage({
     <WizardShell
       assignmentId={session.assignmentId}
       title={session.evaluationTitle}
-      courseTitle={session.courseTitle}
+      courseTitle={session.courseTitle ?? session.programLabel}
       sections={session.sections}
       initialAnswers={session.savedAnswers}
-      onSaveDraft={saveStudentCourseBoundDraftAction}
-      onSubmitResponse={submitStudentCourseBoundResponseAction}
+      onSaveDraft={saveStudentEvaluationDraftAction}
+      onSubmitResponse={submitStudentEvaluationResponseAction}
     />
   );
 }

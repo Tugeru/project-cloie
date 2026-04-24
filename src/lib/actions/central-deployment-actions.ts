@@ -67,6 +67,7 @@ export async function publishCentralDeploymentAction(
   }
 
   revalidatePath("/program-head/tools");
+  revalidatePath("/program-head/deployments");
 
   return {
     success: true,

@@ -38,6 +38,7 @@ export const STUDENT_MOBILE_NAV: NavItem[] = [
 
 export const FACULTY_NAV: NavItem[] = [
   { name: "Dashboard", href: "/faculty/dashboard", icon: LayoutDashboard },
+  { name: "Manage CILOs", href: "/faculty/cilos", icon: BookOpen },
   { name: "CILO Evaluations", href: "/faculty/cilo-evaluations", icon: ClipboardList },
   { name: "Publish New", href: "/faculty/cilo-evaluations/new", icon: FileText },
 ];

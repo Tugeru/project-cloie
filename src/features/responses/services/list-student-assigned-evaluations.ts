@@ -1,0 +1,330 @@
+import { prisma } from "@/lib/db/prisma";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import type {
+  StudentEvaluationListItem,
+  StudentEvaluationListStatus,
+  StudentEvaluationSection,
+  StudentEvaluationSession,
+} from "@/features/responses/types";
+import {
+  isCentralDeploymentAvailable,
+  isCourseBoundEvaluationAvailable,
+} from "./course-bound-availability";
+import { mapStructureSnapshotToSections } from "./get-student-course-bound-evaluation-session";
+
+const THREE_DAYS_IN_MS = 3 * 24 * 60 * 60 * 1000;
+
+type DeriveStudentEvaluationStatusInput = StudentEvaluationSession & {
+  deadlineAt: Date | null;
+  now?: Date;
+};
+
+type BuildStudentEvaluationListItemInput = {
+  assignmentId: string;
+  deploymentType: "CENTRAL" | "COURSE_BOUND";
+  evaluationId: string;
+  evaluationTitle: string;
+  courseTitle: string | null;
+  programLabel: string;
+  deadlineAt: Date | null;
+  href: string | null;
+  section: StudentEvaluationSection;
+  session: StudentEvaluationSession;
+  now?: Date;
+};
+
+function clampProgress(progress: number) {
+  return Math.min(100, Math.max(0, progress));
+}
+
+export function deriveStudentEvaluationStatus({
+  answeredItems,
+  deadlineAt,
+  now = new Date(),
+  responseId,
+  submittedAt,
+  totalItems,
+}: DeriveStudentEvaluationStatusInput): {
+  progress: number;
+  status: StudentEvaluationListStatus;
+} {
+  const progress =
+    totalItems > 0
+      ? clampProgress(Math.round((answeredItems / totalItems) * 100))
+      : 0;
+
+  if (submittedAt) {
+    return { progress, status: "SUBMITTED" };
+  }
+
+  if (!responseId) {
+    const timeUntilDeadline = deadlineAt ? deadlineAt.getTime() - now.getTime() : null;
+
+    if (
+      timeUntilDeadline !== null &&
+      timeUntilDeadline >= 0 &&
+      timeUntilDeadline <= THREE_DAYS_IN_MS
+    ) {
+      return { progress: 0, status: "DUE_SOON" };
+    }
+
+    return { progress: 0, status: "NOT_STARTED" };
+  }
+
+  return { progress, status: "IN_PROGRESS" };
+}
+
+export function buildStudentEvaluationListItem({
+  assignmentId,
+  courseTitle,
+  deadlineAt,
+  deploymentType,
+  evaluationId,
+  evaluationTitle,
+  href,
+  now,
+  programLabel,
+  section,
+  session,
+}: BuildStudentEvaluationListItemInput): StudentEvaluationListItem {
+  const { progress, status } = deriveStudentEvaluationStatus({
+    answeredItems: session.answeredItems,
+    deadlineAt,
+    now,
+    responseId: session.responseId,
+    submittedAt: session.submittedAt,
+    totalItems: session.totalItems,
+  });
+
+  return {
+    assignmentId,
+    courseTitle,
+    deadlineAt,
+    deploymentType,
+    evaluationId,
+    evaluationTitle,
+    href,
+    progress,
+    programLabel,
+    section,
+    session,
+    status,
+  };
+}
+
+function countSectionItems(sections: StudentEvaluationSection[]) {
+  return sections.reduce((total, section) => total + section.items.length, 0);
+}
+
+function buildFallbackSection(): StudentEvaluationSection {
+  return {
+    description: "",
+    id: "overview",
+    items: [],
+    name: "Overview",
+  };
+}
+
+function buildCentralProgramLabel(input: {
+  majorName: string | null;
+  programCode: string | null;
+  programName: string | null;
+  yearLevelName: string | null;
+}) {
+  return [
+    input.programCode ?? input.programName ?? "Program-wide",
+    input.majorName,
+    input.yearLevelName,
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join(" • ");
+}
+
+export async function listStudentAssignedEvaluations(): Promise<{
+  active: StudentEvaluationListItem[];
+  submitted: StudentEvaluationListItem[];
+}> {
+  const authSession = await resolveAuthSession();
+
+  if (!authSession) {
+    return { active: [], submitted: [] };
+  }
+
+  const assignments = await prisma.evaluationAssignment.findMany({
+    where: {
+      respondent_id: authSession.userId,
+      OR: [
+        { course_bound_id: { not: null } },
+        {
+          central_deployment: {
+            is: {
+              target_stakeholder: "GRADUATING_STUDENT",
+            },
+          },
+        },
+      ],
+    },
+    include: {
+      central_deployment: {
+        include: {
+          instrument: {
+            include: {
+              template: true,
+            },
+          },
+          major: true,
+          program: true,
+          year_level: true,
+        },
+      },
+      course_bound: {
+        include: {
+          course: true,
+          instrument: {
+            include: {
+              template: true,
+            },
+          },
+          major: true,
+          program: true,
+        },
+      },
+      response: {
+        include: {
+          qual_items: true,
+          quant_items: true,
+        },
+      },
+    },
+    orderBy: {
+      assigned_at: "desc",
+    },
+  });
+
+  const now = new Date();
+
+  const items = assignments.flatMap((assignment) => {
+    const response = assignment.response ?? null;
+
+    if (assignment.course_bound) {
+      const courseBound = assignment.course_bound;
+
+      if (
+        !response?.submitted_at &&
+        !isCourseBoundEvaluationAvailable(courseBound, now)
+      ) {
+        return [];
+      }
+
+      const sections = mapStructureSnapshotToSections(
+        courseBound.instrument.structure_snapshot,
+      );
+      const section = sections[0] ?? buildFallbackSection();
+      const session: StudentEvaluationSession = {
+        answeredItems: response
+          ? response.qual_items.length + response.quant_items.length
+          : 0,
+        responseId: response?.id ?? null,
+        submittedAt: response?.submitted_at ?? null,
+        totalItems: countSectionItems(sections),
+      };
+      const status = deriveStudentEvaluationStatus({
+        answeredItems: session.answeredItems,
+        deadlineAt: courseBound.deadline_at,
+        responseId: session.responseId,
+        submittedAt: session.submittedAt,
+        totalItems: session.totalItems,
+      }).status;
+      const href =
+        status === "SUBMITTED"
+          ? session.responseId
+            ? `/student/history/${session.responseId}`
+            : null
+          : `/student/evaluations/${assignment.id}`;
+
+      return [
+        buildStudentEvaluationListItem({
+          assignmentId: assignment.id,
+          courseTitle: courseBound.course.title,
+          deadlineAt: courseBound.deadline_at,
+          deploymentType: "COURSE_BOUND",
+          evaluationId: assignment.id,
+          evaluationTitle: courseBound.instrument.template.name,
+          href,
+          now,
+          programLabel: courseBound.major?.name ?? courseBound.program.name,
+          section,
+          session,
+        }),
+      ];
+    }
+
+    if (
+      assignment.central_deployment &&
+      assignment.central_deployment.target_stakeholder === "GRADUATING_STUDENT"
+    ) {
+      const deployment = assignment.central_deployment;
+
+      if (
+        !response?.submitted_at &&
+        !isCentralDeploymentAvailable(deployment, now)
+      ) {
+        return [];
+      }
+
+      const sections = mapStructureSnapshotToSections(
+        deployment.instrument.structure_snapshot,
+      );
+      const section = sections[0] ?? buildFallbackSection();
+      const session: StudentEvaluationSession = {
+        answeredItems: response
+          ? response.qual_items.length + response.quant_items.length
+          : 0,
+        responseId: response?.id ?? null,
+        submittedAt: response?.submitted_at ?? null,
+        totalItems: countSectionItems(sections),
+      };
+      const status = deriveStudentEvaluationStatus({
+        answeredItems: session.answeredItems,
+        deadlineAt: deployment.deadline_at,
+        responseId: session.responseId,
+        submittedAt: session.submittedAt,
+        totalItems: session.totalItems,
+      }).status;
+      const href =
+        status === "SUBMITTED"
+          ? session.responseId
+            ? `/student/history/${session.responseId}`
+            : null
+          : `/student/evaluations/${assignment.id}`;
+
+      return [
+        buildStudentEvaluationListItem({
+          assignmentId: assignment.id,
+          courseTitle: null,
+          deadlineAt: deployment.deadline_at,
+          deploymentType: "CENTRAL",
+          evaluationId: assignment.id,
+          evaluationTitle: deployment.instrument.template.name,
+          href,
+          now,
+          programLabel: buildCentralProgramLabel({
+            majorName: deployment.major?.name ?? null,
+            programCode: deployment.program?.code ?? null,
+            programName: deployment.program?.name ?? null,
+            yearLevelName: deployment.year_level?.name ?? null,
+          }),
+          section,
+          session,
+        }),
+      ];
+    }
+
+    return [];
+  });
+
+  return {
+    active: items.filter((item) => item.status !== "SUBMITTED"),
+    submitted: items.filter((item) => item.status === "SUBMITTED"),
+  };
+}

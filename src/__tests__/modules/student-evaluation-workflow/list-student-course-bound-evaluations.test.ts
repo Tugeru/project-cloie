@@ -130,6 +130,7 @@ describe("buildStudentEvaluationListItem", () => {
   it("shapes the workflow list item", () => {
     expect(
       buildStudentEvaluationListItem({
+        assignmentId: "assignment-1",
         courseTitle: "ITE 18 - Capstone 1",
         deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
         evaluationId: "evaluation-1",
@@ -151,8 +152,10 @@ describe("buildStudentEvaluationListItem", () => {
         },
       }),
     ).toEqual({
+      assignmentId: "assignment-1",
       courseTitle: "ITE 18 - Capstone 1",
       deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
+      deploymentType: "COURSE_BOUND",
       evaluationId: "evaluation-1",
       evaluationTitle: "Post-Term CILO Evaluation Tool",
       href: "/student/evaluations/evaluation-1",
@@ -247,6 +250,8 @@ describe("listStudentCourseBoundEvaluations", () => {
       active: [],
       submitted: [
         expect.objectContaining({
+          assignmentId: "assignment-submitted",
+          deploymentType: "COURSE_BOUND",
           evaluationId: "assignment-submitted",
           status: "SUBMITTED",
         }),
@@ -312,6 +317,8 @@ describe("listStudentCourseBoundEvaluations", () => {
     await expect(listStudentCourseBoundEvaluations()).resolves.toEqual({
       active: [
         expect.objectContaining({
+          assignmentId: "assignment-1",
+          deploymentType: "COURSE_BOUND",
           evaluationId: "assignment-1",
           href: "/student/evaluations/assignment-1",
           status: "IN_PROGRESS",
@@ -319,6 +326,8 @@ describe("listStudentCourseBoundEvaluations", () => {
       ],
       submitted: [
         expect.objectContaining({
+          assignmentId: "assignment-2",
+          deploymentType: "COURSE_BOUND",
           evaluationId: "assignment-2",
           href: "/student/history/response-2",
           status: "SUBMITTED",

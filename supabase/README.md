@@ -15,6 +15,13 @@ This repo uses a single hosted Supabase project on the free tier.
 
 ## Prisma-owned schema changes
 
+Prisma is the canonical schema source for the app. `src/types/supabase-database.ts` is generated output from
+the linked Supabase project and should never be hand-maintained. When schema changes land, update Prisma, add
+the matching Supabase migration, push it, then regenerate the Supabase types so all three layers stay aligned.
+
+Some older SQL migrations in this repo still show the pre-alignment section/course-type/PLO model because they
+record historical states. Treat the newest cleanup migration plus `prisma/schema.prisma` as the current truth.
+
 1. Edit `prisma/schema.prisma`.
 2. Run `pnpm supabase:migration:diff -- your_change_name`.
 3. Review the SQL created in `supabase/migrations/`.

@@ -3,6 +3,7 @@ import { resolveAuthSession } from "@/features/auth/services/resolve-auth-sessio
 import { buildStudentEvaluationAnswerKey } from "@/features/responses/answer-keys";
 import type { StudentEvaluationSection, StudentEvaluationSession } from "@/features/responses/types";
 import { isCourseBoundEvaluationAvailable } from "./course-bound-availability";
+import { mapTemplateStructureToSections } from "./map-template-structure";
 
 type QuantitativeSavedAnswerItem = {
   item_key: string;
@@ -16,75 +17,20 @@ type QualitativeSavedAnswerItem = {
   text_content: string;
 };
 
-type StructureSnapshotSection = {
-  key: string;
-  title: string;
-  description?: string;
-  qualitative_prompts?: Array<{
-    key: string;
-    prompt: string;
-  }>;
-  quantitative_items?: Array<{
-    key: string;
-    prompt: string;
-    scale?: number[];
-  }>;
-  items?: Array<{
-    kind: "quantitative" | "qualitative";
-    key: string;
-    prompt: string;
-    scale?: number[];
-  }>;
-};
-
 type MapSavedAnswerItemsInput = {
   qualitativeItems: QualitativeSavedAnswerItem[];
   quantitativeItems: QuantitativeSavedAnswerItem[];
 };
 
-function isStructureSnapshotSection(value: unknown): value is StructureSnapshotSection {
-  if (!value || typeof value !== "object" || Array.isArray(value)) {
-    return false;
-  }
-
-  const section = value as Record<string, unknown>;
-
-  return typeof section.key === "string" && typeof section.title === "string";
-}
-
+/**
+ * Delegates to `mapTemplateStructureToSections()` for backward compatibility.
+ * All format detection (legacy, intermediate, new Phase 3) is handled by the
+ * shared mapper in `map-template-structure.ts`.
+ */
 export function mapStructureSnapshotToSections(
   structureSnapshot: unknown,
 ): StudentEvaluationSection[] {
-  if (!Array.isArray(structureSnapshot)) {
-    return [];
-  }
-
-  return structureSnapshot
-    .filter(isStructureSnapshotSection)
-    .map(({ key, title, description, items, qualitative_prompts, quantitative_items }) => ({
-      id: key,
-      name: title,
-      description: description ?? "",
-      items:
-        items?.map((item) => {
-          if (item.kind === "quantitative") {
-            return { kind: "quantitative" as const, itemKey: item.key, prompt: item.prompt, scale: item.scale ?? [] };
-          }
-          return { kind: "qualitative" as const, promptKey: item.key, prompt: item.prompt };
-        }) ?? [
-          ...(quantitative_items ?? []).map((item) => ({
-            kind: "quantitative" as const,
-            itemKey: item.key,
-            prompt: item.prompt,
-            scale: item.scale ?? [],
-          })),
-          ...(qualitative_prompts ?? []).map((item) => ({
-            kind: "qualitative" as const,
-            prompt: item.prompt,
-            promptKey: item.key,
-          })),
-        ],
-    }));
+  return mapTemplateStructureToSections(structureSnapshot);
 }
 
 export function mapSavedAnswerItems({

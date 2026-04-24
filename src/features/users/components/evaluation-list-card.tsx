@@ -1,57 +1,82 @@
+import Link from "next/link";
+import type { StudentEvaluationListItem } from "@/features/responses/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import Link from "next/link";
-import type { StudentEvaluationListItem } from "@/features/responses/types";
 
 type EvaluationListCardProps = StudentEvaluationListItem;
 
-export function EvaluationListCard({ 
-  evaluationTitle, 
-  courseTitle, 
-  programLabel, 
-  deadlineAt, 
+export function EvaluationListCard({
+  courseTitle,
+  deadlineAt,
+  deploymentType,
+  evaluationTitle,
   href,
-  progress, 
-  status 
+  programLabel,
+  progress,
+  status,
 }: EvaluationListCardProps) {
   const isResuming = status === "IN_PROGRESS";
   const isSubmitted = status === "SUBMITTED";
-  const deadline = deadlineAt ? deadlineAt.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "No deadline";
-  
+  const deadline = deadlineAt
+    ? deadlineAt.toLocaleDateString("en-US", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      })
+    : "No deadline";
+
   return (
-    <div className="bg-surface p-5 rounded-xl border border-border shadow-sm hover:border-primary/30 transition-colors group">
-      <div className="flex flex-col md:flex-row justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-2">
-            <Badge variant="secondary" className={`text-[10px] uppercase ${status === "DUE_SOON" ? "bg-amber-100 text-amber-800 border-amber-200" : ""}`}>
+    <div className="group rounded-xl border border-border bg-surface p-5 shadow-sm transition-colors hover:border-primary/30">
+      <div className="flex flex-col justify-between gap-4 md:flex-row">
+        <div className="min-w-0 flex-1">
+          <div className="mb-2 flex items-center gap-2">
+            <Badge
+              variant="secondary"
+              className={`text-[10px] uppercase ${
+                status === "DUE_SOON"
+                  ? "border-amber-200 bg-amber-100 text-amber-800"
+                  : ""
+              }`}
+            >
               {status === "DUE_SOON" ? "Closing Soon" : `Deadline: ${deadline}`}
             </Badge>
           </div>
-          <h4 className="text-lg font-bold group-hover:text-primary transition-colors mb-1 line-clamp-2" title={evaluationTitle}>
+
+          <h4
+            className="mb-1 line-clamp-2 text-lg font-bold transition-colors group-hover:text-primary"
+            title={evaluationTitle}
+          >
             {evaluationTitle}
           </h4>
-          <p className="text-sm text-text-secondary font-medium truncate">
-            {courseTitle} • {programLabel}
+
+          <p className="truncate text-sm font-medium text-text-secondary">
+            {courseTitle ? `${courseTitle} • ${programLabel}` : programLabel}
+          </p>
+          <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-text-muted">
+            {deploymentType === "CENTRAL"
+              ? "Central Deployment"
+              : "Course-Bound Evaluation"}
           </p>
         </div>
-        <div className="flex flex-col md:items-end justify-center gap-2 shrink-0">
+
+        <div className="flex shrink-0 flex-col justify-center gap-2 md:items-end">
           {isResuming && (
-            <div className="w-full md:w-48 space-y-1.5">
-              <div className="flex justify-between items-center text-xs font-bold text-text-muted">
+            <div className="w-full space-y-1.5 md:w-48">
+              <div className="flex items-center justify-between text-xs font-bold text-text-muted">
                 <span className="text-secondary">{progress}% Complete</span>
               </div>
-              <Progress 
-                value={progress} 
-                className="h-1.5" 
+              <Progress
+                value={progress}
+                className="h-1.5"
                 aria-label={`Evaluation progress: ${progress}%`}
               />
             </div>
           )}
-          <Button 
+          <Button
             disabled={!href}
             render={href ? <Link href={href} /> : undefined}
-            className="w-full md:w-auto mt-2 font-bold"
+            className="mt-2 w-full font-bold md:w-auto"
           >
             {isSubmitted ? "View Answers" : isResuming ? "Resume" : "Start Evaluation"}
           </Button>

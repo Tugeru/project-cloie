@@ -99,10 +99,26 @@ export function buildSubmittedResponseSections({
 export type SubmittedResponseReview = {
   responseId: string;
   evaluationTitle: string;
-  courseTitle: string;
+  courseTitle: string | null;
+  programLabel: string;
   submittedAt: Date;
   sections: SubmittedResponseSection[];
 };
+
+function buildCentralProgramLabel(input: {
+  majorName: string | null;
+  programCode: string | null;
+  programName: string | null;
+  yearLevelName: string | null;
+}) {
+  return [
+    input.programCode ?? input.programName ?? "Program-wide",
+    input.majorName,
+    input.yearLevelName,
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join(" • ");
+}
 
 export async function getStudentSubmittedResponseReview(
   responseId: string,
@@ -122,6 +138,18 @@ export async function getStudentSubmittedResponseReview(
     include: {
       assignment: {
         include: {
+          central_deployment: {
+            include: {
+              instrument: {
+                include: {
+                  template: true,
+                },
+              },
+              major: true,
+              program: true,
+              year_level: true,
+            },
+          },
           course_bound: {
             include: {
               course: true,
@@ -130,6 +158,8 @@ export async function getStudentSubmittedResponseReview(
                   template: true,
                 },
               },
+              major: true,
+              program: true,
             },
           },
         },
@@ -139,7 +169,7 @@ export async function getStudentSubmittedResponseReview(
     },
   });
 
-  if (!response?.assignment.course_bound || !response.submitted_at) {
+  if (!response?.submitted_at) {
     return null;
   }
 
@@ -153,14 +183,45 @@ export async function getStudentSubmittedResponseReview(
     answers[buildStudentEvaluationAnswerKey(item.section_key, "qualitative", item.prompt_key)] = item.text_content;
   }
 
-  return {
-    courseTitle: response.assignment.course_bound.course.title,
-    evaluationTitle: response.assignment.course_bound.instrument.template.name,
-    responseId: response.id,
-    sections: buildSubmittedResponseSections({
-      answers,
-      structureSnapshot: response.assignment.course_bound.instrument.structure_snapshot,
-    }),
-    submittedAt: response.submitted_at,
-  };
+  if (response.assignment.course_bound) {
+    return {
+      courseTitle: response.assignment.course_bound.course.title,
+      evaluationTitle: response.assignment.course_bound.instrument.template.name,
+      programLabel:
+        response.assignment.course_bound.major?.name ??
+        response.assignment.course_bound.program?.name ??
+        "Program context unavailable",
+      responseId: response.id,
+      sections: buildSubmittedResponseSections({
+        answers,
+        structureSnapshot:
+          response.assignment.course_bound.instrument.structure_snapshot,
+      }),
+      submittedAt: response.submitted_at,
+    };
+  }
+
+  if (response.assignment.central_deployment) {
+    return {
+      courseTitle: null,
+      evaluationTitle:
+        response.assignment.central_deployment.instrument.template.name,
+      programLabel: buildCentralProgramLabel({
+        majorName: response.assignment.central_deployment.major?.name ?? null,
+        programCode: response.assignment.central_deployment.program?.code ?? null,
+        programName: response.assignment.central_deployment.program?.name ?? null,
+        yearLevelName:
+          response.assignment.central_deployment.year_level?.name ?? null,
+      }),
+      responseId: response.id,
+      sections: buildSubmittedResponseSections({
+        answers,
+        structureSnapshot:
+          response.assignment.central_deployment.instrument.structure_snapshot,
+      }),
+      submittedAt: response.submitted_at,
+    };
+  }
+
+  return null;
 }

@@ -1,0 +1,220 @@
+import { DeploymentType, ResponseStatus } from "@prisma/client";
+import { prisma } from "@/lib/db/prisma";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { parseStudentEvaluationAnswerKey } from "@/features/responses/answer-keys";
+import {
+  isCentralDeploymentAvailable,
+  isCourseBoundEvaluationAvailable,
+  STUDENT_EVALUATION_UNAVAILABLE_ERROR,
+} from "./course-bound-availability";
+import { assertSubmissionIsAllowed } from "./submit-student-course-bound-response";
+
+type SubmissionAnswers = Record<string, unknown>;
+
+export type SubmitStudentEvaluationResponseInput = {
+  answers: SubmissionAnswers;
+  assignmentId: string;
+};
+
+export type SubmitStudentEvaluationResponseResult =
+  | {
+      error: string;
+      success: false;
+    }
+  | {
+      responseId: string;
+      status: "SUBMITTED";
+      success: true;
+    };
+
+export async function submitStudentEvaluationResponse({
+  answers,
+  assignmentId,
+}: SubmitStudentEvaluationResponseInput): Promise<SubmitStudentEvaluationResponseResult> {
+  const authSession = await resolveAuthSession();
+
+  if (!authSession) {
+    return {
+      error: "Authentication is required.",
+      success: false,
+    };
+  }
+
+  const assignment = await prisma.evaluationAssignment.findFirst({
+    where: {
+      id: assignmentId,
+      respondent_id: authSession.userId,
+      OR: [
+        { course_bound_id: { not: null } },
+        {
+          central_deployment: {
+            is: {
+              target_stakeholder: "GRADUATING_STUDENT",
+            },
+          },
+        },
+      ],
+    },
+    include: {
+      central_deployment: {
+        include: {
+          instrument: true,
+        },
+      },
+      course_bound: {
+        include: {
+          instrument: true,
+        },
+      },
+    },
+  });
+
+  if (!assignment) {
+    return {
+      error: "Evaluation assignment not found.",
+      success: false,
+    };
+  }
+
+  const deployment =
+    assignment.course_bound ??
+    (assignment.central_deployment?.target_stakeholder === "GRADUATING_STUDENT"
+      ? assignment.central_deployment
+      : null);
+
+  if (!deployment) {
+    return {
+      error: "Evaluation assignment not found.",
+      success: false,
+    };
+  }
+
+  const isAvailable = assignment.course_bound
+    ? isCourseBoundEvaluationAvailable(assignment.course_bound)
+    : isCentralDeploymentAvailable(deployment);
+
+  if (!isAvailable) {
+    return {
+      error: STUDENT_EVALUATION_UNAVAILABLE_ERROR,
+      success: false,
+    };
+  }
+
+  assertSubmissionIsAllowed({
+    answers,
+    structureSnapshot: deployment.instrument.structure_snapshot,
+  });
+
+  let response = await prisma.response.findUnique({
+    where: {
+      assignment_id: assignment.id,
+    },
+  });
+
+  if (response?.status === ResponseStatus.SUBMITTED) {
+    return {
+      error: "This evaluation has already been submitted.",
+      success: false,
+    };
+  }
+
+  if (!response) {
+    response = await prisma.response.create({
+      data: {
+        assignment_id: assignment.id,
+        deployment_id:
+          assignment.course_bound_id ?? assignment.central_deployment_id ?? "",
+        deployment_type: assignment.course_bound
+          ? DeploymentType.COURSE_BOUND
+          : DeploymentType.CENTRAL,
+        respondent_id: authSession.userId,
+        status: ResponseStatus.IN_PROGRESS,
+      },
+    });
+  }
+
+  const quantitativeItems = Object.entries(answers)
+    .map(([answerKey, value]) => {
+      const parsed = parseStudentEvaluationAnswerKey(answerKey);
+
+      if (!parsed || parsed.kind !== "quantitative" || typeof value !== "number") {
+        return null;
+      }
+
+      return {
+        item_key: parsed.itemKey,
+        rating_value: value,
+        response_id: response.id,
+        section_key: parsed.sectionKey,
+      };
+    })
+    .filter(
+      (
+        item,
+      ): item is {
+        item_key: string;
+        rating_value: number;
+        response_id: string;
+        section_key: string;
+      } => item !== null,
+    );
+
+  const qualitativeItems = Object.entries(answers)
+    .map(([answerKey, value]) => {
+      const parsed = parseStudentEvaluationAnswerKey(answerKey);
+
+      if (!parsed || parsed.kind !== "qualitative" || typeof value !== "string") {
+        return null;
+      }
+
+      return {
+        prompt_key: parsed.itemKey,
+        response_id: response.id,
+        section_key: parsed.sectionKey,
+        text_content: value,
+      };
+    })
+    .filter(
+      (
+        item,
+      ): item is {
+        prompt_key: string;
+        response_id: string;
+        section_key: string;
+        text_content: string;
+      } => item !== null,
+    );
+
+  await prisma.quantitativeResponseItem.deleteMany({
+    where: { response_id: response.id },
+  });
+  await prisma.qualitativeResponseItem.deleteMany({
+    where: { response_id: response.id },
+  });
+
+  if (quantitativeItems.length > 0) {
+    await prisma.quantitativeResponseItem.createMany({ data: quantitativeItems });
+  }
+
+  if (qualitativeItems.length > 0) {
+    await prisma.qualitativeResponseItem.createMany({ data: qualitativeItems });
+  }
+
+  const submittedAt = new Date();
+
+  await prisma.response.update({
+    data: {
+      status: ResponseStatus.SUBMITTED,
+      submitted_at: submittedAt,
+    },
+    where: {
+      id: response.id,
+    },
+  });
+
+  return {
+    responseId: response.id,
+    status: ResponseStatus.SUBMITTED,
+    success: true,
+  };
+}

@@ -17,6 +17,7 @@ type DeriveStudentEvaluationStatusInput = StudentEvaluationSession & {
 };
 
 type BuildStudentEvaluationListItemInput = {
+  assignmentId: string;
   evaluationId: string;
   evaluationTitle: string;
   courseTitle: string;
@@ -63,6 +64,7 @@ export function deriveStudentEvaluationStatus({
 }
 
 export function buildStudentEvaluationListItem({
+  assignmentId,
   courseTitle,
   deadlineAt,
   evaluationId,
@@ -83,8 +85,10 @@ export function buildStudentEvaluationListItem({
   });
 
   return {
+    assignmentId,
     courseTitle,
     deadlineAt,
+    deploymentType: "COURSE_BOUND",
     evaluationId,
     evaluationTitle,
     href,
@@ -186,6 +190,7 @@ export async function listStudentCourseBoundEvaluations(): Promise<{
         : `/student/evaluations/${assignment.id}`;
 
       return buildStudentEvaluationListItem({
+        assignmentId: assignment.id,
         courseTitle: courseBound.course.title,
         deadlineAt: courseBound.deadline_at,
         evaluationId: assignment.id,

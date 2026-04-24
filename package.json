@@ -15,16 +15,16 @@
     "db:push": "prisma db push",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
-    "supabase:init": "supabase init",
+    "supabase:init": "tsx scripts/run-supabase-command.ts init",
     "supabase:login": "tsx scripts/supabase-login.ts",
     "supabase:link": "tsx scripts/supabase-link.ts",
     "supabase:migration:baseline": "tsx scripts/create-supabase-migration.ts baseline",
     "supabase:migration:diff": "tsx scripts/create-supabase-migration.ts diff",
-    "supabase:migration:list": "supabase migration list --linked",
+    "supabase:migration:list": "tsx scripts/run-supabase-command.ts migration list --linked",
     "supabase:migration:repair-latest": "tsx scripts/repair-latest-supabase-migration.ts applied",
     "supabase:types": "tsx scripts/generate-supabase-types.ts",
-    "supabase:push:dry-run": "supabase db push --linked --dry-run",
-    "supabase:push": "supabase db push --linked"
+    "supabase:push:dry-run": "tsx scripts/run-supabase-command.ts db push --linked --dry-run",
+    "supabase:push": "tsx scripts/run-supabase-command.ts db push --linked"
   },
   "dependencies": {
     "@base-ui/react": "^1.4.0",

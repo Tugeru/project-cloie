@@ -1,59 +1,44 @@
-import { TargetStakeholder } from "@prisma/client";
-import { notFound } from "next/navigation";
-import { InteractivePlaceholderForm } from "@/components/ui/interactive-placeholder-form";
-import { prisma } from "@/lib/db/prisma";
+import { notFound, redirect } from "next/navigation";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { getCentralDeploymentEvaluationSession } from "@/features/responses/services/get-central-deployment-evaluation-session";
+import { WizardShell } from "@/features/responses/components/wizard-shell";
+import {
+  saveCentralDeploymentDraftAction,
+  submitCentralDeploymentResponseAction,
+} from "@/lib/actions/stakeholder-evaluation-actions";
 
 export default async function IndustryPartnerEvaluationPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  const deployment = await prisma.centralDeployment.findFirst({
-    where: {
-      id,
-      target_stakeholder: TargetStakeholder.INDUSTRY_PARTNER,
-    },
-    include: {
-      instrument: { include: { template: true } },
-      program: true,
-    },
-  });
+  const session = await resolveAuthSession();
 
-  if (!deployment) {
+  if (!session) {
+    redirect("/login");
+  }
+
+  const { id: deploymentId } = await params;
+  const evalSession =
+    await getCentralDeploymentEvaluationSession(deploymentId);
+
+  if (!evalSession) {
     notFound();
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold">{deployment.instrument.template.name}</h1>
-        <p className="text-sm text-text-secondary">
-          {deployment.program?.name ?? "College-wide"} - Scaffolded authenticated industry
-          response flow
-        </p>
-      </div>
+  // If already submitted, redirect to the submitted review page
+  if (evalSession.session.submittedAt) {
+    redirect(`/industry-partner/evaluations/${deploymentId}/submitted`);
+  }
 
-      <InteractivePlaceholderForm
-        title="Industry Response Stub"
-        description="This page prepares the authenticated industry partner portal surface for later live submissions."
-        submitLabel="Save Industry Draft"
-        fields={[
-          { id: "company", kind: "input", label: "Company", placeholder: "ACD Partner Company" },
-          {
-            id: "readiness",
-            kind: "textarea",
-            label: "Readiness Assessment",
-            placeholder: "Describe knowledge, skills, and professionalism observations...",
-          },
-          {
-            id: "recommendation",
-            kind: "textarea",
-            label: "Recommendation",
-            placeholder: "Would you recommend this graduate or intern? Why?",
-          },
-        ]}
-      />
-    </div>
+  return (
+    <WizardShell
+      assignmentId={evalSession.assignmentId}
+      title={evalSession.evaluationTitle}
+      sections={evalSession.sections}
+      initialAnswers={evalSession.savedAnswers}
+      onSaveDraft={saveCentralDeploymentDraftAction}
+      onSubmitResponse={submitCentralDeploymentResponseAction}
+    />
   );
 }

@@ -1,59 +1,44 @@
-import { TargetStakeholder } from "@prisma/client";
-import { notFound } from "next/navigation";
-import { InteractivePlaceholderForm } from "@/components/ui/interactive-placeholder-form";
-import { prisma } from "@/lib/db/prisma";
+import { notFound, redirect } from "next/navigation";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { getCentralDeploymentEvaluationSession } from "@/features/responses/services/get-central-deployment-evaluation-session";
+import { WizardShell } from "@/features/responses/components/wizard-shell";
+import {
+  saveCentralDeploymentDraftAction,
+  submitCentralDeploymentResponseAction,
+} from "@/lib/actions/stakeholder-evaluation-actions";
 
 export default async function AlumniEvaluationPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = await params;
-  const deployment = await prisma.centralDeployment.findFirst({
-    where: {
-      id,
-      target_stakeholder: TargetStakeholder.ALUMNI,
-    },
-    include: {
-      instrument: { include: { template: true } },
-      program: true,
-    },
-  });
+  const session = await resolveAuthSession();
 
-  if (!deployment) {
+  if (!session) {
+    redirect("/login");
+  }
+
+  const { id: deploymentId } = await params;
+  const evalSession =
+    await getCentralDeploymentEvaluationSession(deploymentId);
+
+  if (!evalSession) {
     notFound();
   }
 
-  return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold">{deployment.instrument.template.name}</h1>
-        <p className="text-sm text-text-secondary">
-          {deployment.program?.name ?? "College-wide"} - Scaffolded authenticated alumni
-          response flow
-        </p>
-      </div>
+  // If already submitted, redirect to the submitted review page
+  if (evalSession.session.submittedAt) {
+    redirect(`/alumni/evaluations/${deploymentId}/submitted`);
+  }
 
-      <InteractivePlaceholderForm
-        title="Alumni Response Stub"
-        description="This page prepares the authenticated alumni portal surface for future live response submission."
-        submitLabel="Save Alumni Draft"
-        fields={[
-          { id: "employment", kind: "input", label: "Current Role", placeholder: "Systems Analyst" },
-          {
-            id: "readiness",
-            kind: "textarea",
-            label: "Readiness Feedback",
-            placeholder: "Describe how the program supported workplace readiness...",
-          },
-          {
-            id: "recommendation",
-            kind: "textarea",
-            label: "Recommendation",
-            placeholder: "What should the program improve?",
-          },
-        ]}
-      />
-    </div>
+  return (
+    <WizardShell
+      assignmentId={evalSession.assignmentId}
+      title={evalSession.evaluationTitle}
+      sections={evalSession.sections}
+      initialAnswers={evalSession.savedAnswers}
+      onSaveDraft={saveCentralDeploymentDraftAction}
+      onSubmitResponse={submitCentralDeploymentResponseAction}
+    />
   );
 }

@@ -1,18 +1,19 @@
 import Link from "next/link";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
-import { listStudentCourseBoundEvaluations } from "@/features/responses/services/list-student-course-bound-evaluations";
-import { HeroCard } from "@/features/users/components/hero-card";
+import { listStudentAssignedEvaluations } from "@/features/responses/services/list-student-assigned-evaluations";
 import { EvaluationListCard } from "@/features/users/components/evaluation-list-card";
+import { HeroCard } from "@/features/users/components/hero-card";
 import { StatCards } from "@/features/users/components/stat-cards";
 import { prisma } from "@/lib/db/prisma";
 
 export default async function StudentDashboardPage() {
   const session = await resolveAuthSession();
-  const { active, submitted } = await listStudentCourseBoundEvaluations();
+  const { active, submitted } = await listStudentAssignedEvaluations();
   const inProgressCount = active.filter((item) => item.status === "IN_PROGRESS").length;
-  const resumeItem = active.find((item) => item.status === "IN_PROGRESS") ?? active[0] ?? null;
+  const resumeItem =
+    active.find((item) => item.status === "IN_PROGRESS") ?? active[0] ?? null;
 
   const profile = session
     ? await prisma.studentAcademicProfile.findUnique({
@@ -20,8 +21,8 @@ export default async function StudentDashboardPage() {
         include: {
           major: true,
           program: true,
-          year_level: true,
           user: true,
+          year_level: true,
         },
       })
     : null;
@@ -53,8 +54,8 @@ export default async function StudentDashboardPage() {
           <CardContent className="p-4">
             <p className="font-semibold text-primary">Graduating Eligibility Active</p>
             <p className="text-sm text-text-secondary">
-              Graduating-student tools are surfaced in your shared student portal based
-              on eligibility and assignment.
+              Graduating-student tools appear here only when a real program-level
+              deployment assigns them to your account.
             </p>
           </CardContent>
         </Card>
@@ -76,9 +77,13 @@ export default async function StudentDashboardPage() {
                   {resumeItem.status === "IN_PROGRESS" ? "In Progress" : "Pending"}
                 </p>
                 <div>
-                  <h4 className="text-xl font-bold">{resumeItem.courseTitle}</h4>
+                  <h4 className="text-xl font-bold">
+                    {resumeItem.courseTitle ?? resumeItem.evaluationTitle}
+                  </h4>
                   <p className="text-sm text-text-secondary">
-                    {resumeItem.evaluationTitle} • {resumeItem.programLabel}
+                    {resumeItem.courseTitle
+                      ? `${resumeItem.evaluationTitle} • ${resumeItem.programLabel}`
+                      : resumeItem.programLabel}
                   </p>
                 </div>
                 {resumeItem.status === "IN_PROGRESS" && (
@@ -89,7 +94,10 @@ export default async function StudentDashboardPage() {
               </div>
 
               {resumeItem.href && (
-                <Button render={<Link href={resumeItem.href} />} className="font-semibold">
+                <Button
+                  render={<Link href={resumeItem.href} />}
+                  className="font-semibold"
+                >
                   {resumeItem.status === "IN_PROGRESS" ? "Resume" : "Start Evaluation"}
                 </Button>
               )}
@@ -106,14 +114,17 @@ export default async function StudentDashboardPage() {
               Prioritize forms that are active and closing soon.
             </p>
           </div>
-          <Link href="/student/evaluations" className="text-sm font-bold text-primary hover:underline">
+          <Link
+            href="/student/evaluations"
+            className="text-sm font-bold text-primary hover:underline"
+          >
             View All
           </Link>
         </div>
 
         <div className="grid gap-4">
           {active.slice(0, 3).map((evalItem) => (
-            <EvaluationListCard key={evalItem.evaluationId} {...evalItem} />
+            <EvaluationListCard key={evalItem.assignmentId} {...evalItem} />
           ))}
           {active.length === 0 && (
             <div className="rounded-xl border-2 border-dashed border-border py-12 text-center">
