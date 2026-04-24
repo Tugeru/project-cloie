@@ -10,6 +10,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { MobileSidebarDrawer } from "./mobile-sidebar-drawer";
+import type { Role } from "@/lib/constants/roles";
+import type { MobileNavMode } from "@/lib/constants/navigation";
 
 interface TopbarProps {
   user?: {
@@ -17,9 +20,11 @@ interface TopbarProps {
     email?: string | null;
     image?: string | null;
   };
+  mobileNavMode?: MobileNavMode;
+  roles?: Role[];
 }
 
-export function Topbar({ user }: TopbarProps) {
+export function Topbar({ user, mobileNavMode = "bottom-nav", roles }: TopbarProps) {
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -29,19 +34,28 @@ export function Topbar({ user }: TopbarProps) {
   };
 
   const initials = user?.name?.[0]?.toUpperCase() || "U";
+  const showHamburger = mobileNavMode === "hamburger";
 
   return (
     <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-border bg-surface px-4 sm:px-6">
-      {/* Mobile left-side branding (hidden on desktop since sidebar has it) */}
+      {/* Left side: branding (mobile) or hamburger trigger */}
       <div className="flex items-center gap-3 lg:hidden">
-        <Image
-          src="/logos/cloie-logo.png"
-          alt="CLOIE Logo"
-          width={28}
-          height={28}
-          className="rounded"
-        />
-        <span className="text-title-md font-bold tracking-tight text-primary">CLOIE</span>
+        {showHamburger ? (
+          <MobileSidebarDrawer roles={roles} user={user} />
+        ) : (
+          <>
+            <Image
+              src="/logos/cloie-logo.png"
+              alt="CLOIE Logo"
+              width={28}
+              height={28}
+              className="rounded"
+            />
+            <span className="text-title-md font-bold tracking-tight text-primary">
+              CLOIE
+            </span>
+          </>
+        )}
       </div>
 
       <div className="hidden lg:flex" /> {/* Empty spacer for desktop */}
@@ -58,9 +72,7 @@ export function Topbar({ user }: TopbarProps) {
 
         {/* Profile avatar + dropdown */}
         <DropdownMenu>
-          <DropdownMenuTrigger
-            className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-surface-muted focus:outline-none"
-          >
+          <DropdownMenuTrigger className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-surface-muted focus:outline-none">
             <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-white">
               <span className="text-caption font-semibold">{initials}</span>
             </div>

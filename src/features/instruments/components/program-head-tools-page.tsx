@@ -95,7 +95,7 @@ export function ProgramHeadToolsPage({
       </div>
 
       <Tabs defaultValue="templates" className="w-full">
-        <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <TabsList variant="line" className="h-auto gap-4">
             <TabsTrigger value="templates" className="px-1 py-2.5 text-sm">
               Templates
@@ -105,16 +105,13 @@ export function ProgramHeadToolsPage({
             </TabsTrigger>
           </TabsList>
 
-          {/* Contextual action button per tab — rendered via CSS visibility */}
-          <div className="flex gap-2">
-            <Button
-              render={<Link href="/program-head/tools/new" />}
-              className="bg-gradient-to-br from-primary to-primary-container font-label font-semibold text-on-primary"
-            >
-              <Plus className="size-4" data-icon="inline-start" />
-              Create New Template
-            </Button>
-          </div>
+          <Button
+            render={<Link href="/program-head/tools/new" />}
+            className="shrink-0 bg-primary font-label font-semibold text-on-primary hover:bg-primary-hover"
+          >
+            <Plus className="size-4" data-icon="inline-start" />
+            Create New Template
+          </Button>
         </div>
 
         {/* Templates Tab */}
@@ -275,7 +272,7 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
         </Button>
         <Button
           size="sm"
-          className="flex-1 bg-gradient-to-br from-primary to-primary-container text-on-primary"
+          className="flex-1 bg-primary text-on-primary hover:bg-primary-hover"
           disabled={isPending}
           render={
             <Link

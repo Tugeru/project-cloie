@@ -48,7 +48,6 @@ export const ADMIN_NAV: NavItem[] = [
   { name: "Users", href: "/admin/users", icon: Users2 },
   { name: "Programs", href: "/admin/programs", icon: Building2 },
   { name: "Courses", href: "/admin/courses", icon: BookOpen },
-  { name: "Year Levels", href: "/admin/year-levels", icon: GraduationCap },
   { name: "Outcomes", href: "/admin/outcomes", icon: Layers3 },
   { name: "Instruments", href: "/admin/instruments", icon: ClipboardList },
 ];
@@ -148,4 +147,24 @@ export function getMobileNavByRoles(roles: Role[]): NavItem[] {
 
 export function getSecondaryNavByRoles(_roles: Role[]): NavItem[] {
   return [];
+}
+
+export type MobileNavMode = "bottom-nav" | "hamburger";
+
+/**
+ * Admin, Dean, Program Head, and Faculty use a hamburger sidebar on mobile.
+ * Student, Alumni, and Industry Partner use a bottom navigation bar.
+ */
+export function getMobileNavMode(roles: Role[]): MobileNavMode {
+  const highestRole = resolveHighestNavRole(roles);
+
+  switch (highestRole) {
+    case ROLES.ADMIN:
+    case ROLES.DEAN:
+    case ROLES.PROGRAM_HEAD:
+    case ROLES.FACULTY:
+      return "hamburger";
+    default:
+      return "bottom-nav";
+  }
 }

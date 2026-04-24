@@ -18,6 +18,13 @@ export {
   deleteMajor,
 } from "./services/manage-programs";
 export {
+  listAdminProgramsSummary,
+} from "./services/list-admin-programs-summary";
+export type {
+  AdminProgramSummaryItem,
+  AdminProgramsKPI,
+} from "./services/list-admin-programs-summary";
+export {
   listCourses,
   createCourse,
   updateCourse,
