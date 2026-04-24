@@ -242,7 +242,6 @@ async function main() {
     { name: "2nd Year", order: 2 },
     { name: "3rd Year", order: 3 },
     { name: "4th Year", order: 4 },
-    { name: "5th Year", order: 5 },
   ];
 
   for (const yearLevel of yearLevels) {

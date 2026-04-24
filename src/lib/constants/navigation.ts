@@ -62,10 +62,11 @@ export const ADMIN_NAV: NavItem[] = [
 
 export const PROGRAM_HEAD_NAV: NavItem[] = [
   { name: "Dashboard", href: "/program-head/dashboard", icon: LayoutDashboard },
+  { name: "Courses", href: "/program-head/courses", icon: BookOpen },
   { name: "CILO Reviews", href: "/program-head/cilo-reviews", icon: ClipboardList },
   { name: "Outcomes", href: "/program-head/outcomes", icon: Layers3 },
   { name: "Tools", href: "/program-head/tools", icon: FileText },
-  { name: "Deployments", href: "/program-head/deployments", icon: BookOpen },
+  { name: "Deployments", href: "/program-head/deployments", icon: GraduationCap },
   { name: "Analytics", href: "/program-head/analytics", icon: BarChart3 },
   { name: "Reports", href: "/program-head/reports", icon: FileText },
 ];

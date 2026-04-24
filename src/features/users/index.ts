@@ -5,4 +5,29 @@
  * faculty affiliations, and role assignment.
  */
 
-export {};
+export {
+  listAdminUsers,
+  listExternalStakeholderInvites,
+  toggleUserActive,
+  assignUserRole,
+  revokeUserRole,
+  upsertStudentAcademicContext,
+  deleteStudentAcademicContext,
+  createFacultyProgramAffiliation,
+  deactivateFacultyProgramAffiliation,
+  createProgramHeadAssignment,
+  deactivateProgramHeadAssignment,
+  upsertIndustryPartnerProfile,
+  deleteIndustryPartnerProfile,
+  createExternalInviteDraft,
+  updateExternalInviteStatus,
+} from "./services/manage-users";
+
+export {
+  assignRoleSchema,
+  updateStudentAcademicContextSchema,
+  createFacultyAffiliationSchema,
+  createProgramHeadAssignmentSchema,
+  updateIndustryPartnerProfileSchema,
+  createExternalInviteDraftSchema,
+} from "./schemas/admin-user";

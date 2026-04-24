@@ -17,6 +17,19 @@ export {
   toggleMajorActive,
   deleteMajor,
 } from "./services/manage-programs";
+export {
+  listCourses,
+  createCourse,
+  updateCourse,
+  toggleCourseActive,
+  deleteCourse,
+} from "./services/manage-courses";
+export {
+  listYearLevels,
+  createYearLevel,
+  updateYearLevel,
+  deleteYearLevel,
+} from "./services/manage-year-levels";
 
 // Schemas
 export {
@@ -25,9 +38,19 @@ export {
   createMajorSchema,
   updateMajorSchema,
 } from "./schemas/program";
+export { createCourseSchema, updateCourseSchema } from "./schemas/course";
+export {
+  createYearLevelSchema,
+  updateYearLevelSchema,
+} from "./schemas/year-level";
 export type {
   CreateProgramInput,
   UpdateProgramInput,
   CreateMajorInput,
   UpdateMajorInput,
 } from "./schemas/program";
+export type { CreateCourseInput, UpdateCourseInput } from "./schemas/course";
+export type {
+  CreateYearLevelInput,
+  UpdateYearLevelInput,
+} from "./schemas/year-level";

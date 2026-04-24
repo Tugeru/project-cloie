@@ -1,58 +1,122 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { InteractivePlaceholderForm } from "@/components/ui/interactive-placeholder-form";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import { ArrowLeft } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { listCILOMappingsForProgram } from "@/features/outcomes/services/manage-program-head-outcomes";
 
-export default function ProgramHeadOutcomeMappingPage() {
+export const metadata = {
+  title: "CILO-GO Mappings — Program Head | CLOIE",
+};
+
+export default async function OutcomeMappingPage() {
+  const result = await listCILOMappingsForProgram();
+
+  if (!result.success) {
+    redirect("/unauthorized");
+  }
+
+  const courseMappings = result.data;
+
   return (
-    <div className="space-y-6">
-      <div className="space-y-2">
-        <h1 className="text-2xl font-bold">Outcome Mapping Matrix</h1>
-        <p className="text-sm text-text-secondary">
-          Use this scaffold to validate the shape of the future CILO-to-GO matrix
-          experience.
+    <div>
+      {/* Header */}
+      <div className="mb-10">
+        <Link href="/program-head/outcomes">
+          <Button variant="ghost" className="mb-4 inline-flex items-center gap-2 px-0">
+            <ArrowLeft className="h-4 w-4" />
+            Back to Graduate Outcomes
+          </Button>
+        </Link>
+        <h1 className="mb-2 font-heading text-4xl font-bold tracking-tight text-text-primary lg:text-5xl">
+          CILO-GO Mapping Review
+        </h1>
+        <p className="text-body-md text-text-muted">
+          Review how Course Intended Learning Outcomes map to Graduate Outcomes
+          across your program&apos;s courses. Faculty manage CILOs and their
+          mappings.
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Matrix Preview</CardTitle>
-          <CardDescription>
-            Interactive persistence is deferred, but the page structure is ready for the
-            real mapping matrix.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="overflow-x-auto">
-          <table className="w-full min-w-[560px] text-sm">
-            <thead>
-              <tr className="border-b border-border text-left text-text-muted">
-                <th className="py-2">CILO</th>
-                <th className="py-2">GO1</th>
-                <th className="py-2">GO2</th>
-                <th className="py-2">GO3</th>
-              </tr>
-            </thead>
-            <tbody>
-              {["CILO 1", "CILO 2", "CILO 3"].map((label, index) => (
-                <tr key={label} className="border-b border-border/60">
-                  <td className="py-3 font-medium">{label}</td>
-                  <td className="py-3">{index === 0 ? "Mapped" : "-"}</td>
-                  <td className="py-3">{index === 1 ? "Mapped" : "-"}</td>
-                  <td className="py-3">{index === 2 ? "Mapped" : "-"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </CardContent>
-      </Card>
-
-      <InteractivePlaceholderForm
-        title="Mapping Adjustment Stub"
-        description="Capture the interaction copy for changing CILO-to-GO mappings without persisting yet."
-        submitLabel="Validate Mapping Draft"
-        fields={[
-          { id: "cilo", kind: "input", label: "CILO", placeholder: "CILO 2" },
-          { id: "go", kind: "input", label: "Mapped GO", placeholder: "GO2" },
-        ]}
-      />
+      {/* Course Sections */}
+      {courseMappings.length === 0 ? (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <p className="text-body-md text-text-secondary">
+              No CILO mappings found. CILOs and their GO mappings are created by
+              faculty when publishing evaluations.
+            </p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-6">
+          {courseMappings.map((course) => (
+            <Card key={course.courseId}>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <Badge variant="default" className="text-sm font-semibold">
+                    {course.courseCode}
+                  </Badge>
+                  <span>{course.courseTitle}</span>
+                </CardTitle>
+                <CardDescription>
+                  {course.cilos.length}{" "}
+                  {course.cilos.length === 1 ? "CILO" : "CILOs"} defined
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {course.cilos.map((cilo) => (
+                    <div
+                      key={cilo.id}
+                      className="rounded-lg border border-border p-4"
+                    >
+                      <div className="mb-2 flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                            CILO {cilo.order}
+                          </span>
+                          <p className="text-body-md mt-1 text-text-primary">
+                            {cilo.description}
+                          </p>
+                        </div>
+                        <span className="whitespace-nowrap text-xs text-text-muted">
+                          {cilo.academic_term}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        {cilo.mappedGOs.length > 0 ? (
+                          cilo.mappedGOs.map((go) => (
+                            <Badge
+                              key={go.id}
+                              variant="secondary"
+                              className="text-xs"
+                              title={go.description}
+                            >
+                              {go.code}
+                            </Badge>
+                          ))
+                        ) : (
+                          <span className="text-xs italic text-text-muted">
+                            No mappings
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
