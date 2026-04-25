@@ -1,77 +1,132 @@
-import Link from "next/link";
-import { prisma } from "@/lib/db/prisma";
+import { redirect } from "next/navigation";
+import {
+  BarChart3,
+  Clock,
+  FileCheck,
+  Layers,
+} from "lucide-react";
+import {
+  Card,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { prisma } from "@/lib/db/prisma";
+import { getProgramHeadDashboard } from "@/features/analytics/services/get-program-head-dashboard";
+import { StakeholderMeanPieChart } from "@/features/analytics/components/stakeholder-mean-pie-chart";
+import { QualitativeWordCloud } from "@/features/analytics/components/qualitative-word-cloud";
 
 export default async function ProgramHeadDashboardPage() {
   const session = await resolveAuthSession();
-  const assignment = session
-    ? await prisma.programHeadAssignment.findFirst({
-        where: {
-          is_active: true,
-          program_head_id: session.userId,
-        },
-        include: {
-          program: true,
-        },
-      })
-    : null;
 
-  const programId = assignment?.program_id ?? null;
-  const [deploymentCount, templateCount] = programId
-    ? await Promise.all([
-        prisma.centralDeployment.count({ where: { program_id: programId } }),
-        prisma.instrumentTemplate.count({ where: { is_active: true } }),
-      ])
-    : [0, 0];
+  if (!session) {
+    redirect("/login");
+  }
+
+  // Resolve the program head's active program assignment
+  const assignment = await prisma.programHeadAssignment.findFirst({
+    where: {
+      program_head_id: session.userId,
+      is_active: true,
+    },
+    include: {
+      program: { select: { id: true, code: true, name: true } },
+    },
+  });
+
+  if (!assignment) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-heading-lg">Dashboard</h1>
+        <p className="text-body-md text-text-secondary">
+          You do not have an active program assignment. Please contact an
+          administrator.
+        </p>
+      </div>
+    );
+  }
+
+  const dashboard = await getProgramHeadDashboard(assignment.program.id);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+      {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-2xl font-bold">Program Head Dashboard</h1>
-        <p className="text-sm text-text-secondary">
-          {assignment?.program
-            ? `Working program context: ${assignment.program.code} - ${assignment.program.name}`
-            : "No active program assignment found yet."}
+        <h1 className="text-heading-lg">Dashboard</h1>
+        <p className="text-body-md text-text-secondary">
+          <span className="font-semibold text-primary">
+            {dashboard.programCode} — {dashboard.programLabel}
+          </span>{" "}
+          · Program overview and evaluation insights
         </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        {[
-          { label: "Program Deployments", value: deploymentCount },
-          { label: "Governed Templates", value: templateCount },
-          { label: "Mapped Reviews", value: "Scaffolded" },
-        ].map((stat) => (
-          <Card key={stat.label}>
-            <CardHeader className="pb-2">
-              <CardDescription>{stat.label}</CardDescription>
-              <CardTitle className="text-3xl">{stat.value}</CardTitle>
-            </CardHeader>
-          </Card>
-        ))}
+      {/* KPI Cards */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <KPICard
+          label="Active Deployments"
+          value={dashboard.kpi.activeDeployments}
+          icon={<Layers className="size-5 text-muted-foreground" />}
+        />
+        <KPICard
+          label="Responses Received"
+          value={dashboard.kpi.totalResponses}
+          icon={<FileCheck className="size-5 text-muted-foreground" />}
+        />
+        <KPICard
+          label="Overall Mean"
+          value={dashboard.kpi.overallMean ?? "—"}
+          icon={<BarChart3 className="size-5 text-muted-foreground" />}
+        />
+        <KPICard
+          label="Pending Responses"
+          value={dashboard.kpi.pendingResponses}
+          icon={<Clock className="size-5 text-muted-foreground" />}
+        />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Quick Links</CardTitle>
-        </CardHeader>
-        <CardContent className="grid gap-3 md:grid-cols-2">
-          {[
-            { href: "/program-head/outcomes", label: "Outcome management" },
-            { href: "/program-head/outcomes/mapping", label: "Mapping matrix" },
-            { href: "/program-head/tools", label: "Template builder" },
-            { href: "/program-head/deployments", label: "Deployment planner" },
-          ].map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className="rounded-xl border border-border px-4 py-3 text-sm font-medium transition-colors hover:border-primary/40 hover:bg-primary-soft/40"
-            >
-              {link.label}
-            </Link>
-          ))}
-        </CardContent>
-      </Card>
+      {/* Charts row */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Pie Chart — Mean per Stakeholder */}
+        <StakeholderMeanPieChart data={dashboard.stakeholderMeans} />
+
+        {/* Word Cloud — Qualitative Responses */}
+        <QualitativeWordCloud
+          title="Qualitative Response Insights"
+          tokens={dashboard.wordCloudTokens}
+        />
+      </div>
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// KPI Card sub-component
+// ---------------------------------------------------------------------------
+
+function KPICard({
+  label,
+  value,
+  icon,
+}: {
+  label: string;
+  value: number | string;
+  icon: React.ReactNode;
+}) {
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <CardDescription className="text-xs font-semibold uppercase tracking-wider">
+            {label}
+          </CardDescription>
+          {icon}
+        </div>
+        <CardTitle className="text-2xl font-bold">
+          {typeof value === "number" ? value.toLocaleString() : value}
+        </CardTitle>
+      </CardHeader>
+    </Card>
   );
 }
