@@ -65,6 +65,7 @@ export const PROGRAM_HEAD_NAV: NavItem[] = [
 
 export const DEAN_NAV: NavItem[] = [
   { name: "Dashboard", href: "/dean/dashboard", icon: LayoutDashboard },
+  { name: "Courses", href: "/dean/courses", icon: BookOpen },
   { name: "CILO Reviews", href: "/dean/cilo-reviews", icon: ClipboardList },
   { name: "Analytics", href: "/dean/analytics", icon: BarChart3 },
   { name: "Reports", href: "/dean/reports", icon: FileText },

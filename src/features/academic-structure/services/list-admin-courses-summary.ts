@@ -29,10 +29,16 @@ export type AdminCoursesKPI = {
   programSpecificCourses: number;
 };
 
+export type MajorFilterOption = {
+  id: string;
+  name: string;
+};
+
 export type ProgramFilterOption = {
   id: string;
   code: string;
   name: string;
+  majors: MajorFilterOption[];
 };
 
 // ---------------------------------------------------------------------------
@@ -60,7 +66,16 @@ export async function listAdminCoursesSummary(): Promise<{
     }),
     prisma.program.findMany({
       where: { is_active: true },
-      select: { id: true, code: true, name: true },
+      select: {
+        id: true,
+        code: true,
+        name: true,
+        majors: {
+          where: { is_active: true },
+          select: { id: true, name: true },
+          orderBy: { name: "asc" },
+        },
+      },
       orderBy: { code: "asc" },
     }),
   ]);

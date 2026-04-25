@@ -63,19 +63,26 @@ type AdminCoursesListProps = {
   courses: AdminCourseSummaryItem[];
   kpi: AdminCoursesKPI;
   programs: ProgramFilterOption[];
+  /** Base path for course links (e.g. "/admin/courses" or "/dean/courses") */
+  basePath?: string;
 };
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export function AdminCoursesList({ courses, kpi, programs }: AdminCoursesListProps) {
+export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/courses" }: AdminCoursesListProps) {
   // ---- Filter state -------------------------------------------------------
   const [scopeFilter, setScopeFilter] = useState<string>("__all__");
   const [programFilter, setProgramFilter] = useState<string>("__all__");
+  const [majorFilter, setMajorFilter] = useState<string>("__all__");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isPending, startTransition] = useTransition();
+
+  // ---- Derived: majors for selected program --------------------------------
+  const selectedProgram = programs.find((p) => p.id === programFilter);
+  const availableMajors = selectedProgram?.majors ?? [];
 
   // ---- Filtered courses ----------------------------------------------------
   const filteredCourses = useMemo(() => {
@@ -97,6 +104,11 @@ export function AdminCoursesList({ courses, kpi, programs }: AdminCoursesListPro
       result = result.filter((c) => c.programId === programFilter);
     }
 
+    // Major filter
+    if (majorFilter !== "__all__") {
+      result = result.filter((c) => c.majorId === majorFilter);
+    }
+
     // Search by code or title
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim();
@@ -108,7 +120,7 @@ export function AdminCoursesList({ courses, kpi, programs }: AdminCoursesListPro
     }
 
     return result;
-  }, [courses, scopeFilter, programFilter, searchTerm]);
+  }, [courses, scopeFilter, programFilter, majorFilter, searchTerm]);
 
   // ---- Pagination ----------------------------------------------------------
   const totalPages = Math.max(1, Math.ceil(filteredCourses.length / PAGE_SIZE));
@@ -126,6 +138,12 @@ export function AdminCoursesList({ courses, kpi, programs }: AdminCoursesListPro
 
   const handleProgramChange = (value: string | null) => {
     setProgramFilter(value ?? "__all__");
+    setMajorFilter("__all__");
+    setCurrentPage(1);
+  };
+
+  const handleMajorChange = (value: string | null) => {
+    setMajorFilter(value ?? "__all__");
     setCurrentPage(1);
   };
 
@@ -205,7 +223,7 @@ export function AdminCoursesList({ courses, kpi, programs }: AdminCoursesListPro
 
       {/* Action bar */}
       <div className="flex items-center justify-end">
-        <Button render={<Link href="/admin/courses/new" />}>
+        <Button render={<Link href={`${basePath}/new`} />}>
           Create Course
         </Button>
       </div>
@@ -249,6 +267,28 @@ export function AdminCoursesList({ courses, kpi, programs }: AdminCoursesListPro
             ))}
           </SelectContent>
         </Select>
+
+        {/* Major filter (conditional — only when selected program has majors) */}
+        {availableMajors.length > 0 && (
+          <Select value={majorFilter} onValueChange={handleMajorChange}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue>
+                {majorFilter === "__all__"
+                  ? "All Majors"
+                  : availableMajors.find((m) => m.id === majorFilter)?.name ??
+                    "All Majors"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__all__">All Majors</SelectItem>
+              {availableMajors.map((major) => (
+                <SelectItem key={major.id} value={major.id}>
+                  {major.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
 
         {/* Search */}
         <div className="relative ml-auto w-full max-w-xs">
@@ -323,7 +363,7 @@ export function AdminCoursesList({ courses, kpi, programs }: AdminCoursesListPro
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
                         render={
-                          <Link href={`/admin/courses/${course.id}/edit`} />
+                          <Link href={`${basePath}/${course.id}/edit`} />
                         }
                       >
                         Edit

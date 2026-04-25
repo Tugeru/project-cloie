@@ -37,7 +37,7 @@ export default function Home() {
         </h1>
         
         <p className="max-w-2xl text-lg md:text-xl text-text-secondary mb-10 leading-relaxed font-body">
-          The official platform for Comprehensive Learning Outcomes and Instructional Evaluation at the Assumption College of Davao.
+          The centralized platform for Comprehensive Learning Outcomes and Instructional Evaluation at the Assumption College of Davao.
         </p>
 
         <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
@@ -56,7 +56,7 @@ export default function Home() {
         {/* Feature Marks / Logos */}
         <div className="mt-28 pt-10 border-t border-border/40 w-full flex flex-col justify-center items-center gap-6 opacity-80 transition-all duration-500">
           <p className="text-body-sm text-text-muted font-medium uppercase tracking-wider">Trusted Architecture For</p>
-          <div className="flex items-center gap-4 grayscale opacity-70 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+          <div className="flex items-center gap-4  opacity-100">
             <Image src="/logos/acd-logo.png" alt="ACD Logo" width={56} height={56} className="object-contain drop-shadow-sm" />
             <span className="text-xl font-heading font-semibold text-text-primary">Assumption College of Davao</span>
           </div>
