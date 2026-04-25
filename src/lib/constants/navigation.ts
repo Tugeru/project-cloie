@@ -41,6 +41,7 @@ export const FACULTY_NAV: NavItem[] = [
   { name: "Manage CILOs", href: "/faculty/cilos", icon: BookOpen },
   { name: "CILO Evaluations", href: "/faculty/cilo-evaluations", icon: ClipboardList },
   { name: "Publish New", href: "/faculty/cilo-evaluations/new", icon: FileText },
+  { name: "Profile", href: "/faculty/profile", icon: UserCircle },
 ];
 
 export const ADMIN_NAV: NavItem[] = [
@@ -61,6 +62,7 @@ export const PROGRAM_HEAD_NAV: NavItem[] = [
   { name: "Deployments", href: "/program-head/deployments", icon: GraduationCap },
   { name: "Analytics", href: "/program-head/analytics", icon: BarChart3 },
   { name: "Reports", href: "/program-head/reports", icon: FileText },
+  { name: "Profile", href: "/program-head/profile", icon: UserCircle },
 ];
 
 export const DEAN_NAV: NavItem[] = [
@@ -69,6 +71,7 @@ export const DEAN_NAV: NavItem[] = [
   { name: "CILO Reviews", href: "/dean/cilo-reviews", icon: ClipboardList },
   { name: "Analytics", href: "/dean/analytics", icon: BarChart3 },
   { name: "Reports", href: "/dean/reports", icon: FileText },
+  { name: "Profile", href: "/dean/profile", icon: UserCircle },
 ];
 
 export const ALUMNI_NAV: NavItem[] = [

@@ -155,6 +155,39 @@ function StatCard({
   );
 }
 
+function MajorSelect({
+  majors,
+  defaultValue,
+}: {
+  majors: Array<{ id: string; name: string; program_id: string }>;
+  defaultValue?: string;
+}) {
+  const [value, setValue] = useState(defaultValue ?? "");
+
+  return (
+    <Select
+      name="major_id"
+      value={value}
+      onValueChange={(v) => setValue(v ?? "")}
+    >
+      <SelectTrigger>
+        <SelectValue>
+          {value
+            ? majors.find((m) => m.id === value)?.name ?? "Select major"
+            : "Select major"}
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        {majors.map((major) => (
+          <SelectItem key={major.id} value={major.id}>
+            {major.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+}
+
 function CourseFormDialog({
   mode,
   majors,
@@ -253,21 +286,10 @@ function CourseFormDialog({
           {scopeType === "major-specific" && majors.length > 0 && (
             <div className="space-y-2">
               <Label htmlFor="major_id">Major</Label>
-              <Select
-                name="major_id"
+              <MajorSelect
+                majors={majors}
                 defaultValue={course?.major_id ?? undefined}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select major" />
-                </SelectTrigger>
-                <SelectContent>
-                  {majors.map((major) => (
-                    <SelectItem key={major.id} value={major.id}>
-                      {major.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
             </div>
           )}
 
