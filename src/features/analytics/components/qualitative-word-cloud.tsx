@@ -10,6 +10,21 @@ type QualitativeWordCloudProps = {
   tokens: WordCloudToken[];
 };
 
+const WORD_COLORS = [
+  "#1d4ed8", // blue
+  "#059669", // emerald
+  "#d97706", // amber
+  "#dc2626", // red
+  "#7c3aed", // violet
+  "#0891b2", // cyan
+  "#c026d3", // fuchsia
+  "#ea580c", // orange
+  "#4f46e5", // indigo
+  "#15803d", // green
+  "#be185d", // pink
+  "#0d9488", // teal
+];
+
 const MIN_WIDTH = 280;
 const MAX_WIDTH = 960;
 const MIN_HEIGHT = 220;
@@ -69,7 +84,7 @@ export function QualitativeWordCloud({ title, tokens }: QualitativeWordCloudProp
             width={dimensions.width}
             height={dimensions.height}
             font="ui-sans-serif, system-ui, sans-serif"
-            fill="#1d4ed8"
+            fill={(_word: WordCloudToken, index: number) => WORD_COLORS[index % WORD_COLORS.length]}
             fontSize={(word) => 16 + word.value * 4}
             rotate={() => 0}
             enableTooltip

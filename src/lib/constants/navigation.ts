@@ -41,6 +41,7 @@ export const FACULTY_NAV: NavItem[] = [
   { name: "Manage CILOs", href: "/faculty/cilos", icon: BookOpen },
   { name: "CILO Evaluations", href: "/faculty/cilo-evaluations", icon: ClipboardList },
   { name: "Publish New", href: "/faculty/cilo-evaluations/new", icon: FileText },
+  { name: "Tools", href: "/faculty/tools", icon: ClipboardList },
   { name: "Profile", href: "/faculty/profile", icon: UserCircle },
 ];
 
