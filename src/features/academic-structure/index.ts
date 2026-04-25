@@ -25,6 +25,14 @@ export type {
   AdminProgramsKPI,
 } from "./services/list-admin-programs-summary";
 export {
+  listAdminCoursesSummary,
+} from "./services/list-admin-courses-summary";
+export type {
+  AdminCourseSummaryItem,
+  AdminCoursesKPI,
+  ProgramFilterOption,
+} from "./services/list-admin-courses-summary";
+export {
   listCourses,
   createCourse,
   updateCourse,

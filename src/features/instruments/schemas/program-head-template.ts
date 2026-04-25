@@ -31,10 +31,10 @@ export const templateQuestionSchema = z.object({
   prompt: z
     .string()
     .trim()
-    .min(1, "Question prompt is required.")
+    .min(1, "Question title is required.")
     .max(500, "Question prompt must be 500 characters or fewer."),
   type: z.enum(["likert", "guided_open_ended"]),
-  order: z.number().int().min(0),
+  order: z.number().int().m in(0),
   required: z.boolean(),
   likertDescriptors: z.array(likertDescriptorSchema).optional(),
   suggestedResponses: z.array(z.string().trim().max(500)).optional(),

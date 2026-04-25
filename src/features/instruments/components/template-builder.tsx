@@ -701,9 +701,9 @@ function QuestionCard({
 
       {/* Prompt Input */}
       <div className="space-y-2">
-        <Label className="text-sm">Prompt</Label>
+        <Label className="text-sm">Question title</Label>
         <Input
-          placeholder="Enter question prompt…"
+          placeholder="Enter question"
           value={question.prompt}
           onChange={(e) =>
             onUpdate(sectionKey, question.key, { prompt: e.target.value })
@@ -802,7 +802,7 @@ function QuestionCard({
       )}
 
       {/* Hover-reveal footer */}
-      <div className="flex items-center justify-between border-t border-border/50 pt-3 opacity-0 group-hover:opacity-100 transition-opacity">
+      <div className="flex items-center justify-between border-t border-border/50 pt-3">
         <div>
           {canRemove && (
             <button

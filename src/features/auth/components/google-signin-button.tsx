@@ -13,19 +13,26 @@ export function GoogleSignInButton({ intent }: { intent?: "student" | "faculty" 
       const supabase = createClient();
       
       const intentParam = intent ? `?intent=${intent}` : '';
-      const { error } = await supabase.auth.signInWithOAuth({
+      const redirectTo = `${window.location.origin}/api/auth/callback${intentParam}`;
+      console.log("[GoogleSignIn] redirectTo:", redirectTo);
+
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/api/auth/callback${intentParam}`,
+          redirectTo,
         },
       });
 
+      console.log("[GoogleSignIn] response:", { data, error });
+
       if (error) {
-        console.error("Auth error:", error.message);
+        console.error("[GoogleSignIn] Auth error:", error.message);
+        alert(`Sign-in error: ${error.message}`);
         setIsLoading(false);
       }
-    } catch {
-      console.error("Unexpected error during sign in");
+    } catch (err) {
+      console.error("[GoogleSignIn] Unexpected error:", err);
+      alert(`Unexpected sign-in error: ${err}`);
       setIsLoading(false);
     }
   };
