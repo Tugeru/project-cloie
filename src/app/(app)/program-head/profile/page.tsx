@@ -1,4 +1,4 @@
-import { Book, Mail, ShieldCheck, User } from "lucide-react";
+import { Book, Mail, User } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -117,24 +117,6 @@ export default async function ProgramHeadProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Data Privacy Notice */}
-        <Card className="border-border border-l-4 border-l-primary shadow-sm md:col-span-2">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="shrink-0 rounded-lg bg-primary-soft p-2 text-primary">
-                <ShieldCheck className="size-5" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-bold text-text-primary">Data Privacy & Responses</h3>
-                <p className="text-sm leading-relaxed text-text-secondary">
-                  Your evaluation responses are handled confidentially and are reported
-                  only in aggregated form. Once an evaluation is finalized and
-                  submitted, it cannot be modified to protect the integrity of results.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

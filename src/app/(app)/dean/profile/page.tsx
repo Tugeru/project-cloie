@@ -1,4 +1,4 @@
-import { Building2, Mail, ShieldCheck, User } from "lucide-react";
+import { Building2, Mail, User } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -106,25 +106,6 @@ export default async function DeanProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Data Privacy Notice */}
-        <Card className="border-border border-l-4 border-l-primary shadow-sm md:col-span-2">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <div className="shrink-0 rounded-lg bg-primary-soft p-2 text-primary">
-                <ShieldCheck className="size-5" />
-              </div>
-              <div className="space-y-2">
-                <h3 className="font-bold text-text-primary">Data Privacy & Responses</h3>
-                <p className="text-sm leading-relaxed text-text-secondary">
-                  Evaluation responses are handled confidentially and are reported
-                  only in aggregated form. As College Dean, you have access to
-                  cross-program analytics and reporting while individual responses
-                  remain anonymized.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );

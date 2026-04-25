@@ -338,7 +338,7 @@ export function PublishCentralDeploymentForm({
           <Button
             type="submit"
             disabled={isSubmitting || templates.length === 0}
-            className="bg-gradient-to-br from-primary to-primary-container text-on-primary"
+            className="bg-primary text-on-primary"
           >
             {isSubmitting ? (
               "Publishing..."

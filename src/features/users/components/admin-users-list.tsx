@@ -3,11 +3,28 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { SystemRole } from "@prisma/client";
-import { MoreVertical, Search, Users, GraduationCap, Briefcase, UserCheck } from "lucide-react";
+import {
+  MoreVertical,
+  Search,
+  Users,
+  GraduationCap,
+  Briefcase,
+  UserCheck,
+  X,
+  Mail,
+  User,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +33,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -32,6 +50,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toggleUserActiveAction } from "@/lib/actions/admin-foundation-actions";
+import { updateAdminUserAction } from "@/lib/actions/admin-user-crud-actions";
 
 import type {
   AdminUserSummaryItem,
@@ -82,6 +101,201 @@ type AdminUsersListProps = {
 };
 
 // ---------------------------------------------------------------------------
+// View User Dialog
+// ---------------------------------------------------------------------------
+
+function ViewUserDialog({
+  user,
+  open,
+  onOpenChange,
+}: {
+  user: AdminUserSummaryItem;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>User Details</DialogTitle>
+          <DialogDescription>
+            Viewing information for {user.firstName} {user.lastName}.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 pt-2">
+          <div className="space-y-1">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Full Name
+            </label>
+            <p className="text-sm font-semibold">
+              {user.firstName} {user.lastName}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Email Address
+            </label>
+            <div className="flex items-center gap-2 text-sm font-semibold">
+              <Mail className="size-4 text-muted-foreground" />
+              {user.email}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Role
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {user.roles.map((role) => (
+                <Badge key={role} variant="secondary">
+                  {formatRole(role)}
+                </Badge>
+              ))}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Affiliated Program
+            </label>
+            <p className="text-sm font-semibold">
+              {user.programLabel || "—"}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Major
+            </label>
+            <p className="text-sm font-semibold">
+              {user.majorLabel || "—"}
+            </p>
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+              Status
+            </label>
+            <div>
+              <Badge variant={user.isActive ? "default" : "secondary"}>
+                {user.isActive ? "Active" : "Inactive"}
+              </Badge>
+            </div>
+          </div>
+        </div>
+        <div className="flex justify-end pt-4">
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            Close
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Edit User Dialog
+// ---------------------------------------------------------------------------
+
+function EditUserDialog({
+  user,
+  open,
+  onOpenChange,
+}: {
+  user: AdminUserSummaryItem;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  function handleSubmit(formData: FormData) {
+    setError(null);
+    startTransition(async () => {
+      const result = await updateAdminUserAction(formData);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      onOpenChange(false);
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Edit User</DialogTitle>
+          <DialogDescription>
+            Update details for {user.firstName} {user.lastName}.
+          </DialogDescription>
+        </DialogHeader>
+        <form action={handleSubmit} className="space-y-4 pt-2">
+          <input type="hidden" name="id" value={user.id} />
+
+          {error && (
+            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+              {error}
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-first-name">First Name</Label>
+            <Input
+              id="edit-first-name"
+              name="first_name"
+              defaultValue={user.firstName}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="edit-last-name">Last Name</Label>
+            <Input
+              id="edit-last-name"
+              name="last_name"
+              defaultValue={user.lastName}
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Email Address</Label>
+            <Input value={user.email} disabled className="opacity-60" />
+            <p className="text-xs text-muted-foreground">
+              Email cannot be changed.
+            </p>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Role</Label>
+            <div className="flex flex-wrap gap-1.5">
+              {user.roles.map((role) => (
+                <Badge key={role} variant="secondary">
+                  {formatRole(role)}
+                </Badge>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Roles are managed separately.
+            </p>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </div>
+        </form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -93,6 +307,10 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isPending, startTransition] = useTransition();
+
+  // ---- Modal state ---------------------------------------------------------
+  const [viewUser, setViewUser] = useState<AdminUserSummaryItem | null>(null);
+  const [editUser, setEditUser] = useState<AdminUserSummaryItem | null>(null);
 
   // ---- Derived: majors for selected program --------------------------------
   const selectedProgramMajors = useMemo(() => {
@@ -165,9 +383,9 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
   };
 
   // ---- Action handlers ------------------------------------------------------
-  const handleDeactivate = (userId: string) => {
+  const handleToggleActive = (userId: string, currentActive: boolean) => {
     startTransition(async () => {
-      await toggleUserActiveAction(userId, false);
+      await toggleUserActiveAction(userId, !currentActive);
     });
   };
 
@@ -343,29 +561,18 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
                       <span className="sr-only">Actions</span>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        render={<Link href={`/admin/users/${user.id}`} />}
-                      >
+                      <DropdownMenuItem onClick={() => setViewUser(user)}>
                         View
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        render={<Link href={`/admin/users/${user.id}`} />}
-                      >
-                        Manage
+                      <DropdownMenuItem onClick={() => setEditUser(user)}>
+                        Edit
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         disabled={isPending}
-                        onClick={() => handleDeactivate(user.id)}
+                        onClick={() => handleToggleActive(user.id, user.isActive)}
                       >
-                        Deactivate
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        variant="destructive"
-                        disabled={isPending}
-                        onClick={() => handleDeactivate(user.id)}
-                      >
-                        Delete
+                        {user.isActive ? "Deactivate" : "Activate"}
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -422,6 +629,28 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
         {Math.min(safePage * PAGE_SIZE, filteredUsers.length)} of{" "}
         {filteredUsers.length} user{filteredUsers.length !== 1 ? "s" : ""}
       </p>
+
+      {/* View User Dialog */}
+      {viewUser && (
+        <ViewUserDialog
+          user={viewUser}
+          open={!!viewUser}
+          onOpenChange={(open) => {
+            if (!open) setViewUser(null);
+          }}
+        />
+      )}
+
+      {/* Edit User Dialog */}
+      {editUser && (
+        <EditUserDialog
+          user={editUser}
+          open={!!editUser}
+          onOpenChange={(open) => {
+            if (!open) setEditUser(null);
+          }}
+        />
+      )}
     </div>
   );
 }
