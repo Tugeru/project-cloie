@@ -337,12 +337,20 @@ export function ProgramHeadCoursesCatalog({
   const [activeTab, setActiveTab] = useState("all");
   const [search, setSearch] = useState("");
   const [majorFilter, setMajorFilter] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<ProgramHeadCourseItem | null>(
     null,
   );
 
+  const PAGE_SIZE = 15;
   const filteredCourses = filterCourses(courses, activeTab, search, majorFilter);
+  const totalPages = Math.max(1, Math.ceil(filteredCourses.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedCourses = filteredCourses.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE,
+  );
   const programLabel = programs.map((p) => p.name).join(", ") || "No Program";
 
   function handleToggleActive(id: string, currentActive: boolean) {
@@ -391,7 +399,7 @@ export function ProgramHeadCoursesCatalog({
       {/* Content Container */}
       <div className="rounded-xl bg-surface-alt p-2">
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setCurrentPage(1); }}>
           <div className="mb-4 border-b border-border px-4 pt-2">
             <TabsList className="h-auto bg-transparent p-0">
               <TabsTrigger
@@ -435,14 +443,18 @@ export function ProgramHeadCoursesCatalog({
                 className="pl-9"
                 placeholder="Search course code or title..."
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
               />
             </div>
             <div className="flex flex-wrap items-center gap-3">
               {majors.length > 0 && (
-                <Select value={majorFilter} onValueChange={(v) => setMajorFilter(v ?? "all")}>
+                <Select value={majorFilter} onValueChange={(v) => { setMajorFilter(v ?? "all"); setCurrentPage(1); }}>
                   <SelectTrigger className="w-40">
-                    <SelectValue placeholder="All Majors" />
+                    <SelectValue>
+                      {majorFilter === "all"
+                        ? "All Majors"
+                        : majors.find((m) => m.id === majorFilter)?.name ?? "All Majors"}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Majors</SelectItem>
@@ -487,7 +499,7 @@ export function ProgramHeadCoursesCatalog({
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredCourses.length === 0 ? (
+                  {paginatedCourses.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={7}
@@ -497,7 +509,7 @@ export function ProgramHeadCoursesCatalog({
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredCourses.map((course) => (
+                    paginatedCourses.map((course) => (
                       <TableRow key={course.id} className="group">
                         <TableCell className="whitespace-nowrap font-heading text-sm font-semibold text-text-primary">
                           {course.code}
@@ -576,6 +588,33 @@ export function ProgramHeadCoursesCatalog({
               </Table>
             </div>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-end gap-2 px-4 py-4">
+              <span className="text-xs text-text-muted">
+                {(safePage - 1) * PAGE_SIZE + 1}–
+                {Math.min(safePage * PAGE_SIZE, filteredCourses.length)} of{" "}
+                {filteredCourses.length}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={safePage <= 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              >
+                ←
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={safePage >= totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              >
+                →
+              </Button>
+            </div>
+          )}
         </Tabs>
       </div>
 
