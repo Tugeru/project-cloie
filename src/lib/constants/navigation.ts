@@ -39,9 +39,8 @@ export const STUDENT_MOBILE_NAV: NavItem[] = [
 export const FACULTY_NAV: NavItem[] = [
   { name: "Dashboard", href: "/faculty/dashboard", icon: LayoutDashboard },
   { name: "Manage CILOs", href: "/faculty/cilos", icon: BookOpen },
-  { name: "CILO Evaluations", href: "/faculty/cilo-evaluations", icon: ClipboardList },
-  { name: "Publish New", href: "/faculty/cilo-evaluations/new", icon: FileText },
   { name: "Tools", href: "/faculty/tools", icon: ClipboardList },
+  { name: "Publish New", href: "/faculty/cilo-evaluations/new", icon: FileText },
   { name: "Profile", href: "/faculty/profile", icon: UserCircle },
 ];
 
@@ -51,7 +50,7 @@ export const ADMIN_NAV: NavItem[] = [
   { name: "Programs", href: "/admin/programs", icon: Building2 },
   { name: "Courses", href: "/admin/courses", icon: BookOpen },
   { name: "Outcomes", href: "/admin/outcomes", icon: Layers3 },
-  { name: "Instruments", href: "/admin/instruments", icon: ClipboardList },
+  { name: "Tools", href: "/admin/instruments", icon: ClipboardList },
 ];
 
 export const PROGRAM_HEAD_NAV: NavItem[] = [

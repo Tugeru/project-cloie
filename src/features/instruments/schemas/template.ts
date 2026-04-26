@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { templateStructureSchema } from "./program-head-template";
 
 const optionalTextField = z.preprocess(
   (value) => {
@@ -33,6 +34,7 @@ const templateFields = {
   is_faculty_accessible: checkboxBoolean,
 };
 
+// Schema without structure (for legacy/simple metadata updates)
 export const createBaselineTemplateSchema = z.object(templateFields);
 
 export const updateBaselineTemplateSchema = z.object({
@@ -40,5 +42,23 @@ export const updateBaselineTemplateSchema = z.object({
   ...templateFields,
 });
 
+// Schema with structure (for template builder create/update)
+export const createBaselineTemplateWithStructureSchema = z.object({
+  ...templateFields,
+  structure: templateStructureSchema,
+});
+
+export const updateBaselineTemplateWithStructureSchema = z.object({
+  id: z.string().uuid(),
+  ...templateFields,
+  structure: templateStructureSchema,
+});
+
 export type CreateBaselineTemplateInput = z.infer<typeof createBaselineTemplateSchema>;
 export type UpdateBaselineTemplateInput = z.infer<typeof updateBaselineTemplateSchema>;
+export type CreateBaselineTemplateWithStructureInput = z.infer<
+  typeof createBaselineTemplateWithStructureSchema
+>;
+export type UpdateBaselineTemplateWithStructureInput = z.infer<
+  typeof updateBaselineTemplateWithStructureSchema
+>;
