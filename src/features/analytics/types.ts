@@ -105,3 +105,75 @@ export type CourseBoundResponseReview = {
   reviewerRole: ReviewerRole;
   sections: CourseBoundResponseSection[];
 };
+
+// ─── Faculty Analytics Types ───────────────────────────────────────────────
+
+export type FacultyAnalyticsEvaluationItem = {
+  id: string;
+  deploymentName: string;
+  courseId: string;
+  courseCode: string;
+  courseTitle: string;
+  programId: string;
+  programName: string;
+  academicYear: string;
+  semester: string;
+  term: string;
+  status: string;
+  publishedAt: Date | null;
+  responseCount: number;
+  totalAssignments: number;
+};
+
+export type FacultyCiloMetric = {
+  ciloId: string | null;
+  ciloLabel: string;
+  ciloDescription: string;
+  bindingId: string;
+  mean: number | null;
+  responseCount: number;
+};
+
+export type FacultyQuantitativeQuestion = {
+  sectionKey: string;
+  sectionTitle: string;
+  itemKey: string;
+  prompt: string;
+  mean: number | null;
+  min: number | null;
+  max: number | null;
+  responseCount: number;
+};
+
+export type FacultyQualitativeItem = {
+  sectionKey: string;
+  promptKey: string;
+  prompt: string;
+  textContent: string;
+};
+
+export type FacultyAnalyticsData = {
+  evaluationId: string;
+  deploymentName: string;
+  courseTitle: string;
+  programName: string;
+  academicYear: string;
+  semester: string;
+  term: string;
+  status: string;
+  overallMean: number | null;
+  responseCount: number;
+  totalAssignments: number;
+  ciloMetrics: FacultyCiloMetric[];
+  quantitativeQuestions: FacultyQuantitativeQuestion[];
+  qualitativeTexts: string[];
+  wordCloudTokens: WordCloudToken[];
+};
+
+export type ListFacultyAnalyticsEvaluationsResult =
+  | { success: true; evaluations: FacultyAnalyticsEvaluationItem[] }
+  | { success: false; error: string };
+
+export type GetFacultyAnalyticsDataResult =
+  | { success: true; data: FacultyAnalyticsData[] }
+  | { success: false; error: string };
