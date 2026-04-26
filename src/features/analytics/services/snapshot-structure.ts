@@ -8,6 +8,11 @@ export type SnapshotSection = {
   key: string;
   title: string;
   items?: SnapshotItem[];
+  questions?: Array<{
+    key: string;
+    type: string;
+    prompt: string;
+  }>;
   qualitative_prompts?: Array<{ key: string; prompt: string }>;
   quantitative_items?: Array<{ key: string; prompt: string }>;
 };
@@ -22,10 +27,21 @@ export function isSnapshotSection(value: unknown): value is SnapshotSection {
 }
 
 export function getSnapshotSectionItems(section: SnapshotSection): SnapshotItem[] {
+  // Modern format: items array with kind
   if (section.items) {
     return section.items;
   }
 
+  // Questions format: questions array with type
+  if (section.questions) {
+    return section.questions.map((q) => ({
+      kind: q.type === "likert" ? "quantitative" : "qualitative",
+      key: q.key,
+      prompt: q.prompt,
+    }));
+  }
+
+  // Legacy format: separate arrays
   return [
     ...(section.quantitative_items ?? []).map((item) => ({
       kind: "quantitative" as const,

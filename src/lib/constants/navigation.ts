@@ -48,7 +48,6 @@ export const ADMIN_NAV: NavItem[] = [
   { name: "Users", href: "/admin/users", icon: Users2 },
   { name: "Programs", href: "/admin/programs", icon: Building2 },
   { name: "Courses", href: "/admin/courses", icon: BookOpen },
-  { name: "Outcomes", href: "/admin/outcomes", icon: Layers3 },
   { name: "Tools", href: "/admin/instruments", icon: ClipboardList },
 ];
 
@@ -58,7 +57,6 @@ export const PROGRAM_HEAD_NAV: NavItem[] = [
   { name: "CILO Reviews", href: "/program-head/cilo-reviews", icon: ClipboardList },
   { name: "Outcomes", href: "/program-head/outcomes", icon: Layers3 },
   { name: "Tools", href: "/program-head/tools", icon: FileText },
-  { name: "Deployments", href: "/program-head/deployments", icon: GraduationCap },
   { name: "Analytics", href: "/program-head/analytics", icon: BarChart3 },
   { name: "Reports", href: "/program-head/reports", icon: FileText },
   { name: "Profile", href: "/program-head/profile", icon: UserCircle },

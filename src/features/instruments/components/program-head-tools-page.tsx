@@ -3,7 +3,18 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Copy, Eye, MoreVertical, Pencil, Plus, Send, Trash2, XCircle } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronRight,
+  Copy,
+  Eye,
+  MoreVertical,
+  Pencil,
+  Plus,
+  Send,
+  Trash2,
+  XCircle,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -61,23 +72,6 @@ function formatSemester(semester: string): string {
   return semester;
 }
 
-function getStatusColor(status: string): string {
-  switch (status) {
-    case "ACTIVE":
-      return "bg-primary-fixed text-on-primary-fixed";
-    case "SCHEDULED":
-      return "bg-tertiary-fixed text-on-tertiary-fixed";
-    case "CLOSED":
-      return "bg-surface-container-highest text-on-surface-variant";
-    case "ARCHIVED":
-      return "bg-surface-container-highest text-on-surface-variant opacity-60";
-    case "DRAFT":
-      return "bg-surface-container text-on-surface-variant";
-    default:
-      return "bg-surface-container-highest text-on-surface-variant";
-  }
-}
-
 export function ProgramHeadToolsPage({
   templates,
   deployments,
@@ -120,7 +114,7 @@ export function ProgramHeadToolsPage({
         </TabsContent>
 
         <TabsContent value="published" className="pt-6">
-          <PublishedList deployments={deployments} />
+          <PublishedDeploymentsTable deployments={deployments} />
         </TabsContent>
       </Tabs>
     </div>
@@ -324,8 +318,59 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
   );
 }
 
-function PublishedList({ deployments }: { deployments: ProgramHeadDeploymentItem[] }) {
-  if (deployments.length === 0) {
+type DeploymentStatusFilter = "ALL" | "ACTIVE" | "SCHEDULED" | "CLOSED" | "ARCHIVED";
+
+function PublishedDeploymentsTable({ deployments }: { deployments: ProgramHeadDeploymentItem[] }) {
+  const router = useRouter();
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [statusFilter, setStatusFilter] = useState<DeploymentStatusFilter>("ALL");
+  const [localDeployments, setLocalDeployments] = useState(deployments);
+
+  // Update local deployments when props change
+  if (JSON.stringify(deployments) !== JSON.stringify(localDeployments)) {
+    setLocalDeployments(deployments);
+  }
+
+  const filteredDeployments = localDeployments.filter((d) => {
+    if (statusFilter === "ALL") return d.status !== "ARCHIVED";
+    return d.status === statusFilter;
+  });
+
+  function toggleRow(id: string) {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function handleClose(deploymentId: string) {
+    startTransition(async () => {
+      const result = await closeCentralDeploymentAction(deploymentId);
+      if (!result.success) {
+        return;
+      }
+      // Optimistic update
+      setLocalDeployments((prev) =>
+        prev.map((d) => (d.id === deploymentId ? { ...d, status: "CLOSED" } : d))
+      );
+      router.refresh();
+    });
+  }
+
+  const filterButtons: { label: string; value: DeploymentStatusFilter }[] = [
+    { label: "All", value: "ALL" },
+    { label: "Active", value: "ACTIVE" },
+    { label: "Scheduled", value: "SCHEDULED" },
+    { label: "Closed", value: "CLOSED" },
+    { label: "Archived", value: "ARCHIVED" },
+  ];
+
+  if (localDeployments.length === 0) {
     return (
       <div className="border-outline-variant rounded-xl border-2 border-dashed py-16 text-center">
         <p className="font-body text-on-surface-variant">No published tools yet.</p>
@@ -334,102 +379,258 @@ function PublishedList({ deployments }: { deployments: ProgramHeadDeploymentItem
   }
 
   return (
-    <div className="space-y-1">
-      <div className="font-label text-on-surface-variant hidden rounded-lg px-4 py-2 text-xs font-semibold tracking-[0.05em] uppercase md:grid md:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto]">
+    <div className="space-y-4">
+      {/* Status Filters */}
+      <div className="flex flex-wrap gap-2">
+        {filterButtons.map((btn) => (
+          <Button
+            key={btn.value}
+            variant={statusFilter === btn.value ? "default" : "outline"}
+            size="sm"
+            onClick={() => setStatusFilter(btn.value)}
+          >
+            {btn.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* Table Header */}
+      <div className="bg-muted text-muted-foreground hidden rounded-lg px-4 py-2 text-xs font-semibold tracking-wider uppercase md:grid md:grid-cols-[auto_2fr_1fr_1fr_1fr_1fr_1fr_auto]">
+        <span className="w-8" />
         <span>Published Form</span>
         <span>Target</span>
         <span>Academic Period</span>
-        <span>Published</span>
         <span>Status</span>
         <span>Responses</span>
+        <span>Published</span>
         <span className="w-8" />
       </div>
 
-      {deployments.map((deployment) => (
-        <DeploymentRow key={deployment.id} deployment={deployment} />
-      ))}
+      {/* Table Rows */}
+      <div className="space-y-2">
+        {filteredDeployments.length === 0 ? (
+          <div className="rounded-lg border border-dashed py-8 text-center">
+            <p className="text-muted-foreground text-sm">
+              No {statusFilter.toLowerCase()} deployments found.
+            </p>
+          </div>
+        ) : (
+          filteredDeployments.map((deployment) => (
+            <DeploymentAccordionRow
+              key={deployment.id}
+              deployment={deployment}
+              isExpanded={expandedRows.has(deployment.id)}
+              onToggle={() => toggleRow(deployment.id)}
+              onClose={() => handleClose(deployment.id)}
+            />
+          ))
+        )}
+      </div>
     </div>
   );
 }
 
-function DeploymentRow({ deployment }: { deployment: ProgramHeadDeploymentItem }) {
-  const router = useRouter();
+function DeploymentAccordionRow({
+  deployment,
+  isExpanded,
+  onToggle,
+  onClose,
+}: {
+  deployment: ProgramHeadDeploymentItem;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+}) {
   const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-
   const canClose = deployment.status === "ACTIVE" || deployment.status === "SCHEDULED";
 
-  function handleClose() {
-    setError(null);
-    startTransition(async () => {
-      const result = await closeCentralDeploymentAction(deployment.id);
-      if (!result.success) {
-        setError(result.error);
-        return;
-      }
-      router.refresh();
-    });
-  }
+  const responseRate =
+    deployment.assignmentCount > 0
+      ? (deployment.responseCount / deployment.assignmentCount) * 100
+      : 0;
 
   return (
-    <div
-      className={`group hover:bg-surface-container-low grid items-center gap-3 rounded-xl px-4 py-3 transition-colors md:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto] ${
-        isPending ? "opacity-60" : ""
-      }`}
-    >
-      <div>
-        <p className="font-headline text-on-surface font-semibold">{deployment.templateName}</p>
-        {error && <p className="text-error mt-0.5 text-xs">{error}</p>}
+    <div className="bg-card rounded-lg border">
+      {/* Main Row */}
+      <div
+        className={`hover:bg-muted/50 grid cursor-pointer items-center gap-3 rounded-lg px-4 py-3 transition-colors md:grid-cols-[auto_2fr_1fr_1fr_1fr_1fr_1fr_auto] ${
+          isPending ? "opacity-60" : ""
+        }`}
+        onClick={onToggle}
+      >
+        {/* Expand Icon */}
+        <div className="flex w-8 items-center justify-center">
+          {isExpanded ? (
+            <ChevronDown className="text-muted-foreground size-4" />
+          ) : (
+            <ChevronRight className="text-muted-foreground size-4" />
+          )}
+        </div>
+
+        {/* Deployment Name */}
+        <div>
+          <p className="font-semibold">{deployment.templateName}</p>
+        </div>
+
+        {/* Target */}
+        <div>
+          <Badge variant="secondary" className="text-xs">
+            {formatStakeholder(deployment.target_stakeholder)}
+          </Badge>
+        </div>
+
+        {/* Academic Period */}
+        <div className="text-muted-foreground text-sm">
+          {deployment.academic_year} - {formatSemester(deployment.semester)}
+        </div>
+
+        {/* Status */}
+        <div>
+          <Badge
+            variant={
+              deployment.status === "ACTIVE"
+                ? "default"
+                : deployment.status === "SCHEDULED"
+                  ? "secondary"
+                  : deployment.status === "CLOSED"
+                    ? "outline"
+                    : "secondary"
+            }
+            className="text-xs"
+          >
+            {deployment.status.charAt(0) + deployment.status.slice(1).toLowerCase()}
+          </Badge>
+        </div>
+
+        {/* Responses */}
+        <div className="text-muted-foreground text-sm">
+          {deployment.responseCount}/{deployment.assignmentCount}
+        </div>
+
+        {/* Published Date */}
+        <div className="text-muted-foreground text-sm">{formatDate(deployment.created_at)}</div>
+
+        {/* Actions */}
+        <div className="flex justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              onClick={(e) => e.stopPropagation()}
+              render={
+                <div className="hover:bg-muted inline-flex size-8 cursor-pointer items-center justify-center rounded-md">
+                  <MoreVertical className="size-4" />
+                </div>
+              }
+            />
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onToggle()}>
+                <Eye className="mr-2 size-4" />
+                View Details
+              </DropdownMenuItem>
+              {canClose && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startTransition(onClose);
+                    }}
+                  >
+                    <XCircle className="mr-2 size-4" />
+                    Close Deployment
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      <div>
-        <span className="bg-surface-container font-label text-on-surface-variant inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium">
-          {formatStakeholder(deployment.target_stakeholder)}
-        </span>
-      </div>
+      {/* Expanded Details */}
+      {isExpanded && (
+        <div className="border-t px-4 py-4">
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Column 1: Deployment Details */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold">Deployment Details</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Program</span>
+                  <span>
+                    {deployment.programCode} - {deployment.programName}
+                  </span>
+                </div>
+                {deployment.majorName && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Major</span>
+                    <span>{deployment.majorName}</span>
+                  </div>
+                )}
+                {deployment.yearLevelName && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Year Level</span>
+                    <span>{deployment.yearLevelName}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Target</span>
+                  <span>{formatStakeholder(deployment.target_stakeholder)}</span>
+                </div>
+              </div>
+            </div>
 
-      <div className="text-on-surface-variant text-sm">
-        {deployment.academic_year} - {formatSemester(deployment.semester)}
-      </div>
+            {/* Column 2: Response Summary */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold">Response Summary</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total Assignments</span>
+                  <span className="font-medium">{deployment.assignmentCount}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Responses</span>
+                  <span className="font-medium">{deployment.responseCount}</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-muted-foreground flex justify-between text-xs">
+                    <span>Response Rate</span>
+                    <span>{responseRate.toFixed(0)}%</span>
+                  </div>
+                  <div className="bg-muted h-2 overflow-hidden rounded-full">
+                    <div
+                      className="bg-primary h-full transition-all"
+                      style={{ width: `${responseRate}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
 
-      <div className="text-on-surface-variant font-mono text-sm">
-        {formatDate(deployment.created_at)}
-      </div>
-
-      <div>
-        <span
-          className={`font-label inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(deployment.status)}`}
-        >
-          {deployment.status.charAt(0) + deployment.status.slice(1).toLowerCase()}
-        </span>
-      </div>
-
-      <div className="text-on-surface-variant text-sm">
-        {deployment.responseCount}/{deployment.assignmentCount}
-      </div>
-
-      <div className="flex justify-end">
-        <DropdownMenu>
-          <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-7 items-center justify-center rounded-md opacity-0 transition-opacity group-hover:opacity-100">
-            <MoreVertical className="size-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="bottom">
-            <DropdownMenuItem>
-              <Eye className="size-4" />
-              View
-            </DropdownMenuItem>
-            {canClose && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive" onClick={handleClose}>
-                  <XCircle className="size-4" />
-                  Close Deployment
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+            {/* Column 3: Timeline */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold">Timeline</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Published</span>
+                  <span>{formatDate(deployment.created_at)}</span>
+                </div>
+                {deployment.activation_at && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Activation</span>
+                    <span>{formatDate(deployment.activation_at)}</span>
+                  </div>
+                )}
+                {deployment.deadline_at && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Deadline</span>
+                    <span>{formatDate(deployment.deadline_at)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

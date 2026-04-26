@@ -119,6 +119,14 @@ function formatCiloOptionLabel(cilo: { description: string }, index: number) {
   return `CILO ${index + 1}: ${cilo.description}`;
 }
 
+function formatTemplateTypeLabel(type: EvaluationTemplateType): string {
+  return type === "COURSE_BOUND" ? "Course-bound" : "Program-wide";
+}
+
+function formatQuestionTypeLabel(type: QuestionType): string {
+  return type === "likert" ? "Likert" : "Guided Open-Ended";
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function TemplateBuilder({
@@ -703,7 +711,7 @@ export function TemplateBuilder({
               }}
             >
               <SelectTrigger id="template-type">
-                <SelectValue />
+                <SelectValue>{formatTemplateTypeLabel(effectiveTemplateType)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="COURSE_BOUND">Course-bound Evaluation Tool</SelectItem>
@@ -1142,10 +1150,10 @@ function QuestionCard({
           onValueChange={(value) => onChangeType(sectionKey, question.key, value as QuestionType)}
         >
           <SelectTrigger className="w-48">
-            <SelectValue />
+            <SelectValue>{formatQuestionTypeLabel(question.type)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="likert">Likert Scale</SelectItem>
+            <SelectItem value="likert">Likert</SelectItem>
             <SelectItem value="guided_open_ended">Guided Open-Ended</SelectItem>
           </SelectContent>
         </Select>

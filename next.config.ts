@@ -22,7 +22,7 @@ function resolveTailwindcssPackagePath(): string {
 }
 
 const nextConfig: NextConfig = {
-  allowedDevOrigins: ["*.trycloudflare.com"],
+  allowedDevOrigins: ["*.trycloudflare.com", "127.0.0.1"],
   turbopack: {
     resolveAlias: {
       // Absolute alias so Turbopack's CSS @import resolver finds tailwindcss
