@@ -5,7 +5,7 @@ import { TemplateBuilder } from "@/features/instruments/components/template-buil
 import { createProgramHeadTemplateAction } from "@/lib/actions/program-head-template-actions";
 
 export const metadata = {
-  title: "New Template — Program Head | CLOIE",
+  title: "New Template - Program Head | CLOIE",
 };
 
 export default async function ProgramHeadNewToolPage() {
@@ -41,7 +41,11 @@ export default async function ProgramHeadNewToolPage() {
 
       <TemplateBuilder
         onSave={createProgramHeadTemplateAction}
-        programLabel={`${program.code} — ${program.name}`}
+        programLabel={`${program.code} - ${program.name}`}
+        saveSuccessConfig={{
+          redirectTo: "/program-head/tools",
+          toastMessage: "Template saved successfully.",
+        }}
       />
     </div>
   );

@@ -153,7 +153,7 @@ export async function listStakeholderEvaluations(
           deadlineAt: deployment.deadline_at,
           deploymentType: "CENTRAL" as const,
           evaluationId: deployment.id,
-          evaluationTitle: deployment.instrument.template.name,
+          evaluationTitle: deployment.deployment_name ?? deployment.instrument.template.name,
           href,
           progress,
           programLabel: buildProgramLabel({

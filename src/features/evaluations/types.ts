@@ -18,18 +18,14 @@ export type FacultyCourseContext = {
 };
 
 export type FacultyManagedCiloContext = {
-  academicYear: string;
   courseId: string;
   majorId: string | null;
   programId: string;
-  semester: AcademicSemester;
-  term: AcademicTerm;
 };
 
 export type FacultyManagedCiloItem = {
   description: string;
   id: string;
-  order: number;
 };
 
 export type FacultyManagedCiloLoadResult =
@@ -38,7 +34,6 @@ export type FacultyManagedCiloLoadResult =
       success: false;
     }
   | {
-      ciloAcademicTerm: string;
       hasSavedCilos: boolean;
       items: FacultyManagedCiloItem[];
       success: true;
@@ -53,26 +48,30 @@ export type FacultyManagedCiloSaveResult =
       error: string;
       success: false;
     }
-  | {
-      ciloAcademicTerm: string;
+    | {
       items: FacultyManagedCiloItem[];
       success: true;
     };
 
 export type CourseBoundPublicationCiloInput = {
   description: string;
+  id: string;
+};
+
+export type CourseBoundCiloQuestionBindingInput = {
+  ciloId: string;
+  itemKey: string;
+  sectionKey: string;
 };
 
 export type PublishCourseBoundEvaluationInput = {
   academicYear: string;
   activationAt?: Date | null;
-  cilos: CourseBoundPublicationCiloInput[];
-  courseId: string;
   deadlineAt?: Date | null;
-  majorId?: string | null;
-  programId: string;
+  deploymentName: string;
   semester: AcademicSemester;
   term: AcademicTerm;
+  templateId: string;
   yearLevelIds: string[];
 };
 

@@ -125,6 +125,47 @@ describe("buildSubmittedResponseSections", () => {
       },
     ]);
   });
+
+  it("supports current questions[] snapshots when building submitted review sections", () => {
+    expect(
+      buildSubmittedResponseSections({
+        answers: {
+          "section-a:qualitative:remarks": "Very reflective.",
+          "section-a:quantitative:q1": 3,
+        },
+        structureSnapshot: [
+          {
+            key: "section-a",
+            questions: [
+              { key: "q1", prompt: "How clear was the lesson?", type: "likert" },
+              { key: "remarks", prompt: "Additional comments", type: "guided_open_ended" },
+            ],
+            title: "Section A",
+          },
+        ],
+      }),
+    ).toEqual([
+      {
+        description: "",
+        id: "section-a",
+        items: [
+          {
+            answer: 3,
+            itemKey: "q1",
+            kind: "quantitative",
+            prompt: "How clear was the lesson?",
+          },
+          {
+            answer: "Very reflective.",
+            kind: "qualitative",
+            prompt: "Additional comments",
+            promptKey: "remarks",
+          },
+        ],
+        name: "Section A",
+      },
+    ]);
+  });
 });
 
 describe("getStudentSubmittedResponseReview", () => {
@@ -165,6 +206,21 @@ describe("getStudentSubmittedResponseReview", () => {
         courseTitle: "Capstone 1",
         evaluationTitle: "Post-Term CILO Evaluation Tool",
         responseId: "response-1",
+        sections: [
+          {
+            description: "",
+            id: "section-a",
+            items: [
+              {
+                answer: 5,
+                itemKey: "q1",
+                kind: "quantitative",
+                prompt: "Question 1",
+              },
+            ],
+            name: "Section A",
+          },
+        ],
       }),
     );
   });

@@ -144,6 +144,7 @@ export async function submitStudentCourseBoundResponse({
     include: {
       course_bound: {
         include: {
+          cilo_question_bindings: true,
           instrument: true,
         },
       },
@@ -202,14 +203,31 @@ export async function submitStudentCourseBoundResponse({
         return null;
       }
 
+      const ciloBinding = (assignment.course_bound?.cilo_question_bindings ?? []).find(
+        (binding) =>
+          binding.section_key === parsed.sectionKey &&
+          binding.item_key === parsed.itemKey,
+      );
+
       return {
+        cilo_question_binding_id: ciloBinding?.id ?? null,
         item_key: parsed.itemKey,
         rating_value: value,
         response_id: response.id,
         section_key: parsed.sectionKey,
       };
     })
-    .filter((item): item is { item_key: string; rating_value: number; response_id: string; section_key: string } => item !== null);
+    .filter(
+      (
+        item,
+      ): item is {
+        cilo_question_binding_id: string | null;
+        item_key: string;
+        rating_value: number;
+        response_id: string;
+        section_key: string;
+      } => item !== null,
+    );
   const qualitativeItems = Object.entries(answers)
     .map(([answerKey, value]) => {
       const parsed = parseStudentEvaluationAnswerKey(answerKey);

@@ -234,6 +234,7 @@ async function main() {
           title: course.title,
         },
         deadline_at: startOfNextWeek(),
+        deployment_name: "Outline Defense Demo CILO Evaluation",
         faculty_id: faculty.id,
         instrument_version_id: instrumentVersion.id,
         program_id: program.id,

@@ -5,6 +5,11 @@ import { buildStudentEvaluationAnswerKey } from "@/features/responses/answer-key
 type StructureSnapshotSection = {
   key: string;
   description?: string;
+  questions?: Array<{
+    key: string;
+    prompt: string;
+    type: "likert" | "guided_open_ended";
+  }>;
   items?: Array<{
     kind: "quantitative" | "qualitative";
     key: string;
@@ -52,6 +57,37 @@ function isSnapshotSection(value: unknown): value is StructureSnapshotSection {
   return typeof section.key === "string" && typeof section.title === "string";
 }
 
+function getReviewItems(section: StructureSnapshotSection) {
+  if (Array.isArray(section.questions)) {
+    return section.questions.map((question) => ({
+      key: question.key,
+      kind: question.type === "likert" ? ("quantitative" as const) : ("qualitative" as const),
+      prompt: question.prompt,
+    }));
+  }
+
+  if (Array.isArray(section.items)) {
+    return section.items.map((item) => ({
+      key: item.key,
+      kind: item.kind,
+      prompt: item.prompt,
+    }));
+  }
+
+  return [
+    ...(section.quantitative_items ?? []).map((item) => ({
+      key: item.key,
+      kind: "quantitative" as const,
+      prompt: item.prompt,
+    })),
+    ...(section.qualitative_prompts ?? []).map((item) => ({
+      key: item.key,
+      kind: "qualitative" as const,
+      prompt: item.prompt,
+    })),
+  ];
+}
+
 export function buildSubmittedResponseSections({
   answers,
   structureSnapshot,
@@ -64,12 +100,7 @@ export function buildSubmittedResponseSections({
     id: section.key,
     name: section.title,
     description: section.description ?? "",
-    items: (
-      section.items ?? [
-        ...(section.quantitative_items ?? []).map((item) => ({ kind: "quantitative" as const, key: item.key, prompt: item.prompt })),
-        ...(section.qualitative_prompts ?? []).map((item) => ({ kind: "qualitative" as const, key: item.key, prompt: item.prompt })),
-      ]
-    ).map((item) => {
+    items: getReviewItems(section).map((item) => {
       const answerKey = item.kind === "quantitative"
         ? buildStudentEvaluationAnswerKey(section.key, "quantitative", item.key)
         : buildStudentEvaluationAnswerKey(section.key, "qualitative", item.key);
@@ -186,7 +217,9 @@ export async function getStudentSubmittedResponseReview(
   if (response.assignment.course_bound) {
     return {
       courseTitle: response.assignment.course_bound.course.title,
-      evaluationTitle: response.assignment.course_bound.instrument.template.name,
+      evaluationTitle:
+        response.assignment.course_bound.deployment_name ??
+        response.assignment.course_bound.instrument.template.name,
       programLabel:
         response.assignment.course_bound.major?.name ??
         response.assignment.course_bound.program?.name ??
@@ -205,6 +238,7 @@ export async function getStudentSubmittedResponseReview(
     return {
       courseTitle: null,
       evaluationTitle:
+        response.assignment.central_deployment.deployment_name ??
         response.assignment.central_deployment.instrument.template.name,
       programLabel: buildCentralProgramLabel({
         majorName: response.assignment.central_deployment.major?.name ?? null,

@@ -111,9 +111,11 @@ function setupTransaction() {
 
 const baseInput = {
   template_id: "template-1",
-  target_stakeholder: "GRADUATING_STUDENT" as const,
+  deployment_name: "Graduate Exit Evaluation",
+  target_stakeholder: "STUDENT" as const,
   academic_year: "2025-2026",
   semester: "FIRST" as const,
+  year_level_id: "year-4",
 };
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
@@ -188,8 +190,9 @@ describe("publishCentralDeployment", () => {
           { program_id: "program-1" },
           { program_id: null },
         ],
+        template_type: "PROGRAM_WIDE",
       },
-      select: { id: true, name: true, program_id: true },
+      select: { id: true, name: true, program_id: true, template_type: true },
     });
   });
 
@@ -269,7 +272,7 @@ describe("publishCentralDeployment", () => {
 
     const result = await publishCentralDeployment({
       ...baseInput,
-      target_stakeholder: "GRADUATING_STUDENT",
+      target_stakeholder: "STUDENT",
       year_level_id: "year-4",
     });
 
@@ -286,8 +289,9 @@ describe("publishCentralDeployment", () => {
     expect(centralDeploymentCreateMock).toHaveBeenCalledWith({
       data: expect.objectContaining({
         instrument_version_id: "version-1",
+        deployment_name: "Graduate Exit Evaluation",
         program_id: "program-1",
-        target_stakeholder: "GRADUATING_STUDENT",
+        target_stakeholder: "STUDENT",
         academic_year: "2025-2026",
         semester: "FIRST",
         year_level_id: "year-4",
@@ -295,11 +299,10 @@ describe("publishCentralDeployment", () => {
       }),
     });
 
-    // Verify student profile query filters by graduating + program + year_level
+    // Verify student profile query filters by program + year_level
     expect(studentAcademicProfileFindManyMock).toHaveBeenCalledWith({
       where: {
         program_id: "program-1",
-        is_graduating: true,
         year_level_id: "year-4",
       },
       select: { user_id: true },
@@ -331,7 +334,7 @@ describe("publishCentralDeployment", () => {
 
     const result = await publishCentralDeployment({
       ...baseInput,
-      target_stakeholder: "GRADUATING_STUDENT",
+      target_stakeholder: "STUDENT",
       major_id: "major-1",
       year_level_id: "year-4",
     });
@@ -348,7 +351,6 @@ describe("publishCentralDeployment", () => {
     expect(studentAcademicProfileFindManyMock).toHaveBeenCalledWith({
       where: {
         program_id: "program-1",
-        is_graduating: true,
         major_id: "major-1",
         year_level_id: "year-4",
       },
@@ -376,6 +378,7 @@ describe("publishCentralDeployment", () => {
     const result = await publishCentralDeployment({
       ...baseInput,
       target_stakeholder: "ALUMNI",
+      year_level_id: undefined,
     });
 
     expect(result).toEqual({
@@ -422,6 +425,7 @@ describe("publishCentralDeployment", () => {
     const result = await publishCentralDeployment({
       ...baseInput,
       target_stakeholder: "INDUSTRY_PARTNER",
+      year_level_id: undefined,
     });
 
     expect(result).toEqual({
@@ -549,7 +553,7 @@ describe("publishCentralDeployment", () => {
 
     const result = await publishCentralDeployment({
       ...baseInput,
-      target_stakeholder: "GRADUATING_STUDENT",
+      target_stakeholder: "STUDENT",
     });
 
     expect(result).toEqual({

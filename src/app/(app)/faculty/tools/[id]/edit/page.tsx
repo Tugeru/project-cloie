@@ -2,7 +2,11 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { TemplateBuilder } from "@/features/instruments/components/template-builder";
-import { updateProgramHeadTemplateAction } from "@/lib/actions/program-head-template-actions";
+import { listFacultyCourseContextsAction, loadFacultyManagedCilosAction } from "@/lib/actions/course-bound-evaluation-actions";
+import {
+  saveFacultyTemplateDraftAction,
+  validateFacultyTemplatePublishReadinessAction,
+} from "@/lib/actions/faculty-template-actions";
 import { getFacultyTemplate } from "@/features/instruments/services/list-faculty-templates";
 import type { TemplateStructure } from "@/features/instruments/types";
 
@@ -16,6 +20,7 @@ export default async function FacultyEditTemplatePage({
   const { id } = await params;
 
   const template = await getFacultyTemplate(id);
+  const courseContexts = await listFacultyCourseContextsAction();
 
   if (!template) {
     notFound();
@@ -41,12 +46,35 @@ export default async function FacultyEditTemplatePage({
           id: template.id,
           name: template.name,
           description: template.description ?? "",
+          template_type: template.template_type,
           is_active: template.is_active,
           is_faculty_accessible: template.is_faculty_accessible,
+          bound_course_id: template.bound_course_id,
+          bound_major_id: template.bound_major_id,
+          bound_program_id: template.bound_program_id,
           structure: template.structure as unknown as TemplateStructure,
         }}
-        onSave={updateProgramHeadTemplateAction}
+        facultyConfig={{
+          courseContexts,
+          initialBindings: template.template_cilo_question_bindings
+            .filter((binding) => binding.cilo_id)
+            .map((binding) => ({
+              ciloDescriptionSnapshot: binding.cilo_description_snapshot,
+              ciloId: binding.cilo_id!,
+              itemKey: binding.item_key,
+              questionPromptSnapshot: binding.question_prompt_snapshot,
+              sectionKey: binding.section_key,
+            })),
+          loadManagedCilosAction: loadFacultyManagedCilosAction,
+          validatePublishReadinessAction: validateFacultyTemplatePublishReadinessAction,
+        }}
+        onSave={saveFacultyTemplateDraftAction}
         programLabel={programLabel}
+        saveSuccessConfig={{
+          redirectTo: "/faculty/tools",
+          toastMessage: "Template saved successfully.",
+        }}
+        toolsHref="/faculty/tools"
       />
     </div>
   );

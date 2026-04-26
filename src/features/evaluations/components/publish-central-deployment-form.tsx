@@ -24,7 +24,7 @@ interface PublishCentralDeploymentFormProps {
 // ─── Stakeholder Options ─────────────────────────────────────────────────────
 
 const STAKEHOLDER_OPTIONS = [
-  { value: "GRADUATING_STUDENT", label: "Graduating Students" },
+  { value: "STUDENT", label: "Students" },
   { value: "ALUMNI", label: "Alumni" },
   { value: "INDUSTRY_PARTNER", label: "Industry Partners" },
 ] as const;
@@ -44,7 +44,7 @@ export function PublishCentralDeploymentForm({
     preselectedTemplateId ?? "",
   );
   const [targetStakeholder, setTargetStakeholder] = useState<string>(
-    "GRADUATING_STUDENT",
+    "STUDENT",
   );
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -52,7 +52,7 @@ export function PublishCentralDeploymentForm({
 
   const selectedTemplate = templates.find((t) => t.id === selectedTemplateId);
 
-  const showYearLevel = targetStakeholder === "GRADUATING_STUDENT";
+  const showYearLevel = targetStakeholder === "STUDENT";
   const showMajor = majors.length > 0;
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -104,7 +104,19 @@ export function PublishCentralDeploymentForm({
         className="space-y-6 rounded-2xl border border-border bg-surface p-6 shadow-sm"
         onSubmit={handleSubmit}
       >
-        {/* Published Tool Name */}
+        <div className="space-y-2">
+          <Label htmlFor="deployment_name">Deployed Evaluation Name</Label>
+          <Input
+            id="deployment_name"
+            name="deployment_name"
+            placeholder="e.g. BSIT Exit Survey 2026"
+            required
+          />
+          <p className="text-xs text-text-secondary">
+            This is the name respondents and reviewers will see for this publication.
+          </p>
+        </div>
+
         <div className="space-y-2">
           <Label htmlFor="template_id">Evaluation Template</Label>
           {preselectedTemplateId && selectedTemplate ? (
@@ -275,16 +287,17 @@ export function PublishCentralDeploymentForm({
               </div>
             </fieldset>
 
-            {/* Year Level — conditional on GRADUATING_STUDENT */}
+            {/* Year Level is required for student-targeted deployments. */}
             {showYearLevel && yearLevels.length > 0 && (
               <div className="space-y-2">
                 <Label htmlFor="year_level_id">Year Level</Label>
                 <select
                   id="year_level_id"
                   name="year_level_id"
+                  required={showYearLevel}
                   className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
                 >
-                  <option value="">All year levels</option>
+                  <option value="">Select year level</option>
                   {yearLevels.map((yl) => (
                     <option key={yl.id} value={yl.id}>
                       {yl.name}

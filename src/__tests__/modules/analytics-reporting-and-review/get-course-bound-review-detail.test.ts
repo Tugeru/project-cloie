@@ -163,6 +163,7 @@ describe("getCourseBoundReviewDetail", () => {
 
     await expect(getCourseBoundReviewDetail("eval-1")).resolves.toEqual({
       academicYear: "2025-2026",
+      ciloMetrics: [],
       courseTitle: "Capstone 2",
       deadlineAt: new Date("2026-01-10T00:00:00.000Z"),
       evaluationId: "eval-1",

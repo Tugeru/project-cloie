@@ -17,7 +17,10 @@ import { SEMESTER_OPTIONS, TERM_OPTIONS } from "@/lib/constants/academic";
 
 type InitialSelection = Partial<
   FacultyManagedCiloContext & {
+    academicYear: string;
     courseType: FacultyCourseContext["courseType"];
+    semester: string;
+    term: string;
   }
 >;
 
@@ -37,23 +40,6 @@ function createDraftItem(description = "") {
     description,
     id: `draft-${Math.random().toString(36).slice(2, 10)}`,
   };
-}
-
-function buildContextHref(basePath: string, context: FacultyManagedCiloContext, courseType: string) {
-  const params = new URLSearchParams({
-    academicYear: context.academicYear,
-    courseId: context.courseId,
-    courseType,
-    programId: context.programId,
-    semester: context.semester,
-    term: context.term,
-  });
-
-  if (context.majorId) {
-    params.set("majorId", context.majorId);
-  }
-
-  return `${basePath}?${params.toString()}`;
 }
 
 export function FacultyCiloWorkspace({
@@ -142,23 +128,18 @@ export function FacultyCiloWorkspace({
     availableCourses.find((context) => context.courseId === courseId) ?? null;
 
   const contextPayload = useMemo<FacultyManagedCiloContext | null>(() => {
-    if (!programId || !courseId || !academicYear.trim()) {
+    if (!programId || !courseId) {
       return null;
     }
 
     return {
-      academicYear: academicYear.trim(),
       courseId,
       majorId: majorId || selectedCourse?.majorId || null,
       programId,
-      semester,
-      term,
     };
-  }, [academicYear, courseId, majorId, programId, selectedCourse?.majorId, semester, term]);
+  }, [courseId, majorId, programId, selectedCourse?.majorId]);
 
-  const publishHref = contextPayload
-    ? buildContextHref("/faculty/cilo-evaluations/new", contextPayload, courseType)
-    : "/faculty/cilo-evaluations/new";
+  const publishHref = "/faculty/tools";
 
   function resetLoadedState() {
     setError(null);
@@ -240,7 +221,7 @@ export function FacultyCiloWorkspace({
       setIsLoaded(true);
       setSuccessMessage(
         result.items.length > 0
-          ? `Saved ${result.items.length} CILO(s). This course context is ready for publishing.`
+          ? `Saved ${result.items.length} CILO(s). Return to the faculty template builder to bind them to Likert questions before publishing.`
           : "Saved an empty CILO set for this course context.",
       );
     } catch {
@@ -264,8 +245,8 @@ export function FacultyCiloWorkspace({
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Manage CILOs</h1>
         <p className="text-sm text-text-muted">
-          Select a scoped course context, load its saved CILOs, then refine the set
-          before publishing a course-bound evaluation.
+          Select a scoped course context, load its saved CILOs, then refine the set.
+          Faculty now bind these CILOs inside the template builder before publishing.
         </p>
       </div>
 
@@ -427,7 +408,7 @@ export function FacultyCiloWorkspace({
           </Button>
 
           <Button asChild variant="secondary" disabled={!contextPayload || !isLoaded}>
-            <Link href={publishHref}>Go to Publish Flow</Link>
+            <Link href={publishHref}>Open Faculty Tools</Link>
           </Button>
         </div>
       </section>
@@ -442,7 +423,7 @@ export function FacultyCiloWorkspace({
           </div>
           {contextPayload && (
             <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
-              {isLoaded ? "Ready to publish after saving" : "Load context to begin"}
+              {isLoaded ? "Save here, then bind in the template builder" : "Load context to begin"}
             </p>
           )}
         </div>

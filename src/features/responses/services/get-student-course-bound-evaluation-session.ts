@@ -128,7 +128,9 @@ export async function getStudentCourseBoundEvaluationSession(
     assignmentId: assignment.id,
     courseTitle: assignment.course_bound.course.title,
     deadlineAt: assignment.course_bound.deadline_at,
-    evaluationTitle: assignment.course_bound.instrument.template.name,
+    evaluationTitle:
+      assignment.course_bound.deployment_name ??
+      assignment.course_bound.instrument.template.name,
     programLabel: assignment.course_bound.major?.name ?? assignment.course_bound.program.name,
     savedAnswers,
     sections,

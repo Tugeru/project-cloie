@@ -142,7 +142,7 @@ export async function getCourseBoundResponseReview(
     academicYear: evaluation.academic_year,
     courseTitle: evaluation.course.title,
     evaluationId: evaluation.id,
-    evaluationTitle: evaluation.instrument.template.name,
+    evaluationTitle: evaluation.deployment_name ?? evaluation.instrument.template.name,
     overallMean: mean(response.quant_items.map((item) => item.rating_value)),
     programLabel: evaluation.major?.name ?? evaluation.program.name,
     responseId: response.id,

@@ -17,11 +17,14 @@ function formatMean(value: number | null) {
 }
 
 export function CourseBoundReviewTabs({ detail, responseBasePath }: CourseBoundReviewTabsProps) {
+  const ciloMetrics = detail.ciloMetrics ?? [];
+
   return (
     <Tabs defaultValue="overview" className="space-y-4">
       <TabsList variant="line" aria-label="Course-bound review tabs">
         <TabsTrigger value="overview">Overview</TabsTrigger>
         <TabsTrigger value="section-analytics">Section Analytics</TabsTrigger>
+        <TabsTrigger value="cilo-analytics">CILO Analytics</TabsTrigger>
         <TabsTrigger value="responses">Responses</TabsTrigger>
         <TabsTrigger value="word-cloud">Word Cloud</TabsTrigger>
       </TabsList>
@@ -64,6 +67,43 @@ export function CourseBoundReviewTabs({ detail, responseBasePath }: CourseBoundR
             data={section.questions.map((question) => ({ label: question.prompt, value: question.mean }))}
           />
         ))}
+      </TabsContent>
+
+      <TabsContent value="cilo-analytics">
+        <Card>
+          <CardHeader>
+            <CardTitle>CILO Mean Summary</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {ciloMetrics.length === 0 ? (
+              <p className="text-sm text-text-muted">No CILO bindings were saved for this evaluation.</p>
+            ) : (
+              ciloMetrics.map((metric) => (
+                <div
+                  key={metric.bindingId}
+                  className="grid gap-3 rounded-lg border border-border p-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_6rem]"
+                >
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                      {metric.ciloLabel}
+                    </p>
+                    <p className="text-sm text-text">{metric.ciloDescription}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                      Bound Question
+                    </p>
+                    <p className="text-sm text-text">{metric.questionPrompt}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Mean</p>
+                    <p className="text-xl font-semibold">{formatMean(metric.mean)}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
       </TabsContent>
 
       <TabsContent value="responses">

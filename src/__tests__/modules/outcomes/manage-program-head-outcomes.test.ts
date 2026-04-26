@@ -144,7 +144,6 @@ describe("manage-program-head-outcomes", () => {
     const result = await createGO({
       code: "GO-1",
       description: "Critical Thinking",
-      order: 0,
     });
 
     expect(result).toEqual({ success: true, data: { id: GO_ID } });
@@ -152,7 +151,6 @@ describe("manage-program-head-outcomes", () => {
       data: {
         code: "GO-1",
         description: "Critical Thinking",
-        order: 0,
         program_id: PROGRAM_ID,
       },
     });
@@ -203,7 +201,6 @@ describe("manage-program-head-outcomes", () => {
       id: GO_ID,
       code: "GO-1-UPDATED",
       description: "Updated description",
-      order: 1,
     });
 
     expect(result).toEqual({ success: true, data: { id: GO_ID } });
@@ -212,7 +209,6 @@ describe("manage-program-head-outcomes", () => {
       data: {
         code: "GO-1-UPDATED",
         description: "Updated description",
-        order: 1,
       },
     });
   });
@@ -297,7 +293,7 @@ describe("manage-program-head-outcomes", () => {
     const result = await reorderGOs(["go-2", "go-1"]);
 
     expect(result).toEqual({ success: true, data: undefined });
-    expect(transactionMock).toHaveBeenCalled();
+    expect(transactionMock).not.toHaveBeenCalled();
   });
 
   // ─── Auth guards ─────────────────────────────────────────────────────

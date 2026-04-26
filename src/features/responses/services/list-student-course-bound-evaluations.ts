@@ -194,7 +194,7 @@ export async function listStudentCourseBoundEvaluations(): Promise<{
         courseTitle: courseBound.course.title,
         deadlineAt: courseBound.deadline_at,
         evaluationId: assignment.id,
-        evaluationTitle: courseBound.instrument.template.name,
+        evaluationTitle: courseBound.deployment_name ?? courseBound.instrument.template.name,
         href,
         now,
         programLabel: courseBound.major?.name ?? courseBound.program.name,

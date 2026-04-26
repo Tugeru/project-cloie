@@ -4,8 +4,6 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  ArrowDown,
-  ArrowUp,
   Edit,
   ExternalLink,
   Plus,
@@ -16,9 +14,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from "@/components/ui/card";
 import {
   Dialog,
@@ -33,7 +28,6 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   createGOAction,
   deleteGOAction,
-  reorderGOsAction,
   updateGOAction,
 } from "@/lib/actions/program-head-outcome-actions";
 import type { ProgramGOItem } from "../services/manage-program-head-outcomes";
@@ -71,13 +65,11 @@ function StatCard({
 function GOFormDialog({
   mode,
   go,
-  nextOrder,
   open,
   onOpenChange,
 }: {
   mode: GOFormMode;
   go?: ProgramGOItem;
-  nextOrder: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
@@ -151,18 +143,6 @@ function GOFormDialog({
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="order">Display Order</Label>
-            <Input
-              id="order"
-              name="order"
-              type="number"
-              min={0}
-              defaultValue={go?.order ?? nextOrder}
-              required
-            />
-          </div>
-
           <div className="flex justify-end gap-2 pt-2">
             <Button
               type="button"
@@ -198,7 +178,6 @@ export function ProgramHeadOutcomesPage({
 
   const totalGOs = gos.length;
   const withMappings = gos.filter((go) => go._count.cilo_mappings > 0).length;
-  const nextOrder = gos.length > 0 ? Math.max(...gos.map((g) => g.order)) + 1 : 0;
 
   function handleDelete(go: ProgramGOItem) {
     setDeleteError(null);
@@ -211,32 +190,6 @@ export function ProgramHeadOutcomesPage({
       }
 
       setDeletingGO(null);
-      router.refresh();
-    });
-  }
-
-  function handleMoveUp(index: number) {
-    if (index === 0) return;
-    const newOrder = [...gos.map((g) => g.id)];
-    [newOrder[index - 1], newOrder[index]] = [
-      newOrder[index],
-      newOrder[index - 1],
-    ];
-    startTransition(async () => {
-      await reorderGOsAction(newOrder);
-      router.refresh();
-    });
-  }
-
-  function handleMoveDown(index: number) {
-    if (index === gos.length - 1) return;
-    const newOrder = [...gos.map((g) => g.id)];
-    [newOrder[index], newOrder[index + 1]] = [
-      newOrder[index + 1],
-      newOrder[index],
-    ];
-    startTransition(async () => {
-      await reorderGOsAction(newOrder);
       router.refresh();
     });
   }
@@ -299,33 +252,9 @@ export function ProgramHeadOutcomesPage({
             </CardContent>
           </Card>
         ) : (
-          gos.map((go, index) => (
+          gos.map((go) => (
             <Card key={go.id} className="group transition-shadow hover:shadow-md">
               <CardContent className="flex items-start gap-4 p-5">
-                {/* Reorder Buttons */}
-                <div className="flex flex-col gap-1 pt-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    disabled={index === 0 || isPending}
-                    onClick={() => handleMoveUp(index)}
-                    title="Move up"
-                  >
-                    <ArrowUp className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7"
-                    disabled={index === gos.length - 1 || isPending}
-                    onClick={() => handleMoveDown(index)}
-                    title="Move down"
-                  >
-                    <ArrowDown className="h-4 w-4" />
-                  </Button>
-                </div>
-
                 {/* Content */}
                 <div className="flex-1 space-y-2">
                   <div className="flex items-center gap-3">
@@ -380,7 +309,6 @@ export function ProgramHeadOutcomesPage({
       {/* Create Dialog */}
       <GOFormDialog
         mode="create"
-        nextOrder={nextOrder}
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
       />
@@ -390,7 +318,6 @@ export function ProgramHeadOutcomesPage({
         <GOFormDialog
           mode="edit"
           go={editingGO}
-          nextOrder={nextOrder}
           open={!!editingGO}
           onOpenChange={(open) => {
             if (!open) setEditingGO(null);

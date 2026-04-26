@@ -7,6 +7,7 @@
  */
 
 export type QuestionType = "likert" | "guided_open_ended";
+export type EvaluationTemplateType = "PROGRAM_WIDE" | "COURSE_BOUND";
 
 export interface LikertDescriptor {
   value: number;
@@ -24,6 +25,36 @@ export interface TemplateQuestion {
   likertDescriptors?: LikertDescriptor[];
   /** Predefined response options for guided_open_ended questions */
   suggestedResponses?: string[];
+}
+
+export type TemplateCiloQuestionBinding = {
+  ciloDescriptionSnapshot?: string;
+  ciloId: string;
+  itemKey: string;
+  questionPromptSnapshot?: string;
+  sectionKey: string;
+};
+
+export type TemplateLikertQuestionOption = {
+  itemKey: string;
+  prompt: string;
+  sectionKey: string;
+  sectionTitle: string;
+};
+
+export function listTemplateLikertQuestions(
+  structure: TemplateStructure,
+): TemplateLikertQuestionOption[] {
+  return structure.flatMap((section) =>
+    section.questions
+      .filter((question) => question.type === "likert")
+      .map((question) => ({
+        itemKey: question.key,
+        prompt: question.prompt,
+        sectionKey: section.key,
+        sectionTitle: section.title,
+      })),
+  );
 }
 
 export interface TemplateSection {

@@ -158,7 +158,7 @@ export async function listStudentAssignedEvaluations(): Promise<{
         {
           central_deployment: {
             is: {
-              target_stakeholder: "GRADUATING_STUDENT",
+              target_stakeholder: "STUDENT",
             },
           },
         },
@@ -249,7 +249,7 @@ export async function listStudentAssignedEvaluations(): Promise<{
           deadlineAt: courseBound.deadline_at,
           deploymentType: "COURSE_BOUND",
           evaluationId: assignment.id,
-          evaluationTitle: courseBound.instrument.template.name,
+          evaluationTitle: courseBound.deployment_name ?? courseBound.instrument.template.name,
           href,
           now,
           programLabel: courseBound.major?.name ?? courseBound.program.name,
@@ -261,7 +261,7 @@ export async function listStudentAssignedEvaluations(): Promise<{
 
     if (
       assignment.central_deployment &&
-      assignment.central_deployment.target_stakeholder === "GRADUATING_STUDENT"
+      assignment.central_deployment.target_stakeholder === "STUDENT"
     ) {
       const deployment = assignment.central_deployment;
 
@@ -305,7 +305,7 @@ export async function listStudentAssignedEvaluations(): Promise<{
           deadlineAt: deployment.deadline_at,
           deploymentType: "CENTRAL",
           evaluationId: assignment.id,
-          evaluationTitle: deployment.instrument.template.name,
+          evaluationTitle: deployment.deployment_name ?? deployment.instrument.template.name,
           href,
           now,
           programLabel: buildCentralProgramLabel({

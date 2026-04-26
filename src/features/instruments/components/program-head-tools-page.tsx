@@ -1,10 +1,19 @@
 "use client";
 
-import { useTransition, useState } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Copy, Eye, MoreVertical, Pencil, Plus, Send, Trash2, XCircle } from "lucide-react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,16 +21,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import type { ProgramHeadDeploymentItem } from "@/features/evaluations/services/list-program-head-deployments";
+import type { ProgramHeadTemplateItem } from "@/features/instruments/services/manage-program-head-templates";
+import { closeCentralDeploymentAction } from "@/lib/actions/central-deployment-actions";
 import {
+  deleteTemplateAction,
   duplicateTemplateAction,
   toggleTemplateActiveAction,
 } from "@/lib/actions/program-head-template-actions";
-import { closeCentralDeploymentAction } from "@/lib/actions/central-deployment-actions";
-import type { ProgramHeadTemplateItem } from "@/features/instruments/services/manage-program-head-templates";
-import type { ProgramHeadDeploymentItem } from "@/features/evaluations/services/list-program-head-deployments";
-import { MoreVertical, Plus, Copy, Pencil, Send, Eye, XCircle } from "lucide-react";
-
-// Props
 
 type ProgramHeadToolsPageProps = {
   templates: ProgramHeadTemplateItem[];
@@ -29,10 +37,8 @@ type ProgramHeadToolsPageProps = {
   program: { id: string; code: string; name: string };
 };
 
-// Helpers
-
 function formatDate(date: Date | string | null): string {
-  if (!date) return "—";
+  if (!date) return "--";
   const d = typeof date === "string" ? new Date(date) : date;
   return d.toLocaleDateString("en-US", {
     year: "numeric",
@@ -45,7 +51,7 @@ function formatStakeholder(stakeholder: string): string {
   return stakeholder
     .replace(/_/g, " ")
     .toLowerCase()
-    .replace(/\b\w/g, (c) => c.toUpperCase());
+    .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
 function formatSemester(semester: string): string {
@@ -72,8 +78,6 @@ function getStatusColor(status: string): string {
   }
 }
 
-// Main Component
-
 export function ProgramHeadToolsPage({
   templates,
   deployments,
@@ -81,13 +85,10 @@ export function ProgramHeadToolsPage({
 }: ProgramHeadToolsPageProps) {
   return (
     <div className="space-y-8">
-      {/* Page Header */}
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
-          <h1 className="font-headline text-4xl font-bold tracking-tight">
-            Evaluation Tools
-          </h1>
-          <p className="mt-2 font-body text-sm text-on-surface-variant">
+          <h1 className="font-headline text-4xl font-bold tracking-tight">Evaluation Tools</h1>
+          <p className="font-body text-on-surface-variant mt-2 text-sm">
             Manage templates and published deployments for{" "}
             <span className="font-semibold">{program.name}</span>.
           </p>
@@ -107,19 +108,17 @@ export function ProgramHeadToolsPage({
 
           <Button
             render={<Link href="/program-head/tools/new" />}
-            className="shrink-0 bg-primary font-label font-semibold text-on-primary hover:bg-primary-hover"
+            className="bg-primary font-label text-on-primary hover:bg-primary-hover shrink-0 font-semibold"
           >
             <Plus className="size-4" data-icon="inline-start" />
             Create New Template
           </Button>
         </div>
 
-        {/* Templates Tab */}
         <TabsContent value="templates" className="pt-6">
           <TemplatesGrid templates={templates} />
         </TabsContent>
 
-        {/* Published Tab */}
         <TabsContent value="published" className="pt-6">
           <PublishedList deployments={deployments} />
         </TabsContent>
@@ -128,12 +127,10 @@ export function ProgramHeadToolsPage({
   );
 }
 
-// Templates Grid
-
 function TemplatesGrid({ templates }: { templates: ProgramHeadTemplateItem[] }) {
   if (templates.length === 0) {
     return (
-      <div className="rounded-xl border-2 border-dashed border-outline-variant py-16 text-center">
+      <div className="border-outline-variant rounded-xl border-2 border-dashed py-16 text-center">
         <p className="font-body text-on-surface-variant">
           No templates found. Create your first template to get started.
         </p>
@@ -150,13 +147,14 @@ function TemplatesGrid({ templates }: { templates: ProgramHeadTemplateItem[] }) 
   );
 }
 
-// Template Card
-
 function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const isInstitutional = template.program_id === null;
+  const isProgramWide = template.template_type === "PROGRAM_WIDE";
 
   function handleDuplicate() {
     setError(null);
@@ -164,151 +162,180 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
       const result = await duplicateTemplateAction(template.id);
       if (!result.success) {
         setError(result.error);
+        return;
       }
+      router.refresh();
     });
   }
 
   function handleToggleActive() {
     setError(null);
     startTransition(async () => {
-      const result = await toggleTemplateActiveAction(
-        template.id,
-        !template.is_active,
-      );
+      const result = await toggleTemplateActiveAction(template.id, !template.is_active);
       if (!result.success) {
         setError(result.error);
+        return;
       }
+      router.refresh();
+    });
+  }
+
+  function handleConfirmDelete() {
+    setError(null);
+    startTransition(async () => {
+      const result = await deleteTemplateAction(template.id);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      setShowDeleteDialog(false);
+      router.refresh();
     });
   }
 
   return (
-    <div className="group relative flex flex-col rounded-2xl bg-surface-container-lowest p-5 shadow-sm transition-shadow hover:shadow-md">
-      {/* Top row: status + overflow menu */}
-      <div className="mb-3 flex items-center justify-between">
-        <span
-          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-label font-semibold tracking-wide ${
-            template.is_active
-              ? "bg-primary-fixed text-on-primary-fixed"
-              : "bg-surface-container-highest text-on-surface-variant"
-          }`}
-        >
-          {template.is_active ? "Active" : "Inactive"}
-        </span>
+    <>
+      <div className="group bg-surface-container-lowest relative flex flex-col rounded-2xl p-5 shadow-sm transition-shadow hover:shadow-md">
+        <div className="mb-3 flex items-center justify-between">
+          <span
+            className={`font-label inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide ${
+              template.is_active
+                ? "bg-primary-fixed text-on-primary-fixed"
+                : "bg-surface-container-highest text-on-surface-variant"
+            }`}
+          >
+            {template.is_active ? "Active" : "Inactive"}
+          </span>
 
-        {!isInstitutional && (
-          <DropdownMenu>
-            <DropdownMenuTrigger className="inline-flex size-7 items-center justify-center rounded-md text-text-muted opacity-0 transition-opacity hover:bg-surface-muted hover:text-text-primary group-hover:opacity-100">
-              <MoreVertical className="size-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" side="bottom">
-              <DropdownMenuItem onClick={handleToggleActive}>
-                {template.is_active ? "Deactivate" : "Activate"}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => {
-                  // Delete not implemented in this phase
-                }}
-              >
-                Delete
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
-      </div>
+          {!isInstitutional && (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-7 items-center justify-center rounded-md opacity-0 transition-opacity group-hover:opacity-100">
+                <MoreVertical className="size-4" />
+                <span className="sr-only">Actions</span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" side="bottom">
+                <DropdownMenuItem disabled={isPending} onClick={handleToggleActive}>
+                  {template.is_active ? "Deactivate" : "Activate"}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  disabled={isPending}
+                  onClick={() => setShowDeleteDialog(true)}
+                >
+                  <Trash2 className="size-4" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
 
-      {/* Template name + description */}
-      <h3 className="font-headline text-lg font-semibold text-on-surface">
-        {template.name}
-      </h3>
-      <p className="mt-1 line-clamp-2 font-body text-sm text-on-surface-variant">
-        {template.description ?? "No description."}
-      </p>
+        <h3 className="font-headline text-on-surface text-lg font-semibold">{template.name}</h3>
+        <p className="font-body text-on-surface-variant mt-1 line-clamp-2 text-sm">
+          {template.description ?? "No description."}
+        </p>
 
-      {/* Ownership + Faculty Access */}
-      <div className="mt-3 flex flex-wrap items-center gap-2">
-        <span className="text-xs font-label font-semibold uppercase tracking-[0.05em] text-on-surface-variant">
-          {isInstitutional ? "Institutional baseline" : "Program-owned"} •{" "}
-          {template._count.versions} version(s)
-        </span>
-        {template.is_faculty_accessible && (
-          <Badge variant="outline" className="text-xs">
-            Faculty Access
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="font-label text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase">
+            {isInstitutional ? "Institutional baseline" : "Program-owned"} -{" "}
+            {template._count.versions} version(s)
+          </span>
+          <Badge variant="secondary" className="text-xs">
+            {isProgramWide ? "Program-wide" : "Course-bound"}
           </Badge>
-        )}
+          {template.is_faculty_accessible && (
+            <Badge variant="outline" className="text-xs">
+              Faculty Access
+            </Badge>
+          )}
+        </div>
+
+        {error && <p className="text-error mt-2 text-xs font-medium">{error}</p>}
+
+        <div className="mt-4 flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            disabled={isInstitutional || isPending}
+            render={
+              isInstitutional ? undefined : (
+                <Link href={`/program-head/tools/${template.id}/edit`} />
+              )
+            }
+          >
+            <Pencil className="size-3.5" data-icon="inline-start" />
+            Edit
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex-1"
+            disabled={isPending}
+            onClick={handleDuplicate}
+          >
+            <Copy className="size-3.5" data-icon="inline-start" />
+            Duplicate
+          </Button>
+          <Button
+            size="sm"
+            className="bg-primary text-on-primary hover:bg-primary-hover flex-1"
+            disabled={isPending || !isProgramWide}
+            render={
+              isProgramWide ? (
+                <Link href={`/program-head/tools/publish?templateId=${template.id}`} />
+              ) : undefined
+            }
+          >
+            <Send className="size-3.5" data-icon="inline-start" />
+            Publish
+          </Button>
+        </div>
       </div>
 
-      {/* Error message */}
-      {error && (
-        <p className="mt-2 text-xs font-medium text-error">{error}</p>
-      )}
-
-      {/* Action buttons */}
-      <div className="mt-4 flex gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          disabled={isInstitutional || isPending}
-          render={
-            isInstitutional ? undefined : (
-              <Link href={`/program-head/tools/${template.id}/edit`} />
-            )
+      <Dialog
+        open={showDeleteDialog}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowDeleteDialog(false);
           }
-        >
-          <Pencil className="size-3.5" data-icon="inline-start" />
-          Edit
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          className="flex-1"
-          disabled={isPending}
-          onClick={handleDuplicate}
-        >
-          <Copy className="size-3.5" data-icon="inline-start" />
-          Duplicate
-        </Button>
-        <Button
-          size="sm"
-          className="flex-1 bg-primary text-on-primary hover:bg-primary-hover"
-          disabled={isPending}
-          render={
-            <Link
-              href={`/program-head/tools/publish?templateId=${template.id}`}
-            />
-          }
-        >
-          <Send className="size-3.5" data-icon="inline-start" />
-          Publish
-        </Button>
-      </div>
-    </div>
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Template</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete <span className="font-semibold">{template.name}</span>{" "}
+              ({template.code})? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="flex justify-end gap-2 pt-4">
+            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" disabled={isPending} onClick={handleConfirmDelete}>
+              {isPending ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
-// Published List
-
-function PublishedList({
-  deployments,
-}: {
-  deployments: ProgramHeadDeploymentItem[];
-}) {
+function PublishedList({ deployments }: { deployments: ProgramHeadDeploymentItem[] }) {
   if (deployments.length === 0) {
     return (
-      <div className="rounded-xl border-2 border-dashed border-outline-variant py-16 text-center">
-        <p className="font-body text-on-surface-variant">
-          No published tools yet.
-        </p>
+      <div className="border-outline-variant rounded-xl border-2 border-dashed py-16 text-center">
+        <p className="font-body text-on-surface-variant">No published tools yet.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-1">
-      {/* Header row */}
-      <div className="hidden rounded-lg px-4 py-2 text-xs font-label font-semibold uppercase tracking-[0.05em] text-on-surface-variant md:grid md:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto]">
+      <div className="font-label text-on-surface-variant hidden rounded-lg px-4 py-2 text-xs font-semibold tracking-[0.05em] uppercase md:grid md:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto]">
         <span>Published Form</span>
         <span>Target</span>
         <span>Academic Period</span>
@@ -325,18 +352,12 @@ function PublishedList({
   );
 }
 
-// Deployment Row
-
-function DeploymentRow({
-  deployment,
-}: {
-  deployment: ProgramHeadDeploymentItem;
-}) {
+function DeploymentRow({ deployment }: { deployment: ProgramHeadDeploymentItem }) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const canClose =
-    deployment.status === "ACTIVE" || deployment.status === "SCHEDULED";
+  const canClose = deployment.status === "ACTIVE" || deployment.status === "SCHEDULED";
 
   function handleClose() {
     setError(null);
@@ -344,62 +365,52 @@ function DeploymentRow({
       const result = await closeCentralDeploymentAction(deployment.id);
       if (!result.success) {
         setError(result.error);
+        return;
       }
+      router.refresh();
     });
   }
 
   return (
     <div
-      className={`group grid items-center gap-3 rounded-xl px-4 py-3 transition-colors hover:bg-surface-container-low md:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto] ${
+      className={`group hover:bg-surface-container-low grid items-center gap-3 rounded-xl px-4 py-3 transition-colors md:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto] ${
         isPending ? "opacity-60" : ""
       }`}
     >
-      {/* Form title */}
       <div>
-        <p className="font-headline font-semibold text-on-surface">
-          {deployment.templateName}
-        </p>
-        {error && (
-          <p className="mt-0.5 text-xs text-error">{error}</p>
-        )}
+        <p className="font-headline text-on-surface font-semibold">{deployment.templateName}</p>
+        {error && <p className="text-error mt-0.5 text-xs">{error}</p>}
       </div>
 
-      {/* Target stakeholder */}
       <div>
-        <span className="inline-flex items-center rounded-full bg-surface-container px-2 py-0.5 text-xs font-label font-medium text-on-surface-variant">
+        <span className="bg-surface-container font-label text-on-surface-variant inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium">
           {formatStakeholder(deployment.target_stakeholder)}
         </span>
       </div>
 
-      {/* Academic period */}
-      <div className="text-sm text-on-surface-variant">
-        {deployment.academic_year} • {formatSemester(deployment.semester)}
+      <div className="text-on-surface-variant text-sm">
+        {deployment.academic_year} - {formatSemester(deployment.semester)}
       </div>
 
-      {/* Publication date */}
-      <div className="font-mono text-sm text-on-surface-variant">
+      <div className="text-on-surface-variant font-mono text-sm">
         {formatDate(deployment.created_at)}
       </div>
 
-      {/* Status */}
       <div>
         <span
-          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-label font-semibold ${getStatusColor(deployment.status)}`}
+          className={`font-label inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(deployment.status)}`}
         >
-          {deployment.status.charAt(0) +
-            deployment.status.slice(1).toLowerCase()}
+          {deployment.status.charAt(0) + deployment.status.slice(1).toLowerCase()}
         </span>
       </div>
 
-      {/* Assignment / Response counts */}
-      <div className="text-sm text-on-surface-variant">
+      <div className="text-on-surface-variant text-sm">
         {deployment.responseCount}/{deployment.assignmentCount}
       </div>
 
-      {/* Actions */}
       <div className="flex justify-end">
         <DropdownMenu>
-          <DropdownMenuTrigger className="inline-flex size-7 items-center justify-center rounded-md text-text-muted opacity-0 transition-opacity hover:bg-surface-muted hover:text-text-primary group-hover:opacity-100">
+          <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-7 items-center justify-center rounded-md opacity-0 transition-opacity group-hover:opacity-100">
             <MoreVertical className="size-4" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" side="bottom">
@@ -410,10 +421,7 @@ function DeploymentRow({
             {canClose && (
               <>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  variant="destructive"
-                  onClick={handleClose}
-                >
+                <DropdownMenuItem variant="destructive" onClick={handleClose}>
                   <XCircle className="size-4" />
                   Close Deployment
                 </DropdownMenuItem>

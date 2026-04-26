@@ -99,6 +99,9 @@ export async function getCourseBoundReviewDetail(
         },
       },
       course: true,
+      cilo_question_bindings: {
+        orderBy: [{ created_at: "asc" }],
+      },
       instrument: {
         include: {
           template: true,
@@ -161,6 +164,30 @@ export async function getCourseBoundReviewDetail(
       };
     });
 
+  const ciloMetrics = (evaluation.cilo_question_bindings ?? []).map((binding, index) => {
+    const values = submittedResponses
+      .flatMap((response) => response.quant_items)
+      .filter(
+        (entry) =>
+          entry.cilo_question_binding_id === binding.id ||
+          (!entry.cilo_question_binding_id &&
+            entry.section_key === binding.section_key &&
+            entry.item_key === binding.item_key),
+      )
+      .map((entry) => entry.rating_value);
+
+    return {
+      bindingId: binding.id,
+      ciloDescription: binding.cilo_description_snapshot,
+      ciloId: binding.cilo_id,
+      ciloLabel: `CILO ${index + 1}`,
+      itemKey: binding.item_key,
+      mean: mean(values),
+      questionPrompt: binding.question_prompt_snapshot,
+      sectionKey: binding.section_key,
+    };
+  });
+
   const responseCards = submittedResponses
     .map((response) => ({
       overallMean: mean(response.quant_items.map((item) => item.rating_value)),
@@ -172,10 +199,11 @@ export async function getCourseBoundReviewDetail(
 
   return {
     academicYear: evaluation.academic_year,
+    ciloMetrics,
     courseTitle: evaluation.course.title,
     deadlineAt: evaluation.deadline_at,
     evaluationId: evaluation.id,
-    evaluationTitle: evaluation.instrument.template.name,
+    evaluationTitle: evaluation.deployment_name ?? evaluation.instrument.template.name,
     overallMean: mean(allQuantRatings),
     programLabel: evaluation.major?.name ?? evaluation.program.name,
     responseCards,

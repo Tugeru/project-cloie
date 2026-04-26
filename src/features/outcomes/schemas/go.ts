@@ -12,10 +12,6 @@ const goFields = {
     .trim()
     .min(3, "Description must be at least 3 characters.")
     .max(1000, "Description must be 1000 characters or fewer."),
-  order: z.coerce
-    .number()
-    .int("Order must be a whole number.")
-    .min(0, "Order must be 0 or greater."),
 };
 
 export const createGOSchema = z.object(goFields);

@@ -1,21 +1,14 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  AcademicSemester,
-  AcademicTerm,
-  CourseScope,
-} from "@prisma/client";
-
-import { ROLES } from "@/lib/constants/roles";
+import { AcademicSemester, AcademicTerm } from "@prisma/client";
 import { publishCourseBoundEvaluation } from "@/features/evaluations/services/publish-course-bound-evaluation";
+import { ROLES } from "@/lib/constants/roles";
 
 const {
   assignmentCreateManyMock,
-  ciloDeleteManyMock,
-  ciloUpsertMock,
+  bindingCreateManyMock,
   courseBoundEvaluationCreateMock,
-  courseFindFirstMock,
+  getFacultyTemplatePublicationContextMock,
   instrumentVersionFindFirstMock,
-  programFindFirstMock,
   resolveAuthSessionMock,
   studentAcademicProfileFindManyMock,
   targetCreateManyMock,
@@ -23,12 +16,10 @@ const {
   yearLevelFindManyMock,
 } = vi.hoisted(() => ({
   assignmentCreateManyMock: vi.fn(),
-  ciloDeleteManyMock: vi.fn(),
-  ciloUpsertMock: vi.fn(),
+  bindingCreateManyMock: vi.fn(),
   courseBoundEvaluationCreateMock: vi.fn(),
-  courseFindFirstMock: vi.fn(),
+  getFacultyTemplatePublicationContextMock: vi.fn(),
   instrumentVersionFindFirstMock: vi.fn(),
-  programFindFirstMock: vi.fn(),
   resolveAuthSessionMock: vi.fn(),
   studentAcademicProfileFindManyMock: vi.fn(),
   targetCreateManyMock: vi.fn(),
@@ -39,14 +30,8 @@ const {
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
     $transaction: transactionMock,
-    course: {
-      findFirst: courseFindFirstMock,
-    },
     instrumentVersion: {
       findFirst: instrumentVersionFindFirstMock,
-    },
-    program: {
-      findFirst: programFindFirstMock,
     },
     yearLevel: {
       findMany: yearLevelFindManyMock,
@@ -58,19 +43,25 @@ vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
 }));
 
+vi.mock("@/features/instruments/services/manage-faculty-templates", () => ({
+  getFacultyTemplatePublicationContext: getFacultyTemplatePublicationContextMock,
+}));
+
 describe("publishCourseBoundEvaluation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    yearLevelFindManyMock.mockImplementation(async ({ where }) => where.id.in.map((id: string) => ({ id })));
+
+    yearLevelFindManyMock.mockImplementation(async ({ where }) =>
+      where.id.in.map((id: string) => ({ id })),
+    );
 
     transactionMock.mockImplementation(async (callback) =>
       callback({
-        cILO: {
-          deleteMany: ciloDeleteManyMock,
-          upsert: ciloUpsertMock,
-        },
         courseBoundEvaluation: {
           create: courseBoundEvaluationCreateMock,
+        },
+        courseBoundCiloQuestionBinding: {
+          createMany: bindingCreateManyMock,
         },
         courseBoundEvaluationTarget: {
           createMany: targetCreateManyMock,
@@ -91,12 +82,9 @@ describe("publishCourseBoundEvaluation", () => {
     await expect(
       publishCourseBoundEvaluation({
         academicYear: "2026-2027",
-        activationAt: null,
-        cilos: [{ description: "Apply capstone planning fundamentals." }],
-        courseId: "course-1",
-        deadlineAt: new Date("2026-05-30T00:00:00.000Z"),
-        programId: "program-1",
+        deploymentName: "Capstone CILO Evaluation",
         semester: AcademicSemester.FIRST,
+        templateId: "template-1",
         term: AcademicTerm.FIRST_TERM,
         yearLevelIds: ["year-4"],
       }),
@@ -106,48 +94,64 @@ describe("publishCourseBoundEvaluation", () => {
     });
   });
 
-  it("publishes a course-bound evaluation and creates targets and assignments", async () => {
+  it("publishes a course-bound evaluation from the saved faculty template context", async () => {
     resolveAuthSessionMock.mockResolvedValue({
       primaryRole: ROLES.FACULTY,
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });
-    courseFindFirstMock.mockResolvedValue({
-      code: "IT-401",
-      course_scope: CourseScope.PROGRAM_SPECIFIC,
-      id: "course-1",
-      major: null,
-      major_id: null,
-      program: {
-        code: "BSIT",
-        id: "program-1",
-        name: "Bachelor of Science in Information Technology",
+    getFacultyTemplatePublicationContextMock.mockResolvedValue({
+      success: true,
+      data: {
+        bindings: [
+          {
+            ciloDescriptionSnapshot: "Apply capstone planning fundamentals.",
+            ciloId: "cilo-1",
+            itemKey: "q1",
+            questionPromptSnapshot: "I achieved outcome one.",
+            sectionKey: "outcomes",
+          },
+          {
+            ciloDescriptionSnapshot: "Produce a proposal-aligned outline defense artifact.",
+            ciloId: "cilo-2",
+            itemKey: "q2",
+            questionPromptSnapshot: "I achieved outcome two.",
+            sectionKey: "outcomes",
+          },
+        ],
+        cilos: [
+          {
+            description: "Apply capstone planning fundamentals.",
+            id: "cilo-1",
+          },
+          {
+            description: "Produce a proposal-aligned outline defense artifact.",
+            id: "cilo-2",
+          },
+        ],
+        course: {
+          code: "IT-401",
+          courseType: "PROGRAM_SPECIFIC",
+          id: "course-1",
+          majorId: null,
+          majorName: null,
+          programCode: "BSIT",
+          programId: "program-1",
+          programName: "Bachelor of Science in Information Technology",
+          scopeLabel: "BSIT - Shared Program Course",
+          title: "Capstone 1",
+        },
+        majorId: null,
+        programId: "program-1",
+        template: {
+          id: "template-1",
+          name: "Course-Bound CILO Evaluation",
+          structure: [],
+        },
       },
-      program_id: "program-1",
-      title: "Capstone 1",
-    });
-    programFindFirstMock.mockResolvedValue({
-      code: "BSIT",
-      id: "program-1",
-      majors: [],
-      name: "Bachelor of Science in Information Technology",
     });
     instrumentVersionFindFirstMock.mockResolvedValue({
       id: "version-1",
-      template: {
-        code: "CILO_EVAL",
-        name: "Course-Bound CILO Evaluation",
-      },
-    });
-    ciloUpsertMock.mockResolvedValueOnce({
-      description: "Apply capstone planning fundamentals.",
-      id: "cilo-1",
-      order: 1,
-    });
-    ciloUpsertMock.mockResolvedValueOnce({
-      description: "Produce a proposal-aligned outline defense artifact.",
-      id: "cilo-2",
-      order: 2,
     });
     courseBoundEvaluationCreateMock.mockResolvedValue({ id: "evaluation-1" });
     studentAcademicProfileFindManyMock.mockResolvedValue([
@@ -160,14 +164,10 @@ describe("publishCourseBoundEvaluation", () => {
       publishCourseBoundEvaluation({
         academicYear: "2026-2027",
         activationAt: null,
-        cilos: [
-          { description: "Apply capstone planning fundamentals." },
-          { description: "Produce a proposal-aligned outline defense artifact." },
-        ],
-        courseId: "course-1",
         deadlineAt: new Date("2026-05-30T00:00:00.000Z"),
-        programId: "program-1",
+        deploymentName: "Capstone CILO Evaluation",
         semester: AcademicSemester.FIRST,
+        templateId: "template-1",
         term: AcademicTerm.FIRST_TERM,
         yearLevelIds: ["year-4", "year-4", "year-3"],
       }),
@@ -179,52 +179,30 @@ describe("publishCourseBoundEvaluation", () => {
       targetCount: 2,
     });
 
-    expect(courseFindFirstMock).toHaveBeenCalledWith({
+    expect(getFacultyTemplatePublicationContextMock).toHaveBeenCalledWith("template-1");
+    expect(instrumentVersionFindFirstMock).toHaveBeenCalledWith({
       where: {
-        id: "course-1",
         is_active: true,
-      },
-      include: {
-        major: true,
-        program: {
-          select: {
-            code: true,
-            id: true,
-            name: true,
-          },
+        template_id: "template-1",
+        template: {
+          faculty_owner_id: "faculty-1",
+          id: "template-1",
+          is_active: true,
+          template_type: "COURSE_BOUND",
         },
       },
-    });
-    expect(programFindFirstMock).toHaveBeenCalledWith({
-      where: {
-        id: "program-1",
-        is_active: true,
-        faculty_program_affiliations: {
-          some: {
-            faculty_id: "faculty-1",
-            is_active: true,
-          },
-        },
+      orderBy: {
+        version_number: "desc",
       },
-      include: {
-        majors: {
-          where: { is_active: true },
-        },
-      },
-    });
-    expect(ciloDeleteManyMock).toHaveBeenCalledWith({
-      where: {
-        academic_term: "2026-2027|FIRST|FIRST_TERM|program-1",
-        course_id: "course-1",
-        order: {
-          gt: 2,
-        },
+      select: {
+        id: true,
       },
     });
     expect(courseBoundEvaluationCreateMock).toHaveBeenCalledWith({
       data: expect.objectContaining({
         academic_year: "2026-2027",
         course_id: "course-1",
+        deployment_name: "Capstone CILO Evaluation",
         faculty_id: "faculty-1",
         instrument_version_id: "version-1",
         major_id: null,
@@ -232,6 +210,27 @@ describe("publishCourseBoundEvaluation", () => {
         semester: AcademicSemester.FIRST,
         term: AcademicTerm.FIRST_TERM,
       }),
+    });
+    expect(bindingCreateManyMock).toHaveBeenCalledWith({
+      data: [
+        {
+          cilo_description_snapshot: "Apply capstone planning fundamentals.",
+          cilo_id: "cilo-1",
+          course_bound_evaluation_id: "evaluation-1",
+          item_key: "q1",
+          question_prompt_snapshot: "I achieved outcome one.",
+          section_key: "outcomes",
+        },
+        {
+          cilo_description_snapshot:
+            "Produce a proposal-aligned outline defense artifact.",
+          cilo_id: "cilo-2",
+          course_bound_evaluation_id: "evaluation-1",
+          item_key: "q2",
+          question_prompt_snapshot: "I achieved outcome two.",
+          section_key: "outcomes",
+        },
+      ],
     });
     expect(studentAcademicProfileFindManyMock).toHaveBeenCalledWith({
       where: {
@@ -259,45 +258,28 @@ describe("publishCourseBoundEvaluation", () => {
     });
   });
 
-  it("requires a matching major for major-scoped courses", async () => {
+  it("surfaces saved template validation failures", async () => {
     resolveAuthSessionMock.mockResolvedValue({
       primaryRole: ROLES.FACULTY,
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });
-    courseFindFirstMock.mockResolvedValue({
-      code: "MKT301",
-      course_scope: CourseScope.PROGRAM_SPECIFIC,
-      id: "course-1",
-      major: { id: "major-1", name: "Marketing Management" },
-      major_id: "major-1",
-      program: {
-        code: "BSBA",
-        id: "program-1",
-        name: "Bachelor of Science in Business Administration",
-      },
-      program_id: "program-1",
-      title: "Strategic Marketing",
-    });
-    programFindFirstMock.mockResolvedValue({
-      code: "BSBA",
-      id: "program-1",
-      majors: [{ id: "major-1", name: "Marketing Management" }],
-      name: "Bachelor of Science in Business Administration",
+    getFacultyTemplatePublicationContextMock.mockResolvedValue({
+      error: "Every saved CILO must be assigned to one Likert question before publishing.",
+      success: false,
     });
 
     await expect(
       publishCourseBoundEvaluation({
         academicYear: "2026-2027",
-        cilos: [{ description: "CILO 1" }],
-        courseId: "course-1",
-        programId: "program-1",
+        deploymentName: "Capstone CILO Evaluation",
         semester: AcademicSemester.FIRST,
+        templateId: "template-1",
         term: AcademicTerm.FIRST_TERM,
         yearLevelIds: ["year-4"],
       }),
     ).resolves.toEqual({
-      error: "A matching major must be selected for this course.",
+      error: "Every saved CILO must be assigned to one Likert question before publishing.",
       success: false,
     });
   });
@@ -308,37 +290,47 @@ describe("publishCourseBoundEvaluation", () => {
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });
-    courseFindFirstMock.mockResolvedValue({
-      code: "IT-401",
-      course_scope: CourseScope.PROGRAM_SPECIFIC,
-      id: "course-1",
-      major: null,
-      major_id: null,
-      program: {
-        code: "BSIT",
-        id: "program-1",
-        name: "Bachelor of Science in Information Technology",
+    getFacultyTemplatePublicationContextMock.mockResolvedValue({
+      success: true,
+      data: {
+        bindings: [
+          {
+            ciloDescriptionSnapshot: "Apply capstone planning fundamentals.",
+            ciloId: "cilo-1",
+            itemKey: "q1",
+            questionPromptSnapshot: "I achieved outcome one.",
+            sectionKey: "outcomes",
+          },
+        ],
+        cilos: [
+          {
+            description: "Apply capstone planning fundamentals.",
+            id: "cilo-1",
+          },
+        ],
+        course: {
+          code: "IT-401",
+          courseType: "PROGRAM_SPECIFIC",
+          id: "course-1",
+          majorId: null,
+          majorName: null,
+          programCode: "BSIT",
+          programId: "program-1",
+          programName: "Bachelor of Science in Information Technology",
+          scopeLabel: "BSIT - Shared Program Course",
+          title: "Capstone 1",
+        },
+        majorId: null,
+        programId: "program-1",
+        template: {
+          id: "template-1",
+          name: "Course-Bound CILO Evaluation",
+          structure: [],
+        },
       },
-      program_id: "program-1",
-      title: "Capstone 1",
-    });
-    programFindFirstMock.mockResolvedValue({
-      code: "BSIT",
-      id: "program-1",
-      majors: [],
-      name: "Bachelor of Science in Information Technology",
     });
     instrumentVersionFindFirstMock.mockResolvedValue({
       id: "version-1",
-      template: {
-        code: "CILO_EVAL",
-        name: "Course-Bound CILO Evaluation",
-      },
-    });
-    ciloUpsertMock.mockResolvedValue({
-      description: "Apply capstone planning fundamentals.",
-      id: "cilo-1",
-      order: 1,
     });
     transactionMock.mockRejectedValue({
       code: "P2002",
@@ -350,10 +342,9 @@ describe("publishCourseBoundEvaluation", () => {
     await expect(
       publishCourseBoundEvaluation({
         academicYear: "2026-2027",
-        cilos: [{ description: "Apply capstone planning fundamentals." }],
-        courseId: "course-1",
-        programId: "program-1",
+        deploymentName: "Capstone CILO Evaluation",
         semester: AcademicSemester.FIRST,
+        templateId: "template-1",
         term: AcademicTerm.FIRST_TERM,
         yearLevelIds: ["year-4"],
       }),

@@ -17,6 +17,7 @@ export async function publishCentralDeploymentAction(
   formData: FormData,
 ): Promise<ActionResult> {
   const raw: Record<string, unknown> = {
+    deployment_name: formData.get("deployment_name"),
     template_id: formData.get("template_id"),
     target_stakeholder: formData.get("target_stakeholder"),
     academic_year: formData.get("academic_year"),

@@ -5,7 +5,7 @@ import { TemplateBuilder } from "@/features/instruments/components/template-buil
 import { updateProgramHeadTemplateAction } from "@/lib/actions/program-head-template-actions";
 
 export const metadata = {
-  title: "Edit Template — Program Head | CLOIE",
+  title: "Edit Template - Program Head | CLOIE",
 };
 
 interface EditTemplatePageProps {
@@ -57,12 +57,17 @@ export default async function ProgramHeadEditToolPage({
           id: template.id,
           name: template.name,
           description: template.description ?? "",
+          template_type: template.template_type,
           is_active: template.is_active,
           is_faculty_accessible: template.is_faculty_accessible,
           structure: template.structure,
         }}
         onSave={updateProgramHeadTemplateAction}
-        programLabel={`${program.code} — ${program.name}`}
+        programLabel={`${program.code} - ${program.name}`}
+        saveSuccessConfig={{
+          redirectTo: "/program-head/tools",
+          toastMessage: "Template saved successfully.",
+        }}
       />
     </div>
   );

@@ -47,8 +47,13 @@ export const ciloEvalStructure: TemplateStructure = [
   {
     key: "cilo-items",
     title: "Course Intended Learning Outcomes Evaluation",
-    description: "Dynamically generated from the CILOs defined by the faculty member. Each CILO becomes a Likert item at render time via cilos_snapshot.",
-    order: 1, questions: [],
+    description: "Faculty bind each saved CILO to one Likert item before publishing this course-bound tool.",
+    order: 1,
+    questions: [
+      lk("cilo-attainment-1", "I achieved the first course intended learning outcome.", 1, CILO_LK),
+      lk("cilo-attainment-2", "I achieved the second course intended learning outcome.", 2, CILO_LK),
+      lk("cilo-attainment-3", "I achieved the third course intended learning outcome.", 3, CILO_LK),
+    ],
   },
   {
     key: "overall-attainment", title: "Overall Course Outcome Attainment", order: 2,

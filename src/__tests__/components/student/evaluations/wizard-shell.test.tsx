@@ -17,17 +17,27 @@ describe("WizardShell", () => {
       name: "Section 1 Name",
       description: "First part",
       items: [
-        { kind: "quantitative" as const, itemKey: "q1", prompt: "Question 1", scale: [1, 2, 3, 4, 5] }
-      ]
+        {
+          kind: "quantitative" as const,
+          itemKey: "q1",
+          prompt: "Question 1",
+          scale: [1, 2, 3, 4, 5],
+        },
+      ],
     },
     {
       id: "section-2",
       name: "Section 2 Name",
       description: "Second part",
       items: [
-        { kind: "quantitative" as const, itemKey: "q2", prompt: "Question 2", scale: [1, 2, 3, 4, 5] }
-      ]
-    }
+        {
+          kind: "quantitative" as const,
+          itemKey: "q2",
+          prompt: "Question 2",
+          scale: [1, 2, 3, 4, 5],
+        },
+      ],
+    },
   ];
 
   test("renders the wizard shell with sections", () => {
@@ -44,8 +54,16 @@ describe("WizardShell", () => {
     expect(screen.getByText(/Section 1 of 2/i)).toBeDefined();
   });
 
+  test("does not render a save draft button in the evaluation footer", () => {
+    render(<WizardShell assignmentId="test" title="Test Eval" sections={mockSections} />);
+
+    expect(screen.queryByRole("button", { name: /save draft/i })).not.toBeInTheDocument();
+  });
+
   test("saves forward navigation answers using workflow answer keys", async () => {
-    const onSaveDraft = vi.fn().mockResolvedValue({ savedAt: "2026-04-20T10:00:00.000Z", success: true });
+    const onSaveDraft = vi
+      .fn()
+      .mockResolvedValue({ savedAt: "2026-04-20T10:00:00.000Z", success: true });
 
     render(
       <WizardShell
@@ -53,7 +71,7 @@ describe("WizardShell", () => {
         title="Test Eval"
         sections={mockSections}
         onSaveDraft={onSaveDraft}
-      />,
+      />
     );
 
     fireEvent.click(screen.getByRole("radio", { name: /4/i }));
@@ -71,16 +89,16 @@ describe("WizardShell", () => {
   });
 
   test("saves when navigating to the previous section", async () => {
-    const onSaveDraft = vi.fn().mockResolvedValue({ savedAt: "2026-04-20T10:00:00.000Z", success: true });
+    const onSaveDraft = vi
+      .fn()
+      .mockResolvedValue({ savedAt: "2026-04-20T10:00:00.000Z", success: true });
     const sections = [
       mockSections[0],
       {
         id: "section-2",
         name: "Section 2 Name",
         description: "Second part",
-        items: [
-          { kind: "qualitative" as const, promptKey: "remarks", prompt: "Remarks" },
-        ],
+        items: [{ kind: "qualitative" as const, promptKey: "remarks", prompt: "Remarks" }],
       },
     ];
 
@@ -90,7 +108,7 @@ describe("WizardShell", () => {
         title="Test Eval"
         sections={sections}
         onSaveDraft={onSaveDraft}
-      />,
+      />
     );
 
     fireEvent.click(screen.getByRole("radio", { name: /4/i }));
@@ -109,5 +127,135 @@ describe("WizardShell", () => {
         sectionKey: "section-2",
       });
     });
+  });
+
+  test("inserts a suggested response into an empty qualitative answer", () => {
+    render(
+      <WizardShell
+        assignmentId="assignment-1"
+        title="Test Eval"
+        sections={[
+          {
+            id: "section-1",
+            name: "Qualitative Section",
+            description: "Feedback",
+            items: [
+              {
+                kind: "qualitative" as const,
+                promptKey: "remarks",
+                prompt: "Remarks",
+                suggestedResponses: ["It is educational"],
+              },
+            ],
+          },
+        ]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "It is educational" }));
+
+    expect(screen.getByRole("textbox")).toHaveValue("It is educational");
+  });
+
+  test("appends suggested responses to existing qualitative answers with a comma", () => {
+    render(
+      <WizardShell
+        assignmentId="assignment-1"
+        title="Test Eval"
+        sections={[
+          {
+            id: "section-1",
+            name: "Qualitative Section",
+            description: "Feedback",
+            items: [
+              {
+                kind: "qualitative" as const,
+                promptKey: "remarks",
+                prompt: "Remarks",
+                suggestedResponses: ["It is educational"],
+              },
+            ],
+          },
+        ]}
+        initialAnswers={{
+          "section-1:qualitative:remarks": "The course is good",
+        }}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "It is educational" }));
+
+    expect(screen.getByRole("textbox")).toHaveValue("The course is good, It is educational");
+  });
+
+  test("keeps free typing intact after a suggested response is selected", () => {
+    render(
+      <WizardShell
+        assignmentId="assignment-1"
+        title="Test Eval"
+        sections={[
+          {
+            id: "section-1",
+            name: "Qualitative Section",
+            description: "Feedback",
+            items: [
+              {
+                kind: "qualitative" as const,
+                promptKey: "remarks",
+                prompt: "Remarks",
+                suggestedResponses: ["It is educational"],
+              },
+            ],
+          },
+        ]}
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "It is educational" }));
+    fireEvent.change(screen.getByRole("textbox"), {
+      target: { value: "It is educational and practical." },
+    });
+
+    expect(screen.getByRole("textbox")).toHaveValue("It is educational and practical.");
+  });
+
+  test("deduplicates repeated suggested responses and avoids duplicate-key warnings", () => {
+    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    render(
+      <WizardShell
+        assignmentId="assignment-1"
+        title="Test Eval"
+        sections={[
+          {
+            id: "section-1",
+            name: "Qualitative Section",
+            description: "Feedback",
+            items: [
+              {
+                kind: "qualitative" as const,
+                promptKey: "remarks",
+                prompt: "Remarks",
+                suggestedResponses: [
+                  "test response 1",
+                  "test response 2",
+                  "test response 2",
+                  "test response 2 ",
+                ],
+              },
+            ],
+          },
+        ]}
+      />
+    );
+
+    expect(screen.getAllByRole("button", { name: "test response 2" })).toHaveLength(1);
+    expect(
+      consoleErrorSpy.mock.calls.some(([message]) =>
+        String(message).includes("Encountered two children with the same key")
+      )
+    ).toBe(false);
+
+    consoleErrorSpy.mockRestore();
   });
 });

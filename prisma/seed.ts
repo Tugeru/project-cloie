@@ -8,6 +8,7 @@ import {
   CourseScope,
   DeploymentStatus,
   DeploymentType,
+  EvaluationTemplateType,
   InviteStatus,
   Prisma,
   ResponseStatus,
@@ -139,9 +140,13 @@ const ciloEvalStructure: TemplateStructure = [
     key: "cilo-items",
     title: "Course Intended Learning Outcomes Evaluation",
     description:
-      "Dynamically generated from the CILOs defined by the faculty member. Each CILO becomes a Likert item at render time via cilos_snapshot.",
+      "Faculty bind each saved CILO to one Likert item before publishing this course-bound tool.",
     order: 1,
-    questions: [],
+    questions: [
+      lq("cilo-attainment-1", "I achieved the first course intended learning outcome.", 1, CILO_LK),
+      lq("cilo-attainment-2", "I achieved the second course intended learning outcome.", 2, CILO_LK),
+      lq("cilo-attainment-3", "I achieved the third course intended learning outcome.", 3, CILO_LK),
+    ],
   },
   {
     key: "overall-attainment",
@@ -407,12 +412,38 @@ const allUsers = [
 // Helpers
 // ═══════════════════════════════════════════════════════════════════════════════
 
-async function upsertTemplate(code: string, name: string, desc: string, structure: TemplateStructure, facAccess = false) {
+async function upsertTemplate(
+  code: string,
+  name: string,
+  desc: string,
+  structure: TemplateStructure,
+  templateType: EvaluationTemplateType,
+  facAccess = false,
+) {
   const json = structure as unknown as Prisma.InputJsonValue;
   const t = await prisma.instrumentTemplate.upsert({
     where: { code },
-    update: { name, description: desc, structure: json, is_active: true, is_faculty_accessible: facAccess, program_id: null },
-    create: { code, name, description: desc, structure: json, is_active: true, is_faculty_accessible: facAccess, program_id: null },
+    update: {
+      name,
+      description: desc,
+      structure: json,
+      is_active: true,
+      is_faculty_accessible:
+        templateType === EvaluationTemplateType.COURSE_BOUND && facAccess,
+      program_id: null,
+      template_type: templateType,
+    },
+    create: {
+      code,
+      name,
+      description: desc,
+      structure: json,
+      is_active: true,
+      is_faculty_accessible:
+        templateType === EvaluationTemplateType.COURSE_BOUND && facAccess,
+      program_id: null,
+      template_type: templateType,
+    },
   });
   await prisma.instrumentVersion.upsert({
     where: { template_id_version_number: { template_id: t.id, version_number: 1 } },
@@ -496,14 +527,14 @@ async function seedFoundation() {
     { code: "IT301", title: "Web Development and Design", scope: CourseScope.PROGRAM_SPECIFIC, pc: "BSIT" },
     { code: "EDUC101", title: "Foundations of Teaching and Learning", scope: CourseScope.PROGRAM_SPECIFIC, pc: "BSED" },
     { code: "EDUC201", title: "Curriculum Development", scope: CourseScope.PROGRAM_SPECIFIC, pc: "BSED" },
-    { code: "ENG201", title: "Language Across the Curriculum", scope: CourseScope.PROGRAM_SPECIFIC, pc: "BSED", mk: "BSED:English" },
-    { code: "MATH201", title: "Mathematics in the Modern World", scope: CourseScope.PROGRAM_SPECIFIC, pc: "BSED", mk: "BSED:Mathematics" },
+    { code: "ENG201", title: "Language Across the Curriculum", scope: CourseScope.MAJOR_SPECIFIC, pc: "BSED", mk: "BSED:English" },
+    { code: "MATH201", title: "Mathematics in the Modern World", scope: CourseScope.MAJOR_SPECIFIC, pc: "BSED", mk: "BSED:Mathematics" },
     { code: "BEED101", title: "Child and Adolescent Development", scope: CourseScope.PROGRAM_SPECIFIC, pc: "BEED" },
     { code: "BEED201", title: "Inclusive Education", scope: CourseScope.PROGRAM_SPECIFIC, pc: "BEED" },
     { code: "BA101", title: "Introduction to Business", scope: CourseScope.PROGRAM_SPECIFIC, pc: "BSBA" },
-    { code: "MKT301", title: "Strategic Marketing", scope: CourseScope.PROGRAM_SPECIFIC, pc: "BSBA", mk: "BSBA:Marketing Management" },
-    { code: "HRDM302", title: "People Development and Training", scope: CourseScope.PROGRAM_SPECIFIC, pc: "BSBA", mk: "BSBA:Human Resource Development Management" },
-    { code: "FIN303", title: "Financial Analysis and Planning", scope: CourseScope.PROGRAM_SPECIFIC, pc: "BSBA", mk: "BSBA:Financial Management" },
+    { code: "MKT301", title: "Strategic Marketing", scope: CourseScope.MAJOR_SPECIFIC, pc: "BSBA", mk: "BSBA:Marketing Management" },
+    { code: "HRDM302", title: "People Development and Training", scope: CourseScope.MAJOR_SPECIFIC, pc: "BSBA", mk: "BSBA:Human Resource Development Management" },
+    { code: "FIN303", title: "Financial Analysis and Planning", scope: CourseScope.MAJOR_SPECIFIC, pc: "BSBA", mk: "BSBA:Financial Management" },
     { code: "SW101", title: "Introduction to Social Work", scope: CourseScope.PROGRAM_SPECIFIC, pc: "BSSW" },
     { code: "SW201", title: "Community Development Practice", scope: CourseScope.PROGRAM_SPECIFIC, pc: "BSSW" },
     { code: "HM101", title: "Introduction to Hospitality Management", scope: CourseScope.PROGRAM_SPECIFIC, pc: "BSHM" },
@@ -661,34 +692,38 @@ async function seedOutcomes(pMap: Map<string, { id: string; code: string }>, cMa
     const prog = pMap.get(g.pc)!;
     const go = await prisma.gO.upsert({
       where: { program_id_code: { program_id: prog.id, code: g.code } },
-      update: { description: g.desc, order: g.order, is_active: true },
-      create: { code: g.code, description: g.desc, order: g.order, program_id: prog.id },
+      update: { description: g.desc, is_active: true },
+      create: { code: g.code, description: g.desc, program_id: prog.id },
     });
     goMap.set(g.code, go);
   }
 
   // CILOs for courses with evaluations: IT-OD-401 and MKT301
   console.log("  → CILOs...");
-  const academicTerm = "2026-2027|2ND|SECOND_TERM|" + pMap.get("BSIT")!.id;
   const ciloDefsIT = [
-    { courseCode: "IT-OD-401", desc: "Defend the proposed capstone scope and methodology.", order: 1, term: academicTerm, createdBy: U.FAC_BSIT },
-    { courseCode: "IT-OD-401", desc: "Present a coherent research and implementation plan.", order: 2, term: academicTerm, createdBy: U.FAC_BSIT },
-    { courseCode: "IT-OD-401", desc: "Demonstrate technical feasibility of the proposed solution.", order: 3, term: academicTerm, createdBy: U.FAC_BSIT },
+    { courseCode: "IT-OD-401", desc: "Defend the proposed capstone scope and methodology.", order: 1, createdBy: U.FAC_BSIT },
+    { courseCode: "IT-OD-401", desc: "Present a coherent research and implementation plan.", order: 2, createdBy: U.FAC_BSIT },
+    { courseCode: "IT-OD-401", desc: "Demonstrate technical feasibility of the proposed solution.", order: 3, createdBy: U.FAC_BSIT },
   ];
-  const academicTermBSBA = "2026-2027|2ND|SECOND_TERM|" + pMap.get("BSBA")!.id;
   const ciloDefsMKT = [
-    { courseCode: "MKT301", desc: "Develop a comprehensive marketing plan for a real or simulated business.", order: 1, term: academicTermBSBA, createdBy: U.FAC_BSBA },
-    { courseCode: "MKT301", desc: "Analyze market trends and consumer behavior using research methodologies.", order: 2, term: academicTermBSBA, createdBy: U.FAC_BSBA },
+    { courseCode: "MKT301", desc: "Develop a comprehensive marketing plan for a real or simulated business.", order: 1, createdBy: U.FAC_BSBA },
+    { courseCode: "MKT301", desc: "Analyze market trends and consumer behavior using research methodologies.", order: 2, createdBy: U.FAC_BSBA },
   ];
 
   const ciloMap = new Map<string, { id: string; description: string; order: number }[]>();
   for (const cd of [...ciloDefsIT, ...ciloDefsMKT]) {
     const course = cMap.get(cd.courseCode)!;
-    const cilo = await prisma.cILO.upsert({
-      where: { course_id_academic_term_order: { course_id: course.id, academic_term: cd.term, order: cd.order } },
-      update: { description: cd.desc, created_by: cd.createdBy },
-      create: { description: cd.desc, course_id: course.id, order: cd.order, academic_term: cd.term, created_by: cd.createdBy },
+    const existingCilo = await prisma.cILO.findFirst({
+      where: { course_id: course.id, description: cd.desc },
     });
+    const cilo = existingCilo
+      ? await prisma.cILO.update({
+          where: { id: existingCilo.id },
+          data: { description: cd.desc, created_by: cd.createdBy },
+        })
+      : await prisma.cILO.create({
+          data: { description: cd.desc, course_id: course.id, created_by: cd.createdBy },
+        });
     if (!ciloMap.has(cd.courseCode)) ciloMap.set(cd.courseCode, []);
     ciloMap.get(cd.courseCode)!.push({ id: cilo.id, description: cd.desc, order: cd.order });
   }
@@ -726,10 +761,10 @@ async function seedOutcomes(pMap: Map<string, { id: string; code: string }>, cMa
 
 async function seedTemplates() {
   console.log("  → Instrument Templates...");
-  await upsertTemplate("CILO_EVAL", "Course-Bound CILO Evaluation", "Post-term course intended learning outcomes evaluation tool for faculty-managed CILO evaluations.", ciloEvalStructure, true);
-  await upsertTemplate("EXIT_SURVEY", "Graduating Student Exit Survey", "Graduating student exit survey gathering feedback on academic experience, outcomes, facilities, and formation.", exitSurveyStructure);
-  await upsertTemplate("ALUMNI_EVAL", "Alumni Evaluation Tool", "Alumni evaluation tool assessing graduate outcomes attainment, employment readiness, and program satisfaction.", alumniEvalStructure);
-  await upsertTemplate("INDUSTRY_EVAL", "Industry Partner Internship Evaluation Tool", "Industry partner evaluation tool assessing intern knowledge, skills, professional traits, and graduate readiness.", industryEvalStructure);
+  await upsertTemplate("CILO_EVAL", "Course-Bound CILO Evaluation", "Post-term course intended learning outcomes evaluation tool for faculty-managed CILO evaluations.", ciloEvalStructure, EvaluationTemplateType.COURSE_BOUND, true);
+  await upsertTemplate("EXIT_SURVEY", "Graduating Student Exit Survey", "Graduating student exit survey gathering feedback on academic experience, outcomes, facilities, and formation.", exitSurveyStructure, EvaluationTemplateType.PROGRAM_WIDE);
+  await upsertTemplate("ALUMNI_EVAL", "Alumni Evaluation Tool", "Alumni evaluation tool assessing graduate outcomes attainment, employment readiness, and program satisfaction.", alumniEvalStructure, EvaluationTemplateType.PROGRAM_WIDE);
+  await upsertTemplate("INDUSTRY_EVAL", "Industry Partner Internship Evaluation Tool", "Industry partner evaluation tool assessing intern knowledge, skills, professional traits, and graduate readiness.", industryEvalStructure, EvaluationTemplateType.PROGRAM_WIDE);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -760,14 +795,31 @@ async function seedEvaluations(
 
   const cbEval1 = await prisma.courseBoundEvaluation.upsert({
     where: { course_id_academic_year_semester_term: { course_id: itCourse.id, academic_year: "2026-2027", semester: AcademicSemester.SECOND, term: AcademicTerm.SECOND_TERM } },
-    update: { instrument_version_id: ciloVer.id, program_id: bsit.id, major_id: null, faculty_id: U.FAC_BSIT, cilos_snapshot: ciloSnap1, course_info_snapshot: courseSnap1, activation_at: new Date("2026-04-01T08:00:00Z"), deadline_at: new Date("2026-05-31T23:59:00Z"), status: DeploymentStatus.ACTIVE, published_at: new Date("2026-04-01T08:00:00Z") },
-    create: { course_id: itCourse.id, academic_year: "2026-2027", semester: AcademicSemester.SECOND, term: AcademicTerm.SECOND_TERM, instrument_version_id: ciloVer.id, program_id: bsit.id, major_id: null, faculty_id: U.FAC_BSIT, cilos_snapshot: ciloSnap1, course_info_snapshot: courseSnap1, activation_at: new Date("2026-04-01T08:00:00Z"), deadline_at: new Date("2026-05-31T23:59:00Z"), status: DeploymentStatus.ACTIVE, published_at: new Date("2026-04-01T08:00:00Z") },
+    update: { deployment_name: "IT-OD-401 Post-Term CILO Evaluation", instrument_version_id: ciloVer.id, program_id: bsit.id, major_id: null, faculty_id: U.FAC_BSIT, cilos_snapshot: ciloSnap1, course_info_snapshot: courseSnap1, activation_at: new Date("2026-04-01T08:00:00Z"), deadline_at: new Date("2026-05-31T23:59:00Z"), status: DeploymentStatus.ACTIVE, published_at: new Date("2026-04-01T08:00:00Z") },
+    create: { deployment_name: "IT-OD-401 Post-Term CILO Evaluation", course_id: itCourse.id, academic_year: "2026-2027", semester: AcademicSemester.SECOND, term: AcademicTerm.SECOND_TERM, instrument_version_id: ciloVer.id, program_id: bsit.id, major_id: null, faculty_id: U.FAC_BSIT, cilos_snapshot: ciloSnap1, course_info_snapshot: courseSnap1, activation_at: new Date("2026-04-01T08:00:00Z"), deadline_at: new Date("2026-05-31T23:59:00Z"), status: DeploymentStatus.ACTIVE, published_at: new Date("2026-04-01T08:00:00Z") },
   });
 
   await prisma.courseBoundEvaluationTarget.upsert({
     where: { course_bound_evaluation_id_program_id_year_level_id: { course_bound_evaluation_id: cbEval1.id, program_id: bsit.id, year_level_id: y4.id } },
     update: {},
     create: { course_bound_evaluation_id: cbEval1.id, program_id: bsit.id, year_level_id: y4.id },
+  });
+
+  await prisma.courseBoundCiloQuestionBinding.createMany({
+    data: itCilos.map((cilo) => ({
+      cilo_description_snapshot: cilo.description,
+      cilo_id: cilo.id,
+      course_bound_evaluation_id: cbEval1.id,
+      item_key: `cilo-attainment-${cilo.order}`,
+      question_prompt_snapshot:
+        cilo.order === 1
+          ? "I achieved the first course intended learning outcome."
+          : cilo.order === 2
+            ? "I achieved the second course intended learning outcome."
+            : "I achieved the third course intended learning outcome.",
+      section_key: "cilo-items",
+    })),
+    skipDuplicates: true,
   });
 
   // Assign both BSIT students
@@ -785,14 +837,29 @@ async function seedEvaluations(
 
   const cbEval2 = await prisma.courseBoundEvaluation.upsert({
     where: { course_id_academic_year_semester_term: { course_id: mktCourse.id, academic_year: "2026-2027", semester: AcademicSemester.SECOND, term: AcademicTerm.SECOND_TERM } },
-    update: { instrument_version_id: ciloVer.id, program_id: bsba.id, major_id: mktMajor?.id ?? null, faculty_id: U.FAC_BSBA, cilos_snapshot: ciloSnap2, course_info_snapshot: courseSnap2, activation_at: new Date("2026-04-01T08:00:00Z"), deadline_at: new Date("2026-05-31T23:59:00Z"), status: DeploymentStatus.ACTIVE, published_at: new Date("2026-04-01T08:00:00Z") },
-    create: { course_id: mktCourse.id, academic_year: "2026-2027", semester: AcademicSemester.SECOND, term: AcademicTerm.SECOND_TERM, instrument_version_id: ciloVer.id, program_id: bsba.id, major_id: mktMajor?.id ?? null, faculty_id: U.FAC_BSBA, cilos_snapshot: ciloSnap2, course_info_snapshot: courseSnap2, activation_at: new Date("2026-04-01T08:00:00Z"), deadline_at: new Date("2026-05-31T23:59:00Z"), status: DeploymentStatus.ACTIVE, published_at: new Date("2026-04-01T08:00:00Z") },
+    update: { deployment_name: "MKT301 Post-Term CILO Evaluation", instrument_version_id: ciloVer.id, program_id: bsba.id, major_id: mktMajor?.id ?? null, faculty_id: U.FAC_BSBA, cilos_snapshot: ciloSnap2, course_info_snapshot: courseSnap2, activation_at: new Date("2026-04-01T08:00:00Z"), deadline_at: new Date("2026-05-31T23:59:00Z"), status: DeploymentStatus.ACTIVE, published_at: new Date("2026-04-01T08:00:00Z") },
+    create: { deployment_name: "MKT301 Post-Term CILO Evaluation", course_id: mktCourse.id, academic_year: "2026-2027", semester: AcademicSemester.SECOND, term: AcademicTerm.SECOND_TERM, instrument_version_id: ciloVer.id, program_id: bsba.id, major_id: mktMajor?.id ?? null, faculty_id: U.FAC_BSBA, cilos_snapshot: ciloSnap2, course_info_snapshot: courseSnap2, activation_at: new Date("2026-04-01T08:00:00Z"), deadline_at: new Date("2026-05-31T23:59:00Z"), status: DeploymentStatus.ACTIVE, published_at: new Date("2026-04-01T08:00:00Z") },
   });
 
   await prisma.courseBoundEvaluationTarget.upsert({
     where: { course_bound_evaluation_id_program_id_year_level_id: { course_bound_evaluation_id: cbEval2.id, program_id: bsba.id, year_level_id: y4.id } },
     update: {},
     create: { course_bound_evaluation_id: cbEval2.id, program_id: bsba.id, year_level_id: y4.id },
+  });
+
+  await prisma.courseBoundCiloQuestionBinding.createMany({
+    data: mktCilos.map((cilo) => ({
+      cilo_description_snapshot: cilo.description,
+      cilo_id: cilo.id,
+      course_bound_evaluation_id: cbEval2.id,
+      item_key: `cilo-attainment-${cilo.order}`,
+      question_prompt_snapshot:
+        cilo.order === 1
+          ? "I achieved the first course intended learning outcome."
+          : "I achieved the second course intended learning outcome.",
+      section_key: "cilo-items",
+    })),
+    skipDuplicates: true,
   });
 
   // Assign BSBA students
@@ -803,18 +870,18 @@ async function seedEvaluations(
   // ── Central Deployments ──────────────────────────────────────────────
   console.log("  → Central deployments...");
   const centralDefs = [
-    { id: D.BSIT_EXIT, verId: exitVer.id, pid: bsit.id, target: TargetStakeholder.GRADUATING_STUDENT, ylId: y4.id },
-    { id: D.BSIT_ALUMNI, verId: alumVer.id, pid: bsit.id, target: TargetStakeholder.ALUMNI, ylId: null as string | null },
-    { id: D.BSIT_IND, verId: indVer.id, pid: bsit.id, target: TargetStakeholder.INDUSTRY_PARTNER, ylId: null },
-    { id: D.BSHM_EXIT, verId: exitVer.id, pid: bshm.id, target: TargetStakeholder.GRADUATING_STUDENT, ylId: y4.id },
-    { id: D.BSHM_IND, verId: indVer.id, pid: bshm.id, target: TargetStakeholder.INDUSTRY_PARTNER, ylId: null },
+    { id: D.BSIT_EXIT, name: "BSIT Graduate Exit Evaluation", verId: exitVer.id, pid: bsit.id, target: TargetStakeholder.STUDENT, ylId: y4.id },
+    { id: D.BSIT_ALUMNI, name: "BSIT Alumni Evaluation", verId: alumVer.id, pid: bsit.id, target: TargetStakeholder.ALUMNI, ylId: null as string | null },
+    { id: D.BSIT_IND, name: "BSIT Industry Partner Evaluation", verId: indVer.id, pid: bsit.id, target: TargetStakeholder.INDUSTRY_PARTNER, ylId: null },
+    { id: D.BSHM_EXIT, name: "BSHM Graduate Exit Evaluation", verId: exitVer.id, pid: bshm.id, target: TargetStakeholder.STUDENT, ylId: y4.id },
+    { id: D.BSHM_IND, name: "BSHM Industry Partner Evaluation", verId: indVer.id, pid: bshm.id, target: TargetStakeholder.INDUSTRY_PARTNER, ylId: null },
   ];
 
   for (const cd of centralDefs) {
     await prisma.centralDeployment.upsert({
       where: { id: cd.id },
-      update: { instrument_version_id: cd.verId, program_id: cd.pid, major_id: null, target_stakeholder: cd.target, academic_year: "2026-2027", semester: AcademicSemester.SECOND, activation_at: new Date("2026-04-15T08:00:00Z"), deadline_at: new Date("2026-06-01T23:59:00Z"), status: DeploymentStatus.ACTIVE, year_level_id: cd.ylId },
-      create: { id: cd.id, instrument_version_id: cd.verId, program_id: cd.pid, major_id: null, target_stakeholder: cd.target, academic_year: "2026-2027", semester: AcademicSemester.SECOND, activation_at: new Date("2026-04-15T08:00:00Z"), deadline_at: new Date("2026-06-01T23:59:00Z"), status: DeploymentStatus.ACTIVE, year_level_id: cd.ylId },
+      update: { deployment_name: cd.name, instrument_version_id: cd.verId, program_id: cd.pid, major_id: null, target_stakeholder: cd.target, academic_year: "2026-2027", semester: AcademicSemester.SECOND, activation_at: new Date("2026-04-15T08:00:00Z"), deadline_at: new Date("2026-06-01T23:59:00Z"), status: DeploymentStatus.ACTIVE, year_level_id: cd.ylId },
+      create: { id: cd.id, deployment_name: cd.name, instrument_version_id: cd.verId, program_id: cd.pid, major_id: null, target_stakeholder: cd.target, academic_year: "2026-2027", semester: AcademicSemester.SECOND, activation_at: new Date("2026-04-15T08:00:00Z"), deadline_at: new Date("2026-06-01T23:59:00Z"), status: DeploymentStatus.ACTIVE, year_level_id: cd.ylId },
     });
   }
 
@@ -907,9 +974,9 @@ async function seedResponses(cbEval1Id: string, cbEval2Id: string) {
   });
   await seedQuantItems(resp1.id, [
     // cilo-items section (dynamic CILOs mapped by order)
-    { sk: "cilo-items", ik: "cilo-1", val: 5 },
-    { sk: "cilo-items", ik: "cilo-2", val: 4 },
-    { sk: "cilo-items", ik: "cilo-3", val: 4 },
+    { sk: "cilo-items", ik: "cilo-attainment-1", val: 5 },
+    { sk: "cilo-items", ik: "cilo-attainment-2", val: 4 },
+    { sk: "cilo-items", ik: "cilo-attainment-3", val: 4 },
     // overall-attainment section
     { sk: "overall-attainment", ik: "overall-attainment-1", val: 4 },
     // facilities section
@@ -939,8 +1006,8 @@ async function seedResponses(cbEval1Id: string, cbEval2Id: string) {
   });
   // Draft: only partial items saved
   await seedQuantItems(resp2.id, [
-    { sk: "cilo-items", ik: "cilo-1", val: 4 },
-    { sk: "cilo-items", ik: "cilo-2", val: 3 },
+    { sk: "cilo-items", ik: "cilo-attainment-1", val: 4 },
+    { sk: "cilo-items", ik: "cilo-attainment-2", val: 3 },
   ]);
 
   // ── 3. BSBA Course-Bound: STU_BSBA → SUBMITTED ──────────────────────
@@ -957,8 +1024,8 @@ async function seedResponses(cbEval1Id: string, cbEval2Id: string) {
     submittedAt: new Date("2026-04-22T10:15:00Z"),
   });
   await seedQuantItems(resp3.id, [
-    { sk: "cilo-items", ik: "cilo-1", val: 5 },
-    { sk: "cilo-items", ik: "cilo-2", val: 4 },
+    { sk: "cilo-items", ik: "cilo-attainment-1", val: 5 },
+    { sk: "cilo-items", ik: "cilo-attainment-2", val: 4 },
     { sk: "overall-attainment", ik: "overall-attainment-1", val: 5 },
     { sk: "facilities", ik: "facilities-1", val: 4 },
     { sk: "facilities", ik: "facilities-2", val: 4 },

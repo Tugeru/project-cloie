@@ -63,6 +63,7 @@ export async function listFacultyCourseContexts(): Promise<FacultyCourseContext[
   for (const affiliation of affiliations) {
     for (const course of courses) {
       const isGeneralEducation = course.course_scope === CourseScope.GENERAL_EDUCATION;
+      const isMajorSpecific = course.course_scope === CourseScope.MAJOR_SPECIFIC || Boolean(course.major_id);
       const isProgramMatch = course.program_id === affiliation.program_id;
 
       if (!isGeneralEducation && !isProgramMatch) {
@@ -73,7 +74,7 @@ export async function listFacultyCourseContexts(): Promise<FacultyCourseContext[
         courseCode: course.code,
         courseId: course.id,
         courseTitle: course.title,
-        courseType: course.course_scope,
+        courseType: isMajorSpecific ? CourseScope.MAJOR_SPECIFIC : course.course_scope,
         majorId: course.major_id,
         majorName: course.major?.name ?? null,
         programCode: affiliation.program.code,
@@ -81,7 +82,7 @@ export async function listFacultyCourseContexts(): Promise<FacultyCourseContext[
         programName: affiliation.program.name,
         scopeLabel: isGeneralEducation
           ? `${affiliation.program.code} - General Education`
-          : course.major?.name
+          : isMajorSpecific && course.major?.name
             ? `${affiliation.program.code} - ${course.major.name}`
             : `${affiliation.program.code} - Shared Program Course`,
       });

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { ToastProvider } from "@/components/ui/toast";
 
 const manrope = Manrope({
   variable: "--font-heading",
@@ -52,7 +53,10 @@ export default function RootLayout({
       className={cn("h-full", manrope.variable, inter.variable, "font-sans")}
       suppressHydrationWarning
     >
-      <body suppressHydrationWarning className="min-h-full flex flex-col antialiased">{children}</body>
+      <body suppressHydrationWarning className="flex min-h-full flex-col antialiased">
+        {children}
+        <ToastProvider />
+      </body>
     </html>
   );
 }

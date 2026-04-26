@@ -37,7 +37,7 @@ describe("listStudentAssignedEvaluations", () => {
           major: { name: "Software Engineering" },
           program: { code: "BSIT", name: "Information Technology" },
           status: "ACTIVE",
-          target_stakeholder: "GRADUATING_STUDENT",
+          target_stakeholder: "STUDENT",
           year_level: { name: "4th Year" },
         },
         course_bound: null,

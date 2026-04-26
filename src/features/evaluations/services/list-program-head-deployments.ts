@@ -117,7 +117,7 @@ export async function listProgramHeadDeployments(): Promise<
   // 5. Map to typed result with counts
   const deployments: ProgramHeadDeploymentItem[] = rawDeployments.map((d) => ({
     id: d.id,
-    templateName: d.instrument.template.name,
+    templateName: d.deployment_name ?? d.instrument.template.name,
     templateId: d.instrument.template.id,
     programName: d.program?.name ?? null,
     programCode: d.program?.code ?? null,

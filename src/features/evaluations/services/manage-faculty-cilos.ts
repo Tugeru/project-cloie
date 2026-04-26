@@ -9,15 +9,6 @@ import type {
   FacultyManagedCiloSaveResult,
 } from "../types";
 
-function buildFacultyCiloAcademicTerm({
-  academicYear,
-  programId,
-  semester,
-  term,
-}: FacultyManagedCiloContext) {
-  return `${academicYear.trim()}|${semester}|${term}|${programId}`;
-}
-
 async function assertFacultyManagedCiloScope(
   context: FacultyManagedCiloContext,
 ): Promise<{ courseId: string; majorId: string | null; programId: string } | null> {
@@ -53,13 +44,6 @@ export async function loadFacultyManagedCilos(
     };
   }
 
-  if (!context.academicYear.trim()) {
-    return {
-      error: "Academic year is required.",
-      success: false,
-    };
-  }
-
   const scopedContext = await assertFacultyManagedCiloScope(context);
 
   if (!scopedContext) {
@@ -69,22 +53,18 @@ export async function loadFacultyManagedCilos(
     };
   }
 
-  const ciloAcademicTerm = buildFacultyCiloAcademicTerm(context);
   const cilos = await prisma.cILO.findMany({
     where: {
-      academic_term: ciloAcademicTerm,
       course_id: scopedContext.courseId,
     },
-    orderBy: { order: "asc" },
+    orderBy: { created_at: "asc" },
     select: {
       description: true,
       id: true,
-      order: true,
     },
   });
 
   return {
-    ciloAcademicTerm,
     hasSavedCilos: cilos.length > 0,
     items: cilos,
     success: true,
@@ -103,13 +83,6 @@ export async function saveFacultyManagedCilos(
     };
   }
 
-  if (!input.academicYear.trim()) {
-    return {
-      error: "Academic year is required.",
-      success: false,
-    };
-  }
-
   const scopedContext = await assertFacultyManagedCiloScope(input);
 
   if (!scopedContext) {
@@ -119,24 +92,20 @@ export async function saveFacultyManagedCilos(
     };
   }
 
-  const ciloAcademicTerm = buildFacultyCiloAcademicTerm(input);
   const normalizedItems = input.items
     .map((item) => item.description.trim())
     .filter((description) => description.length > 0)
-    .map((description, index) => ({
-      academic_term: ciloAcademicTerm,
+    .map((description) => ({
       course_id: scopedContext.courseId,
       created_by: authSession.userId,
       description,
-      order: index + 1,
     }));
 
   await prisma.$transaction(async (tx) => {
-    await tx.cILO.deleteMany({
-      where: {
-        academic_term: ciloAcademicTerm,
-        course_id: scopedContext.courseId,
-      },
+      await tx.cILO.deleteMany({
+        where: {
+          course_id: scopedContext.courseId,
+        },
     });
 
     if (normalizedItems.length > 0) {
@@ -148,22 +117,17 @@ export async function saveFacultyManagedCilos(
 
   const items = await prisma.cILO.findMany({
     where: {
-      academic_term: ciloAcademicTerm,
       course_id: scopedContext.courseId,
     },
-    orderBy: { order: "asc" },
+    orderBy: { created_at: "asc" },
     select: {
       description: true,
       id: true,
-      order: true,
     },
   });
 
   return {
-    ciloAcademicTerm,
     items,
     success: true,
   };
 }
-
-export { buildFacultyCiloAcademicTerm };

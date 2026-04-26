@@ -87,7 +87,7 @@ export async function listCourseBoundReviewItems(): Promise<CourseBoundReviewLis
       courseTitle: evaluation.course.title,
       deadlineAt: evaluation.deadline_at,
       evaluationId: evaluation.id,
-      evaluationTitle: evaluation.instrument.template.name,
+      evaluationTitle: evaluation.deployment_name ?? evaluation.instrument.template.name,
       overallMean: mean(quantRatings),
       programLabel: evaluation.major?.name ?? evaluation.program.name,
       responseCount: submittedResponses.length,

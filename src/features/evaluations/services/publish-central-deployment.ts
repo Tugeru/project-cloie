@@ -2,7 +2,12 @@ import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import type { PublishCentralDeploymentInput } from "../schemas/central-deployment";
-import { DeploymentStatus, type AcademicSemester, type TargetStakeholder } from "@prisma/client";
+import {
+  DeploymentStatus,
+  EvaluationTemplateType,
+  type AcademicSemester,
+  type TargetStakeholder,
+} from "@prisma/client";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -52,6 +57,20 @@ export async function publishCentralDeployment(
     };
   }
 
+  if (!input.deployment_name.trim()) {
+    return {
+      success: false,
+      error: "Deployment name is required.",
+    };
+  }
+
+  if (input.target_stakeholder === "STUDENT" && !input.year_level_id) {
+    return {
+      success: false,
+      error: "Year level is required when publishing to students.",
+    };
+  }
+
   // 2. Resolve PH's program assignment
   const phAssignment = await prisma.programHeadAssignment.findFirst({
     where: {
@@ -79,8 +98,9 @@ export async function publishCentralDeployment(
         { program_id: programId },
         { program_id: null },
       ],
+      template_type: EvaluationTemplateType.PROGRAM_WIDE,
     },
-    select: { id: true, name: true, program_id: true },
+    select: { id: true, name: true, program_id: true, template_type: true },
   });
 
   if (!template) {
@@ -129,6 +149,7 @@ export async function publishCentralDeployment(
       target_stakeholder: input.target_stakeholder as TargetStakeholder,
       academic_year: input.academic_year,
       semester: input.semester as AcademicSemester,
+      year_level_id: input.year_level_id ?? null,
     },
     select: { id: true },
   });
@@ -148,6 +169,7 @@ export async function publishCentralDeployment(
       const deployment = await tx.centralDeployment.create({
         data: {
           instrument_version_id: latestVersion.id,
+          deployment_name: input.deployment_name,
           program_id: programId,
           major_id: input.major_id ?? null,
           year_level_id: input.year_level_id ?? null,
@@ -163,19 +185,14 @@ export async function publishCentralDeployment(
       // 8b. Create EvaluationAssignment records for target respondents
       let respondentIds: string[] = [];
 
-      if (input.target_stakeholder === "GRADUATING_STUDENT") {
-        // Find students with is_graduating = true in PH's program
+      if (input.target_stakeholder === "STUDENT") {
         const whereClause: Record<string, unknown> = {
           program_id: programId,
-          is_graduating: true,
+          year_level_id: input.year_level_id,
         };
 
         if (input.major_id) {
           whereClause.major_id = input.major_id;
-        }
-
-        if (input.year_level_id) {
-          whereClause.year_level_id = input.year_level_id;
         }
 
         const studentProfiles = await tx.studentAcademicProfile.findMany({

@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { EvaluationTemplateType, Prisma } from "@prisma/client";
 import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
@@ -10,15 +10,14 @@ import type { TemplateStructure } from "../types";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type ServiceResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 export type ProgramHeadTemplateItem = {
   id: string;
   code: string;
   name: string;
   description: string | null;
+  template_type: EvaluationTemplateType;
   structure: unknown;
   is_active: boolean;
   is_faculty_accessible: boolean;
@@ -45,14 +44,14 @@ export type ListProgramHeadTemplatesResult = {
 function isUniqueConstraintError(error: unknown): boolean {
   return Boolean(
     error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error as { code?: string }).code === "P2002",
+    typeof error === "object" &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
   );
 }
 
 async function resolveAndValidatePHScope(
-  userId: string,
+  userId: string
 ): Promise<ServiceResult<{ programIds: string[] }>> {
   const assignments = await prisma.programHeadAssignment.findMany({
     where: { program_head_id: userId, is_active: true },
@@ -78,10 +77,7 @@ function slugify(text: string): string {
     .replace(/^-|-$/g, "");
 }
 
-function generateTemplateCode(
-  programCode: string,
-  templateName: string,
-): string {
+function generateTemplateCode(programCode: string, templateName: string): string {
   const slug = slugify(templateName).toUpperCase().replace(/-/g, "_");
   return `${programCode}_${slug}`.substring(0, 50);
 }
@@ -170,6 +166,7 @@ export async function listProgramHeadTemplates(): Promise<
     code: t.code,
     name: t.name,
     description: t.description,
+    template_type: t.template_type,
     structure: t.structure,
     is_active: t.is_active,
     is_faculty_accessible: t.is_faculty_accessible,
@@ -187,7 +184,7 @@ export async function listProgramHeadTemplates(): Promise<
 // ─── Create Template ─────────────────────────────────────────────────────────
 
 export async function createProgramHeadTemplate(
-  input: CreateProgramHeadTemplateInput,
+  input: CreateProgramHeadTemplateInput
 ): Promise<ServiceResult<{ id: string }>> {
   const authResult = await requirePHSession();
 
@@ -216,9 +213,12 @@ export async function createProgramHeadTemplate(
           name: input.name,
           description: input.description ?? null,
           is_active: true,
-          is_faculty_accessible: input.is_faculty_accessible,
+          is_faculty_accessible:
+            input.template_type === EvaluationTemplateType.COURSE_BOUND &&
+            input.is_faculty_accessible,
           program_id: programId,
           structure: input.structure as unknown as Prisma.InputJsonValue,
+          template_type: input.template_type,
         },
       });
 
@@ -226,8 +226,7 @@ export async function createProgramHeadTemplate(
         data: {
           template_id: createdTemplate.id,
           version_number: 1,
-          structure_snapshot:
-            input.structure as unknown as Prisma.InputJsonValue,
+          structure_snapshot: input.structure as unknown as Prisma.InputJsonValue,
           is_active: true,
         },
       });
@@ -251,7 +250,7 @@ export async function createProgramHeadTemplate(
 // ─── Update Template ─────────────────────────────────────────────────────────
 
 export async function updateProgramHeadTemplate(
-  input: UpdateProgramHeadTemplateInput,
+  input: UpdateProgramHeadTemplateInput
 ): Promise<ServiceResult<{ id: string }>> {
   const authResult = await requirePHSession();
 
@@ -278,8 +277,7 @@ export async function updateProgramHeadTemplate(
   if (template.program_id === null) {
     return {
       success: false,
-      error:
-        "Institutional baseline templates cannot be modified by Program Heads.",
+      error: "Institutional baseline templates cannot be modified by Program Heads.",
     };
   }
 
@@ -296,10 +294,7 @@ export async function updateProgramHeadTemplate(
     const hasDeployments = await prisma.instrumentVersion.findFirst({
       where: {
         template_id: input.id,
-        OR: [
-          { course_bounds: { some: {} } },
-          { central_insts: { some: {} } },
-        ],
+        OR: [{ course_bounds: { some: {} } }, { central_insts: { some: {} } }],
       },
       select: { id: true },
     });
@@ -320,8 +315,11 @@ export async function updateProgramHeadTemplate(
           data: {
             name: input.name,
             description: input.description ?? null,
-            is_faculty_accessible: input.is_faculty_accessible,
+            is_faculty_accessible:
+              input.template_type === EvaluationTemplateType.COURSE_BOUND &&
+              input.is_faculty_accessible,
             structure: input.structure as unknown as Prisma.InputJsonValue,
+            template_type: input.template_type,
           },
         });
 
@@ -329,8 +327,7 @@ export async function updateProgramHeadTemplate(
           data: {
             template_id: input.id,
             version_number: nextVersion,
-            structure_snapshot:
-              input.structure as unknown as Prisma.InputJsonValue,
+            structure_snapshot: input.structure as unknown as Prisma.InputJsonValue,
             is_active: true,
           },
         });
@@ -343,8 +340,11 @@ export async function updateProgramHeadTemplate(
           data: {
             name: input.name,
             description: input.description ?? null,
-            is_faculty_accessible: input.is_faculty_accessible,
+            is_faculty_accessible:
+              input.template_type === EvaluationTemplateType.COURSE_BOUND &&
+              input.is_faculty_accessible,
             structure: input.structure as unknown as Prisma.InputJsonValue,
+            template_type: input.template_type,
           },
         });
 
@@ -359,8 +359,7 @@ export async function updateProgramHeadTemplate(
           await tx.instrumentVersion.update({
             where: { id: latestVersion.id },
             data: {
-              structure_snapshot:
-                input.structure as unknown as Prisma.InputJsonValue,
+              structure_snapshot: input.structure as unknown as Prisma.InputJsonValue,
             },
           });
         }
@@ -383,7 +382,7 @@ export async function updateProgramHeadTemplate(
 // ─── Duplicate Template ──────────────────────────────────────────────────────
 
 export async function duplicateTemplate(
-  templateId: string,
+  templateId: string
 ): Promise<ServiceResult<{ id: string }>> {
   const authResult = await requirePHSession();
 
@@ -408,6 +407,7 @@ export async function duplicateTemplate(
       name: true,
       description: true,
       structure: true,
+      template_type: true,
       is_faculty_accessible: true,
       program_id: true,
     },
@@ -427,10 +427,8 @@ export async function duplicateTemplate(
 
   const randomSuffix = Math.random().toString(36).substring(2, 6);
   const newName = `${source.name} (Copy)`;
-  const newCode = `${generateTemplateCode(program.code, source.name)}-COPY-${randomSuffix}`.substring(
-    0,
-    50,
-  );
+  const newCode =
+    `${generateTemplateCode(program.code, source.name)}-COPY-${randomSuffix}`.substring(0, 50);
 
   try {
     const template = await prisma.$transaction(async (tx) => {
@@ -440,9 +438,12 @@ export async function duplicateTemplate(
           name: newName,
           description: source.description,
           is_active: true,
-          is_faculty_accessible: source.is_faculty_accessible,
+          is_faculty_accessible:
+            source.template_type === EvaluationTemplateType.COURSE_BOUND &&
+            source.is_faculty_accessible,
           program_id: programId,
           structure: source.structure ?? ([] as Prisma.InputJsonValue),
+          template_type: source.template_type,
         },
       });
 
@@ -450,8 +451,7 @@ export async function duplicateTemplate(
         data: {
           template_id: createdTemplate.id,
           version_number: 1,
-          structure_snapshot:
-            source.structure ?? ([] as Prisma.InputJsonValue),
+          structure_snapshot: source.structure ?? ([] as Prisma.InputJsonValue),
           is_active: true,
         },
       });
@@ -474,10 +474,7 @@ export async function duplicateTemplate(
 
 // ─── Toggle Active ───────────────────────────────────────────────────────────
 
-export async function toggleTemplateActive(
-  id: string,
-  is_active: boolean,
-): Promise<ServiceResult> {
+export async function toggleTemplateActive(id: string, is_active: boolean): Promise<ServiceResult> {
   const authResult = await requirePHSession();
 
   if (!authResult.success) {
@@ -488,7 +485,7 @@ export async function toggleTemplateActive(
 
   const template = await prisma.instrumentTemplate.findUnique({
     where: { id },
-    select: { id: true, program_id: true },
+    select: { id: true, program_id: true, template_type: true },
   });
 
   if (!template) {
@@ -519,9 +516,72 @@ export async function toggleTemplateActive(
 
 // ─── Toggle Faculty Accessible ───────────────────────────────────────────────
 
+export async function deleteProgramHeadTemplate(id: string): Promise<ServiceResult> {
+  const authResult = await requirePHSession();
+
+  if (!authResult.success) {
+    return authResult;
+  }
+
+  const { programIds } = authResult.data;
+
+  const template = await prisma.instrumentTemplate.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      program_id: true,
+      versions: {
+        select: {
+          _count: {
+            select: {
+              course_bounds: true,
+              central_insts: true,
+            },
+          },
+        },
+      },
+    },
+  });
+
+  if (!template) {
+    return { success: false, error: "Template not found." };
+  }
+
+  if (template.program_id === null) {
+    return {
+      success: false,
+      error: "Institutional baseline templates cannot be deleted by Program Heads.",
+    };
+  }
+
+  if (!programIds.includes(template.program_id)) {
+    return {
+      success: false,
+      error: "You do not have permission to delete this template.",
+    };
+  }
+
+  const hasDeployments = template.versions.some(
+    (version) => version._count.course_bounds > 0 || version._count.central_insts > 0
+  );
+
+  if (hasDeployments) {
+    return {
+      success: false,
+      error: "Templates with published deployments cannot be deleted. Deactivate them instead.",
+    };
+  }
+
+  await prisma.instrumentTemplate.delete({
+    where: { id },
+  });
+
+  return { success: true, data: undefined };
+}
+
 export async function toggleFacultyAccessible(
   id: string,
-  is_faculty_accessible: boolean,
+  is_faculty_accessible: boolean
 ): Promise<ServiceResult> {
   const authResult = await requirePHSession();
 
@@ -533,7 +593,7 @@ export async function toggleFacultyAccessible(
 
   const template = await prisma.instrumentTemplate.findUnique({
     where: { id },
-    select: { id: true, program_id: true },
+    select: { id: true, program_id: true, template_type: true },
   });
 
   if (!template) {
@@ -554,9 +614,18 @@ export async function toggleFacultyAccessible(
     };
   }
 
+  if (template.template_type !== EvaluationTemplateType.COURSE_BOUND && is_faculty_accessible) {
+    return {
+      success: false,
+      error: "Only course-bound templates can be faculty-accessible.",
+    };
+  }
+
   await prisma.instrumentTemplate.update({
     where: { id },
-    data: { is_faculty_accessible },
+    data: {
+      is_faculty_accessible,
+    },
   });
 
   return { success: true, data: undefined };
@@ -564,9 +633,7 @@ export async function toggleFacultyAccessible(
 
 // ─── Get Template by ID (for edit page) ──────────────────────────────────────
 
-export async function getProgramHeadTemplate(
-  id: string,
-): Promise<
+export async function getProgramHeadTemplate(id: string): Promise<
   ServiceResult<{
     template: {
       id: string;
@@ -574,6 +641,7 @@ export async function getProgramHeadTemplate(
       name: string;
       description: string | null;
       structure: TemplateStructure;
+      template_type: EvaluationTemplateType;
       is_active: boolean;
       is_faculty_accessible: boolean;
       program_id: string | null;
@@ -606,6 +674,7 @@ export async function getProgramHeadTemplate(
       name: true,
       description: true,
       structure: true,
+      template_type: true,
       is_active: true,
       is_faculty_accessible: true,
       program_id: true,
@@ -617,10 +686,7 @@ export async function getProgramHeadTemplate(
   }
 
   // Must be in PH's program scope or an institutional baseline
-  if (
-    template.program_id !== null &&
-    !programIds.includes(template.program_id)
-  ) {
+  if (template.program_id !== null && !programIds.includes(template.program_id)) {
     return {
       success: false,
       error: "You do not have permission to view this template.",

@@ -61,7 +61,7 @@ export async function saveStudentEvaluationDraft({
         {
           central_deployment: {
             is: {
-              target_stakeholder: "GRADUATING_STUDENT",
+              target_stakeholder: "STUDENT",
             },
           },
         },
@@ -90,7 +90,7 @@ export async function saveStudentEvaluationDraft({
 
   const deployment =
     assignment.course_bound ??
-    (assignment.central_deployment?.target_stakeholder === "GRADUATING_STUDENT"
+    (assignment.central_deployment?.target_stakeholder === "STUDENT"
       ? assignment.central_deployment
       : null);
 

@@ -149,7 +149,7 @@ export async function getCentralDeploymentEvaluationSession(
 
   return {
     assignmentId: assignment.id,
-    evaluationTitle: deployment.instrument.template.name,
+    evaluationTitle: deployment.deployment_name ?? deployment.instrument.template.name,
     programLabel: buildProgramLabel({
       majorName: deployment.major?.name ?? null,
       programCode: deployment.program?.code ?? null,

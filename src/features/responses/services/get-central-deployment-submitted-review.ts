@@ -41,7 +41,7 @@ function buildProgramLabel(input: {
 /**
  * Read-only view of a submitted central deployment response.
  *
- * Works for any stakeholder type (ALUMNI, INDUSTRY_PARTNER, GRADUATING_STUDENT).
+ * Works for any stakeholder type (ALUMNI, INDUSTRY_PARTNER, STUDENT).
  * Authenticates via session — only the respondent who submitted the response
  * can view it.
  */
@@ -113,7 +113,7 @@ export async function getCentralDeploymentSubmittedReview(
 
   return {
     responseId: response.id,
-    evaluationTitle: deployment.instrument.template.name,
+    evaluationTitle: deployment.deployment_name ?? deployment.instrument.template.name,
     courseTitle: null,
     programLabel: buildProgramLabel({
       majorName: deployment.major?.name ?? null,

@@ -43,6 +43,7 @@ type TemplateItem = {
   code: string;
   name: string;
   description: string | null;
+  template_type: "PROGRAM_WIDE" | "COURSE_BOUND";
   is_active: boolean;
   is_faculty_accessible: boolean;
   _count: { versions: number };
@@ -189,6 +190,11 @@ export function AdminToolsPage({ templates }: AdminToolsPageProps) {
                     {template._count.versions !== 1 ? "s" : ""}
                   </span>
                 </div>
+                <Badge variant="secondary" className="w-fit text-xs">
+                  {template.template_type === "COURSE_BOUND"
+                    ? "Course-bound"
+                    : "Program-wide"}
+                </Badge>
                 {template.is_faculty_accessible && (
                   <Badge variant="outline" className="text-xs">
                     Faculty Access

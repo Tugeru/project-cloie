@@ -6,6 +6,7 @@ const {
   instrumentTemplateFindManyMock,
   instrumentTemplateFindUniqueMock,
   instrumentTemplateCreateMock,
+  instrumentTemplateDeleteMock,
   instrumentTemplateUpdateMock,
   instrumentVersionCreateMock,
   instrumentVersionFindFirstMock,
@@ -18,6 +19,7 @@ const {
   instrumentTemplateFindManyMock: vi.fn(),
   instrumentTemplateFindUniqueMock: vi.fn(),
   instrumentTemplateCreateMock: vi.fn(),
+  instrumentTemplateDeleteMock: vi.fn(),
   instrumentTemplateUpdateMock: vi.fn(),
   instrumentVersionCreateMock: vi.fn(),
   instrumentVersionFindFirstMock: vi.fn(),
@@ -34,6 +36,7 @@ vi.mock("@/lib/db/prisma", () => ({
       findMany: instrumentTemplateFindManyMock,
       findUnique: instrumentTemplateFindUniqueMock,
       create: instrumentTemplateCreateMock,
+      delete: instrumentTemplateDeleteMock,
       update: instrumentTemplateUpdateMock,
     },
     instrumentVersion: {
@@ -102,6 +105,7 @@ describe("manage-program-head-templates", () => {
   let createProgramHeadTemplate: typeof import("@/features/instruments/services/manage-program-head-templates").createProgramHeadTemplate;
   let updateProgramHeadTemplate: typeof import("@/features/instruments/services/manage-program-head-templates").updateProgramHeadTemplate;
   let duplicateTemplate: typeof import("@/features/instruments/services/manage-program-head-templates").duplicateTemplate;
+  let deleteProgramHeadTemplate: typeof import("@/features/instruments/services/manage-program-head-templates").deleteProgramHeadTemplate;
   let toggleTemplateActive: typeof import("@/features/instruments/services/manage-program-head-templates").toggleTemplateActive;
   let toggleFacultyAccessible: typeof import("@/features/instruments/services/manage-program-head-templates").toggleFacultyAccessible;
 
@@ -110,17 +114,14 @@ describe("manage-program-head-templates", () => {
 
     // Default: PH is authenticated with an active program assignment
     resolveAuthSessionMock.mockResolvedValue(PH_SESSION);
-    programHeadAssignmentFindManyMock.mockResolvedValue([
-      { program_id: PROGRAM_ID },
-    ]);
+    programHeadAssignmentFindManyMock.mockResolvedValue([{ program_id: PROGRAM_ID }]);
 
-    const mod = await import(
-      "@/features/instruments/services/manage-program-head-templates"
-    );
+    const mod = await import("@/features/instruments/services/manage-program-head-templates");
     listProgramHeadTemplates = mod.listProgramHeadTemplates;
     createProgramHeadTemplate = mod.createProgramHeadTemplate;
     updateProgramHeadTemplate = mod.updateProgramHeadTemplate;
     duplicateTemplate = mod.duplicateTemplate;
+    deleteProgramHeadTemplate = mod.deleteProgramHeadTemplate;
     toggleTemplateActive = mod.toggleTemplateActive;
     toggleFacultyAccessible = mod.toggleFacultyAccessible;
   });
@@ -179,15 +180,11 @@ describe("manage-program-head-templates", () => {
     expect(result.data.templates).toHaveLength(2);
 
     // Program-owned template is not read-only
-    const ownTemplate = result.data.templates.find(
-      (t) => t.id === TEMPLATE_ID,
-    );
+    const ownTemplate = result.data.templates.find((t) => t.id === TEMPLATE_ID);
     expect(ownTemplate?.isReadOnly).toBe(false);
 
     // Institutional baseline is read-only
-    const baseline = result.data.templates.find(
-      (t) => t.id === "baseline-1",
-    );
+    const baseline = result.data.templates.find((t) => t.id === "baseline-1");
     expect(baseline?.isReadOnly).toBe(true);
   });
 
@@ -204,12 +201,10 @@ describe("manage-program-head-templates", () => {
       code: "BSIT_INDUSTRY_PARTNERS_EVALUATION_TOOL",
     };
 
-    transactionMock.mockImplementation(async (fn: Function) => {
+    transactionMock.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
       const tx = {
         instrumentTemplate: {
-          create: instrumentTemplateCreateMock.mockResolvedValue(
-            createdTemplate,
-          ),
+          create: instrumentTemplateCreateMock.mockResolvedValue(createdTemplate),
         },
         instrumentVersion: {
           create: instrumentVersionCreateMock.mockResolvedValue({
@@ -275,7 +270,7 @@ describe("manage-program-head-templates", () => {
       code: "BSIT",
     });
 
-    transactionMock.mockImplementation(async (fn: Function) => {
+    transactionMock.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
       const tx = {
         instrumentTemplate: {
           create: instrumentTemplateCreateMock.mockResolvedValue({
@@ -318,7 +313,7 @@ describe("manage-program-head-templates", () => {
     // No deployments exist
     instrumentVersionFindFirstMock.mockResolvedValue(null);
 
-    transactionMock.mockImplementation(async (fn: Function) => {
+    transactionMock.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
       const tx = {
         instrumentTemplate: {
           update: instrumentTemplateUpdateMock.mockResolvedValue({
@@ -367,8 +362,7 @@ describe("manage-program-head-templates", () => {
 
     expect(result).toEqual({
       success: false,
-      error:
-        "Institutional baseline templates cannot be modified by Program Heads.",
+      error: "Institutional baseline templates cannot be modified by Program Heads.",
     });
     expect(transactionMock).not.toHaveBeenCalled();
   });
@@ -390,12 +384,10 @@ describe("manage-program-head-templates", () => {
     });
 
     const createdDuplicate = { id: "dup-1" };
-    transactionMock.mockImplementation(async (fn: Function) => {
+    transactionMock.mockImplementation(async (fn: (tx: unknown) => Promise<unknown>) => {
       const tx = {
         instrumentTemplate: {
-          create: instrumentTemplateCreateMock.mockResolvedValue(
-            createdDuplicate,
-          ),
+          create: instrumentTemplateCreateMock.mockResolvedValue(createdDuplicate),
         },
         instrumentVersion: {
           create: instrumentVersionCreateMock.mockResolvedValue({
@@ -422,10 +414,57 @@ describe("manage-program-head-templates", () => {
 
   // ─── toggleTemplateActive ──────────────────────────────────────────
 
+  it("PH can delete an owned template with no deployments", async () => {
+    instrumentTemplateFindUniqueMock.mockResolvedValue({
+      id: TEMPLATE_ID,
+      program_id: PROGRAM_ID,
+      versions: [
+        {
+          _count: {
+            course_bounds: 0,
+            central_insts: 0,
+          },
+        },
+      ],
+    });
+    instrumentTemplateDeleteMock.mockResolvedValue({ id: TEMPLATE_ID });
+
+    const result = await deleteProgramHeadTemplate(TEMPLATE_ID);
+
+    expect(result).toEqual({ success: true, data: undefined });
+    expect(instrumentTemplateDeleteMock).toHaveBeenCalledWith({
+      where: { id: TEMPLATE_ID },
+    });
+  });
+
+  it("PH cannot delete a template with deployments", async () => {
+    instrumentTemplateFindUniqueMock.mockResolvedValue({
+      id: TEMPLATE_ID,
+      program_id: PROGRAM_ID,
+      versions: [
+        {
+          _count: {
+            course_bounds: 1,
+            central_insts: 0,
+          },
+        },
+      ],
+    });
+
+    const result = await deleteProgramHeadTemplate(TEMPLATE_ID);
+
+    expect(result).toEqual({
+      success: false,
+      error: "Templates with published deployments cannot be deleted. Deactivate them instead.",
+    });
+    expect(instrumentTemplateDeleteMock).not.toHaveBeenCalled();
+  });
+
   it("PH can toggle active within program scope", async () => {
     instrumentTemplateFindUniqueMock.mockResolvedValue({
       id: TEMPLATE_ID,
       program_id: PROGRAM_ID,
+      template_type: "COURSE_BOUND",
     });
     instrumentTemplateUpdateMock.mockResolvedValue({ id: TEMPLATE_ID });
 
@@ -459,6 +498,7 @@ describe("manage-program-head-templates", () => {
     instrumentTemplateFindUniqueMock.mockResolvedValue({
       id: TEMPLATE_ID,
       program_id: PROGRAM_ID,
+      template_type: "COURSE_BOUND",
     });
     instrumentTemplateUpdateMock.mockResolvedValue({ id: TEMPLATE_ID });
 

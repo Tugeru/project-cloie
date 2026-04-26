@@ -42,7 +42,6 @@ export type ProgramGOItem = {
   id: string;
   code: string;
   description: string;
-  order: number;
   is_active: boolean;
   program_id: string;
   created_at: Date;
@@ -92,7 +91,7 @@ export async function listProgramGOs(): Promise<
         select: { cilo_mappings: true },
       },
     },
-    orderBy: { order: "asc" },
+    orderBy: { code: "asc" },
   });
 
   return {
@@ -129,7 +128,6 @@ export async function createGO(
       data: {
         code: input.code,
         description: input.description,
-        order: input.order,
         program_id: programId,
       },
     });
@@ -191,7 +189,6 @@ export async function updateGO(
       data: {
         code: input.code,
         description: input.description,
-        order: input.order,
       },
     });
 
@@ -305,16 +302,6 @@ export async function reorderGOs(
     };
   }
 
-  // Update order for each GO in a transaction
-  await prisma.$transaction(
-    orderedIds.map((id, index) =>
-      prisma.gO.update({
-        where: { id },
-        data: { order: index },
-      }),
-    ),
-  );
-
   return { success: true, data: undefined };
 }
 
@@ -323,7 +310,6 @@ export async function reorderGOs(
 export type CILOMappingItem = {
   id: string;
   description: string;
-  order: number;
   go: { id: string; code: string; description: string };
 };
 
@@ -334,8 +320,6 @@ export type CourseCILOMappings = {
   cilos: Array<{
     id: string;
     description: string;
-    order: number;
-    academic_term: string;
     mappedGOs: Array<{ id: string; code: string; description: string }>;
   }>;
 };
@@ -375,8 +359,6 @@ export async function listCILOMappingsForProgram(): Promise<
         select: {
           id: true,
           description: true,
-          order: true,
-          academic_term: true,
           cilo_mappings: {
             select: {
               go: {
@@ -389,7 +371,7 @@ export async function listCILOMappingsForProgram(): Promise<
             },
           },
         },
-        orderBy: { order: "asc" },
+        orderBy: { created_at: "asc" },
       },
     },
     orderBy: { code: "asc" },
@@ -402,8 +384,6 @@ export async function listCILOMappingsForProgram(): Promise<
     cilos: course.cilos.map((cilo) => ({
       id: cilo.id,
       description: cilo.description,
-      order: cilo.order,
-      academic_term: cilo.academic_term,
       mappedGOs: cilo.cilo_mappings.map((mapping) => ({
         id: mapping.go.id,
         code: mapping.go.code,

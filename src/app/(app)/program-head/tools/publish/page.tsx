@@ -29,7 +29,7 @@ export default async function ProgramHeadPublishToolPage({
 
   // Filter to active templates only
   const activeTemplates = allTemplates
-    .filter((t) => t.is_active)
+    .filter((t) => t.is_active && t.template_type === "PROGRAM_WIDE")
     .map((t) => ({ id: t.id, name: t.name, code: t.code }));
 
   // 2. Load year levels

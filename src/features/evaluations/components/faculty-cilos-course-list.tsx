@@ -1,17 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Eye, Plus, Search, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -20,7 +14,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -46,7 +39,6 @@ import type { FacultyCourseWithCiloCount } from "@/features/evaluations/services
 type CiloItem = {
   id: string;
   description: string;
-  order: number;
   isNew?: boolean;
 };
 
@@ -56,12 +48,12 @@ type ViewEditCilosModalProps = {
   onOpenChange: (open: boolean) => void;
   loadCilosAction: (courseId: string) => Promise<{
     success: boolean;
-    cilos?: Array<{ id: string; description: string; order: number }>;
+    cilos?: Array<{ id: string; description: string }>;
     error?: string;
   }>;
   saveCilosAction: (
     courseId: string,
-    cilos: Array<{ id?: string; description: string; order: number }>,
+    cilos: Array<{ id?: string; description: string }>,
   ) => Promise<{ success: boolean; error?: string }>;
 };
 
@@ -111,7 +103,6 @@ function ViewEditCilosModal({
           result.cilos.map((c) => ({
             id: c.id,
             description: c.description,
-            order: c.order,
           })),
         );
         setLoaded(true);
@@ -125,10 +116,11 @@ function ViewEditCilosModal({
     }
   };
 
-  // Load on open
   useEffect(() => {
     if (open && !loaded && !isLoading) {
-      handleLoad();
+      queueMicrotask(() => {
+        void handleLoad();
+      });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
@@ -152,7 +144,6 @@ function ViewEditCilosModal({
       {
         id: `new-${crypto.randomUUID()}`,
         description: newCiloText.trim(),
-        order: prev.length + 1,
         isNew: true,
       },
     ]);
@@ -161,8 +152,7 @@ function ViewEditCilosModal({
 
   const handleRemoveCilo = (id: string) => {
     setCilos((prev) => {
-      const filtered = prev.filter((c) => c.id !== id);
-      return filtered.map((c, i) => ({ ...c, order: i + 1 }));
+      return prev.filter((c) => c.id !== id);
     });
   };
 
@@ -180,7 +170,6 @@ function ViewEditCilosModal({
       const payload = cilos.map((c) => ({
         id: c.isNew ? undefined : c.id,
         description: c.description,
-        order: c.order,
       }));
       const result = await saveCilosAction(course.id, payload);
       if (result.success) {
@@ -325,7 +314,7 @@ export function FacultyCilosCourseList({
       result = result.filter((c) => c.courseScope === "GENERAL_EDUCATION");
     } else if (typeFilter === "major_specific") {
       result = result.filter(
-        (c) => c.courseScope === "PROGRAM_SPECIFIC" && c.majorId !== null,
+        (c) => c.courseScope === "MAJOR_SPECIFIC" || c.majorId !== null,
       );
     }
 

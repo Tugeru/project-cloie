@@ -62,6 +62,7 @@ export async function getBaselineTemplate(id: string) {
       code: true,
       name: true,
       description: true,
+      template_type: true,
       is_active: true,
       is_faculty_accessible: true,
       structure: true,
@@ -83,9 +84,11 @@ export async function createBaselineTemplate(
           code: input.code,
           name: input.name,
           description: input.description ?? null,
-          is_faculty_accessible: input.is_faculty_accessible,
+          is_faculty_accessible:
+            input.template_type === "COURSE_BOUND" && input.is_faculty_accessible,
           program_id: null,
           structure: emptyStructure,
+          template_type: input.template_type,
         },
       });
 
@@ -129,9 +132,11 @@ export async function createBaselineTemplateWithStructure(
           code: input.code,
           name: input.name,
           description: input.description ?? null,
-          is_faculty_accessible: input.is_faculty_accessible,
+          is_faculty_accessible:
+            input.template_type === "COURSE_BOUND" && input.is_faculty_accessible,
           program_id: null,
           structure: structureJson,
+          template_type: input.template_type,
         },
       });
 
@@ -189,7 +194,9 @@ export async function updateBaselineTemplate(
         code: input.code,
         name: input.name,
         description: input.description ?? null,
-        is_faculty_accessible: input.is_faculty_accessible,
+        is_faculty_accessible:
+          input.template_type === "COURSE_BOUND" && input.is_faculty_accessible,
+        template_type: input.template_type,
       },
     });
 
@@ -239,8 +246,10 @@ export async function updateBaselineTemplateWithStructure(
           code: input.code,
           name: input.name,
           description: input.description ?? null,
-          is_faculty_accessible: input.is_faculty_accessible,
+          is_faculty_accessible:
+            input.template_type === "COURSE_BOUND" && input.is_faculty_accessible,
           structure: structureJson,
+          template_type: input.template_type,
         },
       });
 
@@ -341,6 +350,7 @@ export async function duplicateBaselineTemplate(
       name: true,
       description: true,
       is_faculty_accessible: true,
+      template_type: true,
       structure: true,
     },
   });
@@ -359,9 +369,11 @@ export async function duplicateBaselineTemplate(
           code: newCode,
           name: `${original.name} (Copy)`,
           description: original.description,
-          is_faculty_accessible: original.is_faculty_accessible,
+          is_faculty_accessible:
+            original.template_type === "COURSE_BOUND" && original.is_faculty_accessible,
           program_id: null,
           structure: original.structure ?? emptyStructure,
+          template_type: original.template_type,
         },
       });
 

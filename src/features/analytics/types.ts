@@ -31,6 +31,17 @@ export type CourseBoundReviewSectionMetric = {
   questions: CourseBoundReviewSectionQuestion[];
 };
 
+export type CourseBoundCiloMetric = {
+  bindingId: string;
+  ciloId: string | null;
+  ciloLabel: string;
+  ciloDescription: string;
+  sectionKey: string;
+  itemKey: string;
+  questionPrompt: string;
+  mean: number | null;
+};
+
 export type CourseBoundReviewResponseCard = {
   responseId: string;
   respondentLabel: string;
@@ -55,6 +66,7 @@ export type CourseBoundReviewDetail = {
   responseCount: number;
   overallMean: number | null;
   reviewerRole: ReviewerRole;
+  ciloMetrics: CourseBoundCiloMetric[];
   sections: CourseBoundReviewSectionMetric[];
   responseCards: CourseBoundReviewResponseCard[];
   wordCloudTokens: WordCloudToken[];

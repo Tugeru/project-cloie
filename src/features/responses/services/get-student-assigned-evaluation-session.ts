@@ -62,7 +62,7 @@ export async function getStudentAssignedEvaluationSession(
         {
           central_deployment: {
             is: {
-              target_stakeholder: "GRADUATING_STUDENT",
+              target_stakeholder: "STUDENT",
             },
           },
         },
@@ -132,7 +132,7 @@ export async function getStudentAssignedEvaluationSession(
       courseTitle: evaluation.course.title,
       deadlineAt: evaluation.deadline_at,
       deploymentType: "COURSE_BOUND",
-      evaluationTitle: evaluation.instrument.template.name,
+      evaluationTitle: evaluation.deployment_name ?? evaluation.instrument.template.name,
       programLabel: evaluation.major?.name ?? evaluation.program.name,
       savedAnswers,
       sections,
@@ -147,7 +147,7 @@ export async function getStudentAssignedEvaluationSession(
 
   if (
     assignment.central_deployment &&
-    assignment.central_deployment.target_stakeholder === "GRADUATING_STUDENT"
+    assignment.central_deployment.target_stakeholder === "STUDENT"
   ) {
     const deployment = assignment.central_deployment;
 
@@ -174,7 +174,7 @@ export async function getStudentAssignedEvaluationSession(
       courseTitle: null,
       deadlineAt: deployment.deadline_at,
       deploymentType: "CENTRAL",
-      evaluationTitle: deployment.instrument.template.name,
+      evaluationTitle: deployment.deployment_name ?? deployment.instrument.template.name,
       programLabel: buildCentralProgramLabel({
         majorName: deployment.major?.name ?? null,
         programCode: deployment.program?.code ?? null,

@@ -73,7 +73,7 @@ export default async function OutcomeMappingPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {course.cilos.map((cilo) => (
+                  {course.cilos.map((cilo, index) => (
                     <div
                       key={cilo.id}
                       className="rounded-lg border border-border p-4"
@@ -81,15 +81,12 @@ export default async function OutcomeMappingPage() {
                       <div className="mb-2 flex items-start justify-between gap-4">
                         <div className="flex-1">
                           <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
-                            CILO {cilo.order}
+                            CILO {index + 1}
                           </span>
                           <p className="text-body-md mt-1 text-text-primary">
                             {cilo.description}
                           </p>
                         </div>
-                        <span className="whitespace-nowrap text-xs text-text-muted">
-                          {cilo.academic_term}
-                        </span>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
                         {cilo.mappedGOs.length > 0 ? (

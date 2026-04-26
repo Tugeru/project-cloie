@@ -25,6 +25,7 @@ export async function createAdminTemplateAction(
   const raw = {
     name: formData.get("name"),
     description: formData.get("description"),
+    template_type: formData.get("template_type"),
     is_faculty_accessible: formData.get("is_faculty_accessible"),
     structure: JSON.parse((formData.get("structure") as string) || "[]"),
   };
@@ -66,6 +67,7 @@ export async function updateAdminTemplateAction(
     id: formData.get("id"),
     name: formData.get("name"),
     description: formData.get("description"),
+    template_type: formData.get("template_type"),
     is_faculty_accessible: formData.get("is_faculty_accessible"),
     structure: JSON.parse((formData.get("structure") as string) || "[]"),
   };

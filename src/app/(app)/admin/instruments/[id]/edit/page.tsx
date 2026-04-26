@@ -37,6 +37,7 @@ export default async function AdminEditTemplatePage({
           id: template.id,
           name: template.name,
           description: template.description ?? "",
+          template_type: template.template_type,
           is_active: template.is_active,
           is_faculty_accessible: template.is_faculty_accessible,
           structure: template.structure as unknown as TemplateStructure,

@@ -13,7 +13,7 @@ export async function loadCilosForCourseAction(
   courseId: string,
 ): Promise<{
   success: boolean;
-  cilos?: Array<{ id: string; description: string; order: number }>;
+  cilos?: Array<{ id: string; description: string }>;
   error?: string;
 }> {
   const session = await resolveAuthSession();
@@ -24,8 +24,8 @@ export async function loadCilosForCourseAction(
 
   const cilos = await prisma.cILO.findMany({
     where: { course_id: courseId },
-    select: { id: true, description: true, order: true },
-    orderBy: { order: "asc" },
+    select: { id: true, description: true },
+    orderBy: { created_at: "asc" },
   });
 
   return { success: true, cilos };
@@ -37,7 +37,7 @@ export async function loadCilosForCourseAction(
 
 export async function saveCilosForCourseAction(
   courseId: string,
-  cilos: Array<{ id?: string; description: string; order: number }>,
+  cilos: Array<{ id?: string; description: string }>,
 ): Promise<{ success: boolean; error?: string }> {
   const session = await resolveAuthSession();
 
@@ -68,11 +68,9 @@ export async function saveCilosForCourseAction(
       // Create new CILOs
       if (validCilos.length > 0) {
         await tx.cILO.createMany({
-          data: validCilos.map((c, index) => ({
+          data: validCilos.map((c) => ({
             course_id: courseId,
             description: c.description.trim(),
-            order: index + 1,
-            academic_term: "default",
             created_by: session.userId,
           })),
         });
@@ -116,20 +114,11 @@ export async function addCilosToCourseAction(
     return { success: false, error: "At least one CILO is required." };
   }
 
-  // Get current max order
-  const maxOrder = await prisma.cILO.aggregate({
-    _max: { order: true },
-    where: { course_id: courseId },
-  });
-  const startOrder = (maxOrder._max.order ?? 0) + 1;
-
   try {
     await prisma.cILO.createMany({
-      data: validDescriptions.map((desc, index) => ({
+      data: validDescriptions.map((desc) => ({
         course_id: courseId,
         description: desc.trim(),
-        order: startOrder + index,
-        academic_term: "default",
         created_by: session.userId,
       })),
     });

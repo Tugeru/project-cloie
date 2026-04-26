@@ -34,7 +34,7 @@ export type ProgramHeadDashboardData = {
 // ---------------------------------------------------------------------------
 
 const STAKEHOLDER_LABELS: Record<string, string> = {
-  GRADUATING_STUDENT: "Graduating Students",
+  STUDENT: "Students",
   ALUMNI: "Alumni",
   INDUSTRY_PARTNER: "Industry Partners",
 };
