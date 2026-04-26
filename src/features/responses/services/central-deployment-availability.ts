@@ -8,5 +8,4 @@
 
 export { isCentralDeploymentAvailable } from "./course-bound-availability";
 
-export const CENTRAL_DEPLOYMENT_UNAVAILABLE_ERROR =
-  "This evaluation is not currently available.";
+export const CENTRAL_DEPLOYMENT_UNAVAILABLE_ERROR = "This evaluation is not currently available.";

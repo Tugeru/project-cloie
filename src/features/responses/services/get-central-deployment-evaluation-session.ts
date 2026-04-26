@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { buildStudentEvaluationAnswerKey } from "@/features/responses/answer-keys";
-import type { StudentEvaluationSection, StudentEvaluationSession } from "@/features/responses/types";
+import type {
+  StudentEvaluationSection,
+  StudentEvaluationSession,
+} from "@/features/responses/types";
 import { isCentralDeploymentAvailable } from "./central-deployment-availability";
 import { mapTemplateStructureToSections } from "./map-template-structure";
 
@@ -29,15 +32,13 @@ function mapSavedAnswerItems({
   const answers: Record<string, number | string> = {};
 
   for (const item of quantitativeItems) {
-    answers[
-      buildStudentEvaluationAnswerKey(item.section_key, "quantitative", item.item_key)
-    ] = item.rating_value;
+    answers[buildStudentEvaluationAnswerKey(item.section_key, "quantitative", item.item_key)] =
+      item.rating_value;
   }
 
   for (const item of qualitativeItems) {
-    answers[
-      buildStudentEvaluationAnswerKey(item.section_key, "qualitative", item.prompt_key)
-    ] = item.text_content;
+    answers[buildStudentEvaluationAnswerKey(item.section_key, "qualitative", item.prompt_key)] =
+      item.text_content;
   }
 
   return answers;
@@ -84,7 +85,7 @@ export type CentralDeploymentEvaluationSession = {
  * 6. Returns the session DTO or `null` if unauthorized / unavailable
  */
 export async function getCentralDeploymentEvaluationSession(
-  deploymentId: string,
+  deploymentId: string
 ): Promise<CentralDeploymentEvaluationSession | null> {
   const authSession = await resolveAuthSession();
 
@@ -131,9 +132,7 @@ export async function getCentralDeploymentEvaluationSession(
   }
 
   // Map template structure to wizard sections
-  const sections = mapTemplateStructureToSections(
-    deployment.instrument.structure_snapshot,
-  );
+  const sections = mapTemplateStructureToSections(deployment.instrument.structure_snapshot);
 
   // Load saved answers from existing response (if any)
   const response = assignment.response ?? null;
@@ -143,9 +142,7 @@ export async function getCentralDeploymentEvaluationSession(
         quantitativeItems: response.quant_items,
       })
     : {};
-  const answeredItems = response
-    ? response.qual_items.length + response.quant_items.length
-    : 0;
+  const answeredItems = response ? response.qual_items.length + response.quant_items.length : 0;
 
   return {
     assignmentId: assignment.id,

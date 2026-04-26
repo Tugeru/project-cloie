@@ -81,7 +81,10 @@ function parseTimestamp(args: string[]) {
   const index = args.indexOf("--timestamp");
 
   return index === -1
-    ? new Date().toISOString().replace(/[-:TZ.]/g, "").slice(0, 14)
+    ? new Date()
+        .toISOString()
+        .replace(/[-:TZ.]/g, "")
+        .slice(0, 14)
     : args[index + 1];
 }
 
@@ -100,7 +103,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 
   if (mode !== "baseline" && mode !== "diff") {
     throw new Error(
-      "Usage: tsx scripts/create-supabase-migration.ts <baseline|diff> <name> [--timestamp YYYYMMDDHHMMSS]",
+      "Usage: tsx scripts/create-supabase-migration.ts <baseline|diff> <name> [--timestamp YYYYMMDDHHMMSS]"
     );
   }
 
@@ -121,7 +124,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       outputPath,
       databaseUrl,
     }),
-    { shell: process.platform === "win32", stdio: "inherit" },
+    { shell: process.platform === "win32", stdio: "inherit" }
   );
 
   console.log(`Created migration at ${outputPath}`);

@@ -95,16 +95,16 @@ export function assertSubmissionIsAllowed({
               .map((item) => buildAnswerKey(section.key, "quantitative", item.key))
               .filter((answerKey) => !hasAnswerValue("quantitative", answers[answerKey]))
           : getSnapshotItems(section.quantitative_items)
-          .map((item) => buildAnswerKey(section.key, "quantitative", item.key))
-          .filter((answerKey) => !hasAnswerValue("quantitative", answers[answerKey]))),
+              .map((item) => buildAnswerKey(section.key, "quantitative", item.key))
+              .filter((answerKey) => !hasAnswerValue("quantitative", answers[answerKey]))),
         ...(Array.isArray(section.items)
           ? section.items
               .filter((item) => item.kind === "qualitative")
               .map((item) => buildAnswerKey(section.key, "qualitative", item.key))
               .filter((answerKey) => !hasAnswerValue("qualitative", answers[answerKey]))
           : getSnapshotItems(section.qualitative_prompts)
-          .map((item) => buildAnswerKey(section.key, "qualitative", item.key))
-          .filter((answerKey) => !hasAnswerValue("qualitative", answers[answerKey]))),
+              .map((item) => buildAnswerKey(section.key, "qualitative", item.key))
+              .filter((answerKey) => !hasAnswerValue("qualitative", answers[answerKey]))),
       ])
     : [];
 
@@ -205,8 +205,7 @@ export async function submitStudentCourseBoundResponse({
 
       const ciloBinding = (assignment.course_bound?.cilo_question_bindings ?? []).find(
         (binding) =>
-          binding.section_key === parsed.sectionKey &&
-          binding.item_key === parsed.itemKey,
+          binding.section_key === parsed.sectionKey && binding.item_key === parsed.itemKey
       );
 
       return {
@@ -219,14 +218,14 @@ export async function submitStudentCourseBoundResponse({
     })
     .filter(
       (
-        item,
+        item
       ): item is {
         cilo_question_binding_id: string | null;
         item_key: string;
         rating_value: number;
         response_id: string;
         section_key: string;
-      } => item !== null,
+      } => item !== null
     );
   const qualitativeItems = Object.entries(answers)
     .map(([answerKey, value]) => {
@@ -243,7 +242,16 @@ export async function submitStudentCourseBoundResponse({
         text_content: value,
       };
     })
-    .filter((item): item is { prompt_key: string; response_id: string; section_key: string; text_content: string } => item !== null);
+    .filter(
+      (
+        item
+      ): item is {
+        prompt_key: string;
+        response_id: string;
+        section_key: string;
+        text_content: string;
+      } => item !== null
+    );
 
   await prisma.quantitativeResponseItem.deleteMany({ where: { response_id: response.id } });
   await prisma.qualitativeResponseItem.deleteMany({ where: { response_id: response.id } });

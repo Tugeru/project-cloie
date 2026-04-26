@@ -3,15 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ROLES } from "@/lib/constants/roles";
 import { getCourseBoundResponseReview } from "@/features/analytics/services/get-course-bound-response-review";
 
-const {
-  responseFindFirstMock,
-  resolveAuthSessionMock,
-  resolveReviewerProgramScopeMock,
-} = vi.hoisted(() => ({
-  responseFindFirstMock: vi.fn(),
-  resolveAuthSessionMock: vi.fn(),
-  resolveReviewerProgramScopeMock: vi.fn(),
-}));
+const { responseFindFirstMock, resolveAuthSessionMock, resolveReviewerProgramScopeMock } =
+  vi.hoisted(() => ({
+    responseFindFirstMock: vi.fn(),
+    resolveAuthSessionMock: vi.fn(),
+    resolveReviewerProgramScopeMock: vi.fn(),
+  }));
 
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
@@ -54,7 +51,12 @@ describe("getCourseBoundResponseReview", () => {
             structure_snapshot: [
               {
                 items: [
-                  { key: "clarity", kind: "quantitative", prompt: "Clarity", scale: [1, 2, 3, 4, 5] },
+                  {
+                    key: "clarity",
+                    kind: "quantitative",
+                    prompt: "Clarity",
+                    scale: [1, 2, 3, 4, 5],
+                  },
                   { key: "remarks", kind: "qualitative", prompt: "Remarks" },
                 ],
                 key: "teaching",
@@ -73,9 +75,7 @@ describe("getCourseBoundResponseReview", () => {
       qual_items: [
         { prompt_key: "remarks", section_key: "teaching", text_content: "Helpful examples" },
       ],
-      quant_items: [
-        { item_key: "clarity", rating_value: 4, section_key: "teaching" },
-      ],
+      quant_items: [{ item_key: "clarity", rating_value: 4, section_key: "teaching" }],
       submitted_at: new Date("2026-01-04T08:00:00.000Z"),
     });
 
@@ -97,9 +97,7 @@ describe("getCourseBoundResponseReview", () => {
           qualitativeResponses: [
             { prompt: "Remarks", promptKey: "remarks", text: "Helpful examples" },
           ],
-          quantitativeResponses: [
-            { itemKey: "clarity", prompt: "Clarity", rating: 4 },
-          ],
+          quantitativeResponses: [{ itemKey: "clarity", prompt: "Clarity", rating: 4 }],
         },
       ],
       submittedAt: new Date("2026-01-04T08:00:00.000Z"),
@@ -121,7 +119,7 @@ describe("getCourseBoundResponseReview", () => {
             },
           },
         }),
-      }),
+      })
     );
   });
 
@@ -150,7 +148,7 @@ describe("getCourseBoundResponseReview", () => {
             },
           },
         }),
-      }),
+      })
     );
   });
 
@@ -167,7 +165,12 @@ describe("getCourseBoundResponseReview", () => {
             structure_snapshot: [
               {
                 items: [
-                  { key: "clarity", kind: "quantitative", prompt: "Clarity", scale: [1, 2, 3, 4, 5] },
+                  {
+                    key: "clarity",
+                    kind: "quantitative",
+                    prompt: "Clarity",
+                    scale: [1, 2, 3, 4, 5],
+                  },
                 ],
                 key: "teaching",
                 title: "Teaching",
@@ -195,7 +198,7 @@ describe("getCourseBoundResponseReview", () => {
             mean: null,
           }),
         ],
-      }),
+      })
     );
   });
 });

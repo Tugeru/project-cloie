@@ -6,13 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowLeft, Plus, Trash2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -34,7 +28,7 @@ type AddCiloFormProps = {
   programs: Array<{ id: string; code: string; name: string }>;
   addAction: (
     courseId: string,
-    descriptions: string[],
+    descriptions: string[]
   ) => Promise<{ success: boolean; error?: string }>;
 };
 
@@ -59,16 +53,14 @@ export function AddCiloForm({ courses, programs, addAction }: AddCiloFormProps) 
     let result = courses;
 
     if (courseType === "program_specific") {
-      result = result.filter(
-        (c) => c.courseScope === "PROGRAM_SPECIFIC",
-      );
+      result = result.filter((c) => c.courseScope === "PROGRAM_SPECIFIC");
     } else if (courseType === "general_education") {
       result = result.filter((c) => c.courseScope === "GENERAL_EDUCATION");
     }
 
     if (programId !== "__none__") {
       result = result.filter(
-        (c) => c.programId === programId || c.courseScope === "GENERAL_EDUCATION",
+        (c) => c.programId === programId || c.courseScope === "GENERAL_EDUCATION"
       );
     }
 
@@ -118,30 +110,25 @@ export function AddCiloForm({ courses, programs, addAction }: AddCiloFormProps) 
       {/* Back link */}
       <Link
         href="/faculty/cilos"
-        className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+        className="text-primary inline-flex items-center gap-2 text-sm font-medium hover:underline"
       >
         <ArrowLeft className="size-4" />
         Back
       </Link>
 
       {/* Breadcrumb */}
-      <nav className="text-xs text-text-muted">
-        Manage CILOs &gt; Add New CILO
-      </nav>
+      <nav className="text-text-muted text-xs">Manage CILOs &gt; Add New CILO</nav>
 
       <Card>
         <CardHeader>
           <CardTitle>Add New CILOs</CardTitle>
           <CardDescription>
-            Select a course and add one or more Course-Intended Learning
-            Outcomes.
+            Select a course and add one or more Course-Intended Learning Outcomes.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
-            </div>
+            <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">{error}</div>
           )}
           {successMessage && (
             <div className="rounded-md bg-green-500/10 p-3 text-sm text-green-700">
@@ -190,8 +177,7 @@ export function AddCiloForm({ courses, programs, addAction }: AddCiloFormProps) 
                   <SelectValue>
                     {programId === "__none__"
                       ? "Select program..."
-                      : programs.find((p) => p.id === programId)?.code ??
-                        "Select program..."}
+                      : (programs.find((p) => p.id === programId)?.code ?? "Select program...")}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -208,16 +194,12 @@ export function AddCiloForm({ courses, programs, addAction }: AddCiloFormProps) 
           {/* Course */}
           <div className="space-y-2">
             <Label>Course</Label>
-            <Select
-              value={courseId}
-              onValueChange={(v) => setCourseId(v ?? "__none__")}
-            >
+            <Select value={courseId} onValueChange={(v) => setCourseId(v ?? "__none__")}>
               <SelectTrigger>
                 <SelectValue>
                   {courseId === "__none__"
                     ? "Select course..."
-                    : filteredCourses.find((c) => c.id === courseId)?.code ??
-                      "Select course..."}
+                    : (filteredCourses.find((c) => c.id === courseId)?.code ?? "Select course...")}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
@@ -260,16 +242,16 @@ export function AddCiloForm({ courses, programs, addAction }: AddCiloFormProps) 
                 {ciloList.map((cilo, index) => (
                   <div
                     key={index}
-                    className="flex items-center gap-3 rounded-lg border border-border bg-surface p-3"
+                    className="border-border bg-surface flex items-center gap-3 rounded-lg border p-3"
                   >
-                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    <span className="bg-primary/10 text-primary flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold">
                       {index + 1}
                     </span>
                     <p className="flex-1 text-sm">{cilo}</p>
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="shrink-0 text-destructive hover:bg-destructive/10"
+                      className="text-destructive hover:bg-destructive/10 shrink-0"
                       onClick={() => handleRemoveCilo(index)}
                     >
                       <Trash2 className="size-4" />

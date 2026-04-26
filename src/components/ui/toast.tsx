@@ -23,7 +23,7 @@ export function showToast(message: string, kind: ToastKind = "success") {
   window.dispatchEvent(
     new CustomEvent(TOAST_EVENT, {
       detail: { kind, message },
-    }),
+    })
   );
 }
 
@@ -66,7 +66,7 @@ export function ToastProvider() {
     window.dispatchEvent(
       new CustomEvent(TOAST_EVENT, {
         detail: { kind, message: toast },
-      }),
+      })
     );
 
     params.delete("toast");
@@ -88,10 +88,10 @@ export function ToastProvider() {
           <div
             key={toast.id}
             className={cn(
-              "flex items-start gap-3 rounded-lg border bg-surface px-4 py-3 text-sm shadow-lg",
+              "bg-surface flex items-start gap-3 rounded-lg border px-4 py-3 text-sm shadow-lg",
               toast.kind === "success"
                 ? "border-green-200 text-green-800"
-                : "border-red-200 text-red-800",
+                : "border-red-200 text-red-800"
             )}
           >
             <Icon className="mt-0.5 size-4 shrink-0" />

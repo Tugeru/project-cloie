@@ -9,9 +9,7 @@ import { ROLES } from "@/lib/constants/roles";
 // Load CILOs for a course
 // ---------------------------------------------------------------------------
 
-export async function loadCilosForCourseAction(
-  courseId: string,
-): Promise<{
+export async function loadCilosForCourseAction(courseId: string): Promise<{
   success: boolean;
   cilos?: Array<{ id: string; description: string }>;
   error?: string;
@@ -37,7 +35,7 @@ export async function loadCilosForCourseAction(
 
 export async function saveCilosForCourseAction(
   courseId: string,
-  cilos: Array<{ id?: string; description: string }>,
+  cilos: Array<{ id?: string; description: string }>
 ): Promise<{ success: boolean; error?: string }> {
   const session = await resolveAuthSession();
 
@@ -91,7 +89,7 @@ export async function saveCilosForCourseAction(
 
 export async function addCilosToCourseAction(
   courseId: string,
-  descriptions: string[],
+  descriptions: string[]
 ): Promise<{ success: boolean; error?: string }> {
   const session = await resolveAuthSession();
 

@@ -14,8 +14,9 @@ export default async function DeanDashboardPage() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Dean Dashboard</h1>
-        <p className="text-sm text-text-secondary">
-          College-wide analytics remain aligned to the same portal model as program heads, with broader scope.
+        <p className="text-text-secondary text-sm">
+          College-wide analytics remain aligned to the same portal model as program heads, with
+          broader scope.
         </p>
       </div>
 
@@ -47,7 +48,7 @@ export default async function DeanDashboardPage() {
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-xl border border-border px-4 py-3 text-sm font-medium transition-colors hover:border-primary/40 hover:bg-primary-soft/40"
+              className="border-border hover:border-primary/40 hover:bg-primary-soft/40 rounded-xl border px-4 py-3 text-sm font-medium transition-colors"
             >
               {link.label}
             </Link>

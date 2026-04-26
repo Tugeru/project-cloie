@@ -80,7 +80,7 @@ describe("getCentralDeploymentSubmittedReview", () => {
             name: "Section A",
           },
         ],
-      }),
+      })
     );
   });
 });

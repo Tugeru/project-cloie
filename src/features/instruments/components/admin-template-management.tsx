@@ -116,7 +116,7 @@ function TemplateForm({
         />
       </div>
 
-      <label className="flex items-center gap-3 rounded-lg border border-border px-3 py-2 text-sm">
+      <label className="border-border flex items-center gap-3 rounded-lg border px-3 py-2 text-sm">
         <input
           type="checkbox"
           name="is_faculty_accessible"
@@ -181,10 +181,12 @@ export function AdminTemplateManagement({ templates }: { templates: TemplateItem
                   <Badge variant={template.is_active ? "default" : "secondary"}>
                     {template.is_active ? "Active" : "Inactive"}
                   </Badge>
-                  {template.is_faculty_accessible && <Badge variant="outline">Faculty Access</Badge>}
+                  {template.is_faculty_accessible && (
+                    <Badge variant="outline">Faculty Access</Badge>
+                  )}
                 </div>
               </div>
-              <div className="text-xs text-text-secondary">
+              <div className="text-text-secondary text-xs">
                 Latest version: {template.versions[0]?.version_number ?? "N/A"} &bull;{" "}
                 {template._count.versions} total version(s)
               </div>
@@ -197,7 +199,7 @@ export function AdminTemplateManagement({ templates }: { templates: TemplateItem
                 onSuccess={() => router.refresh()}
               />
 
-              <div className="border-t border-border pt-4">
+              <div className="border-border border-t pt-4">
                 <Button
                   variant="outline"
                   size="sm"

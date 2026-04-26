@@ -6,13 +6,7 @@ import { CourseScope } from "@prisma/client";
 import { Archive, Edit, Plus, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -79,7 +73,7 @@ function filterCourses(
   courses: ProgramHeadCourseItem[],
   tab: string,
   search: string,
-  majorFilter: string,
+  majorFilter: string
 ): ProgramHeadCourseItem[] {
   let filtered = courses;
 
@@ -87,23 +81,17 @@ function filterCourses(
   switch (tab) {
     case "program-wide":
       filtered = filtered.filter(
-        (c) =>
-          c.course_scope === CourseScope.PROGRAM_SPECIFIC &&
-          !c.major_id &&
-          c.is_active,
+        (c) => c.course_scope === CourseScope.PROGRAM_SPECIFIC && !c.major_id && c.is_active
       );
       break;
     case "major-specific":
       filtered = filtered.filter(
-        (c) =>
-          c.course_scope === CourseScope.PROGRAM_SPECIFIC &&
-          c.major_id !== null &&
-          c.is_active,
+        (c) => c.course_scope === CourseScope.PROGRAM_SPECIFIC && c.major_id !== null && c.is_active
       );
       break;
     case "gen-ed":
       filtered = filtered.filter(
-        (c) => c.course_scope === CourseScope.GENERAL_EDUCATION && c.is_active,
+        (c) => c.course_scope === CourseScope.GENERAL_EDUCATION && c.is_active
       );
       break;
     case "archived":
@@ -118,9 +106,7 @@ function filterCourses(
   if (search.trim()) {
     const q = search.toLowerCase();
     filtered = filtered.filter(
-      (c) =>
-        c.code.toLowerCase().includes(q) ||
-        c.title.toLowerCase().includes(q),
+      (c) => c.code.toLowerCase().includes(q) || c.title.toLowerCase().includes(q)
     );
   }
 
@@ -142,8 +128,8 @@ function StatCard({
   muted?: boolean;
 }) {
   return (
-    <div className="flex h-28 flex-col justify-between rounded-lg border border-border bg-surface p-5 transition-colors hover:bg-surface-alt">
-      <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+    <div className="border-border bg-surface hover:bg-surface-alt flex h-28 flex-col justify-between rounded-lg border p-5 transition-colors">
+      <span className="text-text-muted text-xs font-semibold tracking-wider uppercase">
         {label}
       </span>
       <span
@@ -165,16 +151,10 @@ function MajorSelect({
   const [value, setValue] = useState(defaultValue ?? "");
 
   return (
-    <Select
-      name="major_id"
-      value={value}
-      onValueChange={(v) => setValue(v ?? "")}
-    >
+    <Select name="major_id" value={value} onValueChange={(v) => setValue(v ?? "")}>
       <SelectTrigger>
         <SelectValue>
-          {value
-            ? majors.find((m) => m.id === value)?.name ?? "Select major"
-            : "Select major"}
+          {value ? (majors.find((m) => m.id === value)?.name ?? "Select major") : "Select major"}
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
@@ -205,7 +185,7 @@ function CourseFormDialog({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [scopeType, setScopeType] = useState<"program-wide" | "major-specific">(
-    course?.major_id ? "major-specific" : "program-wide",
+    course?.major_id ? "major-specific" : "program-wide"
   );
 
   function handleSubmit(formData: FormData) {
@@ -221,9 +201,7 @@ function CourseFormDialog({
 
     startTransition(async () => {
       const action =
-        mode === "create"
-          ? createProgramHeadCourseAction
-          : updateProgramHeadCourseAction;
+        mode === "create" ? createProgramHeadCourseAction : updateProgramHeadCourseAction;
 
       const result = await action(formData);
 
@@ -241,9 +219,7 @@ function CourseFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>
-            {mode === "create" ? "Add New Course" : "Edit Course"}
-          </DialogTitle>
+          <DialogTitle>{mode === "create" ? "Add New Course" : "Edit Course"}</DialogTitle>
           <DialogDescription>
             {mode === "create"
               ? "Create a new course within your program scope."
@@ -251,23 +227,17 @@ function CourseFormDialog({
           </DialogDescription>
         </DialogHeader>
         <form action={handleSubmit} className="space-y-4">
-          {mode === "edit" && course && (
-            <input type="hidden" name="id" value={course.id} />
-          )}
+          {mode === "edit" && course && <input type="hidden" name="id" value={course.id} />}
 
           {error && (
-            <div className="rounded-md bg-danger-soft p-3 text-sm text-danger">
-              {error}
-            </div>
+            <div className="bg-danger-soft text-danger rounded-md p-3 text-sm">{error}</div>
           )}
 
           <div className="space-y-2">
             <Label htmlFor="scope-type">Course Scope</Label>
             <Select
               value={scopeType}
-              onValueChange={(v) =>
-                setScopeType(v as "program-wide" | "major-specific")
-              }
+              onValueChange={(v) => setScopeType(v as "program-wide" | "major-specific")}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Select scope" />
@@ -275,9 +245,7 @@ function CourseFormDialog({
               <SelectContent>
                 <SelectItem value="program-wide">Program-Wide</SelectItem>
                 {majors.length > 0 && (
-                  <SelectItem value="major-specific">
-                    Major-Specific
-                  </SelectItem>
+                  <SelectItem value="major-specific">Major-Specific</SelectItem>
                 )}
               </SelectContent>
             </Select>
@@ -286,10 +254,7 @@ function CourseFormDialog({
           {scopeType === "major-specific" && majors.length > 0 && (
             <div className="space-y-2">
               <Label htmlFor="major_id">Major</Label>
-              <MajorSelect
-                majors={majors}
-                defaultValue={course?.major_id ?? undefined}
-              />
+              <MajorSelect majors={majors} defaultValue={course?.major_id ?? undefined} />
             </div>
           )}
 
@@ -327,19 +292,11 @@ function CourseFormDialog({
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending
-                ? "Saving..."
-                : mode === "create"
-                  ? "Create Course"
-                  : "Save Changes"}
+              {isPending ? "Saving..." : mode === "create" ? "Create Course" : "Save Changes"}
             </Button>
           </div>
         </form>
@@ -361,18 +318,13 @@ export function ProgramHeadCoursesCatalog({
   const [majorFilter, setMajorFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editingCourse, setEditingCourse] = useState<ProgramHeadCourseItem | null>(
-    null,
-  );
+  const [editingCourse, setEditingCourse] = useState<ProgramHeadCourseItem | null>(null);
 
   const PAGE_SIZE = 15;
   const filteredCourses = filterCourses(courses, activeTab, search, majorFilter);
   const totalPages = Math.max(1, Math.ceil(filteredCourses.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
-  const paginatedCourses = filteredCourses.slice(
-    (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE,
-  );
+  const paginatedCourses = filteredCourses.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
   const programLabel = programs.map((p) => p.name).join(", ") || "No Program";
 
   function handleToggleActive(id: string, currentActive: boolean) {
@@ -387,14 +339,12 @@ export function ProgramHeadCoursesCatalog({
       {/* Header */}
       <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="mb-2 font-heading text-4xl font-bold tracking-tight text-text-primary lg:text-5xl">
+          <h1 className="font-heading text-text-primary mb-2 text-4xl font-bold tracking-tight lg:text-5xl">
             Courses
           </h1>
           <div className="flex items-center gap-3">
-            <span className="font-heading text-xl font-medium text-primary">
-              {programLabel}
-            </span>
-            <span className="h-1.5 w-1.5 rounded-full bg-border-strong" />
+            <span className="font-heading text-primary text-xl font-medium">{programLabel}</span>
+            <span className="bg-border-strong h-1.5 w-1.5 rounded-full" />
             <span className="text-body-md text-text-muted">
               Manage courses for this program only
             </span>
@@ -419,38 +369,44 @@ export function ProgramHeadCoursesCatalog({
       </div>
 
       {/* Content Container */}
-      <div className="rounded-xl bg-surface-alt p-2">
+      <div className="bg-surface-alt rounded-xl p-2">
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={(v) => { setActiveTab(v); setCurrentPage(1); }}>
-          <div className="mb-4 border-b border-border px-4 pt-2">
+        <Tabs
+          value={activeTab}
+          onValueChange={(v) => {
+            setActiveTab(v);
+            setCurrentPage(1);
+          }}
+        >
+          <div className="border-border mb-4 border-b px-4 pt-2">
             <TabsList className="h-auto bg-transparent p-0">
               <TabsTrigger
                 value="all"
-                className="rounded-none border-b-2 border-transparent px-1 pb-3 text-sm font-medium tracking-wide data-[state=active]:border-primary data-[state=active]:text-primary"
+                className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-1 pb-3 text-sm font-medium tracking-wide"
               >
                 All Courses
               </TabsTrigger>
               <TabsTrigger
                 value="program-wide"
-                className="rounded-none border-b-2 border-transparent px-1 pb-3 text-sm font-medium tracking-wide data-[state=active]:border-primary data-[state=active]:text-primary"
+                className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-1 pb-3 text-sm font-medium tracking-wide"
               >
                 Program-Wide
               </TabsTrigger>
               <TabsTrigger
                 value="major-specific"
-                className="rounded-none border-b-2 border-transparent px-1 pb-3 text-sm font-medium tracking-wide data-[state=active]:border-primary data-[state=active]:text-primary"
+                className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-1 pb-3 text-sm font-medium tracking-wide"
               >
                 Major-Specific
               </TabsTrigger>
               <TabsTrigger
                 value="gen-ed"
-                className="rounded-none border-b-2 border-transparent px-1 pb-3 text-sm font-medium tracking-wide data-[state=active]:border-primary data-[state=active]:text-primary"
+                className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-1 pb-3 text-sm font-medium tracking-wide"
               >
                 Gen Ed
               </TabsTrigger>
               <TabsTrigger
                 value="archived"
-                className="rounded-none border-b-2 border-transparent px-1 pb-3 text-sm font-medium tracking-wide data-[state=active]:border-primary data-[state=active]:text-primary"
+                className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-1 pb-3 text-sm font-medium tracking-wide"
               >
                 Archived
               </TabsTrigger>
@@ -460,22 +416,31 @@ export function ProgramHeadCoursesCatalog({
           {/* Filters */}
           <div className="flex flex-col items-start justify-between gap-4 px-4 pb-4 lg:flex-row lg:items-center">
             <div className="relative w-full lg:w-80">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
+              <Search className="text-text-muted absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2" />
               <Input
                 className="pl-9"
                 placeholder="Search course code or title..."
                 value={search}
-                onChange={(e) => { setSearch(e.target.value); setCurrentPage(1); }}
+                onChange={(e) => {
+                  setSearch(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
             </div>
             <div className="flex flex-wrap items-center gap-3">
               {majors.length > 0 && (
-                <Select value={majorFilter} onValueChange={(v) => { setMajorFilter(v ?? "all"); setCurrentPage(1); }}>
+                <Select
+                  value={majorFilter}
+                  onValueChange={(v) => {
+                    setMajorFilter(v ?? "all");
+                    setCurrentPage(1);
+                  }}
+                >
                   <SelectTrigger className="w-40">
                     <SelectValue>
                       {majorFilter === "all"
                         ? "All Majors"
-                        : majors.find((m) => m.id === majorFilter)?.name ?? "All Majors"}
+                        : (majors.find((m) => m.id === majorFilter)?.name ?? "All Majors")}
                     </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
@@ -492,30 +457,30 @@ export function ProgramHeadCoursesCatalog({
           </div>
 
           {/* Data Table */}
-          <div className="overflow-hidden rounded-lg border border-border bg-surface">
+          <div className="border-border bg-surface overflow-hidden rounded-lg border">
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="text-xs font-medium uppercase tracking-wider">
+                    <TableHead className="text-xs font-medium tracking-wider uppercase">
                       Code
                     </TableHead>
-                    <TableHead className="text-xs font-medium uppercase tracking-wider">
+                    <TableHead className="text-xs font-medium tracking-wider uppercase">
                       Title
                     </TableHead>
-                    <TableHead className="text-xs font-medium uppercase tracking-wider">
+                    <TableHead className="text-xs font-medium tracking-wider uppercase">
                       Type
                     </TableHead>
-                    <TableHead className="text-xs font-medium uppercase tracking-wider">
+                    <TableHead className="text-xs font-medium tracking-wider uppercase">
                       Major Scope
                     </TableHead>
-                    <TableHead className="text-xs font-medium uppercase tracking-wider">
+                    <TableHead className="text-xs font-medium tracking-wider uppercase">
                       Status
                     </TableHead>
-                    <TableHead className="text-xs font-medium uppercase tracking-wider">
+                    <TableHead className="text-xs font-medium tracking-wider uppercase">
                       Last Updated
                     </TableHead>
-                    <TableHead className="text-right text-xs font-medium uppercase tracking-wider">
+                    <TableHead className="text-right text-xs font-medium tracking-wider uppercase">
                       Actions
                     </TableHead>
                   </TableRow>
@@ -523,23 +488,18 @@ export function ProgramHeadCoursesCatalog({
                 <TableBody>
                   {paginatedCourses.length === 0 ? (
                     <TableRow>
-                      <TableCell
-                        colSpan={7}
-                        className="py-12 text-center text-text-muted"
-                      >
+                      <TableCell colSpan={7} className="text-text-muted py-12 text-center">
                         No courses found.
                       </TableCell>
                     </TableRow>
                   ) : (
                     paginatedCourses.map((course) => (
                       <TableRow key={course.id} className="group">
-                        <TableCell className="whitespace-nowrap font-heading text-sm font-semibold text-text-primary">
+                        <TableCell className="font-heading text-text-primary text-sm font-semibold whitespace-nowrap">
                           {course.code}
                         </TableCell>
-                        <TableCell className="text-sm text-text-primary">
-                          {course.title}
-                        </TableCell>
-                        <TableCell className="whitespace-nowrap text-sm text-text-secondary">
+                        <TableCell className="text-text-primary text-sm">{course.title}</TableCell>
+                        <TableCell className="text-text-secondary text-sm whitespace-nowrap">
                           {getCourseTypeLabel(course)}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
@@ -552,7 +512,7 @@ export function ProgramHeadCoursesCatalog({
                               {course.program.code}
                             </Badge>
                           ) : (
-                            <span className="text-xs text-text-muted">—</span>
+                            <span className="text-text-muted text-xs">—</span>
                           )}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
@@ -563,10 +523,10 @@ export function ProgramHeadCoursesCatalog({
                             {course.is_active ? "Active" : "Inactive"}
                           </Badge>
                         </TableCell>
-                        <TableCell className="whitespace-nowrap text-xs text-text-muted">
+                        <TableCell className="text-text-muted text-xs whitespace-nowrap">
                           {formatDate(course.updated_at)}
                         </TableCell>
-                        <TableCell className="whitespace-nowrap text-right">
+                        <TableCell className="text-right whitespace-nowrap">
                           {!course.isReadOnly && (
                             <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
                               <Button
@@ -582,25 +542,16 @@ export function ProgramHeadCoursesCatalog({
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
-                                title={
-                                  course.is_active ? "Archive" : "Restore"
-                                }
+                                title={course.is_active ? "Archive" : "Restore"}
                                 disabled={isPending}
-                                onClick={() =>
-                                  handleToggleActive(
-                                    course.id,
-                                    course.is_active,
-                                  )
-                                }
+                                onClick={() => handleToggleActive(course.id, course.is_active)}
                               >
                                 <Archive className="h-4 w-4" />
                               </Button>
                             </div>
                           )}
                           {course.isReadOnly && (
-                            <span className="text-xs text-text-muted">
-                              Read-only
-                            </span>
+                            <span className="text-text-muted text-xs">Read-only</span>
                           )}
                         </TableCell>
                       </TableRow>
@@ -614,10 +565,9 @@ export function ProgramHeadCoursesCatalog({
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-end gap-2 px-4 py-4">
-              <span className="text-xs text-text-muted">
+              <span className="text-text-muted text-xs">
                 {(safePage - 1) * PAGE_SIZE + 1}–
-                {Math.min(safePage * PAGE_SIZE, filteredCourses.length)} of{" "}
-                {filteredCourses.length}
+                {Math.min(safePage * PAGE_SIZE, filteredCourses.length)} of {filteredCourses.length}
               </span>
               <Button
                 variant="outline"

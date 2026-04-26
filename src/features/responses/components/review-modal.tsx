@@ -1,4 +1,10 @@
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { buildStudentEvaluationAnswerKey } from "@/features/responses/answer-keys";
@@ -13,40 +19,46 @@ interface ReviewModalProps {
   isSubmitting?: boolean;
 }
 
-export function ReviewModal({ 
-  isOpen, 
-  onClose, 
-  onSubmit, 
-  sections, 
+export function ReviewModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  sections,
   answers,
-  isSubmitting = false 
+  isSubmitting = false,
 }: ReviewModalProps) {
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl h-[80vh] flex flex-col p-0 overflow-hidden">
-        <DialogHeader className="p-6 border-b shrink-0">
-          <DialogTitle className="text-xl font-black font-heading flex items-center gap-2">
+      <DialogContent className="flex h-[80vh] max-w-2xl flex-col overflow-hidden p-0">
+        <DialogHeader className="shrink-0 border-b p-6">
+          <DialogTitle className="font-heading flex items-center gap-2 text-xl font-black">
             <CheckCircle2 className="text-success size-5" />
             Review Your Answers
           </DialogTitle>
         </DialogHeader>
-        
-        <div className="flex-1 p-6 overflow-y-auto">
+
+        <div className="flex-1 overflow-y-auto p-6">
           <div className="space-y-8">
             {sections.map((s) => (
               <div key={s.id}>
-                <h3 className="font-bold text-primary mb-4 uppercase text-[10px] tracking-widest">{s.name}</h3>
+                <h3 className="text-primary mb-4 text-[10px] font-bold tracking-widest uppercase">
+                  {s.name}
+                </h3>
                 <div className="space-y-4">
                   {s.items.map((item) => {
-                    const answerKey = item.kind === "quantitative" 
-                      ? buildStudentEvaluationAnswerKey(s.id, "quantitative", item.itemKey)
-                      : buildStudentEvaluationAnswerKey(s.id, "qualitative", item.promptKey);
+                    const answerKey =
+                      item.kind === "quantitative"
+                        ? buildStudentEvaluationAnswerKey(s.id, "quantitative", item.itemKey)
+                        : buildStudentEvaluationAnswerKey(s.id, "qualitative", item.promptKey);
                     const answer = answers[answerKey];
-                    
+
                     return (
-                      <div key={item.kind === "quantitative" ? item.itemKey : item.promptKey} className="flex justify-between items-start gap-4 py-3 border-b border-border/50">
-                        <span className="text-sm text-text-secondary">{item.prompt}</span>
-                        <span className="font-black text-primary px-3 py-1 bg-primary-soft rounded-md shrink-0">
+                      <div
+                        key={item.kind === "quantitative" ? item.itemKey : item.promptKey}
+                        className="border-border/50 flex items-start justify-between gap-4 border-b py-3"
+                      >
+                        <span className="text-text-secondary text-sm">{item.prompt}</span>
+                        <span className="text-primary bg-primary-soft shrink-0 rounded-md px-3 py-1 font-black">
                           {answer ?? "—"}
                         </span>
                       </div>
@@ -56,21 +68,24 @@ export function ReviewModal({
               </div>
             ))}
           </div>
-          
-          <div className="mt-8 p-4 bg-amber-50 rounded-lg border border-amber-200 flex gap-3">
-             <AlertCircle className="size-5 text-amber-600 shrink-0" />
-             <p className="text-xs text-amber-800 font-medium leading-relaxed">
-               Please review your answers carefully. By clicking submit, your responses will be finalized and locked. You cannot edit them after this step.
-             </p>
+
+          <div className="mt-8 flex gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <AlertCircle className="size-5 shrink-0 text-amber-600" />
+            <p className="text-xs leading-relaxed font-medium text-amber-800">
+              Please review your answers carefully. By clicking submit, your responses will be
+              finalized and locked. You cannot edit them after this step.
+            </p>
           </div>
         </div>
 
-        <DialogFooter className="p-6 border-t shrink-0 gap-3 sm:gap-0 bg-surface">
-          <Button variant="ghost" onClick={onClose} disabled={isSubmitting} className="font-bold">Go Back</Button>
-          <Button 
-            onClick={onSubmit} 
+        <DialogFooter className="bg-surface shrink-0 gap-3 border-t p-6 sm:gap-0">
+          <Button variant="ghost" onClick={onClose} disabled={isSubmitting} className="font-bold">
+            Go Back
+          </Button>
+          <Button
+            onClick={onSubmit}
             disabled={isSubmitting}
-            className="bg-primary hover:bg-primary-hover font-bold px-8 min-w-[140px]"
+            className="bg-primary hover:bg-primary-hover min-w-[140px] px-8 font-bold"
           >
             {isSubmitting ? "Submitting..." : "Confirm & Submit"}
           </Button>

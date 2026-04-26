@@ -11,8 +11,8 @@ describe("isCourseBoundEvaluationAvailable", () => {
           deadline_at: new Date("2026-05-20T00:00:00.000Z"),
           status: "SCHEDULED",
         },
-        new Date("2026-05-10T00:00:00.000Z"),
-      ),
+        new Date("2026-05-10T00:00:00.000Z")
+      )
     ).toBe(false);
   });
 
@@ -24,8 +24,8 @@ describe("isCourseBoundEvaluationAvailable", () => {
           deadline_at: new Date("2026-05-20T00:00:00.000Z"),
           status: "SCHEDULED",
         },
-        new Date("2026-05-16T00:00:00.000Z"),
-      ),
+        new Date("2026-05-16T00:00:00.000Z")
+      )
     ).toBe(true);
   });
 
@@ -37,8 +37,8 @@ describe("isCourseBoundEvaluationAvailable", () => {
           deadline_at: new Date("2026-05-20T00:00:00.000Z"),
           status: "INACTIVE",
         },
-        new Date("2026-05-16T00:00:00.000Z"),
-      ),
+        new Date("2026-05-16T00:00:00.000Z")
+      )
     ).toBe(false);
   });
 
@@ -50,8 +50,8 @@ describe("isCourseBoundEvaluationAvailable", () => {
           deadline_at: new Date("2026-05-10T00:00:00.000Z"),
           status: "ACTIVE",
         },
-        new Date("2026-05-16T00:00:00.000Z"),
-      ),
+        new Date("2026-05-16T00:00:00.000Z")
+      )
     ).toBe(false);
   });
 });

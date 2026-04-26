@@ -3,18 +3,10 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import {
-  Edit,
-  ExternalLink,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import { Edit, ExternalLink, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -49,8 +41,8 @@ function StatCard({
   muted?: boolean;
 }) {
   return (
-    <div className="flex h-28 flex-col justify-between rounded-lg border border-border bg-surface p-5 transition-colors hover:bg-surface-alt">
-      <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+    <div className="border-border bg-surface hover:bg-surface-alt flex h-28 flex-col justify-between rounded-lg border p-5 transition-colors">
+      <span className="text-text-muted text-xs font-semibold tracking-wider uppercase">
         {label}
       </span>
       <span
@@ -81,8 +73,7 @@ function GOFormDialog({
     setError(null);
 
     startTransition(async () => {
-      const action =
-        mode === "create" ? createGOAction : updateGOAction;
+      const action = mode === "create" ? createGOAction : updateGOAction;
 
       const result = await action(formData);
 
@@ -110,14 +101,10 @@ function GOFormDialog({
           </DialogDescription>
         </DialogHeader>
         <form action={handleSubmit} className="space-y-4">
-          {mode === "edit" && go && (
-            <input type="hidden" name="id" value={go.id} />
-          )}
+          {mode === "edit" && go && <input type="hidden" name="id" value={go.id} />}
 
           {error && (
-            <div className="rounded-md bg-danger-soft p-3 text-sm text-danger">
-              {error}
-            </div>
+            <div className="bg-danger-soft text-danger rounded-md p-3 text-sm">{error}</div>
           )}
 
           <div className="space-y-2">
@@ -144,19 +131,11 @@ function GOFormDialog({
           </div>
 
           <div className="flex justify-end gap-2 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending
-                ? "Saving..."
-                : mode === "create"
-                  ? "Create GO"
-                  : "Save Changes"}
+              {isPending ? "Saving..." : mode === "create" ? "Create GO" : "Save Changes"}
             </Button>
           </div>
         </form>
@@ -165,10 +144,7 @@ function GOFormDialog({
   );
 }
 
-export function ProgramHeadOutcomesPage({
-  gos,
-  program,
-}: ProgramHeadOutcomesPageProps) {
+export function ProgramHeadOutcomesPage({ gos, program }: ProgramHeadOutcomesPageProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -199,17 +175,13 @@ export function ProgramHeadOutcomesPage({
       {/* Header */}
       <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-heading-lg mb-2 font-heading text-4xl font-bold tracking-tight text-text-primary lg:text-5xl">
+          <h1 className="text-heading-lg font-heading text-text-primary mb-2 text-4xl font-bold tracking-tight lg:text-5xl">
             Graduate Outcomes
           </h1>
           <div className="flex items-center gap-3">
-            <span className="font-heading text-xl font-medium text-primary">
-              {program.name}
-            </span>
-            <span className="h-1.5 w-1.5 rounded-full bg-border-strong" />
-            <span className="text-body-md text-text-muted">
-              Manage GOs for your program
-            </span>
+            <span className="font-heading text-primary text-xl font-medium">{program.name}</span>
+            <span className="bg-border-strong h-1.5 w-1.5 rounded-full" />
+            <span className="text-body-md text-text-muted">Manage GOs for your program</span>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -233,11 +205,7 @@ export function ProgramHeadOutcomesPage({
       <div className="mb-10 grid grid-cols-2 gap-4 md:grid-cols-3">
         <StatCard label="Total GOs" value={totalGOs} />
         <StatCard label="With CILO Mappings" value={withMappings} />
-        <StatCard
-          label="Without Mappings"
-          value={totalGOs - withMappings}
-          muted
-        />
+        <StatCard label="Without Mappings" value={totalGOs - withMappings} muted />
       </div>
 
       {/* GO List */}
@@ -246,8 +214,7 @@ export function ProgramHeadOutcomesPage({
           <Card>
             <CardContent className="py-12 text-center">
               <p className="text-body-md text-text-secondary">
-                No Graduate Outcomes defined yet. Click &quot;Add GO&quot; to get
-                started.
+                No Graduate Outcomes defined yet. Click &quot;Add GO&quot; to get started.
               </p>
             </CardContent>
           </Card>
@@ -262,18 +229,14 @@ export function ProgramHeadOutcomesPage({
                       {go.code}
                     </Badge>
                     <Badge
-                      variant={
-                        go._count.cilo_mappings > 0 ? "secondary" : "outline"
-                      }
+                      variant={go._count.cilo_mappings > 0 ? "secondary" : "outline"}
                       className="text-xs"
                     >
-                      {go._count.cilo_mappings}{" "}
-                      {go._count.cilo_mappings === 1 ? "CILO" : "CILOs"} mapped
+                      {go._count.cilo_mappings} {go._count.cilo_mappings === 1 ? "CILO" : "CILOs"}{" "}
+                      mapped
                     </Badge>
                   </div>
-                  <p className="text-body-md text-text-secondary">
-                    {go.description}
-                  </p>
+                  <p className="text-body-md text-text-secondary">{go.description}</p>
                 </div>
 
                 {/* Actions */}
@@ -290,7 +253,7 @@ export function ProgramHeadOutcomesPage({
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 text-danger"
+                    className="text-danger h-8 w-8"
                     title="Delete"
                     onClick={() => {
                       setDeleteError(null);
@@ -307,11 +270,7 @@ export function ProgramHeadOutcomesPage({
       </div>
 
       {/* Create Dialog */}
-      <GOFormDialog
-        mode="create"
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-      />
+      <GOFormDialog mode="create" open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
 
       {/* Edit Dialog */}
       {editingGO && (
@@ -339,14 +298,12 @@ export function ProgramHeadOutcomesPage({
           <DialogHeader>
             <DialogTitle>Delete Graduate Outcome</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete{" "}
-              <strong>{deletingGO?.code}</strong>? This action cannot be undone.
+              Are you sure you want to delete <strong>{deletingGO?.code}</strong>? This action
+              cannot be undone.
             </DialogDescription>
           </DialogHeader>
           {deleteError && (
-            <div className="rounded-md bg-danger-soft p-3 text-sm text-danger">
-              {deleteError}
-            </div>
+            <div className="bg-danger-soft text-danger rounded-md p-3 text-sm">{deleteError}</div>
           )}
           <div className="flex justify-end gap-2 pt-2">
             <Button

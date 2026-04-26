@@ -56,17 +56,15 @@ describe("PublishCourseBoundEvaluationForm", () => {
         publicationContext={publicationContext}
         yearLevels={yearLevels}
         publishAction={vi.fn()}
-      />,
+      />
     );
 
-    expect(
-      screen.getByRole("heading", { name: /publish cilo evaluation/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /publish cilo evaluation/i })).toBeInTheDocument();
     expect(screen.getByText("Course-Bound CILO Evaluation")).toBeInTheDocument();
     expect(screen.getByText("CS101 - Intro to Computing")).toBeInTheDocument();
     expect(screen.getByText("Apply core concepts")).toBeInTheDocument();
     expect(
-      screen.getByText(/students can apply the core concepts taught in the course/i),
+      screen.getByText(/students can apply the core concepts taught in the course/i)
     ).toBeInTheDocument();
     expect(screen.getByLabelText("1st Year")).toBeInTheDocument();
     expect(screen.getByLabelText("2nd Year")).toBeInTheDocument();
@@ -91,7 +89,7 @@ describe("PublishCourseBoundEvaluationForm", () => {
         publicationContext={publicationContext}
         yearLevels={yearLevels}
         publishAction={publishAction}
-      />,
+      />
     );
 
     fireEvent.change(screen.getByLabelText(/deployed evaluation name/i), {
@@ -121,8 +119,6 @@ describe("PublishCourseBoundEvaluationForm", () => {
       term: AcademicTerm.FIRST_TERM,
       yearLevelIds: ["year-1", "year-2"],
     });
-    expect(
-      screen.getByText(/evaluation published successfully\./i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/evaluation published successfully\./i)).toBeInTheDocument();
   });
 });

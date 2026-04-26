@@ -2,14 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import {
-  BookOpen,
-  GraduationCap,
-  Layers,
-  MoreVertical,
-  Search,
-  Users,
-} from "lucide-react";
+import { BookOpen, GraduationCap, Layers, MoreVertical, Search, Users } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -72,8 +65,9 @@ export function AdminProgramsList({ programs, kpi }: AdminProgramsListProps) {
   const [isPending, startTransition] = useTransition();
 
   // ---- Manage Majors dialog state -----------------------------------------
-  const [majorsDialogProgram, setMajorsDialogProgram] =
-    useState<AdminProgramSummaryItem | null>(null);
+  const [majorsDialogProgram, setMajorsDialogProgram] = useState<AdminProgramSummaryItem | null>(
+    null
+  );
 
   // ---- Filtered programs ---------------------------------------------------
   const filteredPrograms = useMemo(() => {
@@ -90,9 +84,7 @@ export function AdminProgramsList({ programs, kpi }: AdminProgramsListProps) {
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim();
       result = result.filter(
-        (p) =>
-          p.code.toLowerCase().includes(term) ||
-          p.name.toLowerCase().includes(term),
+        (p) => p.code.toLowerCase().includes(term) || p.name.toLowerCase().includes(term)
       );
     }
 
@@ -104,7 +96,7 @@ export function AdminProgramsList({ programs, kpi }: AdminProgramsListProps) {
   const safePage = Math.min(currentPage, totalPages);
   const paginatedPrograms = filteredPrograms.slice(
     (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE,
+    safePage * PAGE_SIZE
   );
 
   // Reset to page 1 when filters change
@@ -149,8 +141,7 @@ export function AdminProgramsList({ programs, kpi }: AdminProgramsListProps) {
       <div className="space-y-2">
         <h1 className="text-heading-lg">Academic Programs</h1>
         <p className="text-body-md text-text-secondary">
-          Manage academic programs, their majors, and program metadata across the
-          college.
+          Manage academic programs, their majors, and program metadata across the college.
         </p>
       </div>
 
@@ -159,30 +150,28 @@ export function AdminProgramsList({ programs, kpi }: AdminProgramsListProps) {
         <KPICard
           label="Total Programs"
           value={kpi.totalPrograms}
-          icon={<BookOpen className="size-5 text-muted-foreground" />}
+          icon={<BookOpen className="text-muted-foreground size-5" />}
         />
         <KPICard
           label="Active Programs"
           value={kpi.activePrograms}
-          icon={<Layers className="size-5 text-muted-foreground" />}
+          icon={<Layers className="text-muted-foreground size-5" />}
         />
         <KPICard
           label="Programs with Majors"
           value={kpi.programsWithMajors}
-          icon={<GraduationCap className="size-5 text-muted-foreground" />}
+          icon={<GraduationCap className="text-muted-foreground size-5" />}
         />
         <KPICard
           label="Total Majors"
           value={kpi.totalMajors}
-          icon={<Users className="size-5 text-muted-foreground" />}
+          icon={<Users className="text-muted-foreground size-5" />}
         />
       </div>
 
       {/* Action bar */}
       <div className="flex items-center justify-end">
-        <Button render={<Link href="/admin/programs/new" />}>
-          Create Program
-        </Button>
+        <Button render={<Link href="/admin/programs/new" />}>Create Program</Button>
       </div>
 
       {/* Filter bar */}
@@ -207,7 +196,7 @@ export function AdminProgramsList({ programs, kpi }: AdminProgramsListProps) {
 
         {/* Search */}
         <div className="relative ml-auto w-full max-w-xs">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
           <Input
             placeholder="Search by code or name..."
             value={searchTerm}
@@ -235,10 +224,7 @@ export function AdminProgramsList({ programs, kpi }: AdminProgramsListProps) {
         <TableBody>
           {paginatedPrograms.length === 0 ? (
             <TableRow>
-              <TableCell
-                colSpan={9}
-                className="h-24 text-center text-muted-foreground"
-              >
+              <TableCell colSpan={9} className="text-muted-foreground h-24 text-center">
                 No programs found.
               </TableCell>
             </TableRow>
@@ -248,52 +234,36 @@ export function AdminProgramsList({ programs, kpi }: AdminProgramsListProps) {
                 <TableCell className="font-bold">{program.code}</TableCell>
                 <TableCell>{program.name}</TableCell>
                 <TableCell className="max-w-[200px] truncate">
-                  {program.majorNames.length > 0
-                    ? program.majorNames.join(", ")
-                    : "—"}
+                  {program.majorNames.length > 0 ? program.majorNames.join(", ") : "—"}
                 </TableCell>
-                <TableCell className="text-right">
-                  {program.courseCount}
-                </TableCell>
+                <TableCell className="text-right">{program.courseCount}</TableCell>
                 <TableCell className="text-right">{program.goCount}</TableCell>
-                <TableCell className="text-right">
-                  {program.studentCount}
-                </TableCell>
-                <TableCell className="text-right">
-                  {program.facultyCount}
-                </TableCell>
+                <TableCell className="text-right">{program.studentCount}</TableCell>
+                <TableCell className="text-right">{program.facultyCount}</TableCell>
                 <TableCell>
-                  <Badge
-                    variant={program.isActive ? "default" : "secondary"}
-                  >
+                  <Badge variant={program.isActive ? "default" : "secondary"}>
                     {program.isActive ? "Active" : "Inactive"}
                   </Badge>
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
-                    <DropdownMenuTrigger className="inline-flex size-8 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary">
+                    <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-8 items-center justify-center rounded-md transition-colors">
                       <MoreVertical className="size-4" />
                       <span className="sr-only">Actions</span>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        render={
-                          <Link href={`/admin/programs/${program.id}/edit`} />
-                        }
+                        render={<Link href={`/admin/programs/${program.id}/edit`} />}
                       >
                         Edit
                       </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setMajorsDialogProgram(program)}
-                      >
+                      <DropdownMenuItem onClick={() => setMajorsDialogProgram(program)}>
                         Manage Majors
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         disabled={isPending}
-                        onClick={() =>
-                          handleToggleActive(program.id, program.isActive)
-                        }
+                        onClick={() => handleToggleActive(program.id, program.isActive)}
                       >
                         {program.isActive ? "Deactivate" : "Activate"}
                       </DropdownMenuItem>
@@ -320,10 +290,7 @@ export function AdminProgramsList({ programs, kpi }: AdminProgramsListProps) {
 
           {buildPageNumbers().map((page, idx) =>
             page === "ellipsis" ? (
-              <span
-                key={`ellipsis-${idx}`}
-                className="px-2 text-sm text-muted-foreground"
-              >
+              <span key={`ellipsis-${idx}`} className="text-muted-foreground px-2 text-sm">
                 …
               </span>
             ) : (
@@ -335,7 +302,7 @@ export function AdminProgramsList({ programs, kpi }: AdminProgramsListProps) {
               >
                 {page}
               </Button>
-            ),
+            )
           )}
 
           <Button
@@ -350,10 +317,10 @@ export function AdminProgramsList({ programs, kpi }: AdminProgramsListProps) {
       )}
 
       {/* Result count */}
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-center text-xs">
         Showing {(safePage - 1) * PAGE_SIZE + 1}–
-        {Math.min(safePage * PAGE_SIZE, filteredPrograms.length)} of{" "}
-        {filteredPrograms.length} program
+        {Math.min(safePage * PAGE_SIZE, filteredPrograms.length)} of {filteredPrograms.length}{" "}
+        program
         {filteredPrograms.length !== 1 ? "s" : ""}
       </p>
 
@@ -380,27 +347,17 @@ export function AdminProgramsList({ programs, kpi }: AdminProgramsListProps) {
 // KPI Card sub-component
 // ---------------------------------------------------------------------------
 
-function KPICard({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: number;
-  icon: React.ReactNode;
-}) {
+function KPICard({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardDescription className="text-xs font-semibold uppercase tracking-wider">
+          <CardDescription className="text-xs font-semibold tracking-wider uppercase">
             {label}
           </CardDescription>
           {icon}
         </div>
-        <CardTitle className="text-2xl font-bold">
-          {value.toLocaleString()}
-        </CardTitle>
+        <CardTitle className="text-2xl font-bold">{value.toLocaleString()}</CardTitle>
       </CardHeader>
     </Card>
   );

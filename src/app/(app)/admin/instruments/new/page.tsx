@@ -9,16 +9,13 @@ export default function AdminCreateTemplatePage() {
       {/* Back link */}
       <Link
         href="/admin/instruments"
-        className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+        className="text-primary inline-flex items-center gap-2 text-sm font-medium hover:underline"
       >
         <ArrowLeft className="size-4" />
         Back to Tools
       </Link>
 
-      <TemplateBuilder
-        onSave={createAdminTemplateAction}
-        programLabel="Institutional Baseline"
-      />
+      <TemplateBuilder onSave={createAdminTemplateAction} programLabel="Institutional Baseline" />
     </div>
   );
 }

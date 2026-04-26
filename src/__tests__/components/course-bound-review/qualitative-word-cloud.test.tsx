@@ -43,10 +43,7 @@ describe("QualitativeWordCloud", () => {
     wordCloudPropsMock.mockClear();
 
     render(
-      <QualitativeWordCloud
-        title="Qualitative Feedback"
-        tokens={[{ text: "clarity", value: 3 }]}
-      />,
+      <QualitativeWordCloud title="Qualitative Feedback" tokens={[{ text: "clarity", value: 3 }]} />
     );
 
     act(() => {
@@ -58,7 +55,7 @@ describe("QualitativeWordCloud", () => {
         expect.objectContaining({
           height: 220,
           width: 280,
-        }),
+        })
       );
     });
 
@@ -71,7 +68,7 @@ describe("QualitativeWordCloud", () => {
         expect.objectContaining({
           height: 352,
           width: 640,
-        }),
+        })
       );
     });
 
@@ -84,7 +81,7 @@ describe("QualitativeWordCloud", () => {
         expect.objectContaining({
           height: 420,
           width: 960,
-        }),
+        })
       );
     });
   });

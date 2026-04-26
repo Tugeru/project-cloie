@@ -18,16 +18,14 @@ export default async function AddNewUserPage() {
       {/* Back link */}
       <Link
         href="/admin/users"
-        className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+        className="text-primary inline-flex items-center gap-2 text-sm font-medium hover:underline"
       >
         <ArrowLeft className="size-4" />
         Back
       </Link>
 
       {/* Breadcrumb */}
-      <nav className="text-xs text-text-muted">
-        User &gt; Add New User
-      </nav>
+      <nav className="text-text-muted text-xs">User &gt; Add New User</nav>
 
       <AddUserForm programs={programs} createAction={createAdminUserAction} />
     </div>

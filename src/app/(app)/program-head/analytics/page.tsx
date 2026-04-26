@@ -5,8 +5,9 @@ export default function ProgramHeadAnalyticsPage() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Program Analytics</h1>
-        <p className="text-sm text-text-secondary">
-          Program-scoped mean summaries and qualitative outputs will expand here after scaffold completion.
+        <p className="text-text-secondary text-sm">
+          Program-scoped mean summaries and qualitative outputs will expand here after scaffold
+          completion.
         </p>
       </div>
 

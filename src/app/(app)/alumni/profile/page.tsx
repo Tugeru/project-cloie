@@ -1,13 +1,7 @@
 import { Book, Mail, ShieldCheck, User } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { prisma } from "@/lib/db/prisma";
 
@@ -27,9 +21,7 @@ export default async function AlumniProfilePage() {
     },
   });
 
-  const fullName = user
-    ? `${user.first_name} ${user.last_name}`
-    : "Alumni";
+  const fullName = user ? `${user.first_name} ${user.last_name}` : "Alumni";
 
   // Try to resolve program context from external invite or any available association
   const invite = await prisma.externalStakeholderInvite.findFirst({
@@ -44,10 +36,10 @@ export default async function AlumniProfilePage() {
   });
 
   return (
-    <div className="max-w-4xl animate-in space-y-8 fade-in duration-500">
+    <div className="animate-in fade-in max-w-4xl space-y-8 duration-500">
       <div>
-        <h1 className="font-heading text-2xl font-black text-text-primary">Profile</h1>
-        <p className="text-sm text-text-muted">
+        <h1 className="font-heading text-text-primary text-2xl font-black">Profile</h1>
+        <p className="text-text-muted text-sm">
           Review your account information and program affiliation.
         </p>
       </div>
@@ -56,7 +48,7 @@ export default async function AlumniProfilePage() {
         {/* Personal Information */}
         <Card className="border-border shadow-sm">
           <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-            <div className="rounded-lg bg-primary-soft p-2 text-primary">
+            <div className="bg-primary-soft text-primary rounded-lg p-2">
               <User className="size-5" />
             </div>
             <div>
@@ -66,22 +58,22 @@ export default async function AlumniProfilePage() {
           </CardHeader>
           <CardContent className="space-y-4 pt-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-text-muted">
+              <label className="text-text-muted text-[10px] font-black tracking-widest uppercase">
                 Full Name
               </label>
               <p className="text-sm font-semibold">{fullName}</p>
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-text-muted">
+              <label className="text-text-muted text-[10px] font-black tracking-widest uppercase">
                 Email Address
               </label>
               <div className="flex items-center gap-2 text-sm font-semibold">
-                <Mail className="size-4 text-text-muted" />
+                <Mail className="text-text-muted size-4" />
                 {user?.email ?? "No email available"}
               </div>
             </div>
             <div className="pt-2">
-              <Badge variant="secondary" className="bg-primary-soft font-bold text-primary">
+              <Badge variant="secondary" className="bg-primary-soft text-primary font-bold">
                 Role: Alumni
               </Badge>
             </div>
@@ -91,7 +83,7 @@ export default async function AlumniProfilePage() {
         {/* Program Context */}
         <Card className="border-border shadow-sm">
           <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-            <div className="rounded-lg bg-secondary-soft p-2 text-secondary">
+            <div className="bg-secondary-soft text-secondary rounded-lg p-2">
               <Book className="size-5" />
             </div>
             <div>
@@ -101,17 +93,17 @@ export default async function AlumniProfilePage() {
           </CardHeader>
           <CardContent className="space-y-4 pt-4 text-sm font-semibold">
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-text-muted">
+              <label className="text-text-muted text-[10px] font-black tracking-widest uppercase">
                 Program
               </label>
               <p className="flex items-center gap-2">
-                <Book className="size-4 text-text-muted" />
+                <Book className="text-text-muted size-4" />
                 {invite?.program?.name ?? "Not specified"}
               </p>
             </div>
             {invite?.program && (
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-widest text-text-muted">
+                <label className="text-text-muted text-[10px] font-black tracking-widest uppercase">
                   Program Code
                 </label>
                 <p>{invite.program.code}</p>
@@ -121,18 +113,18 @@ export default async function AlumniProfilePage() {
         </Card>
 
         {/* Data Privacy Notice */}
-        <Card className="border-border border-l-4 border-l-primary shadow-sm md:col-span-2">
+        <Card className="border-border border-l-primary border-l-4 shadow-sm md:col-span-2">
           <CardContent className="p-6">
             <div className="flex items-start gap-4">
-              <div className="shrink-0 rounded-lg bg-primary-soft p-2 text-primary">
+              <div className="bg-primary-soft text-primary shrink-0 rounded-lg p-2">
                 <ShieldCheck className="size-5" />
               </div>
               <div className="space-y-2">
-                <h3 className="font-bold text-text-primary">Data Privacy & Responses</h3>
-                <p className="text-sm leading-relaxed text-text-secondary">
-                  Your evaluation responses are handled confidentially and are reported
-                  only in aggregated form. Once an evaluation is finalized and
-                  submitted, it cannot be modified to protect the integrity of results.
+                <h3 className="text-text-primary font-bold">Data Privacy & Responses</h3>
+                <p className="text-text-secondary text-sm leading-relaxed">
+                  Your evaluation responses are handled confidentially and are reported only in
+                  aggregated form. Once an evaluation is finalized and submitted, it cannot be
+                  modified to protect the integrity of results.
                 </p>
               </div>
             </div>

@@ -65,7 +65,7 @@ describe("buildQuantitativeUpserts", () => {
         responseId: "response-1",
         section,
         updatedAt: "2026-04-20T10:00:00.000Z",
-      }),
+      })
     ).toEqual([
       {
         item_key: "q1",
@@ -98,7 +98,7 @@ describe("buildQualitativeUpserts", () => {
         responseId: "response-1",
         section,
         updatedAt: "2026-04-20T10:00:00.000Z",
-      }),
+      })
     ).toEqual([
       {
         prompt_key: "remarks",
@@ -156,12 +156,12 @@ describe("saveStudentCourseBoundDraft", () => {
         },
         assignmentId: "assignment-1",
         sectionKey: "section-a",
-      }),
+      })
     ).resolves.toEqual(
       expect.objectContaining({
         responseId: "response-1",
         success: true,
-      }),
+      })
     );
   });
 
@@ -194,7 +194,7 @@ describe("saveStudentCourseBoundDraft", () => {
         answers: { "section-a:quantitative:q1": 4 },
         assignmentId: "assignment-1",
         sectionKey: "section-a",
-      }),
+      })
     ).resolves.toEqual({
       error: "This evaluation has already been submitted.",
       success: false,
@@ -233,7 +233,7 @@ describe("saveStudentCourseBoundDraft", () => {
         answers: { "section-a:quantitative:q1": 4 },
         assignmentId: "assignment-1",
         sectionKey: "section-a",
-      }),
+      })
     ).resolves.toEqual({
       error: "This evaluation is not currently available.",
       success: false,

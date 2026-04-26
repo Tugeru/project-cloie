@@ -13,14 +13,14 @@ export function HeroCard({
   evaluationsHref = "/student/evaluations",
 }: HeroCardProps) {
   return (
-    <section className="mb-8 rounded-2xl border border-primary/10 bg-gradient-to-br from-primary to-primary-active p-6 text-on-primary shadow-md lg:p-8">
+    <section className="border-primary/10 from-primary to-primary-active text-on-primary mb-8 rounded-2xl border bg-gradient-to-br p-6 shadow-md lg:p-8">
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
         <div>
-          <h2 className="mb-1 font-heading text-heading-lg font-extrabold lg:text-heading-xl">
+          <h2 className="font-heading text-heading-lg lg:text-heading-xl mb-1 font-extrabold">
             Welcome, {name}
           </h2>
-          <p className="font-medium text-primary-muted">{contextLabel}</p>
-          <p className="mt-4 inline-block rounded-full border border-primary-border/20 bg-primary-active/30 px-3 py-1.5 text-body-sm">
+          <p className="text-primary-muted font-medium">{contextLabel}</p>
+          <p className="border-primary-border/20 bg-primary-active/30 text-body-sm mt-4 inline-block rounded-full border px-3 py-1.5">
             Complete your assigned evaluations before their deadlines.
           </p>
         </div>

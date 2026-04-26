@@ -6,11 +6,7 @@ import {
 } from "@/lib/actions/student-evaluation-actions";
 import { notFound, redirect } from "next/navigation";
 
-export default async function EvaluationPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function EvaluationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await getStudentAssignedEvaluationSession(id);
 

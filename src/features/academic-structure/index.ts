@@ -17,16 +17,12 @@ export {
   toggleMajorActive,
   deleteMajor,
 } from "./services/manage-programs";
-export {
-  listAdminProgramsSummary,
-} from "./services/list-admin-programs-summary";
+export { listAdminProgramsSummary } from "./services/list-admin-programs-summary";
 export type {
   AdminProgramSummaryItem,
   AdminProgramsKPI,
 } from "./services/list-admin-programs-summary";
-export {
-  listAdminCoursesSummary,
-} from "./services/list-admin-courses-summary";
+export { listAdminCoursesSummary } from "./services/list-admin-courses-summary";
 export type {
   AdminCourseSummaryItem,
   AdminCoursesKPI,
@@ -54,10 +50,7 @@ export {
   updateMajorSchema,
 } from "./schemas/program";
 export { createCourseSchema, updateCourseSchema } from "./schemas/course";
-export {
-  createYearLevelSchema,
-  updateYearLevelSchema,
-} from "./schemas/year-level";
+export { createYearLevelSchema, updateYearLevelSchema } from "./schemas/year-level";
 export type {
   CreateProgramInput,
   UpdateProgramInput,
@@ -65,7 +58,4 @@ export type {
   UpdateMajorInput,
 } from "./schemas/program";
 export type { CreateCourseInput, UpdateCourseInput } from "./schemas/course";
-export type {
-  CreateYearLevelInput,
-  UpdateYearLevelInput,
-} from "./schemas/year-level";
+export type { CreateYearLevelInput, UpdateYearLevelInput } from "./schemas/year-level";

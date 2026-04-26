@@ -32,10 +32,7 @@ export {
   createExternalInviteDraftSchema,
 } from "./schemas/admin-user";
 
-export {
-  createAdminUserSchema,
-  type CreateAdminUserInput,
-} from "./schemas/create-user";
+export { createAdminUserSchema, type CreateAdminUserInput } from "./schemas/create-user";
 
 export { createAdminUser } from "./services/create-admin-user";
 

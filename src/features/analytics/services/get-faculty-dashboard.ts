@@ -41,9 +41,7 @@ function roundToTwo(n: number): number {
 // Main service function
 // ---------------------------------------------------------------------------
 
-export async function getFacultyDashboard(
-  userId: string,
-): Promise<FacultyDashboardData> {
+export async function getFacultyDashboard(userId: string): Promise<FacultyDashboardData> {
   // Resolve faculty's program affiliation
   const affiliation = await prisma.facultyProgramAffiliation.findFirst({
     where: { faculty_id: userId, is_active: true },
@@ -182,9 +180,7 @@ export async function getFacultyDashboard(
     select: { text_content: true },
   });
 
-  const texts = qualResponses
-    .map((r) => r.text_content)
-    .filter((t) => t.trim().length > 0);
+  const texts = qualResponses.map((r) => r.text_content).filter((t) => t.trim().length > 0);
 
   const wordCloudTokens = buildReviewWordCloudTokens(texts);
 

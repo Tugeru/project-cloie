@@ -35,20 +35,20 @@ export function CourseBoundReviewTabs({ detail, responseBasePath }: CourseBoundR
             <CardTitle>Evaluation Overview</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-lg border border-border p-3">
-              <p className="text-xs uppercase tracking-wide text-text-muted">Responses</p>
+            <div className="border-border rounded-lg border p-3">
+              <p className="text-text-muted text-xs tracking-wide uppercase">Responses</p>
               <p className="text-xl font-semibold">{detail.responseCount}</p>
             </div>
-            <div className="rounded-lg border border-border p-3">
-              <p className="text-xs uppercase tracking-wide text-text-muted">Overall Mean</p>
+            <div className="border-border rounded-lg border p-3">
+              <p className="text-text-muted text-xs tracking-wide uppercase">Overall Mean</p>
               <p className="text-xl font-semibold">{formatMean(detail.overallMean)}</p>
             </div>
-            <div className="rounded-lg border border-border p-3">
-              <p className="text-xs uppercase tracking-wide text-text-muted">Course</p>
+            <div className="border-border rounded-lg border p-3">
+              <p className="text-text-muted text-xs tracking-wide uppercase">Course</p>
               <p className="text-sm font-semibold">{detail.courseTitle}</p>
             </div>
-            <div className="rounded-lg border border-border p-3">
-              <p className="text-xs uppercase tracking-wide text-text-muted">Program</p>
+            <div className="border-border rounded-lg border p-3">
+              <p className="text-text-muted text-xs tracking-wide uppercase">Program</p>
               <p className="text-sm font-semibold">{detail.programLabel}</p>
             </div>
           </CardContent>
@@ -64,7 +64,10 @@ export function CourseBoundReviewTabs({ detail, responseBasePath }: CourseBoundR
           <MeanBarChart
             key={section.id}
             title={`${section.name} Question Means`}
-            data={section.questions.map((question) => ({ label: question.prompt, value: question.mean }))}
+            data={section.questions.map((question) => ({
+              label: question.prompt,
+              value: question.mean,
+            }))}
           />
         ))}
       </TabsContent>
@@ -76,27 +79,31 @@ export function CourseBoundReviewTabs({ detail, responseBasePath }: CourseBoundR
           </CardHeader>
           <CardContent className="space-y-3">
             {ciloMetrics.length === 0 ? (
-              <p className="text-sm text-text-muted">No CILO bindings were saved for this evaluation.</p>
+              <p className="text-text-muted text-sm">
+                No CILO bindings were saved for this evaluation.
+              </p>
             ) : (
               ciloMetrics.map((metric) => (
                 <div
                   key={metric.bindingId}
-                  className="grid gap-3 rounded-lg border border-border p-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_6rem]"
+                  className="border-border grid gap-3 rounded-lg border p-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_6rem]"
                 >
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                    <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
                       {metric.ciloLabel}
                     </p>
-                    <p className="text-sm text-text">{metric.ciloDescription}</p>
+                    <p className="text-text text-sm">{metric.ciloDescription}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                    <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
                       Bound Question
                     </p>
-                    <p className="text-sm text-text">{metric.questionPrompt}</p>
+                    <p className="text-text text-sm">{metric.questionPrompt}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">Mean</p>
+                    <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
+                      Mean
+                    </p>
                     <p className="text-xl font-semibold">{formatMean(metric.mean)}</p>
                   </div>
                 </div>
@@ -107,7 +114,10 @@ export function CourseBoundReviewTabs({ detail, responseBasePath }: CourseBoundR
       </TabsContent>
 
       <TabsContent value="responses">
-        <AnonymizedResponseCards responses={detail.responseCards} responseBasePath={responseBasePath} />
+        <AnonymizedResponseCards
+          responses={detail.responseCards}
+          responseBasePath={responseBasePath}
+        />
       </TabsContent>
 
       <TabsContent value="word-cloud">

@@ -14,15 +14,18 @@ export function AnonymizedResponseDetail({ response }: AnonymizedResponseDetailP
     <div className="space-y-6">
       <section className="space-y-1">
         <h1 className="text-2xl font-bold">{response.evaluationTitle}</h1>
-        <p className="text-sm text-text-muted">
+        <p className="text-text-muted text-sm">
           {response.courseTitle} | {response.programLabel} | {response.academicYear}
         </p>
-        <p className="text-sm text-text-muted">{response.respondentLabel}</p>
+        <p className="text-text-muted text-sm">{response.respondentLabel}</p>
       </section>
 
-      <section className="rounded-xl border border-border p-4">
-        <p className="text-sm text-text-muted">
-          Response Mean: <span className="font-semibold text-text-primary">{formatMean(response.overallMean)}</span>
+      <section className="border-border rounded-xl border p-4">
+        <p className="text-text-muted text-sm">
+          Response Mean:{" "}
+          <span className="text-text-primary font-semibold">
+            {formatMean(response.overallMean)}
+          </span>
         </p>
       </section>
 
@@ -32,13 +35,13 @@ export function AnonymizedResponseDetail({ response }: AnonymizedResponseDetailP
           <Card key={section.id}>
             <CardHeader className="gap-1">
               <CardTitle>{section.name}</CardTitle>
-              <p className="text-sm text-text-muted">Mean: {formatMean(section.mean)}</p>
+              <p className="text-text-muted text-sm">Mean: {formatMean(section.mean)}</p>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold">Quantitative</h3>
                 {section.quantitativeResponses.length === 0 ? (
-                  <p className="text-sm text-text-muted">No quantitative answers.</p>
+                  <p className="text-text-muted text-sm">No quantitative answers.</p>
                 ) : (
                   <ul className="space-y-1 text-sm">
                     {section.quantitativeResponses.map((entry) => (
@@ -53,13 +56,16 @@ export function AnonymizedResponseDetail({ response }: AnonymizedResponseDetailP
               <div className="space-y-2">
                 <h3 className="text-sm font-semibold">Qualitative</h3>
                 {section.qualitativeResponses.length === 0 ? (
-                  <p className="text-sm text-text-muted">No qualitative answers.</p>
+                  <p className="text-text-muted text-sm">No qualitative answers.</p>
                 ) : (
                   <ul className="space-y-2 text-sm">
                     {section.qualitativeResponses.map((entry) => (
-                      <li key={`${section.id}-${entry.promptKey}`} className="rounded-md border border-border p-3">
+                      <li
+                        key={`${section.id}-${entry.promptKey}`}
+                        className="border-border rounded-md border p-3"
+                      >
                         <p className="font-semibold">{entry.prompt}</p>
-                        <p className="mt-1 text-text-muted">{entry.text}</p>
+                        <p className="text-text-muted mt-1">{entry.text}</p>
                       </li>
                     ))}
                   </ul>

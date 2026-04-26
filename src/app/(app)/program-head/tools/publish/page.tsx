@@ -13,9 +13,7 @@ interface PageProps {
   searchParams: Promise<{ templateId?: string }>;
 }
 
-export default async function ProgramHeadPublishToolPage({
-  searchParams,
-}: PageProps) {
+export default async function ProgramHeadPublishToolPage({ searchParams }: PageProps) {
   const { templateId } = await searchParams;
 
   // 1. Get PH templates (also validates PH auth + scope)
@@ -47,15 +45,13 @@ export default async function ProgramHeadPublishToolPage({
 
   // 4. Validate pre-selected template
   const preselectedTemplateId =
-    templateId && activeTemplates.some((t) => t.id === templateId)
-      ? templateId
-      : undefined;
+    templateId && activeTemplates.some((t) => t.id === templateId) ? templateId : undefined;
 
   return (
     <div className="space-y-4">
       <Link
         href="/program-head/tools"
-        className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+        className="text-primary inline-flex items-center gap-1 text-sm font-medium hover:underline"
       >
         <svg
           className="h-4 w-4"
@@ -64,28 +60,23 @@ export default async function ProgramHeadPublishToolPage({
           stroke="currentColor"
           strokeWidth={2}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15 19l-7-7 7-7"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
         Back to Evaluation Tools
       </Link>
 
-      <nav className="text-xs text-text-secondary">
+      <nav className="text-text-secondary text-xs">
         <span>Templates</span>
         <span className="mx-1">›</span>
         {preselectedTemplateId && (
           <>
             <span>
-              {activeTemplates.find((t) => t.id === preselectedTemplateId)
-                ?.name ?? "Template"}
+              {activeTemplates.find((t) => t.id === preselectedTemplateId)?.name ?? "Template"}
             </span>
             <span className="mx-1">›</span>
           </>
         )}
-        <span className="font-medium text-text-primary">Publication Form</span>
+        <span className="text-text-primary font-medium">Publication Form</span>
       </nav>
 
       <PublishCentralDeploymentForm

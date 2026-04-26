@@ -13,7 +13,7 @@ export const createAdminUserSchema = z.object({
   program_id: z.string().uuid().optional(),
   major_id: z.preprocess(
     (v) => (v === "" || v == null ? undefined : v),
-    z.string().uuid().optional(),
+    z.string().uuid().optional()
   ),
 });
 

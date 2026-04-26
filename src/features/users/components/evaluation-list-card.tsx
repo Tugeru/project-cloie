@@ -27,16 +27,14 @@ export function EvaluationListCard({
     : "No deadline";
 
   return (
-    <div className="group rounded-xl border border-border bg-surface p-5 shadow-sm transition-colors hover:border-primary/30">
+    <div className="group border-border bg-surface hover:border-primary/30 rounded-xl border p-5 shadow-sm transition-colors">
       <div className="flex flex-col justify-between gap-4 md:flex-row">
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex items-center gap-2">
             <Badge
               variant="secondary"
               className={`text-[10px] uppercase ${
-                status === "DUE_SOON"
-                  ? "border-amber-200 bg-amber-100 text-amber-800"
-                  : ""
+                status === "DUE_SOON" ? "border-amber-200 bg-amber-100 text-amber-800" : ""
               }`}
             >
               {status === "DUE_SOON" ? "Closing Soon" : `Deadline: ${deadline}`}
@@ -44,26 +42,24 @@ export function EvaluationListCard({
           </div>
 
           <h4
-            className="mb-1 line-clamp-2 text-lg font-bold transition-colors group-hover:text-primary"
+            className="group-hover:text-primary mb-1 line-clamp-2 text-lg font-bold transition-colors"
             title={evaluationTitle}
           >
             {evaluationTitle}
           </h4>
 
-          <p className="truncate text-sm font-medium text-text-secondary">
+          <p className="text-text-secondary truncate text-sm font-medium">
             {courseTitle ? `${courseTitle} • ${programLabel}` : programLabel}
           </p>
-          <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-text-muted">
-            {deploymentType === "CENTRAL"
-              ? "Central Deployment"
-              : "Course-Bound Evaluation"}
+          <p className="text-text-muted mt-1 text-xs font-semibold tracking-wide uppercase">
+            {deploymentType === "CENTRAL" ? "Central Deployment" : "Course-Bound Evaluation"}
           </p>
         </div>
 
         <div className="flex shrink-0 flex-col justify-center gap-2 md:items-end">
           {isResuming && (
             <div className="w-full space-y-1.5 md:w-48">
-              <div className="flex items-center justify-between text-xs font-bold text-text-muted">
+              <div className="text-text-muted flex items-center justify-between text-xs font-bold">
                 <span className="text-secondary">{progress}% Complete</span>
               </div>
               <Progress

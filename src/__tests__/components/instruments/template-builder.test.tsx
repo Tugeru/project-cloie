@@ -24,7 +24,7 @@ describe("TemplateBuilder", () => {
       <TemplateBuilder
         programLabel="Institutional Baseline"
         onSave={vi.fn().mockResolvedValue({ success: true })}
-      />,
+      />
     );
 
     expect(screen.getByText("Template Settings")).toBeInTheDocument();
@@ -155,7 +155,7 @@ describe("TemplateBuilder", () => {
           redirectTo: "/faculty/tools",
           toastMessage: "Template saved successfully.",
         }}
-      />,
+      />
     );
 
     await waitFor(() => {
@@ -164,11 +164,9 @@ describe("TemplateBuilder", () => {
     expect(screen.getByText("CILO Binding")).toBeInTheDocument();
     expect(screen.getByText("BSIT - Information Technology")).toBeInTheDocument();
     expect(
-      screen.getByText("IT401 - Capstone 1 (BSIT - Shared Program Course)"),
+      screen.getByText("IT401 - Capstone 1 (BSIT - Shared Program Course)")
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("CILO 1: Apply project planning principles"),
-    ).toBeInTheDocument();
+    expect(screen.getByText("CILO 1: Apply project planning principles")).toBeInTheDocument();
     expect(screen.queryByText("program-1")).not.toBeInTheDocument();
     expect(screen.queryByText("course-1")).not.toBeInTheDocument();
     expect(screen.queryByText("cilo-1")).not.toBeInTheDocument();
@@ -189,11 +187,9 @@ describe("TemplateBuilder", () => {
           itemKey: "question-1",
           sectionKey: "section-1",
         },
-      ]),
+      ])
     );
-    expect(pushMock).toHaveBeenCalledWith(
-      "/faculty/tools?toast=Template%20saved%20successfully.",
-    );
+    expect(pushMock).toHaveBeenCalledWith("/faculty/tools?toast=Template%20saved%20successfully.");
   });
 
   test("redirects program head saves back to tools with a success toast", async () => {
@@ -239,14 +235,14 @@ describe("TemplateBuilder", () => {
             },
           ],
         }}
-      />,
+      />
     );
 
     fireEvent.click(screen.getByRole("button", { name: /save template/i }));
 
     await waitFor(() => {
       expect(pushMock).toHaveBeenCalledWith(
-        "/program-head/tools?toast=Template%20saved%20successfully.",
+        "/program-head/tools?toast=Template%20saved%20successfully."
       );
     });
     expect(screen.queryByText("Template saved successfully.")).not.toBeInTheDocument();
@@ -298,7 +294,7 @@ describe("TemplateBuilder", () => {
             },
           ],
         }}
-      />,
+      />
     );
 
     fireEvent.click(screen.getByRole("button", { name: /save template/i }));
@@ -364,7 +360,7 @@ describe("TemplateBuilder", () => {
             data: { id: "template-1" },
           }),
         }}
-      />,
+      />
     );
 
     expect(screen.getByDisplayValue("COURSE_BOUND")).toBeDisabled();

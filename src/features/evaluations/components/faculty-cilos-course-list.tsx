@@ -53,7 +53,7 @@ type ViewEditCilosModalProps = {
   }>;
   saveCilosAction: (
     courseId: string,
-    cilos: Array<{ id?: string; description: string }>,
+    cilos: Array<{ id?: string; description: string }>
   ) => Promise<{ success: boolean; error?: string }>;
 };
 
@@ -103,7 +103,7 @@ function ViewEditCilosModal({
           result.cilos.map((c) => ({
             id: c.id,
             description: c.description,
-          })),
+          }))
         );
         setLoaded(true);
       } else {
@@ -157,9 +157,7 @@ function ViewEditCilosModal({
   };
 
   const handleUpdateCilo = (id: string, description: string) => {
-    setCilos((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, description } : c)),
-    );
+    setCilos((prev) => prev.map((c) => (c.id === id ? { ...c, description } : c)));
   };
 
   const handleSave = async () => {
@@ -188,7 +186,7 @@ function ViewEditCilosModal({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-h-[80vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
           <DialogTitle>
             CILOs — {course.code}: {course.title}
@@ -199,9 +197,7 @@ function ViewEditCilosModal({
         </DialogHeader>
 
         {error && (
-          <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-            {error}
-          </div>
+          <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">{error}</div>
         )}
         {successMessage && (
           <div className="rounded-md bg-green-500/10 p-3 text-sm text-green-700">
@@ -210,14 +206,12 @@ function ViewEditCilosModal({
         )}
 
         {isLoading ? (
-          <div className="py-8 text-center text-sm text-muted-foreground">
-            Loading CILOs...
-          </div>
+          <div className="text-muted-foreground py-8 text-center text-sm">Loading CILOs...</div>
         ) : (
           <div className="space-y-4">
             {/* Existing CILOs */}
             {cilos.length === 0 ? (
-              <div className="rounded-lg border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
+              <div className="border-border text-muted-foreground rounded-lg border border-dashed py-8 text-center text-sm">
                 No CILOs defined for this course yet.
               </div>
             ) : (
@@ -225,22 +219,20 @@ function ViewEditCilosModal({
                 {cilos.map((cilo, index) => (
                   <div
                     key={cilo.id}
-                    className="flex items-start gap-3 rounded-lg border border-border bg-surface p-3"
+                    className="border-border bg-surface flex items-start gap-3 rounded-lg border p-3"
                   >
-                    <span className="mt-1 flex size-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
+                    <span className="bg-primary/10 text-primary mt-1 flex size-6 shrink-0 items-center justify-center rounded-full text-xs font-bold">
                       {index + 1}
                     </span>
                     <Input
                       value={cilo.description}
-                      onChange={(e) =>
-                        handleUpdateCilo(cilo.id, e.target.value)
-                      }
+                      onChange={(e) => handleUpdateCilo(cilo.id, e.target.value)}
                       className="flex-1 text-sm"
                     />
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="shrink-0 text-destructive hover:bg-destructive/10"
+                      className="text-destructive hover:bg-destructive/10 shrink-0"
                       onClick={() => handleRemoveCilo(cilo.id)}
                     >
                       <Trash2 className="size-4" />
@@ -269,11 +261,8 @@ function ViewEditCilosModal({
             </div>
 
             {/* Save */}
-            <div className="flex justify-end gap-2 border-t border-border pt-4">
-              <Button
-                variant="outline"
-                onClick={() => handleOpenChange(false)}
-              >
+            <div className="border-border flex justify-end gap-2 border-t pt-4">
+              <Button variant="outline" onClick={() => handleOpenChange(false)}>
                 Close
               </Button>
               <Button onClick={handleSave} disabled={isSaving}>
@@ -299,31 +288,24 @@ export function FacultyCilosCourseList({
   const [typeFilter, setTypeFilter] = useState<string>("__all__");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [modalCourse, setModalCourse] =
-    useState<FacultyCourseWithCiloCount | null>(null);
+  const [modalCourse, setModalCourse] = useState<FacultyCourseWithCiloCount | null>(null);
 
   // ---- Filtered courses ----------------------------------------------------
   const filteredCourses = useMemo(() => {
     let result = courses;
 
     if (typeFilter === "program_specific") {
-      result = result.filter(
-        (c) => c.courseScope === "PROGRAM_SPECIFIC" && !c.majorId,
-      );
+      result = result.filter((c) => c.courseScope === "PROGRAM_SPECIFIC" && !c.majorId);
     } else if (typeFilter === "general_education") {
       result = result.filter((c) => c.courseScope === "GENERAL_EDUCATION");
     } else if (typeFilter === "major_specific") {
-      result = result.filter(
-        (c) => c.courseScope === "MAJOR_SPECIFIC" || c.majorId !== null,
-      );
+      result = result.filter((c) => c.courseScope === "MAJOR_SPECIFIC" || c.majorId !== null);
     }
 
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim();
       result = result.filter(
-        (c) =>
-          c.code.toLowerCase().includes(term) ||
-          c.title.toLowerCase().includes(term),
+        (c) => c.code.toLowerCase().includes(term) || c.title.toLowerCase().includes(term)
       );
     }
 
@@ -331,15 +313,9 @@ export function FacultyCilosCourseList({
   }, [courses, typeFilter, searchTerm]);
 
   // ---- Pagination ----------------------------------------------------------
-  const totalPages = Math.max(
-    1,
-    Math.ceil(filteredCourses.length / PAGE_SIZE),
-  );
+  const totalPages = Math.max(1, Math.ceil(filteredCourses.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
-  const paginatedCourses = filteredCourses.slice(
-    (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE,
-  );
+  const paginatedCourses = filteredCourses.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const handleTypeChange = (value: string | null) => {
     setTypeFilter(value ?? "__all__");
@@ -358,8 +334,7 @@ export function FacultyCilosCourseList({
         <div className="space-y-2">
           <h1 className="text-heading-lg">Manage CILOs</h1>
           <p className="text-body-md text-text-secondary">
-            View and manage Course-Intended Learning Outcomes for your
-            affiliated program courses.
+            View and manage Course-Intended Learning Outcomes for your affiliated program courses.
           </p>
         </div>
         <Button render={<Link href="/faculty/cilos/new" />}>
@@ -391,7 +366,7 @@ export function FacultyCilosCourseList({
         </Select>
 
         <div className="relative ml-auto w-full max-w-xs">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
           <Input
             placeholder="Search by code or title..."
             value={searchTerm}
@@ -416,10 +391,7 @@ export function FacultyCilosCourseList({
         <TableBody>
           {paginatedCourses.length === 0 ? (
             <TableRow>
-              <TableCell
-                colSpan={6}
-                className="h-24 text-center text-muted-foreground"
-              >
+              <TableCell colSpan={6} className="text-muted-foreground h-24 text-center">
                 No courses found.
               </TableCell>
             </TableRow>
@@ -434,11 +406,7 @@ export function FacultyCilosCourseList({
                 <TableCell>{course.majorName ?? "—"}</TableCell>
                 <TableCell className="text-right">{course.ciloCount}</TableCell>
                 <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setModalCourse(course)}
-                  >
+                  <Button variant="ghost" size="sm" onClick={() => setModalCourse(course)}>
                     <Eye className="mr-1 size-4" />
                     View
                   </Button>
@@ -452,10 +420,9 @@ export function FacultyCilosCourseList({
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-end gap-2">
-          <span className="text-xs text-muted-foreground">
+          <span className="text-muted-foreground text-xs">
             {(safePage - 1) * PAGE_SIZE + 1}–
-            {Math.min(safePage * PAGE_SIZE, filteredCourses.length)} of{" "}
-            {filteredCourses.length}
+            {Math.min(safePage * PAGE_SIZE, filteredCourses.length)} of {filteredCourses.length}
           </span>
           <Button
             variant="outline"
@@ -469,9 +436,7 @@ export function FacultyCilosCourseList({
             variant="outline"
             size="sm"
             disabled={safePage >= totalPages}
-            onClick={() =>
-              setCurrentPage((p) => Math.min(totalPages, p + 1))
-            }
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
           >
             →
           </Button>

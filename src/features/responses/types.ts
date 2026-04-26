@@ -1,8 +1,4 @@
-export type StudentEvaluationListStatus =
-  | "NOT_STARTED"
-  | "IN_PROGRESS"
-  | "DUE_SOON"
-  | "SUBMITTED";
+export type StudentEvaluationListStatus = "NOT_STARTED" | "IN_PROGRESS" | "DUE_SOON" | "SUBMITTED";
 
 export type StudentEvaluationSection = {
   id: string;

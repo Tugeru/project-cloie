@@ -33,12 +33,11 @@ export type SaveCentralDeploymentDraftResult =
 
 function resolveSection(
   structureSnapshot: unknown,
-  sectionKey: string,
+  sectionKey: string
 ): StudentEvaluationSection | null {
   return (
-    mapTemplateStructureToSections(structureSnapshot).find(
-      (entry) => entry.id === sectionKey,
-    ) ?? null
+    mapTemplateStructureToSections(structureSnapshot).find((entry) => entry.id === sectionKey) ??
+    null
   );
 }
 
@@ -96,7 +95,7 @@ export async function saveCentralDeploymentDraft({
 
   const section = resolveSection(
     assignment.central_deployment.instrument.structure_snapshot,
-    sectionKey,
+    sectionKey
   );
 
   if (!section) {

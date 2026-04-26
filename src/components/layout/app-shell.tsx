@@ -21,7 +21,7 @@ export function AppShell({ children, user, roles }: AppShellProps) {
   const mobileNavMode = getMobileNavMode(roles ?? []);
 
   return (
-    <div className="flex min-h-screen w-full bg-background">
+    <div className="bg-background flex min-h-screen w-full">
       {/* Desktop Sidebar (hidden on mobile/tablet) */}
       <Sidebar user={user} roles={roles} />
 

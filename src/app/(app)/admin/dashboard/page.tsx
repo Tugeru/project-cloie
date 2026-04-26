@@ -25,9 +25,9 @@ export default async function AdminDashboardPage() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Admin Dashboard</h1>
-        <p className="text-sm text-text-secondary">
-          Operate the academic and access foundation that powers every downstream
-          stakeholder workflow.
+        <p className="text-text-secondary text-sm">
+          Operate the academic and access foundation that powers every downstream stakeholder
+          workflow.
         </p>
       </div>
 
@@ -53,8 +53,8 @@ export default async function AdminDashboardPage() {
         <CardHeader>
           <CardTitle>Admin Workflows</CardTitle>
           <CardDescription>
-            These pages now serve as the operational foundation for catalog, access,
-            and baseline governance.
+            These pages now serve as the operational foundation for catalog, access, and baseline
+            governance.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2">
@@ -62,7 +62,7 @@ export default async function AdminDashboardPage() {
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-xl border border-border px-4 py-3 text-sm font-medium transition-colors hover:border-primary/40 hover:bg-primary-soft/40"
+              className="border-border hover:border-primary/40 hover:bg-primary-soft/40 rounded-xl border px-4 py-3 text-sm font-medium transition-colors"
             >
               {link.label}
             </Link>

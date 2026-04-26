@@ -84,7 +84,7 @@ export function ProgramList({ programs }: ProgramListProps) {
                   {program.code} - {program.name}
                 </CardTitle>
                 {program.description && (
-                  <p className="mt-1 text-sm text-text-muted">{program.description}</p>
+                  <p className="text-text-muted mt-1 text-sm">{program.description}</p>
                 )}
               </div>
               <Badge variant={program.is_active ? "default" : "secondary"}>
@@ -92,7 +92,7 @@ export function ProgramList({ programs }: ProgramListProps) {
               </Badge>
             </div>
 
-            <div className="mt-2 flex flex-wrap gap-2 text-xs text-text-secondary">
+            <div className="text-text-secondary mt-2 flex flex-wrap gap-2 text-xs">
               <span>{program._count.courses} courses</span>
               <span>&bull;</span>
               <span>{program._count.gos} GOs</span>
@@ -106,15 +106,15 @@ export function ProgramList({ programs }: ProgramListProps) {
           <CardContent className="space-y-3">
             {program.majors.length > 0 && (
               <div className="space-y-1">
-                <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">
+                <p className="text-text-secondary text-xs font-semibold tracking-wide uppercase">
                   Majors
                 </p>
                 {program.majors.map((major) => (
                   <div
                     key={major.id}
-                    className="flex items-center justify-between rounded-lg border border-border px-3 py-1.5 text-sm"
+                    className="border-border flex items-center justify-between rounded-lg border px-3 py-1.5 text-sm"
                   >
-                    <span className={!major.is_active ? "line-through text-text-muted" : ""}>
+                    <span className={!major.is_active ? "text-text-muted line-through" : ""}>
                       {major.name}
                     </span>
                     <div className="flex gap-1">
@@ -130,7 +130,7 @@ export function ProgramList({ programs }: ProgramListProps) {
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 px-2 text-xs text-danger"
+                        className="text-danger h-6 px-2 text-xs"
                         disabled={isPending}
                         onClick={() => handleDeleteMajor(major.id, major.name)}
                       >
@@ -148,7 +148,7 @@ export function ProgramList({ programs }: ProgramListProps) {
               onSuccess={() => router.refresh()}
             />
 
-            <div className="flex gap-2 border-t border-border pt-2">
+            <div className="border-border flex gap-2 border-t pt-2">
               <Link
                 href={`/admin/programs/${program.id}/edit`}
                 className={buttonVariants({ variant: "outline", size: "sm" })}

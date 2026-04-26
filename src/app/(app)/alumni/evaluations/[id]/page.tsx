@@ -19,8 +19,7 @@ export default async function AlumniEvaluationPage({
   }
 
   const { id: deploymentId } = await params;
-  const evalSession =
-    await getCentralDeploymentEvaluationSession(deploymentId);
+  const evalSession = await getCentralDeploymentEvaluationSession(deploymentId);
 
   if (!evalSession) {
     notFound();

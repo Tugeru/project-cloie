@@ -58,7 +58,7 @@ interface PublishCourseBoundEvaluationFormProps {
   initialSelection?: InitialSelection;
   publicationContext: PublicationContext;
   publishAction: (
-    payload: PublishCourseBoundEvaluationInput,
+    payload: PublishCourseBoundEvaluationInput
   ) => Promise<PublishCourseBoundEvaluationResult>;
   yearLevels: YearLevelOption[];
 }
@@ -71,9 +71,7 @@ export function PublishCourseBoundEvaluationForm({
 }: PublishCourseBoundEvaluationFormProps) {
   const [deploymentName, setDeploymentName] = useState("");
   const [academicYear, setAcademicYear] = useState(initialSelection?.academicYear ?? "");
-  const [semester, setSemester] = useState(
-    initialSelection?.semester ?? SEMESTER_OPTIONS[0].value,
-  );
+  const [semester, setSemester] = useState(initialSelection?.semester ?? SEMESTER_OPTIONS[0].value);
   const [term, setTerm] = useState(initialSelection?.term ?? TERM_OPTIONS[0].value);
   const [activationSchedule, setActivationSchedule] = useState("");
   const [deadline, setDeadline] = useState("");
@@ -82,11 +80,10 @@ export function PublishCourseBoundEvaluationForm({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const fallbackPublishErrorMessage =
-    "Unable to publish evaluation right now. Please try again.";
+  const fallbackPublishErrorMessage = "Unable to publish evaluation right now. Please try again.";
 
   const bindingByCiloId = new Map(
-    publicationContext.bindings.map((binding) => [binding.ciloId, binding]),
+    publicationContext.bindings.map((binding) => [binding.ciloId, binding])
   );
 
   const handleYearLevelToggle = (yearLevelId: string, checked: boolean) => {
@@ -166,51 +163,51 @@ export function PublishCourseBoundEvaluationForm({
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Publish CILO Evaluation</h1>
-        <p className="text-sm text-text-muted">
-          Target the right students for this course-bound evaluation. The course
-          context and CILO-to-question bindings come from the saved faculty template.
+        <p className="text-text-muted text-sm">
+          Target the right students for this course-bound evaluation. The course context and
+          CILO-to-question bindings come from the saved faculty template.
         </p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <section className="space-y-4 rounded-xl border border-border bg-surface p-5">
+        <section className="border-border bg-surface space-y-4 rounded-xl border p-5">
           <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+            <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
               Template
             </p>
-            <h2 className="text-lg font-semibold text-text-primary">
+            <h2 className="text-text-primary text-lg font-semibold">
               {publicationContext.template.name}
             </h2>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+              <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
                 Program
               </p>
-              <p className="text-sm text-text-primary">
+              <p className="text-text-primary text-sm">
                 {publicationContext.course.programCode} - {publicationContext.course.programName}
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+              <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
                 Course Scope
               </p>
-              <p className="text-sm text-text-primary">{publicationContext.course.scopeLabel}</p>
+              <p className="text-text-primary text-sm">{publicationContext.course.scopeLabel}</p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+              <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
                 Course
               </p>
-              <p className="text-sm text-text-primary">
+              <p className="text-text-primary text-sm">
                 {publicationContext.course.code} - {publicationContext.course.title}
               </p>
             </div>
             <div className="space-y-1">
-              <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+              <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
                 Major Context
               </p>
-              <p className="text-sm text-text-primary">
+              <p className="text-text-primary text-sm">
                 {publicationContext.course.majorName ?? "Shared / not major-specific"}
               </p>
             </div>
@@ -220,9 +217,9 @@ export function PublishCourseBoundEvaluationForm({
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h3 className="text-base font-semibold">Saved CILO Bindings</h3>
-                <p className="text-sm text-text-muted">
-                  These bindings were saved in the template builder and will be
-                  frozen into the published evaluation.
+                <p className="text-text-muted text-sm">
+                  These bindings were saved in the template builder and will be frozen into the
+                  published evaluation.
                 </p>
               </div>
               <Button asChild type="button" variant="outline">
@@ -237,17 +234,17 @@ export function PublishCourseBoundEvaluationForm({
                 const binding = bindingByCiloId.get(cilo.id);
 
                 return (
-                  <li key={cilo.id} className="rounded-lg border border-border p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                  <li key={cilo.id} className="border-border rounded-lg border p-4">
+                    <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
                       CILO {index + 1}
                     </p>
-                    <p className="mt-2 text-sm text-text-primary">{cilo.description}</p>
+                    <p className="text-text-primary mt-2 text-sm">{cilo.description}</p>
                     {binding && (
-                      <div className="mt-3 rounded-md bg-surface-container-low p-3">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-text-muted">
+                      <div className="bg-surface-container-low mt-3 rounded-md p-3">
+                        <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
                           Bound Likert Question
                         </p>
-                        <p className="mt-1 text-sm text-text-primary">
+                        <p className="text-text-primary mt-1 text-sm">
                           {binding.questionPromptSnapshot}
                         </p>
                       </div>
@@ -260,7 +257,7 @@ export function PublishCourseBoundEvaluationForm({
         </section>
 
         <form
-          className="space-y-6 rounded-xl border border-border bg-surface p-5"
+          className="border-border bg-surface space-y-6 rounded-xl border p-5"
           onSubmit={handleSubmit}
         >
           <div className="space-y-2">
@@ -288,7 +285,7 @@ export function PublishCourseBoundEvaluationForm({
               <Label htmlFor="semester">Semester</Label>
               <select
                 id="semester"
-                className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                className="border-input h-9 w-full rounded-lg border bg-transparent px-2.5 text-sm"
                 value={semester}
                 onChange={(event) => setSemester(event.target.value as AcademicSemester)}
               >
@@ -304,7 +301,7 @@ export function PublishCourseBoundEvaluationForm({
               <Label htmlFor="term">Term</Label>
               <select
                 id="term"
-                className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                className="border-input h-9 w-full rounded-lg border bg-transparent px-2.5 text-sm"
                 value={term}
                 onChange={(event) => setTerm(event.target.value as AcademicTerm)}
               >
@@ -337,7 +334,7 @@ export function PublishCourseBoundEvaluationForm({
             </div>
           </div>
 
-          <fieldset className="space-y-3 rounded-lg border border-border p-4">
+          <fieldset className="border-border space-y-3 rounded-lg border p-4">
             <legend className="px-1 text-sm font-semibold">Target Year Levels</legend>
             <div className="grid gap-2">
               {yearLevels.map((yearLevel) => (
@@ -350,9 +347,7 @@ export function PublishCourseBoundEvaluationForm({
                     id={`year-${yearLevel.id}`}
                     type="checkbox"
                     checked={selectedYearLevelIds.includes(yearLevel.id)}
-                    onChange={(event) =>
-                      handleYearLevelToggle(yearLevel.id, event.target.checked)
-                    }
+                    onChange={(event) => handleYearLevelToggle(yearLevel.id, event.target.checked)}
                   />
                   {yearLevel.name}
                 </label>
@@ -360,8 +355,8 @@ export function PublishCourseBoundEvaluationForm({
             </div>
           </fieldset>
 
-          {error && <p className="text-sm text-danger">{error}</p>}
-          {successMessage && <p className="text-sm text-success">{successMessage}</p>}
+          {error && <p className="text-danger text-sm">{error}</p>}
+          {successMessage && <p className="text-success text-sm">{successMessage}</p>}
 
           <div className="flex flex-col gap-2 sm:flex-row">
             <Button type="submit" disabled={isSubmitting || yearLevels.length === 0}>

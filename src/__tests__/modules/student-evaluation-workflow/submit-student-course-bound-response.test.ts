@@ -84,7 +84,7 @@ describe("assertSubmissionIsAllowed", () => {
           "section-a:quantitative:q1": 4,
         },
         structureSnapshot,
-      }),
+      })
     ).toThrowError("Missing required answers: section-a:qualitative:remarks");
   });
 });
@@ -94,7 +94,7 @@ describe("buildSubmittedResponsePatch", () => {
     expect(
       buildSubmittedResponsePatch({
         submittedAt: "2026-04-20T12:00:00.000Z",
-      }),
+      })
     ).toEqual({
       status: "SUBMITTED",
       submittedAt: "2026-04-20T12:00:00.000Z",
@@ -132,7 +132,7 @@ describe("submitStudentCourseBoundResponse", () => {
           "section-a:quantitative:q1": 5,
         },
         assignmentId: "assignment-1",
-      }),
+      })
     ).resolves.toEqual({
       responseId: "response-1",
       status: "SUBMITTED",
@@ -163,7 +163,7 @@ describe("submitStudentCourseBoundResponse", () => {
           "section-a:quantitative:q1": 5,
         },
         assignmentId: "assignment-1",
-      }),
+      })
     ).resolves.toEqual({
       error: "This evaluation has already been submitted.",
       success: false,
@@ -196,7 +196,7 @@ describe("submitStudentCourseBoundResponse", () => {
           "section-a:quantitative:q1": 5,
         },
         assignmentId: "assignment-1",
-      }),
+      })
     ).resolves.toEqual({
       error: "This evaluation is not currently available.",
       success: false,

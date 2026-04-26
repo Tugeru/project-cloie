@@ -137,8 +137,8 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
       ref={containerRef}
       style={style}
       className={cn(
-        "z-[60] hidden w-72 rounded-2xl border border-border bg-surface/95 p-3 shadow-xl backdrop-blur lg:block",
-        position ? "fixed" : "fixed bottom-4 right-4",
+        "border-border bg-surface/95 z-[60] hidden w-72 rounded-2xl border p-3 shadow-xl backdrop-blur lg:block",
+        position ? "fixed" : "fixed right-4 bottom-4"
       )}
     >
       {/* Header — always visible at the top */}
@@ -146,7 +146,7 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
         {/* Drag handle */}
         <div
           {...dragHandleProps}
-          className="flex shrink-0 cursor-grab items-center rounded-md p-1 text-text-muted hover:bg-surface-muted hover:text-text-secondary active:cursor-grabbing"
+          className="text-text-muted hover:bg-surface-muted hover:text-text-secondary flex shrink-0 cursor-grab items-center rounded-md p-1 active:cursor-grabbing"
           title="Drag to reposition"
         >
           <GripVertical className="size-4" />
@@ -161,18 +161,16 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
           aria-controls="dev-role-switcher-panel"
         >
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">
+            <p className="text-text-muted text-xs font-semibold tracking-[0.18em] uppercase">
               Dev Roles
             </p>
-            <p className="text-xs text-text-secondary">
-              {isExpanded
-                ? "Instant sign-in for demo accounts"
-                : "Click to expand sign-in options"}
+            <p className="text-text-secondary text-xs">
+              {isExpanded ? "Instant sign-in for demo accounts" : "Click to expand sign-in options"}
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            {isPending && <span className="text-xs text-text-muted">...</span>}
-            <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-text-secondary">
+            {isPending && <span className="text-text-muted text-xs">...</span>}
+            <span className="border-border bg-background text-text-secondary rounded-full border px-2 py-0.5 text-[10px] font-semibold tracking-wide uppercase">
               {isExpanded ? "Hide" : "Show"}
             </span>
           </div>
@@ -184,7 +182,7 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
         id="dev-role-switcher-panel"
         className={cn(
           "grid overflow-hidden transition-[grid-template-rows,margin-top,opacity] duration-200 ease-out",
-          isExpanded ? "mt-3 grid-rows-[1fr] opacity-100" : "mt-0 grid-rows-[0fr] opacity-0",
+          isExpanded ? "mt-3 grid-rows-[1fr] opacity-100" : "mt-0 grid-rows-[0fr] opacity-0"
         )}
       >
         <div className="min-h-0">
@@ -200,7 +198,7 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
                     "rounded-lg border px-2.5 py-1.5 text-left transition-colors",
                     isActive
                       ? "border-primary bg-primary-soft text-primary"
-                      : "border-border bg-background hover:border-primary/40 hover:bg-primary-soft/40",
+                      : "border-border bg-background hover:border-primary/40 hover:bg-primary-soft/40"
                   )}
                   onClick={() =>
                     startTransition(async () => {
@@ -217,9 +215,9 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">
                       <p className="truncate text-xs font-semibold">{user.label}</p>
-                      <p className="truncate text-[10px] text-text-muted">{user.email}</p>
+                      <p className="text-text-muted truncate text-[10px]">{user.email}</p>
                     </div>
-                    <span className="shrink-0 rounded-full bg-surface-muted px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-text-secondary">
+                    <span className="bg-surface-muted text-text-secondary shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-semibold tracking-wide uppercase">
                       {user.role.replaceAll("_", " ")}
                     </span>
                   </div>

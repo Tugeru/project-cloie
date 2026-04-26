@@ -3,9 +3,7 @@ import type { UpdateAdminUserInput } from "../schemas/update-user";
 
 type ServiceResult = { success: true } | { success: false; error: string };
 
-export async function updateAdminUser(
-  input: UpdateAdminUserInput,
-): Promise<ServiceResult> {
+export async function updateAdminUser(input: UpdateAdminUserInput): Promise<ServiceResult> {
   const { id, first_name, last_name } = input;
 
   const existing = await prisma.user.findUnique({

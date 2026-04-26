@@ -3,20 +3,17 @@ import { z } from "zod";
 
 const optionalUuidField = z.preprocess(
   (value) => (value === "" || value == null ? undefined : value),
-  z.string().uuid().optional(),
+  z.string().uuid().optional()
 );
 
-const optionalTextField = z.preprocess(
-  (value) => {
-    if (typeof value !== "string") {
-      return undefined;
-    }
+const optionalTextField = z.preprocess((value) => {
+  if (typeof value !== "string") {
+    return undefined;
+  }
 
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : undefined;
-  },
-  z.string().max(1000).optional(),
-);
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}, z.string().max(1000).optional());
 
 const programHeadCourseFields = {
   code: z
@@ -44,9 +41,5 @@ export const updateProgramHeadCourseSchema = z.object({
   ...programHeadCourseFields,
 });
 
-export type CreateProgramHeadCourseInput = z.infer<
-  typeof createProgramHeadCourseSchema
->;
-export type UpdateProgramHeadCourseInput = z.infer<
-  typeof updateProgramHeadCourseSchema
->;
+export type CreateProgramHeadCourseInput = z.infer<typeof createProgramHeadCourseSchema>;
+export type UpdateProgramHeadCourseInput = z.infer<typeof updateProgramHeadCourseSchema>;

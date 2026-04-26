@@ -6,16 +6,14 @@ import type {
   UpdateProgramInput,
 } from "../schemas/program";
 
-type ServiceResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 function isUniqueConstraintError(error: unknown): boolean {
   return Boolean(
     error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error as { code?: string }).code === "P2002",
+    typeof error === "object" &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
   );
 }
 
@@ -59,7 +57,7 @@ export async function getProgram(id: string) {
 }
 
 export async function createProgram(
-  input: CreateProgramInput,
+  input: CreateProgramInput
 ): Promise<ServiceResult<{ id: string }>> {
   try {
     const program = await prisma.program.create({
@@ -84,7 +82,7 @@ export async function createProgram(
 }
 
 export async function updateProgram(
-  input: UpdateProgramInput,
+  input: UpdateProgramInput
 ): Promise<ServiceResult<{ id: string }>> {
   try {
     const program = await prisma.program.update({
@@ -110,10 +108,7 @@ export async function updateProgram(
   }
 }
 
-export async function toggleProgramActive(
-  id: string,
-  is_active: boolean,
-): Promise<ServiceResult> {
+export async function toggleProgramActive(id: string, is_active: boolean): Promise<ServiceResult> {
   await prisma.program.update({
     where: { id },
     data: { is_active },
@@ -122,9 +117,7 @@ export async function toggleProgramActive(
   return { success: true, data: undefined };
 }
 
-export async function createMajor(
-  input: CreateMajorInput,
-): Promise<ServiceResult<{ id: string }>> {
+export async function createMajor(input: CreateMajorInput): Promise<ServiceResult<{ id: string }>> {
   try {
     const major = await prisma.major.create({
       data: {
@@ -146,9 +139,7 @@ export async function createMajor(
   }
 }
 
-export async function updateMajor(
-  input: UpdateMajorInput,
-): Promise<ServiceResult<{ id: string }>> {
+export async function updateMajor(input: UpdateMajorInput): Promise<ServiceResult<{ id: string }>> {
   try {
     const major = await prisma.major.update({
       where: { id: input.id },
@@ -171,10 +162,7 @@ export async function updateMajor(
   }
 }
 
-export async function toggleMajorActive(
-  id: string,
-  is_active: boolean,
-): Promise<ServiceResult> {
+export async function toggleMajorActive(id: string, is_active: boolean): Promise<ServiceResult> {
   await prisma.major.update({
     where: { id },
     data: { is_active },
@@ -202,9 +190,7 @@ export async function deleteMajor(id: string): Promise<ServiceResult> {
   }
 
   const totalDependents =
-    major._count.courses +
-    major._count.course_evaluations +
-    major._count.student_profiles;
+    major._count.courses + major._count.course_evaluations + major._count.student_profiles;
 
   if (totalDependents > 0) {
     return {

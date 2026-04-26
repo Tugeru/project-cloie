@@ -15,14 +15,26 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("@/features/analytics/components/mean-bar-chart", () => ({
-  MeanBarChart: ({ data, title }: { data: Array<{ label: string; value: number | null }>; title: string }) => {
+  MeanBarChart: ({
+    data,
+    title,
+  }: {
+    data: Array<{ label: string; value: number | null }>;
+    title: string;
+  }) => {
     meanBarChartMock({ data, title });
     return <div>Mean chart: {title}</div>;
   },
 }));
 
 vi.mock("@/features/analytics/components/qualitative-word-cloud", () => ({
-  QualitativeWordCloud: ({ title, tokens }: { title: string; tokens: Array<{ text: string; value: number }> }) => {
+  QualitativeWordCloud: ({
+    title,
+    tokens,
+  }: {
+    title: string;
+    tokens: Array<{ text: string; value: number }>;
+  }) => {
     qualitativeWordCloudMock({ title, tokens });
     return <div>Word cloud: {title}</div>;
   },
@@ -71,7 +83,9 @@ describe("CourseBoundReviewTabs", () => {
   it("passes section and question means to mean chart wrappers", () => {
     meanBarChartMock.mockClear();
 
-    render(<CourseBoundReviewTabs detail={detail} responseBasePath="/faculty/cilo-evaluations/eval-1" />);
+    render(
+      <CourseBoundReviewTabs detail={detail} responseBasePath="/faculty/cilo-evaluations/eval-1" />
+    );
 
     fireEvent.click(screen.getByRole("tab", { name: "Section Analytics" }));
 
@@ -92,7 +106,9 @@ describe("CourseBoundReviewTabs", () => {
   it("passes word cloud tokens to qualitative wrapper", () => {
     qualitativeWordCloudMock.mockClear();
 
-    render(<CourseBoundReviewTabs detail={detail} responseBasePath="/faculty/cilo-evaluations/eval-1" />);
+    render(
+      <CourseBoundReviewTabs detail={detail} responseBasePath="/faculty/cilo-evaluations/eval-1" />
+    );
 
     fireEvent.click(screen.getByRole("tab", { name: "Word Cloud" }));
 
@@ -107,7 +123,9 @@ describe("CourseBoundReviewTabs", () => {
   });
 
   it("renders shared review tab labels", () => {
-    render(<CourseBoundReviewTabs detail={detail} responseBasePath="/faculty/cilo-evaluations/eval-1" />);
+    render(
+      <CourseBoundReviewTabs detail={detail} responseBasePath="/faculty/cilo-evaluations/eval-1" />
+    );
 
     expect(screen.getByRole("tab", { name: "Overview" })).toBeInTheDocument();
     expect(screen.getByRole("tab", { name: "Section Analytics" })).toBeInTheDocument();
@@ -116,17 +134,24 @@ describe("CourseBoundReviewTabs", () => {
   });
 
   it("renders anonymized response cards with view links", () => {
-    render(<CourseBoundReviewTabs detail={detail} responseBasePath="/faculty/cilo-evaluations/eval-1" />);
+    render(
+      <CourseBoundReviewTabs detail={detail} responseBasePath="/faculty/cilo-evaluations/eval-1" />
+    );
 
     fireEvent.click(screen.getByRole("tab", { name: "Responses" }));
 
     const viewLink = screen.getByRole("link", { name: "View Response" });
-    expect(viewLink).toHaveAttribute("href", "/faculty/cilo-evaluations/eval-1/responses/response-1");
+    expect(viewLink).toHaveAttribute(
+      "href",
+      "/faculty/cilo-evaluations/eval-1/responses/response-1"
+    );
     expect(screen.getByText("Respondent R-827493")).toBeInTheDocument();
   });
 
   it("wires analytics and word cloud tabs to shared visual components", () => {
-    render(<CourseBoundReviewTabs detail={detail} responseBasePath="/faculty/cilo-evaluations/eval-1" />);
+    render(
+      <CourseBoundReviewTabs detail={detail} responseBasePath="/faculty/cilo-evaluations/eval-1" />
+    );
 
     fireEvent.click(screen.getByRole("tab", { name: "Section Analytics" }));
     expect(screen.getByText("Mean chart: Section Means")).toBeInTheDocument();

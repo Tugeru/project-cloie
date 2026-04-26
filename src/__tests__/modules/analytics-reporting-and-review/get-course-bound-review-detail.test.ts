@@ -38,7 +38,7 @@ describe("buildReviewWordCloudTokens", () => {
       buildReviewWordCloudTokens([
         "The instructor explained concepts clearly and clearly.",
         "Great activities, excellent feedback!",
-      ]),
+      ])
     ).toEqual([
       { text: "clearly", value: 2 },
       { text: "activities", value: 1 },
@@ -84,7 +84,7 @@ describe("getCourseBoundReviewDetail", () => {
           id: "eval-1",
           program_id: { in: ["program-2"] },
         }),
-      }),
+      })
     );
   });
 
@@ -102,7 +102,7 @@ describe("getCourseBoundReviewDetail", () => {
           id: "eval-1",
           program_id: { in: ["program-1"] },
         }),
-      }),
+      })
     );
   });
 
@@ -117,7 +117,11 @@ describe("getCourseBoundReviewDetail", () => {
           response: {
             id: "response-1",
             qual_items: [
-              { prompt_key: "feedback", section_key: "teaching", text_content: "Very organized lectures" },
+              {
+                prompt_key: "feedback",
+                section_key: "teaching",
+                text_content: "Very organized lectures",
+              },
             ],
             quant_items: [
               { item_key: "clarity", rating_value: 4, section_key: "teaching" },
@@ -146,7 +150,12 @@ describe("getCourseBoundReviewDetail", () => {
           {
             items: [
               { key: "clarity", kind: "quantitative", prompt: "Clarity", scale: [1, 2, 3, 4, 5] },
-              { key: "preparedness", kind: "quantitative", prompt: "Preparedness", scale: [1, 2, 3, 4, 5] },
+              {
+                key: "preparedness",
+                kind: "quantitative",
+                prompt: "Preparedness",
+                scale: [1, 2, 3, 4, 5],
+              },
               { key: "feedback", kind: "qualitative", prompt: "Feedback" },
             ],
             key: "teaching",
@@ -227,7 +236,7 @@ describe("getCourseBoundReviewDetail", () => {
     expect(courseBoundEvaluationFindFirstMock).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.not.objectContaining({ program_id: expect.anything() }),
-      }),
+      })
     );
   });
 
@@ -240,7 +249,9 @@ describe("getCourseBoundReviewDetail", () => {
         {
           response: {
             id: "response-1",
-            qual_items: [{ prompt_key: "feedback", section_key: "teaching", text_content: "Insightful" }],
+            qual_items: [
+              { prompt_key: "feedback", section_key: "teaching", text_content: "Insightful" },
+            ],
             quant_items: [],
             submitted_at: new Date("2026-01-04T08:00:00.000Z"),
           },
@@ -282,7 +293,7 @@ describe("getCourseBoundReviewDetail", () => {
             questions: [expect.objectContaining({ mean: null })],
           }),
         ],
-      }),
+      })
     );
   });
 });

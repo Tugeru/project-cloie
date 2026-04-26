@@ -5,7 +5,7 @@ import { DEV_AUTH_COOKIE_NAME } from "@/features/auth/services/dev-auth";
 
 export async function POST(request: Request) {
   const supabase = await createClient();
-  
+
   const { origin } = new URL(request.url);
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || origin;
 

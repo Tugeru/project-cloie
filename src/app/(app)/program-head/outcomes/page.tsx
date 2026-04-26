@@ -13,10 +13,5 @@ export default async function OutcomesPage() {
     redirect("/unauthorized");
   }
 
-  return (
-    <ProgramHeadOutcomesPage
-      gos={result.data.gos}
-      program={result.data.program}
-    />
-  );
+  return <ProgramHeadOutcomesPage gos={result.data.gos} program={result.data.program} />;
 }

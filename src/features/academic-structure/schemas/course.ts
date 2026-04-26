@@ -3,20 +3,17 @@ import { z } from "zod";
 
 const optionalUuidField = z.preprocess(
   (value) => (value === "" || value == null ? undefined : value),
-  z.string().uuid().optional(),
+  z.string().uuid().optional()
 );
 
-const optionalTextField = z.preprocess(
-  (value) => {
-    if (typeof value !== "string") {
-      return undefined;
-    }
+const optionalTextField = z.preprocess((value) => {
+  if (typeof value !== "string") {
+    return undefined;
+  }
 
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : undefined;
-  },
-  z.string().max(1000).optional(),
-);
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}, z.string().max(1000).optional());
 
 const courseFields = {
   code: z
@@ -38,7 +35,7 @@ const courseFields = {
 
 function validateCourseRelationships(
   data: Pick<CreateCourseInput, "course_scope" | "program_id" | "major_id">,
-  context: z.RefinementCtx,
+  context: z.RefinementCtx
 ) {
   if (data.course_scope === CourseScope.GENERAL_EDUCATION) {
     if (data.program_id || data.major_id) {

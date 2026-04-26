@@ -13,15 +13,12 @@ export default async function IndustryPartnerDashboardPage() {
   const session = await resolveAuthSession();
   const { active, submitted } = await listStakeholderEvaluations(
     TargetStakeholder.INDUSTRY_PARTNER,
-    "/industry-partner",
+    "/industry-partner"
   );
   const inProgressCount = active.filter((item) => item.status === "IN_PROGRESS").length;
-  const resumeItem =
-    active.find((item) => item.status === "IN_PROGRESS") ?? active[0] ?? null;
+  const resumeItem = active.find((item) => item.status === "IN_PROGRESS") ?? active[0] ?? null;
 
-  const user = session
-    ? await prisma.user.findUnique({ where: { id: session.userId } })
-    : null;
+  const user = session ? await prisma.user.findUnique({ where: { id: session.userId } }) : null;
 
   const displayName = user?.first_name ?? "Partner";
 
@@ -42,37 +39,28 @@ export default async function IndustryPartnerDashboardPage() {
         <section className="mt-8 space-y-4">
           <div>
             <h3 className="font-heading text-xl font-extrabold">Continue</h3>
-            <p className="text-sm font-medium text-text-muted">
-              Pick up where you left off.
-            </p>
+            <p className="text-text-muted text-sm font-medium">Pick up where you left off.</p>
           </div>
 
-          <Card className="overflow-hidden border-border shadow-sm">
+          <Card className="border-border overflow-hidden shadow-sm">
             <CardContent className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between">
               <div className="space-y-2">
-                <p className="text-xs font-semibold uppercase tracking-wider text-primary">
+                <p className="text-primary text-xs font-semibold tracking-wider uppercase">
                   {resumeItem.status === "IN_PROGRESS" ? "In Progress" : "Pending"}
                 </p>
                 <div>
-                  <h4 className="text-xl font-bold">
-                    {resumeItem.evaluationTitle}
-                  </h4>
-                  <p className="text-sm text-text-secondary">
-                    {resumeItem.programLabel}
-                  </p>
+                  <h4 className="text-xl font-bold">{resumeItem.evaluationTitle}</h4>
+                  <p className="text-text-secondary text-sm">{resumeItem.programLabel}</p>
                 </div>
                 {resumeItem.status === "IN_PROGRESS" && (
-                  <p className="text-sm font-medium text-secondary">
+                  <p className="text-secondary text-sm font-medium">
                     {resumeItem.progress}% complete
                   </p>
                 )}
               </div>
 
               {resumeItem.href && (
-                <Button
-                  render={<Link href={resumeItem.href} />}
-                  className="font-semibold"
-                >
+                <Button render={<Link href={resumeItem.href} />} className="font-semibold">
                   {resumeItem.status === "IN_PROGRESS" ? "Resume" : "Start Evaluation"}
                 </Button>
               )}
@@ -85,13 +73,13 @@ export default async function IndustryPartnerDashboardPage() {
         <div className="mb-5 flex items-center justify-between">
           <div>
             <h3 className="font-heading text-xl font-extrabold">Pending Evaluations</h3>
-            <p className="text-sm font-medium text-text-muted">
+            <p className="text-text-muted text-sm font-medium">
               Prioritize forms that are active and closing soon.
             </p>
           </div>
           <Link
             href="/industry-partner/evaluations"
-            className="text-sm font-bold text-primary hover:underline"
+            className="text-primary text-sm font-bold hover:underline"
           >
             View All
           </Link>
@@ -102,8 +90,8 @@ export default async function IndustryPartnerDashboardPage() {
             <EvaluationListCard key={evalItem.assignmentId} {...evalItem} />
           ))}
           {active.length === 0 && (
-            <div className="rounded-xl border-2 border-dashed border-border py-12 text-center">
-              <p className="font-medium text-text-muted">No active evaluations found.</p>
+            <div className="border-border rounded-xl border-2 border-dashed py-12 text-center">
+              <p className="text-text-muted font-medium">No active evaluations found.</p>
             </div>
           )}
         </div>

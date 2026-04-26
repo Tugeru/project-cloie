@@ -122,13 +122,13 @@ export async function submitCentralDeploymentResponse({
     })
     .filter(
       (
-        item,
+        item
       ): item is {
         item_key: string;
         rating_value: number;
         response_id: string;
         section_key: string;
-      } => item !== null,
+      } => item !== null
     );
 
   const qualitativeItems = Object.entries(answers)
@@ -148,13 +148,13 @@ export async function submitCentralDeploymentResponse({
     })
     .filter(
       (
-        item,
+        item
       ): item is {
         prompt_key: string;
         response_id: string;
         section_key: string;
         text_content: string;
-      } => item !== null,
+      } => item !== null
     );
 
   await prisma.quantitativeResponseItem.deleteMany({

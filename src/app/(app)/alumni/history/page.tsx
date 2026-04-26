@@ -15,10 +15,7 @@ import {
 import { listStakeholderEvaluations } from "@/features/responses/services/list-stakeholder-evaluations";
 
 export default async function AlumniHistoryPage() {
-  const { submitted } = await listStakeholderEvaluations(
-    TargetStakeholder.ALUMNI,
-    "/alumni",
-  );
+  const { submitted } = await listStakeholderEvaluations(TargetStakeholder.ALUMNI, "/alumni");
 
   const formatDate = (date: Date | null) => {
     if (!date) return "N/A";
@@ -30,28 +27,28 @@ export default async function AlumniHistoryPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="animate-in fade-in space-y-6 duration-500">
       <div>
         <h1 className="font-heading text-2xl font-black">Submission History</h1>
-        <p className="text-sm text-text-muted">
+        <p className="text-text-muted text-sm">
           A permanent record of all your completed evaluation forms.
         </p>
       </div>
 
-      <div className="hidden overflow-hidden rounded-xl border border-border bg-surface md:block">
+      <div className="border-border bg-surface hidden overflow-hidden rounded-xl border md:block">
         <Table>
           <TableHeader className="bg-surface-muted/50">
             <TableRow>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider">
+              <TableHead className="text-[10px] font-bold tracking-wider uppercase">
                 Evaluation Form
               </TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider">
+              <TableHead className="text-[10px] font-bold tracking-wider uppercase">
                 Submission Date
               </TableHead>
-              <TableHead className="text-[10px] font-bold uppercase tracking-wider">
+              <TableHead className="text-[10px] font-bold tracking-wider uppercase">
                 Status
               </TableHead>
-              <TableHead className="text-right text-[10px] font-bold uppercase tracking-wider">
+              <TableHead className="text-right text-[10px] font-bold tracking-wider uppercase">
                 Actions
               </TableHead>
             </TableRow>
@@ -60,23 +57,19 @@ export default async function AlumniHistoryPage() {
             {submitted.map((sub) => (
               <TableRow
                 key={sub.assignmentId}
-                className="transition-colors hover:bg-surface-muted/30"
+                className="hover:bg-surface-muted/30 transition-colors"
               >
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="font-bold text-text-primary">
-                      {sub.evaluationTitle}
-                    </span>
-                    <span className="text-xs text-text-muted">
-                      {sub.programLabel}
-                    </span>
+                    <span className="text-text-primary font-bold">{sub.evaluationTitle}</span>
+                    <span className="text-text-muted text-xs">{sub.programLabel}</span>
                   </div>
                 </TableCell>
                 <TableCell className="text-sm font-medium">
                   {sub.session.submittedAt ? formatDate(sub.session.submittedAt) : "N/A"}
                 </TableCell>
                 <TableCell>
-                  <Badge className="border-green-200 bg-green-100 text-[10px] font-bold uppercase text-green-800">
+                  <Badge className="border-green-200 bg-green-100 text-[10px] font-bold text-green-800 uppercase">
                     Submitted
                   </Badge>
                 </TableCell>
@@ -108,29 +101,25 @@ export default async function AlumniHistoryPage() {
             <CardContent className="space-y-4 p-4">
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <h3 className="mb-1 leading-tight text-text-primary font-bold">
+                  <h3 className="text-text-primary mb-1 leading-tight font-bold">
                     {sub.evaluationTitle}
                   </h3>
-                  <p className="text-xs font-medium text-text-muted">
-                    {sub.programLabel}
-                  </p>
+                  <p className="text-text-muted text-xs font-medium">{sub.programLabel}</p>
                 </div>
-                <Badge className="shrink-0 border-green-200 bg-green-100 text-[9px] font-bold uppercase text-green-800">
+                <Badge className="shrink-0 border-green-200 bg-green-100 text-[9px] font-bold text-green-800 uppercase">
                   Submitted
                 </Badge>
               </div>
 
-              <div className="border-y border-border/50 py-3">
+              <div className="border-border/50 border-y py-3">
                 <div className="flex items-center gap-2">
-                  <Calendar className="size-3.5 text-text-muted" />
+                  <Calendar className="text-text-muted size-3.5" />
                   <div className="flex flex-col">
-                    <span className="text-[9px] font-black uppercase tracking-tighter text-text-muted">
+                    <span className="text-text-muted text-[9px] font-black tracking-tighter uppercase">
                       Date
                     </span>
                     <span className="text-xs font-bold">
-                      {sub.session.submittedAt
-                        ? formatDate(sub.session.submittedAt)
-                        : "N/A"}
+                      {sub.session.submittedAt ? formatDate(sub.session.submittedAt) : "N/A"}
                     </span>
                   </div>
                 </div>
@@ -153,9 +142,9 @@ export default async function AlumniHistoryPage() {
       </div>
 
       {submitted.length === 0 && (
-        <div className="rounded-xl border border-dashed border-border bg-surface py-12 text-center">
-          <FileText className="mx-auto mb-4 size-12 text-text-muted/20" />
-          <p className="font-medium text-text-muted">No submissions recorded yet.</p>
+        <div className="border-border bg-surface rounded-xl border border-dashed py-12 text-center">
+          <FileText className="text-text-muted/20 mx-auto mb-4 size-12" />
+          <p className="text-text-muted font-medium">No submissions recorded yet.</p>
         </div>
       )}
     </div>

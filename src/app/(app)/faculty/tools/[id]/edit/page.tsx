@@ -2,7 +2,10 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { TemplateBuilder } from "@/features/instruments/components/template-builder";
-import { listFacultyCourseContextsAction, loadFacultyManagedCilosAction } from "@/lib/actions/course-bound-evaluation-actions";
+import {
+  listFacultyCourseContextsAction,
+  loadFacultyManagedCilosAction,
+} from "@/lib/actions/course-bound-evaluation-actions";
 import {
   saveFacultyTemplateDraftAction,
   validateFacultyTemplatePublishReadinessAction,
@@ -14,9 +17,7 @@ interface FacultyEditTemplatePageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function FacultyEditTemplatePage({
-  params,
-}: FacultyEditTemplatePageProps) {
+export default async function FacultyEditTemplatePage({ params }: FacultyEditTemplatePageProps) {
   const { id } = await params;
 
   const template = await getFacultyTemplate(id);
@@ -35,7 +36,7 @@ export default async function FacultyEditTemplatePage({
       {/* Back link */}
       <Link
         href="/faculty/tools"
-        className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+        className="text-primary inline-flex items-center gap-2 text-sm font-medium hover:underline"
       >
         <ArrowLeft className="size-4" />
         Back to Tools

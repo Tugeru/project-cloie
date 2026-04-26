@@ -1,17 +1,30 @@
 import { FacultyToolsPage } from "@/features/instruments/components/faculty-tools-page";
 import { listFacultyTemplates } from "@/features/instruments/services/list-faculty-templates";
+import { listFacultyPublishedEvaluations } from "@/features/evaluations/services/list-faculty-published-evaluations";
 
 export default async function FacultyToolsRoute() {
-  const result = await listFacultyTemplates();
+  const [templatesResult, evaluationsResult] = await Promise.all([
+    listFacultyTemplates(),
+    listFacultyPublishedEvaluations(),
+  ]);
 
-  if (!result.success) {
+  if (!templatesResult.success) {
     return (
       <div className="space-y-4">
         <h1 className="text-heading-lg">Evaluation Tools</h1>
-        <p className="text-body-md text-text-secondary">{result.error}</p>
+        <p className="text-body-md text-text-secondary">{templatesResult.error}</p>
       </div>
     );
   }
 
-  return <FacultyToolsPage program={result.program} templates={result.templates} />;
+  // Evaluations may fail independently (e.g., no evaluations yet), so we handle gracefully
+  const evaluations = evaluationsResult.success ? evaluationsResult.evaluations : [];
+
+  return (
+    <FacultyToolsPage
+      program={templatesResult.program}
+      templates={templatesResult.templates}
+      evaluations={evaluations}
+    />
+  );
 }

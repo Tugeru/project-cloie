@@ -71,7 +71,7 @@ export function YearLevelManagement({ yearLevels }: YearLevelManagementProps) {
             <CardHeader>
               <CardTitle>
                 {yearLevel.name}{" "}
-                <span className="text-sm font-normal text-text-muted">Order {yearLevel.order}</span>
+                <span className="text-text-muted text-sm font-normal">Order {yearLevel.order}</span>
               </CardTitle>
               <CardDescription>
                 {yearLevel._count.student_profiles} students &bull;{" "}
@@ -87,7 +87,7 @@ export function YearLevelManagement({ yearLevels }: YearLevelManagementProps) {
                 onSuccess={() => router.refresh()}
               />
 
-              <div className="border-t border-border pt-4">
+              <div className="border-border border-t pt-4">
                 <Button
                   variant="destructive"
                   size="sm"

@@ -11,7 +11,7 @@ import {
 } from "./shared";
 
 export async function getCourseBoundResponseReview(
-  responseId: string,
+  responseId: string
 ): Promise<CourseBoundResponseReview | null> {
   const authSession = await resolveAuthSession();
 
@@ -79,9 +79,10 @@ export async function getCourseBoundResponseReview(
   }
 
   const evaluation = response.assignment.course_bound;
-  const sections = (Array.isArray(evaluation.instrument.structure_snapshot)
-    ? evaluation.instrument.structure_snapshot
-    : []
+  const sections = (
+    Array.isArray(evaluation.instrument.structure_snapshot)
+      ? evaluation.instrument.structure_snapshot
+      : []
   )
     .filter(isSnapshotSection)
     .map((section) => {
@@ -92,9 +93,7 @@ export async function getCourseBoundResponseReview(
       const quantitativeResponses = quantitativeItems
         .map((item) => {
           const entry = response.quant_items.find(
-            (candidate) =>
-              candidate.section_key === section.key &&
-              candidate.item_key === item.key,
+            (candidate) => candidate.section_key === section.key && candidate.item_key === item.key
           );
 
           if (!entry) {
@@ -113,8 +112,7 @@ export async function getCourseBoundResponseReview(
         .map((item) => {
           const entry = response.qual_items.find(
             (candidate) =>
-              candidate.section_key === section.key &&
-              candidate.prompt_key === item.key,
+              candidate.section_key === section.key && candidate.prompt_key === item.key
           );
 
           if (!entry || entry.text_content.trim().length === 0) {

@@ -10,9 +10,7 @@ interface AdminEditTemplatePageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function AdminEditTemplatePage({
-  params,
-}: AdminEditTemplatePageProps) {
+export default async function AdminEditTemplatePage({ params }: AdminEditTemplatePageProps) {
   const { id } = await params;
 
   const template = await getBaselineTemplate(id);
@@ -26,7 +24,7 @@ export default async function AdminEditTemplatePage({
       {/* Back link */}
       <Link
         href="/admin/instruments"
-        className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+        className="text-primary inline-flex items-center gap-2 text-sm font-medium hover:underline"
       >
         <ArrowLeft className="size-4" />
         Back to Tools

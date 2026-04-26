@@ -32,7 +32,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: null,
         submittedAt: null,
         totalItems: 6,
-      }),
+      })
     ).toEqual({ progress: 0, status: "NOT_STARTED" });
   });
 
@@ -45,7 +45,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: "response-1",
         submittedAt: null,
         totalItems: 6,
-      }),
+      })
     ).toEqual({ progress: 50, status: "IN_PROGRESS" });
   });
 
@@ -58,7 +58,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: null,
         submittedAt: null,
         totalItems: 6,
-      }),
+      })
     ).toEqual({ progress: 0, status: "DUE_SOON" });
   });
 
@@ -71,7 +71,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: "response-1",
         submittedAt: new Date("2026-05-11T00:00:00.000Z"),
         totalItems: 6,
-      }),
+      })
     ).toEqual({ progress: 50, status: "SUBMITTED" });
   });
 
@@ -84,7 +84,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: null,
         submittedAt: new Date("2026-05-11T00:00:00.000Z"),
         totalItems: 6,
-      }),
+      })
     ).toEqual({ progress: 50, status: "SUBMITTED" });
   });
 
@@ -97,7 +97,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: "response-1",
         submittedAt: null,
         totalItems: 0,
-      }),
+      })
     ).toEqual({ progress: 0, status: "IN_PROGRESS" });
   });
 
@@ -110,7 +110,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: "response-1",
         submittedAt: null,
         totalItems: 6,
-      }),
+      })
     ).toEqual({ progress: 100, status: "IN_PROGRESS" });
 
     expect(
@@ -121,7 +121,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: "response-1",
         submittedAt: null,
         totalItems: 6,
-      }),
+      })
     ).toEqual({ progress: 0, status: "IN_PROGRESS" });
   });
 });
@@ -150,7 +150,7 @@ describe("buildStudentEvaluationListItem", () => {
           submittedAt: null,
           totalItems: 6,
         },
-      }),
+      })
     ).toEqual({
       assignmentId: "assignment-1",
       courseTitle: "ITE 18 - Capstone 1",
@@ -272,9 +272,7 @@ describe("listStudentCourseBoundEvaluations", () => {
           course: { title: "Capstone 1" },
           deadline_at: new Date("2026-05-20T00:00:00.000Z"),
           instrument: {
-            structure_snapshot: [
-              { key: "section-a", title: "Section A" },
-            ],
+            structure_snapshot: [{ key: "section-a", title: "Section A" }],
             template: { name: "Post-Term CILO Evaluation Tool" },
           },
           program: { name: "BSIT" },
@@ -296,9 +294,7 @@ describe("listStudentCourseBoundEvaluations", () => {
           course: { title: "Networks" },
           deadline_at: new Date("2026-05-10T00:00:00.000Z"),
           instrument: {
-            structure_snapshot: [
-              { key: "section-b", title: "Section B" },
-            ],
+            structure_snapshot: [{ key: "section-b", title: "Section B" }],
             template: { name: "Midterm Evaluation" },
           },
           program: { name: "BSIT" },

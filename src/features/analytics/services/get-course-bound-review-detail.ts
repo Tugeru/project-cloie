@@ -48,7 +48,7 @@ export function buildReviewWordCloudTokens(texts: string[]): WordCloudToken[] {
 }
 
 export async function getCourseBoundReviewDetail(
-  evaluationId: string,
+  evaluationId: string
 ): Promise<CourseBoundReviewDetail | null> {
   const authSession = await resolveAuthSession();
 
@@ -120,15 +120,16 @@ export async function getCourseBoundReviewDetail(
     .map((assignment) => assignment.response)
     .filter((response): response is NonNullable<typeof response> => Boolean(response));
   const allQuantRatings = submittedResponses.flatMap((response) =>
-    response.quant_items.map((item) => item.rating_value),
+    response.quant_items.map((item) => item.rating_value)
   );
   const qualitativeTexts = submittedResponses.flatMap((response) =>
-    response.qual_items.map((item) => item.text_content),
+    response.qual_items.map((item) => item.text_content)
   );
 
-  const sections = (Array.isArray(evaluation.instrument.structure_snapshot)
-    ? evaluation.instrument.structure_snapshot
-    : []
+  const sections = (
+    Array.isArray(evaluation.instrument.structure_snapshot)
+      ? evaluation.instrument.structure_snapshot
+      : []
   )
     .filter(isSnapshotSection)
     .map((section) => {
@@ -172,7 +173,7 @@ export async function getCourseBoundReviewDetail(
           entry.cilo_question_binding_id === binding.id ||
           (!entry.cilo_question_binding_id &&
             entry.section_key === binding.section_key &&
-            entry.item_key === binding.item_key),
+            entry.item_key === binding.item_key)
       )
       .map((entry) => entry.rating_value);
 

@@ -30,11 +30,13 @@ export type SaveStudentEvaluationDraftResult =
       success: true;
     };
 
-function resolveSection(structureSnapshot: unknown, sectionKey: string): StudentEvaluationSection | null {
+function resolveSection(
+  structureSnapshot: unknown,
+  sectionKey: string
+): StudentEvaluationSection | null {
   return (
-    mapStructureSnapshotToSections(structureSnapshot).find(
-      (entry) => entry.id === sectionKey,
-    ) ?? null
+    mapStructureSnapshotToSections(structureSnapshot).find((entry) => entry.id === sectionKey) ??
+    null
   );
 }
 
@@ -138,8 +140,7 @@ export async function saveStudentEvaluationDraft({
     response = await prisma.response.create({
       data: {
         assignment_id: assignment.id,
-        deployment_id:
-          assignment.course_bound_id ?? assignment.central_deployment_id ?? "",
+        deployment_id: assignment.course_bound_id ?? assignment.central_deployment_id ?? "",
         deployment_type: assignment.course_bound
           ? DeploymentType.COURSE_BOUND
           : DeploymentType.CENTRAL,

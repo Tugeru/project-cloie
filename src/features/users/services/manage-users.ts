@@ -9,16 +9,14 @@ import type {
   UpdateStudentAcademicContextInput,
 } from "../schemas/admin-user";
 
-type ServiceResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 function isUniqueConstraintError(error: unknown): boolean {
   return Boolean(
     error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error as { code?: string }).code === "P2002",
+    typeof error === "object" &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
   );
 }
 
@@ -112,10 +110,7 @@ export async function listExternalStakeholderInvites() {
   });
 }
 
-export async function toggleUserActive(
-  id: string,
-  is_active: boolean,
-): Promise<ServiceResult> {
+export async function toggleUserActive(id: string, is_active: boolean): Promise<ServiceResult> {
   await prisma.user.update({
     where: { id },
     data: { is_active },
@@ -125,7 +120,7 @@ export async function toggleUserActive(
 }
 
 export async function assignUserRole(
-  input: AssignRoleInput,
+  input: AssignRoleInput
 ): Promise<ServiceResult<{ id: string }>> {
   try {
     const role = await prisma.userRole.create({
@@ -148,10 +143,7 @@ export async function assignUserRole(
   }
 }
 
-export async function revokeUserRole(
-  userId: string,
-  role: SystemRole,
-): Promise<ServiceResult> {
+export async function revokeUserRole(userId: string, role: SystemRole): Promise<ServiceResult> {
   const assignedRole = await prisma.userRole.findUnique({
     where: {
       user_id_role: {
@@ -238,7 +230,7 @@ export async function revokeUserRole(
 }
 
 export async function upsertStudentAcademicContext(
-  input: UpdateStudentAcademicContextInput,
+  input: UpdateStudentAcademicContextInput
 ): Promise<ServiceResult> {
   const hasStudentRole = await userHasRole(input.user_id, SystemRole.STUDENT);
 
@@ -249,10 +241,7 @@ export async function upsertStudentAcademicContext(
     };
   }
 
-  const programMajorCheck = await ensureProgramMajorRelation(
-    input.program_id,
-    input.major_id,
-  );
+  const programMajorCheck = await ensureProgramMajorRelation(input.program_id, input.major_id);
 
   if (!programMajorCheck.success) {
     return programMajorCheck;
@@ -300,7 +289,7 @@ export async function deleteStudentAcademicContext(userId: string): Promise<Serv
 }
 
 export async function createFacultyProgramAffiliation(
-  input: CreateFacultyAffiliationInput,
+  input: CreateFacultyAffiliationInput
 ): Promise<ServiceResult> {
   const hasFacultyRole = await userHasRole(input.faculty_id, SystemRole.FACULTY);
 
@@ -354,12 +343,9 @@ export async function deactivateFacultyProgramAffiliation(id: string): Promise<S
 }
 
 export async function createProgramHeadAssignment(
-  input: CreateProgramHeadAssignmentInput,
+  input: CreateProgramHeadAssignmentInput
 ): Promise<ServiceResult> {
-  const hasProgramHeadRole = await userHasRole(
-    input.program_head_id,
-    SystemRole.PROGRAM_HEAD,
-  );
+  const hasProgramHeadRole = await userHasRole(input.program_head_id, SystemRole.PROGRAM_HEAD);
 
   if (!hasProgramHeadRole) {
     return {
@@ -411,7 +397,7 @@ export async function deactivateProgramHeadAssignment(id: string): Promise<Servi
 }
 
 export async function upsertIndustryPartnerProfile(
-  input: UpdateIndustryPartnerProfileInput,
+  input: UpdateIndustryPartnerProfileInput
 ): Promise<ServiceResult> {
   const hasIndustryRole = await userHasRole(input.user_id, SystemRole.INDUSTRY_PARTNER);
 
@@ -458,7 +444,7 @@ export async function deleteIndustryPartnerProfile(userId: string): Promise<Serv
 }
 
 export async function createExternalInviteDraft(
-  input: CreateExternalInviteDraftInput,
+  input: CreateExternalInviteDraftInput
 ): Promise<ServiceResult<{ id: string }>> {
   try {
     const invite = await prisma.externalStakeholderInvite.create({
@@ -488,7 +474,7 @@ export async function createExternalInviteDraft(
 
 export async function updateExternalInviteStatus(
   id: string,
-  status: InviteStatus,
+  status: InviteStatus
 ): Promise<ServiceResult> {
   const invite = await prisma.externalStakeholderInvite.findUnique({
     where: { id },

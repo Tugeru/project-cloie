@@ -90,7 +90,7 @@ export function buildQuantitativeUpserts({
       (entry): entry is SectionAnswerEntry & { kind: "quantitative"; value: number } =>
         entry.kind === "quantitative" &&
         typeof entry.value === "number" &&
-        Number.isFinite(entry.value),
+        Number.isFinite(entry.value)
     )
     .map(({ itemKey, value }) => ({
       item_key: itemKey,
@@ -110,7 +110,7 @@ export function buildQualitativeUpserts({
   return getSectionAnswerEntries({ answers, section })
     .filter(
       (entry): entry is SectionAnswerEntry & { kind: "qualitative"; value: string } =>
-        entry.kind === "qualitative" && typeof entry.value === "string",
+        entry.kind === "qualitative" && typeof entry.value === "string"
     )
     .map(({ itemKey, value }) => ({
       prompt_key: itemKey,
@@ -165,7 +165,7 @@ export async function saveStudentCourseBoundDraft({
   }
 
   const section = mapStructureSnapshotToSections(
-    assignment.course_bound.instrument.structure_snapshot,
+    assignment.course_bound.instrument.structure_snapshot
   ).find((entry) => entry.id === sectionKey);
 
   if (!section) {

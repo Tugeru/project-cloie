@@ -74,11 +74,11 @@ export function QualitativeWordCloud({ title, tokens }: QualitativeWordCloudProp
     <div className="space-y-3">
       <h3 className="text-base font-semibold">{title}</h3>
       {tokens.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border p-4 text-sm text-text-muted">
+        <div className="border-border text-text-muted rounded-lg border border-dashed p-4 text-sm">
           No qualitative responses yet.
         </div>
       ) : (
-        <div ref={containerRef} className="rounded-xl border border-border p-3">
+        <div ref={containerRef} className="border-border rounded-xl border p-3">
           <WordCloud
             words={tokens}
             width={dimensions.width}

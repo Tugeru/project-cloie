@@ -1,9 +1,5 @@
 import { loadEnvConfig } from "@next/env";
-import {
-  AcademicSemester,
-  AcademicTerm,
-  DeploymentStatus,
-} from "@prisma/client";
+import { AcademicSemester, AcademicTerm, DeploymentStatus } from "@prisma/client";
 import { pathToFileURL } from "node:url";
 
 import { prisma } from "../src/lib/db/prisma";
@@ -48,12 +44,9 @@ type ExistingDemoUser = {
 };
 
 export function assertSafeDemoUserReuse(existingUser: ExistingDemoUser, input: DemoUserInput) {
-  if (
-    existingUser.first_name !== input.firstName ||
-    existingUser.last_name !== input.lastName
-  ) {
+  if (existingUser.first_name !== input.firstName || existingUser.last_name !== input.lastName) {
     throw new Error(
-      `Refusing to reuse existing user ${input.email} because it does not match the outline defense demo marker.`,
+      `Refusing to reuse existing user ${input.email} because it does not match the outline defense demo marker.`
     );
   }
 }
@@ -125,7 +118,7 @@ async function main() {
 
   if (!program || !yearLevel || !course || !instrumentVersion) {
     throw new Error(
-      "Seed prerequisites are missing. Run `pnpm db:seed` before bootstrapping the outline defense demo.",
+      "Seed prerequisites are missing. Run `pnpm db:seed` before bootstrapping the outline defense demo."
     );
   }
 
@@ -291,8 +284,8 @@ async function main() {
         student: student.email,
       },
       null,
-      2,
-    ),
+      2
+    )
   );
 }
 

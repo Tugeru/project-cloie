@@ -5,10 +5,7 @@ import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { SystemRole } from "@prisma/client";
 import { customZodResolver } from "@/lib/forms/zod-resolver";
-import {
-  createAdminUserSchema,
-  type CreateAdminUserInput,
-} from "../schemas/create-user";
+import { createAdminUserSchema, type CreateAdminUserInput } from "../schemas/create-user";
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -47,10 +44,7 @@ const ROLE_LABELS: Record<SystemRole, string> = {
   [SystemRole.INDUSTRY_PARTNER]: "Industry Partner",
 };
 
-const MULTI_SELECT_ROLES: SystemRole[] = [
-  SystemRole.FACULTY,
-  SystemRole.INDUSTRY_PARTNER,
-];
+const MULTI_SELECT_ROLES: SystemRole[] = [SystemRole.FACULTY, SystemRole.INDUSTRY_PARTNER];
 
 const SINGLE_SELECT_ROLES: SystemRole[] = [
   SystemRole.STUDENT,
@@ -174,10 +168,8 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
           {/* Heading */}
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <UserPlus className="size-5 text-primary" />
-              <h2 className="text-heading-lg font-bold text-text-primary">
-                Add New User
-              </h2>
+              <UserPlus className="text-primary size-5" />
+              <h2 className="text-heading-lg text-text-primary font-bold">Add New User</h2>
             </div>
             <p className="text-body-sm text-text-secondary">
               Create a new user account and assign their initial role.
@@ -185,10 +177,7 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
           </div>
 
           {globalError && (
-            <Alert
-              variant="destructive"
-              className="border-danger/50 bg-danger-soft text-danger"
-            >
+            <Alert variant="destructive" className="border-danger/50 bg-danger-soft text-danger">
               <AlertCircle className="size-4" />
               <AlertDescription>{globalError}</AlertDescription>
             </Alert>
@@ -199,7 +188,7 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
             <div className="space-y-2">
               <Label
                 htmlFor="first_name"
-                className="text-label-sm font-semibold uppercase tracking-wider text-text-secondary"
+                className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase"
               >
                 First Name
               </Label>
@@ -207,12 +196,10 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
                 id="first_name"
                 placeholder="Enter first name"
                 {...register("first_name")}
-                className={
-                  errors.first_name ? "border-danger focus-visible:ring-danger" : ""
-                }
+                className={errors.first_name ? "border-danger focus-visible:ring-danger" : ""}
               />
               {errors.first_name && (
-                <p className="flex items-center gap-1 text-xs text-danger">
+                <p className="text-danger flex items-center gap-1 text-xs">
                   <AlertCircle className="size-3" />
                   {errors.first_name.message}
                 </p>
@@ -222,7 +209,7 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
             <div className="space-y-2">
               <Label
                 htmlFor="last_name"
-                className="text-label-sm font-semibold uppercase tracking-wider text-text-secondary"
+                className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase"
               >
                 Last Name
               </Label>
@@ -230,12 +217,10 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
                 id="last_name"
                 placeholder="Enter last name"
                 {...register("last_name")}
-                className={
-                  errors.last_name ? "border-danger focus-visible:ring-danger" : ""
-                }
+                className={errors.last_name ? "border-danger focus-visible:ring-danger" : ""}
               />
               {errors.last_name && (
-                <p className="flex items-center gap-1 text-xs text-danger">
+                <p className="text-danger flex items-center gap-1 text-xs">
                   <AlertCircle className="size-3" />
                   {errors.last_name.message}
                 </p>
@@ -248,7 +233,7 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
             <div className="space-y-2">
               <Label
                 htmlFor="email"
-                className="text-label-sm font-semibold uppercase tracking-wider text-text-secondary"
+                className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase"
               >
                 Email Address
               </Label>
@@ -257,12 +242,10 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
                 type="email"
                 placeholder="user@example.com"
                 {...register("email")}
-                className={
-                  errors.email ? "border-danger focus-visible:ring-danger" : ""
-                }
+                className={errors.email ? "border-danger focus-visible:ring-danger" : ""}
               />
               {errors.email && (
-                <p className="flex items-center gap-1 text-xs text-danger">
+                <p className="text-danger flex items-center gap-1 text-xs">
                   <AlertCircle className="size-3" />
                   {errors.email.message}
                 </p>
@@ -270,7 +253,7 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-label-sm font-semibold uppercase tracking-wider text-text-secondary">
+              <Label className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase">
                 Role
               </Label>
               <Controller
@@ -281,9 +264,7 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
                     onValueChange={(v) => handleRoleChange(v as SystemRole)}
                     value={field.value ?? ""}
                   >
-                    <SelectTrigger
-                      className={`w-full ${errors.role ? "border-danger" : ""}`}
-                    >
+                    <SelectTrigger className={`w-full ${errors.role ? "border-danger" : ""}`}>
                       <SelectValue placeholder="Select a role">
                         {field.value ? getRoleLabel(field.value) : null}
                       </SelectValue>
@@ -299,7 +280,7 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
                 )}
               />
               {errors.role && (
-                <p className="flex items-center gap-1 text-xs text-danger">
+                <p className="text-danger flex items-center gap-1 text-xs">
                   <AlertCircle className="size-3" />
                   {errors.role.message}
                 </p>
@@ -310,16 +291,16 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
           {/* Row 3 (conditional): Affiliated Program */}
           {programMode === "multi" && (
             <div className="space-y-2">
-              <Label className="text-label-sm font-semibold uppercase tracking-wider text-text-secondary">
+              <Label className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase">
                 Affiliated Programs
               </Label>
-              <div className="max-h-52 space-y-1 overflow-y-auto rounded-lg border border-border p-3">
+              <div className="border-border max-h-52 space-y-1 overflow-y-auto rounded-lg border p-3">
                 {programs.map((program) => {
                   const isChecked = selectedProgramIds.includes(program.id);
                   return (
                     <label
                       key={program.id}
-                      className="flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 transition-colors hover:bg-surface-muted"
+                      className="hover:bg-surface-muted flex cursor-pointer items-center gap-3 rounded-md px-2 py-1.5 transition-colors"
                     >
                       <Checkbox
                         checked={isChecked}
@@ -332,13 +313,11 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
                   );
                 })}
                 {programs.length === 0 && (
-                  <p className="text-body-sm text-text-muted">
-                    No active programs available.
-                  </p>
+                  <p className="text-body-sm text-text-muted">No active programs available.</p>
                 )}
               </div>
               {errors.program_ids && (
-                <p className="flex items-center gap-1 text-xs text-danger">
+                <p className="text-danger flex items-center gap-1 text-xs">
                   <AlertCircle className="size-3" />
                   {errors.program_ids.message}
                 </p>
@@ -348,7 +327,7 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
 
           {programMode === "single" && (
             <div className="space-y-2">
-              <Label className="text-label-sm font-semibold uppercase tracking-wider text-text-secondary">
+              <Label className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase">
                 Affiliated Program
               </Label>
               <Controller
@@ -363,9 +342,7 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
                     }}
                     value={field.value ?? ""}
                   >
-                    <SelectTrigger
-                      className={`w-full ${errors.program_id ? "border-danger" : ""}`}
-                    >
+                    <SelectTrigger className={`w-full ${errors.program_id ? "border-danger" : ""}`}>
                       <SelectValue placeholder="Select a program">
                         {field.value ? getProgramLabel(field.value) : null}
                       </SelectValue>
@@ -381,7 +358,7 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
                 )}
               />
               {errors.program_id && (
-                <p className="flex items-center gap-1 text-xs text-danger">
+                <p className="text-danger flex items-center gap-1 text-xs">
                   <AlertCircle className="size-3" />
                   {errors.program_id.message}
                 </p>
@@ -392,20 +369,15 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
           {/* Row 4 (conditional): Major */}
           {showMajor && (
             <div className="space-y-2">
-              <Label className="text-label-sm font-semibold uppercase tracking-wider text-text-secondary">
+              <Label className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase">
                 Major
               </Label>
               <Controller
                 name="major_id"
                 control={control}
                 render={({ field }) => (
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value ?? ""}
-                  >
-                    <SelectTrigger
-                      className={`w-full ${errors.major_id ? "border-danger" : ""}`}
-                    >
+                  <Select onValueChange={field.onChange} value={field.value ?? ""}>
+                    <SelectTrigger className={`w-full ${errors.major_id ? "border-danger" : ""}`}>
                       <SelectValue placeholder="Select a major">
                         {field.value ? getMajorLabel(field.value) : null}
                       </SelectValue>
@@ -421,7 +393,7 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
                 )}
               />
               {errors.major_id && (
-                <p className="flex items-center gap-1 text-xs text-danger">
+                <p className="text-danger flex items-center gap-1 text-xs">
                   <AlertCircle className="size-3" />
                   {errors.major_id.message}
                 </p>
@@ -430,12 +402,8 @@ export function AddUserForm({ programs, createAction }: AddUserFormProps) {
           )}
         </CardContent>
 
-        <CardFooter className="flex justify-end px-6 pb-8 pt-2 sm:px-8">
-          <Button
-            type="submit"
-            className="gap-2 font-semibold"
-            disabled={isSubmitting}
-          >
+        <CardFooter className="flex justify-end px-6 pt-2 pb-8 sm:px-8">
+          <Button type="submit" className="gap-2 font-semibold" disabled={isSubmitting}>
             {isSubmitting ? "Creating…" : "Create User"}
             {!isSubmitting && <UserPlus className="size-4" />}
           </Button>

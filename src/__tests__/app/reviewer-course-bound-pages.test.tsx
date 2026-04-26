@@ -51,7 +51,11 @@ vi.mock("@/features/analytics/components/anonymized-response-detail", () => ({
     response,
   }: {
     response: { evaluationTitle: string; respondentLabel: string };
-  }) => <div>Response detail: {response.evaluationTitle} ({response.respondentLabel})</div>,
+  }) => (
+    <div>
+      Response detail: {response.evaluationTitle} ({response.respondentLabel})
+    </div>
+  ),
 }));
 
 const reviewList = [
@@ -127,12 +131,16 @@ describe("reviewer course-bound pages", () => {
     const FacultyEvaluationPage = (
       await import("../../app/(app)/faculty/cilo-evaluations/[evaluationId]/page")
     ).default;
-    const page = await FacultyEvaluationPage({ params: Promise.resolve({ evaluationId: "eval-1" }) });
+    const page = await FacultyEvaluationPage({
+      params: Promise.resolve({ evaluationId: "eval-1" }),
+    });
 
     render(page);
 
     expect(getCourseBoundReviewDetailMock).toHaveBeenCalledWith("eval-1");
-    expect(screen.getByText("Tabs base path: /faculty/cilo-evaluations/eval-1")).toBeInTheDocument();
+    expect(
+      screen.getByText("Tabs base path: /faculty/cilo-evaluations/eval-1")
+    ).toBeInTheDocument();
   });
 
   it("renders faculty response page with read-only anonymized response detail", async () => {
@@ -152,7 +160,8 @@ describe("reviewer course-bound pages", () => {
   });
 
   it("renders program-head list and detail flow using shared review components", async () => {
-    const ProgramHeadListPage = (await import("../../app/(app)/program-head/cilo-reviews/page")).default;
+    const ProgramHeadListPage = (await import("../../app/(app)/program-head/cilo-reviews/page"))
+      .default;
     const ProgramHeadDetailPage = (
       await import("../../app/(app)/program-head/cilo-reviews/[evaluationId]/page")
     ).default;
@@ -161,15 +170,20 @@ describe("reviewer course-bound pages", () => {
     expect(listCourseBoundReviewItemsMock).toHaveBeenCalledTimes(1);
     expect(screen.getByText("Published list: Program CILO Reviews")).toBeInTheDocument();
 
-    const detail = await ProgramHeadDetailPage({ params: Promise.resolve({ evaluationId: "eval-1" }) });
+    const detail = await ProgramHeadDetailPage({
+      params: Promise.resolve({ evaluationId: "eval-1" }),
+    });
     render(detail);
     expect(getCourseBoundReviewDetailMock).toHaveBeenCalledWith("eval-1");
-    expect(screen.getByText("Tabs base path: /program-head/cilo-reviews/eval-1")).toBeInTheDocument();
+    expect(
+      screen.getByText("Tabs base path: /program-head/cilo-reviews/eval-1")
+    ).toBeInTheDocument();
   });
 
   it("renders dean list and detail flow using shared review components", async () => {
     const DeanListPage = (await import("../../app/(app)/dean/cilo-reviews/page")).default;
-    const DeanDetailPage = (await import("../../app/(app)/dean/cilo-reviews/[evaluationId]/page")).default;
+    const DeanDetailPage = (await import("../../app/(app)/dean/cilo-reviews/[evaluationId]/page"))
+      .default;
 
     render(await DeanListPage());
     expect(listCourseBoundReviewItemsMock).toHaveBeenCalledTimes(1);
@@ -192,7 +206,7 @@ describe("reviewer course-bound pages", () => {
     render(
       await ProgramHeadResponsePage({
         params: Promise.resolve({ evaluationId: "eval-1", responseId: "response-1" }),
-      }),
+      })
     );
     expect(getCourseBoundResponseReviewMock).toHaveBeenCalledWith("response-1");
     expect(
@@ -202,7 +216,7 @@ describe("reviewer course-bound pages", () => {
     render(
       await DeanResponsePage({
         params: Promise.resolve({ evaluationId: "eval-1", responseId: "response-1" }),
-      }),
+      })
     );
     expect(getCourseBoundResponseReviewMock).toHaveBeenCalledWith("response-1");
 
@@ -210,7 +224,7 @@ describe("reviewer course-bound pages", () => {
     await expect(
       ProgramHeadResponsePage({
         params: Promise.resolve({ evaluationId: "eval-1", responseId: "missing" }),
-      }),
+      })
     ).rejects.toThrow("NEXT_NOT_FOUND");
   });
 });

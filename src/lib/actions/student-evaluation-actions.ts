@@ -17,26 +17,22 @@ import {
   type SubmitStudentCourseBoundResponseInput,
 } from "@/features/responses/services/submit-student-course-bound-response";
 
-export async function saveStudentEvaluationDraftAction(
-  payload: SaveStudentEvaluationDraftInput,
-) {
+export async function saveStudentEvaluationDraftAction(payload: SaveStudentEvaluationDraftInput) {
   return await saveStudentEvaluationDraft(payload);
 }
 
-export async function saveStudentCourseBoundDraftAction(
-  payload: SaveStudentCourseBoundDraftInput,
-) {
+export async function saveStudentCourseBoundDraftAction(payload: SaveStudentCourseBoundDraftInput) {
   return await saveStudentCourseBoundDraft(payload);
 }
 
 export async function submitStudentEvaluationResponseAction(
-  payload: SubmitStudentEvaluationResponseInput,
+  payload: SubmitStudentEvaluationResponseInput
 ) {
   return await submitStudentEvaluationResponse(payload);
 }
 
 export async function submitStudentCourseBoundResponseAction(
-  payload: SubmitStudentCourseBoundResponseInput,
+  payload: SubmitStudentCourseBoundResponseInput
 ) {
   return await submitStudentCourseBoundResponse(payload);
 }

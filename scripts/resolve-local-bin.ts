@@ -22,7 +22,7 @@ export function resolveLocalBin(command: string) {
 
   if (existsSync(pnpmStorePath)) {
     const packageDirectories = readdirSync(pnpmStorePath).filter((entry) =>
-      entry.toLowerCase().startsWith(`${command.toLowerCase()}@`),
+      entry.toLowerCase().startsWith(`${command.toLowerCase()}@`)
     );
 
     for (const packageDirectory of packageDirectories) {
@@ -33,7 +33,7 @@ export function resolveLocalBin(command: string) {
           "node_modules",
           command,
           "bin",
-          candidate,
+          candidate
         );
 
         if (existsSync(resolved)) {

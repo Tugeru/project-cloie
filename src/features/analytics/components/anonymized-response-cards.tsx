@@ -18,7 +18,7 @@ export function AnonymizedResponseCards({
 }: AnonymizedResponseCardsProps) {
   if (responses.length === 0) {
     return (
-      <div className="rounded-lg border border-dashed border-border p-4 text-sm text-text-muted">
+      <div className="border-border text-text-muted rounded-lg border border-dashed p-4 text-sm">
         No submitted responses yet.
       </div>
     );
@@ -31,15 +31,22 @@ export function AnonymizedResponseCards({
           <Card size="sm">
             <CardHeader className="gap-1">
               <CardTitle>{response.respondentLabel}</CardTitle>
-              <p className="text-xs text-text-muted">Submitted {response.submittedAt.toLocaleDateString()}</p>
+              <p className="text-text-muted text-xs">
+                Submitted {response.submittedAt.toLocaleDateString()}
+              </p>
             </CardHeader>
 
             <CardContent className="flex items-center justify-between gap-4">
-              <p className="text-sm text-text-muted">
-                Mean: <span className="font-semibold text-text-primary">{formatMean(response.overallMean)}</span>
+              <p className="text-text-muted text-sm">
+                Mean:{" "}
+                <span className="text-text-primary font-semibold">
+                  {formatMean(response.overallMean)}
+                </span>
               </p>
               <Button asChild size="sm" variant="outline">
-                <Link href={`${responseBasePath}/responses/${response.responseId}`}>View Response</Link>
+                <Link href={`${responseBasePath}/responses/${response.responseId}`}>
+                  View Response
+                </Link>
               </Button>
             </CardContent>
           </Card>

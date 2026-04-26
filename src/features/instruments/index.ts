@@ -12,10 +12,7 @@ export {
   toggleBaselineTemplateActive,
 } from "./services/manage-instruments";
 
-export {
-  createBaselineTemplateSchema,
-  updateBaselineTemplateSchema,
-} from "./schemas/template";
+export { createBaselineTemplateSchema, updateBaselineTemplateSchema } from "./schemas/template";
 
 // ─── Program Head Template Management ────────────────────────────────────────
 
@@ -63,3 +60,5 @@ export { DEFAULT_LIKERT_5_DESCRIPTORS } from "./types";
 
 export { TemplateBuilder } from "./components/template-builder";
 export { ProgramHeadToolsPage } from "./components/program-head-tools-page";
+export { FacultyToolsPage } from "./components/faculty-tools-page";
+export { TemplatesGrid } from "./components/templates-grid";

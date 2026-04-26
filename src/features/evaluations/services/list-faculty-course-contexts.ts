@@ -63,7 +63,8 @@ export async function listFacultyCourseContexts(): Promise<FacultyCourseContext[
   for (const affiliation of affiliations) {
     for (const course of courses) {
       const isGeneralEducation = course.course_scope === CourseScope.GENERAL_EDUCATION;
-      const isMajorSpecific = course.course_scope === CourseScope.MAJOR_SPECIFIC || Boolean(course.major_id);
+      const isMajorSpecific =
+        course.course_scope === CourseScope.MAJOR_SPECIFIC || Boolean(course.major_id);
       const isProgramMatch = course.program_id === affiliation.program_id;
 
       if (!isGeneralEducation && !isProgramMatch) {

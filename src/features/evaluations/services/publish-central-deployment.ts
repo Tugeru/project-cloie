@@ -11,9 +11,7 @@ import {
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type ServiceResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 export type PublishCentralDeploymentResult = ServiceResult<{
   deploymentId: string;
@@ -23,9 +21,7 @@ export type PublishCentralDeploymentResult = ServiceResult<{
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function computeDeploymentStatus(
-  activationAt: Date | undefined,
-): "ACTIVE" | "SCHEDULED" {
+function computeDeploymentStatus(activationAt: Date | undefined): "ACTIVE" | "SCHEDULED" {
   if (activationAt && activationAt.getTime() > Date.now()) {
     return DeploymentStatus.SCHEDULED;
   }
@@ -36,16 +32,16 @@ function computeDeploymentStatus(
 function isUniqueConstraintError(error: unknown): boolean {
   return Boolean(
     error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error as { code?: string }).code === "P2002",
+    typeof error === "object" &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
   );
 }
 
 // ─── Main Service ────────────────────────────────────────────────────────────
 
 export async function publishCentralDeployment(
-  input: PublishCentralDeploymentInput,
+  input: PublishCentralDeploymentInput
 ): Promise<PublishCentralDeploymentResult> {
   // 1. Authenticate and check role
   const authSession = await resolveAuthSession();
@@ -94,10 +90,7 @@ export async function publishCentralDeployment(
     where: {
       id: input.template_id,
       is_active: true,
-      OR: [
-        { program_id: programId },
-        { program_id: null },
-      ],
+      OR: [{ program_id: programId }, { program_id: null }],
       template_type: EvaluationTemplateType.PROGRAM_WIDE,
     },
     select: { id: true, name: true, program_id: true, template_type: true },
@@ -106,8 +99,7 @@ export async function publishCentralDeployment(
   if (!template) {
     return {
       success: false,
-      error:
-        "Template not found, inactive, or not accessible to your program.",
+      error: "Template not found, inactive, or not accessible to your program.",
     };
   }
 
@@ -200,9 +192,7 @@ export async function publishCentralDeployment(
           select: { user_id: true },
         });
 
-        respondentIds = [
-          ...new Set(studentProfiles.map((p) => p.user_id)),
-        ];
+        respondentIds = [...new Set(studentProfiles.map((p) => p.user_id))];
       } else if (input.target_stakeholder === "ALUMNI") {
         // Find users with ALUMNI role
         const alumniRoles = await tx.userRole.findMany({
@@ -210,9 +200,7 @@ export async function publishCentralDeployment(
           select: { user_id: true },
         });
 
-        respondentIds = [
-          ...new Set(alumniRoles.map((r) => r.user_id)),
-        ];
+        respondentIds = [...new Set(alumniRoles.map((r) => r.user_id))];
       } else if (input.target_stakeholder === "INDUSTRY_PARTNER") {
         // Find users with INDUSTRY_PARTNER role and matching program
         const industryProfiles = await tx.industryPartnerProfile.findMany({
@@ -220,9 +208,7 @@ export async function publishCentralDeployment(
           select: { user_id: true },
         });
 
-        respondentIds = [
-          ...new Set(industryProfiles.map((p) => p.user_id)),
-        ];
+        respondentIds = [...new Set(industryProfiles.map((p) => p.user_id))];
       }
 
       if (respondentIds.length > 0) {
@@ -263,7 +249,7 @@ export async function publishCentralDeployment(
 export type CloseCentralDeploymentResult = ServiceResult;
 
 export async function closeCentralDeployment(
-  deploymentId: string,
+  deploymentId: string
 ): Promise<CloseCentralDeploymentResult> {
   // 1. Authenticate and check role
   const authSession = await resolveAuthSession();

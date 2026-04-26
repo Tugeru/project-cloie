@@ -63,13 +63,9 @@ describe("manage-program-head-courses", () => {
 
     // Default: PH is authenticated with an active program assignment
     resolveAuthSessionMock.mockResolvedValue(PH_SESSION);
-    programHeadAssignmentFindManyMock.mockResolvedValue([
-      { program_id: PROGRAM_ID },
-    ]);
+    programHeadAssignmentFindManyMock.mockResolvedValue([{ program_id: PROGRAM_ID }]);
 
-    const mod = await import(
-      "@/features/academic-structure/services/manage-program-head-courses"
-    );
+    const mod = await import("@/features/academic-structure/services/manage-program-head-courses");
     createProgramHeadCourse = mod.createProgramHeadCourse;
     updateProgramHeadCourse = mod.updateProgramHeadCourse;
     toggleProgramHeadCourseActive = mod.toggleProgramHeadCourseActive;
@@ -163,7 +159,7 @@ describe("manage-program-head-courses", () => {
           course_scope: CourseScope.PROGRAM_SPECIFIC,
           program_id: PROGRAM_ID,
         }),
-      }),
+      })
     );
   });
 

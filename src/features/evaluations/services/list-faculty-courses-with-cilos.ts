@@ -69,10 +69,7 @@ export async function listFacultyCoursesWithCilos(): Promise<FacultyCourseWithCi
   const rawCourses = await prisma.course.findMany({
     where: {
       is_active: true,
-      OR: [
-        { program_id: { in: programIds } },
-        { course_scope: CourseScope.GENERAL_EDUCATION },
-      ],
+      OR: [{ program_id: { in: programIds } }, { course_scope: CourseScope.GENERAL_EDUCATION }],
     },
     include: {
       program: { select: { id: true, code: true, name: true } },

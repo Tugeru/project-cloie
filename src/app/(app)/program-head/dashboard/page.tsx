@@ -1,16 +1,6 @@
 import { redirect } from "next/navigation";
-import {
-  BarChart3,
-  Clock,
-  FileCheck,
-  Layers,
-} from "lucide-react";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { BarChart3, Clock, FileCheck, Layers } from "lucide-react";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { prisma } from "@/lib/db/prisma";
 import { getProgramHeadDashboard } from "@/features/analytics/services/get-program-head-dashboard";
@@ -40,8 +30,7 @@ export default async function ProgramHeadDashboardPage() {
       <div className="space-y-4">
         <h1 className="text-heading-lg">Dashboard</h1>
         <p className="text-body-md text-text-secondary">
-          You do not have an active program assignment. Please contact an
-          administrator.
+          You do not have an active program assignment. Please contact an administrator.
         </p>
       </div>
     );
@@ -55,7 +44,7 @@ export default async function ProgramHeadDashboardPage() {
       <div className="space-y-2">
         <h1 className="text-heading-lg">Dashboard</h1>
         <p className="text-body-md text-text-secondary">
-          <span className="font-semibold text-primary">
+          <span className="text-primary font-semibold">
             {dashboard.programCode} — {dashboard.programLabel}
           </span>{" "}
           · Program overview and evaluation insights
@@ -67,22 +56,22 @@ export default async function ProgramHeadDashboardPage() {
         <KPICard
           label="Active Deployments"
           value={dashboard.kpi.activeDeployments}
-          icon={<Layers className="size-5 text-muted-foreground" />}
+          icon={<Layers className="text-muted-foreground size-5" />}
         />
         <KPICard
           label="Responses Received"
           value={dashboard.kpi.totalResponses}
-          icon={<FileCheck className="size-5 text-muted-foreground" />}
+          icon={<FileCheck className="text-muted-foreground size-5" />}
         />
         <KPICard
           label="Overall Mean"
           value={dashboard.kpi.overallMean ?? "—"}
-          icon={<BarChart3 className="size-5 text-muted-foreground" />}
+          icon={<BarChart3 className="text-muted-foreground size-5" />}
         />
         <KPICard
           label="Pending Responses"
           value={dashboard.kpi.pendingResponses}
-          icon={<Clock className="size-5 text-muted-foreground" />}
+          icon={<Clock className="text-muted-foreground size-5" />}
         />
       </div>
 
@@ -118,7 +107,7 @@ function KPICard({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardDescription className="text-xs font-semibold uppercase tracking-wider">
+          <CardDescription className="text-xs font-semibold tracking-wider uppercase">
             {label}
           </CardDescription>
           {icon}

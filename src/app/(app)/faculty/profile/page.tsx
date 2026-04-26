@@ -1,13 +1,7 @@
 import { Book, Mail, User } from "lucide-react";
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { prisma } from "@/lib/db/prisma";
 
@@ -36,17 +30,15 @@ export default async function FacultyProfilePage() {
     },
   });
 
-  const fullName = user
-    ? `${user.first_name} ${user.last_name}`
-    : "Faculty";
+  const fullName = user ? `${user.first_name} ${user.last_name}` : "Faculty";
 
   const affiliations = user?.faculty_program_affiliations ?? [];
 
   return (
-    <div className="max-w-4xl animate-in space-y-8 fade-in duration-500">
+    <div className="animate-in fade-in max-w-4xl space-y-8 duration-500">
       <div>
-        <h1 className="font-heading text-2xl font-black text-text-primary">Profile</h1>
-        <p className="text-sm text-text-muted">
+        <h1 className="font-heading text-text-primary text-2xl font-black">Profile</h1>
+        <p className="text-text-muted text-sm">
           Review your account information and program affiliations.
         </p>
       </div>
@@ -55,7 +47,7 @@ export default async function FacultyProfilePage() {
         {/* Personal Information */}
         <Card className="border-border shadow-sm">
           <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-            <div className="rounded-lg bg-primary-soft p-2 text-primary">
+            <div className="bg-primary-soft text-primary rounded-lg p-2">
               <User className="size-5" />
             </div>
             <div>
@@ -65,22 +57,22 @@ export default async function FacultyProfilePage() {
           </CardHeader>
           <CardContent className="space-y-4 pt-4">
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-text-muted">
+              <label className="text-text-muted text-[10px] font-black tracking-widest uppercase">
                 Full Name
               </label>
               <p className="text-sm font-semibold">{fullName}</p>
             </div>
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-text-muted">
+              <label className="text-text-muted text-[10px] font-black tracking-widest uppercase">
                 Email Address
               </label>
               <div className="flex items-center gap-2 text-sm font-semibold">
-                <Mail className="size-4 text-text-muted" />
+                <Mail className="text-text-muted size-4" />
                 {user?.email ?? "No email available"}
               </div>
             </div>
             <div className="pt-2">
-              <Badge variant="secondary" className="bg-primary-soft font-bold text-primary">
+              <Badge variant="secondary" className="bg-primary-soft text-primary font-bold">
                 Role: Faculty
               </Badge>
             </div>
@@ -90,7 +82,7 @@ export default async function FacultyProfilePage() {
         {/* Program Affiliations */}
         <Card className="border-border shadow-sm">
           <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-            <div className="rounded-lg bg-secondary-soft p-2 text-secondary">
+            <div className="bg-secondary-soft text-secondary rounded-lg p-2">
               <Book className="size-5" />
             </div>
             <div>
@@ -104,11 +96,11 @@ export default async function FacultyProfilePage() {
             ) : (
               affiliations.map((aff) => (
                 <div key={aff.program.id} className="space-y-1">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-text-muted">
+                  <label className="text-text-muted text-[10px] font-black tracking-widest uppercase">
                     {aff.program.code}
                   </label>
                   <p className="flex items-center gap-2">
-                    <Book className="size-4 text-text-muted" />
+                    <Book className="text-text-muted size-4" />
                     {aff.program.name}
                   </p>
                 </div>
@@ -116,7 +108,6 @@ export default async function FacultyProfilePage() {
             )}
           </CardContent>
         </Card>
-
       </div>
     </div>
   );

@@ -52,9 +52,12 @@ export function InteractivePlaceholderForm({
   const initialValues = useMemo(
     () =>
       Object.fromEntries(
-        fields.map((field) => [field.id, field.kind === "select" ? field.options[0]?.value ?? "" : ""]),
+        fields.map((field) => [
+          field.id,
+          field.kind === "select" ? (field.options[0]?.value ?? "") : "",
+        ])
       ),
-    [fields],
+    [fields]
   );
   const [values, setValues] = useState<Record<string, string>>(initialValues);
   const [feedback, setFeedback] = useState<"idle" | "saved">("idle");
@@ -69,16 +72,18 @@ export function InteractivePlaceholderForm({
   };
 
   return (
-    <section className="rounded-2xl border border-border bg-surface p-5">
+    <section className="border-border bg-surface rounded-2xl border p-5">
       <div className="mb-4 space-y-1">
-        <h2 className="text-lg font-semibold text-text-primary">{title}</h2>
-        <p className="text-sm text-text-secondary">{description}</p>
+        <h2 className="text-text-primary text-lg font-semibold">{title}</h2>
+        <p className="text-text-secondary text-sm">{description}</p>
       </div>
 
-      <Alert className="mb-4 border-warning/40 bg-warning/10 text-yellow-900">
+      <Alert className="border-warning/40 bg-warning/10 mb-4 text-yellow-900">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Scaffold Mode</AlertTitle>
-        <AlertDescription>This form is interactive, but it does not write to the database yet.</AlertDescription>
+        <AlertDescription>
+          This form is interactive, but it does not write to the database yet.
+        </AlertDescription>
       </Alert>
 
       <form className="space-y-4" onSubmit={handleSubmit}>
@@ -92,14 +97,16 @@ export function InteractivePlaceholderForm({
                 placeholder={field.placeholder}
                 type={field.type ?? "text"}
                 value={values[field.id] ?? ""}
-                onChange={(event: ChangeEvent<HTMLInputElement>) => updateValue(field.id, event.target.value)}
+                onChange={(event: ChangeEvent<HTMLInputElement>) =>
+                  updateValue(field.id, event.target.value)
+                }
               />
             )}
 
             {field.kind === "select" && (
               <select
                 id={field.id}
-                className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm"
+                className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm"
                 value={values[field.id] ?? ""}
                 onChange={(event) => updateValue(field.id, event.target.value)}
               >
@@ -116,7 +123,9 @@ export function InteractivePlaceholderForm({
                 id={field.id}
                 placeholder={field.placeholder}
                 value={values[field.id] ?? ""}
-                onChange={(event: ChangeEvent<HTMLTextAreaElement>) => updateValue(field.id, event.target.value)}
+                onChange={(event: ChangeEvent<HTMLTextAreaElement>) =>
+                  updateValue(field.id, event.target.value)
+                }
               />
             )}
           </div>

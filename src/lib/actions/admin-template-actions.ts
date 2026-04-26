@@ -19,9 +19,7 @@ function revalidateAdminTools() {
   revalidatePath("/admin/instruments");
 }
 
-export async function createAdminTemplateAction(
-  formData: FormData,
-): Promise<ActionResult> {
+export async function createAdminTemplateAction(formData: FormData): Promise<ActionResult> {
   const raw = {
     name: formData.get("name"),
     description: formData.get("description"),
@@ -32,11 +30,12 @@ export async function createAdminTemplateAction(
 
   // Generate code from name
   const nameStr = typeof raw.name === "string" ? raw.name.trim() : "";
-  const code = nameStr
-    .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, "_")
-    .replace(/^_|_$/g, "")
-    .substring(0, 50) || "TEMPLATE";
+  const code =
+    nameStr
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, "_")
+      .replace(/^_|_$/g, "")
+      .substring(0, 50) || "TEMPLATE";
 
   const parsed = createBaselineTemplateWithStructureSchema.safeParse({
     ...raw,
@@ -60,9 +59,7 @@ export async function createAdminTemplateAction(
   return { success: true };
 }
 
-export async function updateAdminTemplateAction(
-  formData: FormData,
-): Promise<ActionResult> {
+export async function updateAdminTemplateAction(formData: FormData): Promise<ActionResult> {
   const raw = {
     id: formData.get("id"),
     name: formData.get("name"),
@@ -74,11 +71,12 @@ export async function updateAdminTemplateAction(
 
   // Generate code from name
   const nameStr = typeof raw.name === "string" ? raw.name.trim() : "";
-  const code = nameStr
-    .toUpperCase()
-    .replace(/[^A-Z0-9]+/g, "_")
-    .replace(/^_|_$/g, "")
-    .substring(0, 50) || "TEMPLATE";
+  const code =
+    nameStr
+      .toUpperCase()
+      .replace(/[^A-Z0-9]+/g, "_")
+      .replace(/^_|_$/g, "")
+      .substring(0, 50) || "TEMPLATE";
 
   const parsed = updateBaselineTemplateWithStructureSchema.safeParse({
     ...raw,
@@ -104,7 +102,7 @@ export async function updateAdminTemplateAction(
 
 export async function toggleAdminTemplateActiveAction(
   id: string,
-  is_active: boolean,
+  is_active: boolean
 ): Promise<ActionResult> {
   const result = await toggleBaselineTemplateActive(id, is_active);
 
@@ -116,9 +114,7 @@ export async function toggleAdminTemplateActiveAction(
   return { success: true };
 }
 
-export async function duplicateAdminTemplateAction(
-  id: string,
-): Promise<ActionResult> {
+export async function duplicateAdminTemplateAction(id: string): Promise<ActionResult> {
   const result = await duplicateBaselineTemplate(id);
 
   if (!result.success) {
@@ -129,9 +125,7 @@ export async function duplicateAdminTemplateAction(
   return { success: true };
 }
 
-export async function deleteAdminTemplateAction(
-  id: string,
-): Promise<ActionResult> {
+export async function deleteAdminTemplateAction(id: string): Promise<ActionResult> {
   const result = await deleteBaselineTemplate(id);
 
   if (!result.success) {

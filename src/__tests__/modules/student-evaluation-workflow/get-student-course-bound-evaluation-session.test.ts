@@ -38,7 +38,7 @@ describe("mapStructureSnapshotToSections", () => {
         {
           key: "missing-title",
         },
-      ]),
+      ])
     ).toEqual([
       { id: "section-a", name: "Section A", description: "", items: [] },
       { id: "section-b", name: "Section B", description: "", items: [] },
@@ -54,7 +54,7 @@ describe("mapStructureSnapshotToSections", () => {
           quantitative_items: [{ key: "q1", prompt: "Question 1" }],
           title: "Section A",
         },
-      ]),
+      ])
     ).toEqual([
       {
         description: "",
@@ -92,7 +92,7 @@ describe("mapSavedAnswerItems", () => {
             section_key: "section-a",
           },
         ],
-      }),
+      })
     ).toEqual({
       "section-b:qualitative:remarks": "More hands-on activities would help.",
       "section-a:quantitative:q1": 4,
@@ -170,9 +170,7 @@ describe("getStudentCourseBoundEvaluationSession", () => {
       response: {
         id: "response-1",
         qual_items: [],
-        quant_items: [
-          { item_key: "q1", rating_value: 4, section_key: "section-a" },
-        ],
+        quant_items: [{ item_key: "q1", rating_value: 4, section_key: "section-a" }],
         status: "IN_PROGRESS",
         submitted_at: null,
       },
@@ -186,7 +184,7 @@ describe("getStudentCourseBoundEvaluationSession", () => {
         savedAnswers: {
           "section-a:quantitative:q1": 4,
         },
-      }),
+      })
     );
   });
 
@@ -225,7 +223,7 @@ describe("getStudentCourseBoundEvaluationSession", () => {
         assignmentId: "assignment-1",
         courseTitle: "Capstone 1",
         evaluationTitle: "Post-Term CILO Evaluation Tool",
-      }),
+      })
     );
 
     vi.useRealTimers();

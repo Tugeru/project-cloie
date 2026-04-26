@@ -122,8 +122,7 @@ export async function submitStudentEvaluationResponse({
     response = await prisma.response.create({
       data: {
         assignment_id: assignment.id,
-        deployment_id:
-          assignment.course_bound_id ?? assignment.central_deployment_id ?? "",
+        deployment_id: assignment.course_bound_id ?? assignment.central_deployment_id ?? "",
         deployment_type: assignment.course_bound
           ? DeploymentType.COURSE_BOUND
           : DeploymentType.CENTRAL,
@@ -150,13 +149,13 @@ export async function submitStudentEvaluationResponse({
     })
     .filter(
       (
-        item,
+        item
       ): item is {
         item_key: string;
         rating_value: number;
         response_id: string;
         section_key: string;
-      } => item !== null,
+      } => item !== null
     );
 
   const qualitativeItems = Object.entries(answers)
@@ -176,13 +175,13 @@ export async function submitStudentEvaluationResponse({
     })
     .filter(
       (
-        item,
+        item
       ): item is {
         prompt_key: string;
         response_id: string;
         section_key: string;
         text_content: string;
-      } => item !== null,
+      } => item !== null
     );
 
   await prisma.quantitativeResponseItem.deleteMany({

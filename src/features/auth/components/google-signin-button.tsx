@@ -11,8 +11,8 @@ export function GoogleSignInButton({ intent }: { intent?: "student" | "faculty" 
     try {
       setIsLoading(true);
       const supabase = createClient();
-      
-      const intentParam = intent ? `?intent=${intent}` : '';
+
+      const intentParam = intent ? `?intent=${intent}` : "";
       const redirectTo = `${window.location.origin}/api/auth/callback${intentParam}`;
       console.log("[GoogleSignIn] redirectTo:", redirectTo);
 
@@ -38,11 +38,11 @@ export function GoogleSignInButton({ intent }: { intent?: "student" | "faculty" 
   };
 
   return (
-    <Button 
-      variant="outline" 
-      onClick={handleSignIn} 
+    <Button
+      variant="outline"
+      onClick={handleSignIn}
       disabled={isLoading}
-      className="w-full text-body-md font-semibold text-text-primary h-12"
+      className="text-body-md text-text-primary h-12 w-full font-semibold"
     >
       {isLoading ? (
         <span className="mr-2">Connecting...</span>
@@ -63,7 +63,11 @@ export function GoogleSignInButton({ intent }: { intent?: "student" | "faculty" 
           ></path>
         </svg>
       )}
-      {isLoading ? "Redirecting..." : intent === "student" ? "Sign up as Student" : "Sign in with Google"}
+      {isLoading
+        ? "Redirecting..."
+        : intent === "student"
+          ? "Sign up as Student"
+          : "Sign in with Google"}
     </Button>
   );
 }

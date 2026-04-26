@@ -12,7 +12,7 @@ export default function ProgramHeadReportsPage() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Program Reports</h1>
-        <p className="text-sm text-text-secondary">
+        <p className="text-text-secondary text-sm">
           Export buttons are intentionally stubbed while the reporting surface is being scaffolded.
         </p>
       </div>
@@ -22,7 +22,9 @@ export default function ProgramHeadReportsPage() {
           <Card key={report}>
             <CardHeader>
               <CardTitle>{report}</CardTitle>
-              <CardDescription>Prepared for later PDF and spreadsheet export integration.</CardDescription>
+              <CardDescription>
+                Prepared for later PDF and spreadsheet export integration.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex gap-3">

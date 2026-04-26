@@ -58,7 +58,7 @@ export default async function NewFacultyCiloEvaluationPage({
         <div className="space-y-6">
           <div className="space-y-2">
             <h1 className="text-2xl font-bold">Publish CILO Evaluation</h1>
-            <p className="text-sm text-text-secondary">{publicationContext.error}</p>
+            <p className="text-text-secondary text-sm">{publicationContext.error}</p>
           </div>
           <Button asChild variant="outline">
             <Link href="/faculty/tools">Back to Tools</Link>
@@ -97,32 +97,31 @@ export default async function NewFacultyCiloEvaluationPage({
     return (
       <div className="space-y-4">
         <h1 className="text-2xl font-bold">Publish CILO Evaluation</h1>
-        <p className="text-sm text-text-secondary">{templateResult.error}</p>
+        <p className="text-text-secondary text-sm">{templateResult.error}</p>
       </div>
     );
   }
 
   const ownedTemplates = templateResult.templates.filter(
-    (template) => Boolean(template.facultyOwnerId) && template.boundCourseId,
+    (template) => Boolean(template.facultyOwnerId) && template.boundCourseId
   );
 
   return (
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Publish CILO Evaluation</h1>
-        <p className="text-sm text-text-secondary">
-          Choose a saved faculty template. The course context and CILO bindings
-          must already be configured in the template builder before you publish.
+        <p className="text-text-secondary text-sm">
+          Choose a saved faculty template. The course context and CILO bindings must already be
+          configured in the template builder before you publish.
         </p>
       </div>
 
       {ownedTemplates.length === 0 ? (
         <Card>
           <CardContent className="space-y-4 py-8">
-            <p className="text-sm text-text-secondary">
-              No saved faculty-owned course-bound templates are ready yet.
-              Create or duplicate a template in Tools, bind its CILOs in the
-              builder, then return here to publish.
+            <p className="text-text-secondary text-sm">
+              No saved faculty-owned course-bound templates are ready yet. Create or duplicate a
+              template in Tools, bind its CILOs in the builder, then return here to publish.
             </p>
             <Button asChild variant="outline">
               <Link href="/faculty/tools">Go to Tools</Link>
@@ -135,11 +134,11 @@ export default async function NewFacultyCiloEvaluationPage({
             <Card key={template.id}>
               <CardHeader className="space-y-1">
                 <CardTitle className="text-base">{template.name}</CardTitle>
-                <p className="text-sm text-text-secondary">{template.code}</p>
+                <p className="text-text-secondary text-sm">{template.code}</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 {template.description && (
-                  <p className="text-sm text-text-secondary">{template.description}</p>
+                  <p className="text-text-secondary text-sm">{template.description}</p>
                 )}
                 <div className="flex gap-2">
                   <Button asChild>

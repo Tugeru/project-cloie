@@ -44,9 +44,7 @@ export function ProgramForm({
 
   return (
     <form ref={formRef} action={handleSubmit} className="space-y-4">
-      {defaultValues?.id && (
-        <input type="hidden" name="id" value={defaultValues.id} />
-      )}
+      {defaultValues?.id && <input type="hidden" name="id" value={defaultValues.id} />}
 
       {error && (
         <Alert variant="destructive">

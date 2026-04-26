@@ -18,7 +18,9 @@ const response: CourseBoundResponseReview = {
       id: "teaching",
       mean: 4,
       name: "Teaching",
-      qualitativeResponses: [{ prompt: "Remarks", promptKey: "remarks", text: "Helpful examples." }],
+      qualitativeResponses: [
+        { prompt: "Remarks", promptKey: "remarks", text: "Helpful examples." },
+      ],
       quantitativeResponses: [{ itemKey: "clarity", prompt: "Clarity", rating: 4 }],
     },
   ],

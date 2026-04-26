@@ -5,7 +5,7 @@ export default function DeanAnalyticsPage() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Dean Analytics</h1>
-        <p className="text-sm text-text-secondary">
+        <p className="text-text-secondary text-sm">
           College-wide aggregation and drill-down controls will land on top of this scaffold.
         </p>
       </div>

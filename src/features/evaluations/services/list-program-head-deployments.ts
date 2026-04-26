@@ -5,9 +5,7 @@ import type { DeploymentStatus, TargetStakeholder, AcademicSemester } from "@pri
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type ServiceResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 export type ProgramHeadDeploymentItem = {
   id: string;
@@ -131,9 +129,7 @@ export async function listProgramHeadDeployments(): Promise<
     deadline_at: d.deadline_at,
     created_at: d.created_at,
     assignmentCount: d.assignments.length,
-    responseCount: d.assignments.filter(
-      (a) => a.response?.status === "SUBMITTED",
-    ).length,
+    responseCount: d.assignments.filter((a) => a.response?.status === "SUBMITTED").length,
   }));
 
   return { success: true, data: { deployments, program } };

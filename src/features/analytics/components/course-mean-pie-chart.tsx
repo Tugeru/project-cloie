@@ -1,21 +1,8 @@
 "use client";
 
 import type { PieLabelRenderProps } from "recharts";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -60,16 +47,12 @@ export function CourseMeanPieChart({ data }: CourseMeanPieChartProps) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg font-bold">
-            Overall Mean by Course
-          </CardTitle>
-          <CardDescription>
-            Quantitative mean scores grouped by course
-          </CardDescription>
+          <CardTitle className="text-lg font-bold">Overall Mean by Course</CardTitle>
+          <CardDescription>Quantitative mean scores grouped by course</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex h-64 items-center justify-center rounded-lg border border-dashed border-border">
-            <p className="text-sm text-muted-foreground">
+          <div className="border-border flex h-64 items-center justify-center rounded-lg border border-dashed">
+            <p className="text-muted-foreground text-sm">
               No quantitative response data available yet.
             </p>
           </div>
@@ -81,12 +64,8 @@ export function CourseMeanPieChart({ data }: CourseMeanPieChartProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg font-bold">
-          Overall Mean by Course
-        </CardTitle>
-        <CardDescription>
-          Quantitative mean scores grouped by course
-        </CardDescription>
+        <CardTitle className="text-lg font-bold">Overall Mean by Course</CardTitle>
+        <CardDescription>Quantitative mean scores grouped by course</CardDescription>
       </CardHeader>
       <CardContent>
         <ResponsiveContainer width="100%" height={320}>
@@ -100,16 +79,11 @@ export function CourseMeanPieChart({ data }: CourseMeanPieChartProps) {
               outerRadius={110}
               innerRadius={50}
               paddingAngle={3}
-              label={({ name, value }: PieLabelRenderProps) =>
-                `${name}: ${value}`
-              }
+              label={({ name, value }: PieLabelRenderProps) => `${name}: ${value}`}
               labelLine
             >
               {data.map((_, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
-                />
+                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
             <Tooltip

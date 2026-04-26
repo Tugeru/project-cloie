@@ -1,13 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CourseForm } from "@/features/academic-structure/components/course-form";
 import { updateCourseAction } from "@/lib/actions/admin-foundation-actions";
 import { prisma } from "@/lib/db/prisma";
@@ -65,16 +59,14 @@ export default async function EditCoursePage({ params }: EditCoursePageProps) {
       {/* Back link */}
       <Link
         href="/admin/courses"
-        className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+        className="text-primary inline-flex items-center gap-2 text-sm font-medium hover:underline"
       >
         <ArrowLeft className="size-4" />
         Back
       </Link>
 
       {/* Breadcrumb */}
-      <nav className="text-xs text-text-muted">
-        Courses &gt; Edit &gt; {course.code}
-      </nav>
+      <nav className="text-text-muted text-xs">Courses &gt; Edit &gt; {course.code}</nav>
 
       <Card>
         <CardHeader>

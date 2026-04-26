@@ -35,9 +35,7 @@ export type ProgramHeadCoursesResult = {
   majors: Array<{ id: string; name: string; program_id: string }>;
 };
 
-async function resolveProgramHeadProgramIds(
-  userId: string,
-): Promise<string[]> {
+async function resolveProgramHeadProgramIds(userId: string): Promise<string[]> {
   const rows = await prisma.programHeadAssignment.findMany({
     where: { program_head_id: userId, is_active: true },
     select: { program_id: true },
@@ -100,7 +98,9 @@ export async function listProgramHeadCourses(): Promise<ProgramHeadCoursesResult
 
   const activeProgramCourses = programCourses.filter((c) => c.is_active);
   const summary: ProgramHeadCourseSummary = {
-    total: programCourses.filter((c) => c.is_active).length + geCourses.filter((c) => c.is_active).length,
+    total:
+      programCourses.filter((c) => c.is_active).length +
+      geCourses.filter((c) => c.is_active).length,
     programWide: activeProgramCourses.filter((c) => !c.major_id).length,
     majorSpecific: activeProgramCourses.filter((c) => c.major_id !== null).length,
     generalEducation: geCourses.filter((c) => c.is_active).length,

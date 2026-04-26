@@ -8,9 +8,7 @@ import {
   saveFacultyTemplateDraft,
 } from "@/features/instruments/services/manage-faculty-templates";
 
-type ActionResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+type ActionResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 function parseJsonField<T>(value: FormDataEntryValue | null, fallback: T): T {
   if (typeof value !== "string") {
@@ -21,7 +19,7 @@ function parseJsonField<T>(value: FormDataEntryValue | null, fallback: T): T {
 }
 
 export async function saveFacultyTemplateDraftAction(
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionResult<{ id: string }>> {
   let structure: unknown = [];
   let ciloQuestionBindings: unknown = [];
@@ -63,7 +61,7 @@ export async function saveFacultyTemplateDraftAction(
 }
 
 export async function duplicateFacultyTemplateAction(
-  templateId: string,
+  templateId: string
 ): Promise<ActionResult<{ id: string }>> {
   const result = await duplicateFacultyTemplate(templateId);
 
@@ -76,7 +74,7 @@ export async function duplicateFacultyTemplateAction(
 }
 
 export async function validateFacultyTemplatePublishReadinessAction(
-  templateId: string,
+  templateId: string
 ): Promise<ActionResult<{ id: string }>> {
   const result = await getFacultyTemplatePublicationContext(templateId);
 

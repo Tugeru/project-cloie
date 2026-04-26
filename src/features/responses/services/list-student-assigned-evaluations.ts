@@ -49,9 +49,7 @@ export function deriveStudentEvaluationStatus({
   status: StudentEvaluationListStatus;
 } {
   const progress =
-    totalItems > 0
-      ? clampProgress(Math.round((answeredItems / totalItems) * 100))
-      : 0;
+    totalItems > 0 ? clampProgress(Math.round((answeredItems / totalItems) * 100)) : 0;
 
   if (submittedAt) {
     return { progress, status: "SUBMITTED" };
@@ -209,21 +207,14 @@ export async function listStudentAssignedEvaluations(): Promise<{
     if (assignment.course_bound) {
       const courseBound = assignment.course_bound;
 
-      if (
-        !response?.submitted_at &&
-        !isCourseBoundEvaluationAvailable(courseBound, now)
-      ) {
+      if (!response?.submitted_at && !isCourseBoundEvaluationAvailable(courseBound, now)) {
         return [];
       }
 
-      const sections = mapStructureSnapshotToSections(
-        courseBound.instrument.structure_snapshot,
-      );
+      const sections = mapStructureSnapshotToSections(courseBound.instrument.structure_snapshot);
       const section = sections[0] ?? buildFallbackSection();
       const session: StudentEvaluationSession = {
-        answeredItems: response
-          ? response.qual_items.length + response.quant_items.length
-          : 0,
+        answeredItems: response ? response.qual_items.length + response.quant_items.length : 0,
         responseId: response?.id ?? null,
         submittedAt: response?.submitted_at ?? null,
         totalItems: countSectionItems(sections),
@@ -265,21 +256,14 @@ export async function listStudentAssignedEvaluations(): Promise<{
     ) {
       const deployment = assignment.central_deployment;
 
-      if (
-        !response?.submitted_at &&
-        !isCentralDeploymentAvailable(deployment, now)
-      ) {
+      if (!response?.submitted_at && !isCentralDeploymentAvailable(deployment, now)) {
         return [];
       }
 
-      const sections = mapStructureSnapshotToSections(
-        deployment.instrument.structure_snapshot,
-      );
+      const sections = mapStructureSnapshotToSections(deployment.instrument.structure_snapshot);
       const section = sections[0] ?? buildFallbackSection();
       const session: StudentEvaluationSession = {
-        answeredItems: response
-          ? response.qual_items.length + response.quant_items.length
-          : 0,
+        answeredItems: response ? response.qual_items.length + response.quant_items.length : 0,
         responseId: response?.id ?? null,
         submittedAt: response?.submitted_at ?? null,
         totalItems: countSectionItems(sections),

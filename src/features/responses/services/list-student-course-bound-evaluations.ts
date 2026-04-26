@@ -44,7 +44,8 @@ export function deriveStudentEvaluationStatus({
   progress: number;
   status: StudentEvaluationListStatus;
 } {
-  const progress = totalItems > 0 ? clampProgress(Math.round((answeredItems / totalItems) * 100)) : 0;
+  const progress =
+    totalItems > 0 ? clampProgress(Math.round((answeredItems / totalItems) * 100)) : 0;
 
   if (submittedAt) {
     return { progress, status: "SUBMITTED" };
@@ -53,7 +54,11 @@ export function deriveStudentEvaluationStatus({
   if (!responseId) {
     const timeUntilDeadline = deadlineAt ? deadlineAt.getTime() - now.getTime() : null;
 
-    if (timeUntilDeadline !== null && timeUntilDeadline >= 0 && timeUntilDeadline <= THREE_DAYS_IN_MS) {
+    if (
+      timeUntilDeadline !== null &&
+      timeUntilDeadline >= 0 &&
+      timeUntilDeadline <= THREE_DAYS_IN_MS
+    ) {
       return { progress: 0, status: "DUE_SOON" };
     }
 
@@ -161,10 +166,7 @@ export async function listStudentCourseBoundEvaluations(): Promise<{
       const courseBound = assignment.course_bound!;
       const response = assignment.response ?? null;
 
-      if (
-        !response?.submitted_at &&
-        !isCourseBoundEvaluationAvailable(courseBound, now)
-      ) {
+      if (!response?.submitted_at && !isCourseBoundEvaluationAvailable(courseBound, now)) {
         return [];
       }
 
@@ -183,11 +185,12 @@ export async function listStudentCourseBoundEvaluations(): Promise<{
         submittedAt: session.submittedAt,
         totalItems: session.totalItems,
       }).status;
-      const href = status === "SUBMITTED"
-        ? session.responseId
-          ? `/student/history/${session.responseId}`
-          : null
-        : `/student/evaluations/${assignment.id}`;
+      const href =
+        status === "SUBMITTED"
+          ? session.responseId
+            ? `/student/history/${session.responseId}`
+            : null
+          : `/student/evaluations/${assignment.id}`;
 
       return buildStudentEvaluationListItem({
         assignmentId: assignment.id,

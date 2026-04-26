@@ -55,9 +55,7 @@ function makeAssignment(overrides: {
       program: overrides.programCode
         ? { code: overrides.programCode, name: overrides.programCode }
         : null,
-      year_level: overrides.yearLevelName
-        ? { name: overrides.yearLevelName }
-        : null,
+      year_level: overrides.yearLevelName ? { name: overrides.yearLevelName } : null,
     },
     response: overrides.response
       ? {
@@ -79,9 +77,8 @@ describe("listStakeholderEvaluations", () => {
   it("returns empty lists for unauthenticated users", async () => {
     resolveAuthSessionMock.mockResolvedValue(null);
 
-    const { listStakeholderEvaluations } = await import(
-      "@/features/responses/services/list-stakeholder-evaluations"
-    );
+    const { listStakeholderEvaluations } =
+      await import("@/features/responses/services/list-stakeholder-evaluations");
 
     const result = await listStakeholderEvaluations("ALUMNI");
 
@@ -103,9 +100,8 @@ describe("listStakeholderEvaluations", () => {
       }),
     ]);
 
-    const { listStakeholderEvaluations } = await import(
-      "@/features/responses/services/list-stakeholder-evaluations"
-    );
+    const { listStakeholderEvaluations } =
+      await import("@/features/responses/services/list-stakeholder-evaluations");
 
     const result = await listStakeholderEvaluations("ALUMNI");
 
@@ -121,7 +117,7 @@ describe("listStakeholderEvaluations", () => {
         where: expect.objectContaining({
           respondent_id: "user-alumni-1",
         }),
-      }),
+      })
     );
   });
 
@@ -167,9 +163,8 @@ describe("listStakeholderEvaluations", () => {
       }),
     ]);
 
-    const { listStakeholderEvaluations } = await import(
-      "@/features/responses/services/list-stakeholder-evaluations"
-    );
+    const { listStakeholderEvaluations } =
+      await import("@/features/responses/services/list-stakeholder-evaluations");
 
     const result = await listStakeholderEvaluations("ALUMNI");
 
@@ -195,9 +190,8 @@ describe("listStakeholderEvaluations", () => {
       }),
     ]);
 
-    const { listStakeholderEvaluations } = await import(
-      "@/features/responses/services/list-stakeholder-evaluations"
-    );
+    const { listStakeholderEvaluations } =
+      await import("@/features/responses/services/list-stakeholder-evaluations");
 
     await listStakeholderEvaluations("INDUSTRY_PARTNER");
 
@@ -208,7 +202,7 @@ describe("listStakeholderEvaluations", () => {
             target_stakeholder: "INDUSTRY_PARTNER",
           }),
         }),
-      }),
+      })
     );
   });
 
@@ -216,9 +210,8 @@ describe("listStakeholderEvaluations", () => {
     resolveAuthSessionMock.mockResolvedValue({ userId: "user-no-assigns" });
     findManyMock.mockResolvedValue([]);
 
-    const { listStakeholderEvaluations } = await import(
-      "@/features/responses/services/list-stakeholder-evaluations"
-    );
+    const { listStakeholderEvaluations } =
+      await import("@/features/responses/services/list-stakeholder-evaluations");
 
     const result = await listStakeholderEvaluations("ALUMNI");
 
@@ -240,9 +233,8 @@ describe("listStakeholderEvaluations", () => {
       }),
     ]);
 
-    const { listStakeholderEvaluations } = await import(
-      "@/features/responses/services/list-stakeholder-evaluations"
-    );
+    const { listStakeholderEvaluations } =
+      await import("@/features/responses/services/list-stakeholder-evaluations");
 
     const result = await listStakeholderEvaluations("ALUMNI");
 
@@ -298,9 +290,8 @@ describe("listStakeholderEvaluations", () => {
       }),
     ]);
 
-    const { listStakeholderEvaluations } = await import(
-      "@/features/responses/services/list-stakeholder-evaluations"
-    );
+    const { listStakeholderEvaluations } =
+      await import("@/features/responses/services/list-stakeholder-evaluations");
 
     const result = await listStakeholderEvaluations("ALUMNI");
 

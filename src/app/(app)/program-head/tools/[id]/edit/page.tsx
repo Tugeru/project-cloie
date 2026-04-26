@@ -12,9 +12,7 @@ interface EditTemplatePageProps {
   params: Promise<{ id: string }>;
 }
 
-export default async function ProgramHeadEditToolPage({
-  params,
-}: EditTemplatePageProps) {
+export default async function ProgramHeadEditToolPage({ params }: EditTemplatePageProps) {
   const { id } = await params;
   const result = await getProgramHeadTemplate(id);
 
@@ -34,7 +32,7 @@ export default async function ProgramHeadEditToolPage({
     <div className="space-y-4">
       <Link
         href="/program-head/tools"
-        className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+        className="text-primary inline-flex items-center gap-1 text-sm font-medium hover:underline"
       >
         <svg
           className="h-4 w-4"
@@ -43,11 +41,7 @@ export default async function ProgramHeadEditToolPage({
           stroke="currentColor"
           strokeWidth={2}
         >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15 19l-7-7 7-7"
-          />
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
         </svg>
         Back to Evaluation Tools
       </Link>

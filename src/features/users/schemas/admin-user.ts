@@ -3,36 +3,30 @@ import { z } from "zod";
 
 const optionalUuidField = z.preprocess(
   (value) => (value === "" || value == null ? undefined : value),
-  z.string().uuid().optional(),
+  z.string().uuid().optional()
 );
 
-const optionalTextField = z.preprocess(
-  (value) => {
-    if (typeof value !== "string") {
-      return undefined;
-    }
+const optionalTextField = z.preprocess((value) => {
+  if (typeof value !== "string") {
+    return undefined;
+  }
 
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : undefined;
-  },
-  z.string().max(255).optional(),
-);
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}, z.string().max(255).optional());
 
-const optionalLongTextField = z.preprocess(
-  (value) => {
-    if (typeof value !== "string") {
-      return undefined;
-    }
+const optionalLongTextField = z.preprocess((value) => {
+  if (typeof value !== "string") {
+    return undefined;
+  }
 
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : undefined;
-  },
-  z.string().max(1000).optional(),
-);
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+}, z.string().max(1000).optional());
 
 const checkboxBoolean = z.preprocess(
   (value) => value === true || value === "true" || value === "on",
-  z.boolean(),
+  z.boolean()
 );
 
 export const assignRoleSchema = z.object({
@@ -95,16 +89,8 @@ export const updateExternalInviteStatusSchema = z.object({
 });
 
 export type AssignRoleInput = z.infer<typeof assignRoleSchema>;
-export type UpdateStudentAcademicContextInput = z.infer<
-  typeof updateStudentAcademicContextSchema
->;
+export type UpdateStudentAcademicContextInput = z.infer<typeof updateStudentAcademicContextSchema>;
 export type CreateFacultyAffiliationInput = z.infer<typeof createFacultyAffiliationSchema>;
-export type CreateProgramHeadAssignmentInput = z.infer<
-  typeof createProgramHeadAssignmentSchema
->;
-export type UpdateIndustryPartnerProfileInput = z.infer<
-  typeof updateIndustryPartnerProfileSchema
->;
-export type CreateExternalInviteDraftInput = z.infer<
-  typeof createExternalInviteDraftSchema
->;
+export type CreateProgramHeadAssignmentInput = z.infer<typeof createProgramHeadAssignmentSchema>;
+export type UpdateIndustryPartnerProfileInput = z.infer<typeof updateIndustryPartnerProfileSchema>;
+export type CreateExternalInviteDraftInput = z.infer<typeof createExternalInviteDraftSchema>;

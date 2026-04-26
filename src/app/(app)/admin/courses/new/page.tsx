@@ -1,12 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CourseForm } from "@/features/academic-structure/components/course-form";
 import { createCourseAction } from "@/lib/actions/admin-foundation-actions";
 import { prisma } from "@/lib/db/prisma";
@@ -41,23 +35,21 @@ export default async function CreateCoursePage() {
       {/* Back link */}
       <Link
         href="/admin/courses"
-        className="inline-flex items-center gap-2 text-sm font-medium text-primary hover:underline"
+        className="text-primary inline-flex items-center gap-2 text-sm font-medium hover:underline"
       >
         <ArrowLeft className="size-4" />
         Back
       </Link>
 
       {/* Breadcrumb */}
-      <nav className="text-xs text-text-muted">
-        Courses &gt; Create New Course
-      </nav>
+      <nav className="text-text-muted text-xs">Courses &gt; Create New Course</nav>
 
       <Card>
         <CardHeader>
           <CardTitle>Create New Course</CardTitle>
           <CardDescription>
-            Register a new general education, program-wide, or major-specific
-            course for downstream publishing flows.
+            Register a new general education, program-wide, or major-specific course for downstream
+            publishing flows.
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -3,17 +3,15 @@ import type { z } from "zod";
 
 /**
  * Custom Zod resolver for react-hook-form.
- * 
+ *
  * Bypasses @hookform/resolvers/zod which has a broken Zod version
  * detection mechanism that fails under Turbopack client bundling
  * with Zod 4's "classic" API.
- * 
+ *
  * This resolver calls schema.safeParse() directly, avoiding all
  * internal version sniffing (_def.typeName, _zod checks).
  */
-export function customZodResolver<T extends FieldValues>(
-  schema: z.ZodType<T>
-): Resolver<T> {
+export function customZodResolver<T extends FieldValues>(schema: z.ZodType<T>): Resolver<T> {
   return async (values): Promise<ResolverResult<T>> => {
     const result = schema.safeParse(values);
 

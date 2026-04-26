@@ -52,10 +52,7 @@ describe("listCourseBoundReviewItems", () => {
           {
             response: {
               id: "response-1",
-              quant_items: [
-                { rating_value: 4 },
-                { rating_value: 2 },
-              ],
+              quant_items: [{ rating_value: 4 }, { rating_value: 2 }],
               status: "SUBMITTED",
               submitted_at: new Date("2026-01-05T12:00:00.000Z"),
             },
@@ -106,7 +103,7 @@ describe("listCourseBoundReviewItems", () => {
           faculty_id: "faculty-1",
           program_id: { in: ["program-1"] },
         }),
-      }),
+      })
     );
   });
 
@@ -124,7 +121,7 @@ describe("listCourseBoundReviewItems", () => {
     expect(courseBoundEvaluationFindManyMock).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.not.objectContaining({ program_id: expect.anything() }),
-      }),
+      })
     );
   });
 

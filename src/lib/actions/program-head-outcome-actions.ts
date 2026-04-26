@@ -2,10 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import type { ZodType } from "zod";
-import {
-  createGOSchema,
-  updateGOSchema,
-} from "@/features/outcomes/schemas/go";
+import { createGOSchema, updateGOSchema } from "@/features/outcomes/schemas/go";
 import {
   createGO,
   deleteGO,
@@ -17,7 +14,7 @@ type ActionResult = { success: true } | { success: false; error: string };
 
 function parseWithSchema<T>(
   schema: ZodType<T>,
-  value: unknown,
+  value: unknown
 ): { success: true; data: T } | { success: false; error: string } {
   const parsed = schema.safeParse(value);
 
@@ -35,9 +32,7 @@ function revalidateOutcomes() {
   revalidatePath("/program-head/outcomes");
 }
 
-export async function createGOAction(
-  formData: FormData,
-): Promise<ActionResult> {
+export async function createGOAction(formData: FormData): Promise<ActionResult> {
   const parsed = parseWithSchema(createGOSchema, {
     code: formData.get("code"),
     description: formData.get("description"),
@@ -58,9 +53,7 @@ export async function createGOAction(
   return { success: true };
 }
 
-export async function updateGOAction(
-  formData: FormData,
-): Promise<ActionResult> {
+export async function updateGOAction(formData: FormData): Promise<ActionResult> {
   const parsed = parseWithSchema(updateGOSchema, {
     id: formData.get("id"),
     code: formData.get("code"),
@@ -93,9 +86,7 @@ export async function deleteGOAction(id: string): Promise<ActionResult> {
   return { success: true };
 }
 
-export async function reorderGOsAction(
-  orderedIds: string[],
-): Promise<ActionResult> {
+export async function reorderGOsAction(orderedIds: string[]): Promise<ActionResult> {
   const result = await reorderGOs(orderedIds);
 
   if (!result.success) {

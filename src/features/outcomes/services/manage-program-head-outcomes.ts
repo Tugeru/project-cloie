@@ -3,21 +3,19 @@ import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import type { CreateGOInput, UpdateGOInput } from "../schemas/go";
 
-type ServiceResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 function isUniqueConstraintError(error: unknown): boolean {
   return Boolean(
     error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error as { code?: string }).code === "P2002",
+    typeof error === "object" &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
   );
 }
 
 async function resolveAndValidatePHScope(
-  userId: string,
+  userId: string
 ): Promise<ServiceResult<{ programIds: string[] }>> {
   const assignments = await prisma.programHeadAssignment.findMany({
     where: { program_head_id: userId, is_active: true },
@@ -54,9 +52,7 @@ export type ListProgramGOsResult = {
   program: { id: string; code: string; name: string };
 };
 
-export async function listProgramGOs(): Promise<
-  ServiceResult<ListProgramGOsResult>
-> {
+export async function listProgramGOs(): Promise<ServiceResult<ListProgramGOsResult>> {
   const session = await resolveAuthSession();
 
   if (!session || !session.roles.includes(ROLES.PROGRAM_HEAD)) {
@@ -102,9 +98,7 @@ export async function listProgramGOs(): Promise<
 
 // ─── Create GO ───────────────────────────────────────────────────────────────
 
-export async function createGO(
-  input: CreateGOInput,
-): Promise<ServiceResult<{ id: string }>> {
+export async function createGO(input: CreateGOInput): Promise<ServiceResult<{ id: string }>> {
   const session = await resolveAuthSession();
 
   if (!session || !session.roles.includes(ROLES.PROGRAM_HEAD)) {
@@ -147,9 +141,7 @@ export async function createGO(
 
 // ─── Update GO ───────────────────────────────────────────────────────────────
 
-export async function updateGO(
-  input: UpdateGOInput,
-): Promise<ServiceResult<{ id: string }>> {
+export async function updateGO(input: UpdateGOInput): Promise<ServiceResult<{ id: string }>> {
   const session = await resolveAuthSession();
 
   if (!session || !session.roles.includes(ROLES.PROGRAM_HEAD)) {
@@ -248,8 +240,7 @@ export async function deleteGO(id: string): Promise<ServiceResult> {
   if (existingGO._count.cilo_mappings > 0) {
     return {
       success: false,
-      error:
-        "Cannot delete GO with existing CILO mappings. Remove mappings first.",
+      error: "Cannot delete GO with existing CILO mappings. Remove mappings first.",
     };
   }
 
@@ -260,9 +251,7 @@ export async function deleteGO(id: string): Promise<ServiceResult> {
 
 // ─── Reorder GOs ─────────────────────────────────────────────────────────────
 
-export async function reorderGOs(
-  orderedIds: string[],
-): Promise<ServiceResult> {
+export async function reorderGOs(orderedIds: string[]): Promise<ServiceResult> {
   const session = await resolveAuthSession();
 
   if (!session || !session.roles.includes(ROLES.PROGRAM_HEAD)) {
@@ -324,9 +313,7 @@ export type CourseCILOMappings = {
   }>;
 };
 
-export async function listCILOMappingsForProgram(): Promise<
-  ServiceResult<CourseCILOMappings[]>
-> {
+export async function listCILOMappingsForProgram(): Promise<ServiceResult<CourseCILOMappings[]>> {
   const session = await resolveAuthSession();
 
   if (!session || !session.roles.includes(ROLES.PROGRAM_HEAD)) {

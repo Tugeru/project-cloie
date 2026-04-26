@@ -36,7 +36,7 @@ export default async function OnboardingPage({
         intent: null,
         primaryRole: session.primaryRole,
         profileGate: session.profileGate,
-      }),
+      })
     );
   }
 
@@ -48,11 +48,9 @@ export default async function OnboardingPage({
   // Use Google's structured name fields (given_name / family_name) when available.
   // These are pre-separated by Google and handle multi-word first names correctly.
   // Fall back to splitting full_name only if structured fields are missing.
-  const firstNameFallback =
-    meta.given_name ?? (meta.full_name ? meta.full_name.split(" ")[0] : "");
+  const firstNameFallback = meta.given_name ?? (meta.full_name ? meta.full_name.split(" ")[0] : "");
   const lastNameFallback =
-    meta.family_name ??
-    (meta.full_name ? meta.full_name.split(" ").slice(1).join(" ") : "");
+    meta.family_name ?? (meta.full_name ? meta.full_name.split(" ").slice(1).join(" ") : "");
 
   // Step 2: Show the student profile form
   if (intent === "student" && step === "form") {
@@ -80,9 +78,9 @@ export default async function OnboardingPage({
   if (intent === "student") {
     return (
       <div className="mx-auto w-full max-w-lg">
-        <Card className="overflow-hidden border-border shadow-lg">
+        <Card className="border-border overflow-hidden shadow-lg">
           {/* Blue header banner with icon */}
-          <div className="flex items-center justify-center bg-primary py-10">
+          <div className="bg-primary flex items-center justify-center py-10">
             <div className="flex size-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
               <UserPlus className="size-8 text-white" />
             </div>
@@ -90,17 +88,16 @@ export default async function OnboardingPage({
 
           <CardContent className="space-y-6 px-8 py-8">
             {/* Heading */}
-            <h1 className="text-center font-heading text-2xl font-bold text-primary">
+            <h1 className="font-heading text-primary text-center text-2xl font-bold">
               Complete Your Student Profile
             </h1>
 
             {/* Info callout */}
-            <div className="flex gap-3 rounded-lg border-l-4 border-warning bg-warning-soft/30 p-4">
-              <CheckCircle className="mt-0.5 size-5 shrink-0 text-warning" />
+            <div className="border-warning bg-warning-soft/30 flex gap-3 rounded-lg border-l-4 p-4">
+              <CheckCircle className="text-warning mt-0.5 size-5 shrink-0" />
               <p className="text-body-sm text-text-secondary">
-                We found your ACD account, but your student profile is not yet
-                set up. Please complete your registration to access the
-                platform.
+                We found your ACD account, but your student profile is not yet set up. Please
+                complete your registration to access the platform.
               </p>
             </div>
 
@@ -116,7 +113,7 @@ export default async function OnboardingPage({
             {/* Back link */}
             <Link
               href="/login"
-              className="flex items-center justify-center gap-2 text-sm font-medium text-text-muted transition-colors hover:text-text-primary"
+              className="text-text-muted hover:text-text-primary flex items-center justify-center gap-2 text-sm font-medium transition-colors"
             >
               <ArrowLeft className="size-4" />
               Cancel / Back to Login
@@ -130,9 +127,9 @@ export default async function OnboardingPage({
   // Default: Role selection (no intent specified)
   return (
     <div className="mx-auto w-full max-w-lg">
-      <Card className="overflow-hidden border-border shadow-lg">
+      <Card className="border-border overflow-hidden shadow-lg">
         {/* Blue header banner */}
-        <div className="flex items-center justify-center bg-primary py-10">
+        <div className="bg-primary flex items-center justify-center py-10">
           <div className="flex items-center gap-3">
             <Image
               src="/logos/cloie-logo.png"
@@ -141,20 +138,15 @@ export default async function OnboardingPage({
               height={40}
               className="rounded-lg brightness-0 invert"
             />
-            <span className="text-2xl font-bold tracking-tight text-white">
-              CLOIE
-            </span>
+            <span className="text-2xl font-bold tracking-tight text-white">CLOIE</span>
           </div>
         </div>
 
         <CardContent className="space-y-6 px-8 py-8">
           <div className="space-y-2 text-center">
-            <h1 className="font-heading text-2xl font-bold text-text-primary">
-              Welcome to CLOIE
-            </h1>
+            <h1 className="font-heading text-text-primary text-2xl font-bold">Welcome to CLOIE</h1>
             <p className="text-body-md text-text-secondary">
-              Let&apos;s get your account set up. Who are you logging in as
-              today?
+              Let&apos;s get your account set up. Who are you logging in as today?
             </p>
           </div>
 
@@ -177,7 +169,7 @@ export default async function OnboardingPage({
 
           <Link
             href="/login"
-            className="flex items-center justify-center gap-2 text-sm font-medium text-text-muted transition-colors hover:text-text-primary"
+            className="text-text-muted hover:text-text-primary flex items-center justify-center gap-2 text-sm font-medium transition-colors"
           >
             <ArrowLeft className="size-4" />
             Back to Login

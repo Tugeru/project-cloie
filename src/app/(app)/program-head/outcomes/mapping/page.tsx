@@ -3,13 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { listCILOMappingsForProgram } from "@/features/outcomes/services/manage-program-head-outcomes";
 
 export const metadata = {
@@ -35,13 +29,12 @@ export default async function OutcomeMappingPage() {
             Back to Graduate Outcomes
           </Button>
         </Link>
-        <h1 className="mb-2 font-heading text-4xl font-bold tracking-tight text-text-primary lg:text-5xl">
+        <h1 className="font-heading text-text-primary mb-2 text-4xl font-bold tracking-tight lg:text-5xl">
           CILO-GO Mapping Review
         </h1>
         <p className="text-body-md text-text-muted">
-          Review how Course Intended Learning Outcomes map to Graduate Outcomes
-          across your program&apos;s courses. Faculty manage CILOs and their
-          mappings.
+          Review how Course Intended Learning Outcomes map to Graduate Outcomes across your
+          program&apos;s courses. Faculty manage CILOs and their mappings.
         </p>
       </div>
 
@@ -50,8 +43,8 @@ export default async function OutcomeMappingPage() {
         <Card>
           <CardContent className="py-12 text-center">
             <p className="text-body-md text-text-secondary">
-              No CILO mappings found. CILOs and their GO mappings are created by
-              faculty when publishing evaluations.
+              No CILO mappings found. CILOs and their GO mappings are created by faculty when
+              publishing evaluations.
             </p>
           </CardContent>
         </Card>
@@ -67,25 +60,19 @@ export default async function OutcomeMappingPage() {
                   <span>{course.courseTitle}</span>
                 </CardTitle>
                 <CardDescription>
-                  {course.cilos.length}{" "}
-                  {course.cilos.length === 1 ? "CILO" : "CILOs"} defined
+                  {course.cilos.length} {course.cilos.length === 1 ? "CILO" : "CILOs"} defined
                 </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {course.cilos.map((cilo, index) => (
-                    <div
-                      key={cilo.id}
-                      className="rounded-lg border border-border p-4"
-                    >
+                    <div key={cilo.id} className="border-border rounded-lg border p-4">
                       <div className="mb-2 flex items-start justify-between gap-4">
                         <div className="flex-1">
-                          <span className="text-xs font-semibold uppercase tracking-wider text-text-muted">
+                          <span className="text-text-muted text-xs font-semibold tracking-wider uppercase">
                             CILO {index + 1}
                           </span>
-                          <p className="text-body-md mt-1 text-text-primary">
-                            {cilo.description}
-                          </p>
+                          <p className="text-body-md text-text-primary mt-1">{cilo.description}</p>
                         </div>
                       </div>
                       <div className="flex flex-wrap items-center gap-2">
@@ -101,9 +88,7 @@ export default async function OutcomeMappingPage() {
                             </Badge>
                           ))
                         ) : (
-                          <span className="text-xs italic text-text-muted">
-                            No mappings
-                          </span>
+                          <span className="text-text-muted text-xs italic">No mappings</span>
                         )}
                       </div>
                     </div>

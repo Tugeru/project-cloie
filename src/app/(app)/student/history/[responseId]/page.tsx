@@ -18,7 +18,7 @@ export default async function StudentSubmittedResponseReviewPage({
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="animate-in fade-in space-y-6 duration-500">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
           <Link href="/student/history">

@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       httpOnly: true,
       path: "/",
       sameSite: "lax",
-    },
+    }
   );
 
   return NextResponse.json({ success: true });

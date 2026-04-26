@@ -34,9 +34,7 @@ import { DEFAULT_LIKERT_5_DESCRIPTORS, listTemplateLikertQuestions } from "../ty
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type ActionResult<T = void> =
-  | { success: true; data?: T }
-  | { success: false; error: string };
+type ActionResult<T = void> = { success: true; data?: T } | { success: false; error: string };
 
 const EMPTY_FACULTY_COURSE_CONTEXTS: FacultyCourseContext[] = [];
 
@@ -44,11 +42,9 @@ type FacultyBuilderConfig = {
   courseContexts: FacultyCourseContext[];
   initialBindings: TemplateCiloQuestionBinding[];
   loadManagedCilosAction: (
-    payload: FacultyManagedCiloContext,
+    payload: FacultyManagedCiloContext
   ) => Promise<FacultyManagedCiloLoadResult>;
-  validatePublishReadinessAction: (
-    templateId: string,
-  ) => Promise<ActionResult<{ id: string }>>;
+  validatePublishReadinessAction: (templateId: string) => Promise<ActionResult<{ id: string }>>;
 };
 
 interface TemplateBuilderProps {
@@ -109,17 +105,13 @@ function hasDuplicateSuggestedResponse(existingResponses: string[] | undefined, 
   );
 }
 
-function formatProgramContextLabel(program: {
-  code: string;
-  name: string;
-}) {
+function formatProgramContextLabel(program: { code: string; name: string }) {
   return `${program.code} - ${program.name}`;
 }
 
-function formatCourseContextLabel(context: Pick<
-  FacultyCourseContext,
-  "courseCode" | "courseTitle" | "scopeLabel"
->) {
+function formatCourseContextLabel(
+  context: Pick<FacultyCourseContext, "courseCode" | "courseTitle" | "scopeLabel">
+) {
   return `${context.courseCode} - ${context.courseTitle} (${context.scopeLabel})`;
 }
 
@@ -164,8 +156,8 @@ export function TemplateBuilder({
       (facultyConfig?.initialBindings ?? []).map((binding) => [
         `${binding.sectionKey}:${binding.itemKey}`,
         binding.ciloId,
-      ]),
-    ),
+      ])
+    )
   );
   const [loadedCilos, setLoadedCilos] = useState<Array<{ description: string; id: string }>>([]);
   const [isLoadingCilos, setIsLoadingCilos] = useState(false);
@@ -174,41 +166,36 @@ export function TemplateBuilder({
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const facultyMode = Boolean(facultyConfig);
-  const effectiveTemplateType: EvaluationTemplateType = facultyMode
-    ? "COURSE_BOUND"
-    : templateType;
-  const facultyCourseContexts =
-    facultyConfig?.courseContexts ?? EMPTY_FACULTY_COURSE_CONTEXTS;
+  const effectiveTemplateType: EvaluationTemplateType = facultyMode ? "COURSE_BOUND" : templateType;
+  const facultyCourseContexts = facultyConfig?.courseContexts ?? EMPTY_FACULTY_COURSE_CONTEXTS;
   const loadManagedCilosAction = facultyConfig?.loadManagedCilosAction;
   const availablePrograms = useMemo(
-    () =>
-      [
-        ...new Map(
-          facultyCourseContexts.map((context) => [
-            context.programId,
-            {
-              code: context.programCode,
-              id: context.programId,
-              name: context.programName,
-            },
-          ]),
-        ).values(),
-      ],
-    [facultyCourseContexts],
+    () => [
+      ...new Map(
+        facultyCourseContexts.map((context) => [
+          context.programId,
+          {
+            code: context.programCode,
+            id: context.programId,
+            name: context.programName,
+          },
+        ])
+      ).values(),
+    ],
+    [facultyCourseContexts]
   );
   const availableMajors = useMemo(
-    () =>
-      [
-        ...new Map(
-          facultyCourseContexts
-            .filter((context) => context.programId === boundProgramId && context.majorId)
-            .map((context) => [
-              context.majorId,
-              { id: context.majorId!, name: context.majorName ?? "Unnamed Major" },
-            ]),
-        ).values(),
-      ],
-    [boundProgramId, facultyCourseContexts],
+    () => [
+      ...new Map(
+        facultyCourseContexts
+          .filter((context) => context.programId === boundProgramId && context.majorId)
+          .map((context) => [
+            context.majorId,
+            { id: context.majorId!, name: context.majorName ?? "Unnamed Major" },
+          ])
+      ).values(),
+    ],
+    [boundProgramId, facultyCourseContexts]
   );
   const selectedCourseContext =
     facultyCourseContexts.find((context) => context.courseId === boundCourseId) ?? null;
@@ -216,9 +203,8 @@ export function TemplateBuilder({
     selectedCourseContext?.courseType ??
     facultyCourseContexts.find((context) => context.programId === boundProgramId)?.courseType ??
     "PROGRAM_SPECIFIC";
-  const [courseType, setCourseType] = useState<FacultyCourseContext["courseType"]>(
-    selectedCourseType,
-  );
+  const [courseType, setCourseType] =
+    useState<FacultyCourseContext["courseType"]>(selectedCourseType);
   const availableCourses = useMemo(
     () =>
       facultyCourseContexts.filter((context) => {
@@ -240,19 +226,19 @@ export function TemplateBuilder({
 
         return true;
       }),
-    [boundMajorId, boundProgramId, courseType, facultyCourseContexts],
+    [boundMajorId, boundProgramId, courseType, facultyCourseContexts]
   );
   const selectedProgram = useMemo(
     () => availablePrograms.find((program) => program.id === boundProgramId) ?? null,
-    [availablePrograms, boundProgramId],
+    [availablePrograms, boundProgramId]
   );
   const selectedMajor = useMemo(
     () => availableMajors.find((major) => major.id === boundMajorId) ?? null,
-    [availableMajors, boundMajorId],
+    [availableMajors, boundMajorId]
   );
   const selectedCourse = useMemo(
     () => availableCourses.find((context) => context.courseId === boundCourseId) ?? null,
-    [availableCourses, boundCourseId],
+    [availableCourses, boundCourseId]
   );
   const selectedCiloLabels = useMemo(() => {
     const labels = new Map<string, string>();
@@ -274,7 +260,7 @@ export function TemplateBuilder({
   const likertQuestions = useMemo(() => listTemplateLikertQuestions(sections), [sections]);
   const selectedCiloIds = useMemo(
     () => new Set(Object.values(ciloQuestionBindings).filter(Boolean)),
-    [ciloQuestionBindings],
+    [ciloQuestionBindings]
   );
 
   useEffect(() => {
@@ -292,7 +278,7 @@ export function TemplateBuilder({
       (candidate) =>
         candidate.courseId === boundCourseId &&
         candidate.programId === boundProgramId &&
-        candidate.majorId === (boundMajorId || null),
+        candidate.majorId === (boundMajorId || null)
     );
 
     if (!context) {
@@ -309,10 +295,10 @@ export function TemplateBuilder({
     setIsLoadingCilos(true);
 
     loadManagedCilosAction({
-        courseId: context.courseId,
-        majorId: context.majorId,
-        programId: context.programId,
-      })
+      courseId: context.courseId,
+      majorId: context.majorId,
+      programId: context.programId,
+    })
       .then((result) => {
         if (isStale) {
           return;
@@ -561,8 +547,8 @@ export function TemplateBuilder({
             .map(([questionKey, ciloId]) => {
               const [sectionKey, itemKey] = questionKey.split(":");
               return { ciloId, itemKey, sectionKey };
-            }),
-        ),
+            })
+        )
       );
     }
 
@@ -607,7 +593,7 @@ export function TemplateBuilder({
 
       if (saveSuccessConfig) {
         router.push(
-          `${saveSuccessConfig.redirectTo}?toast=${encodeURIComponent(saveSuccessConfig.toastMessage)}`,
+          `${saveSuccessConfig.redirectTo}?toast=${encodeURIComponent(saveSuccessConfig.toastMessage)}`
         );
         return;
       }
@@ -752,7 +738,7 @@ export function TemplateBuilder({
             </p>
           )}
           {facultyMode && (
-            <div className="grid gap-4 rounded-lg border border-border p-4 md:grid-cols-2">
+            <div className="border-border grid gap-4 rounded-lg border p-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="faculty-course-type">Course Type</Label>
                 <Select
@@ -833,7 +819,7 @@ export function TemplateBuilder({
                   value={boundCourseId}
                   onValueChange={(value) => {
                     const context = facultyCourseContexts.find(
-                      (candidate) => candidate.courseId === value,
+                      (candidate) => candidate.courseId === value
                     );
                     setBoundCourseId(value ?? "");
                     setBoundProgramId(context?.programId ?? boundProgramId);
@@ -857,7 +843,7 @@ export function TemplateBuilder({
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-text-secondary">
+                <p className="text-text-secondary text-xs">
                   {isLoadingCilos
                     ? "Loading saved CILOs..."
                     : loadedCilos.length > 0
@@ -930,11 +916,7 @@ export function TemplateBuilder({
 
       {/* Save Actions */}
       <div className="flex justify-end gap-3 pb-8">
-        <Button
-          variant="outline"
-          onClick={() => router.push(toolsHref)}
-          disabled={isPending}
-        >
+        <Button variant="outline" onClick={() => router.push(toolsHref)} disabled={isPending}>
           Cancel
         </Button>
         {facultyMode && (
@@ -1075,7 +1057,7 @@ function SectionCard({
               facultyMode={facultyMode}
               onCiloBindingChange={onCiloBindingChange}
               selectedCiloLabel={selectedCiloLabels.get(
-                ciloQuestionBindings[`${section.key}:${question.key}`] ?? "",
+                ciloQuestionBindings[`${section.key}:${question.key}`] ?? ""
               )}
               selectedCiloIds={selectedCiloIds}
               selectedCiloId={ciloQuestionBindings[`${section.key}:${question.key}`] ?? ""}
@@ -1198,11 +1180,11 @@ function QuestionCard({
                 onValueChange={(value) =>
                   onCiloBindingChange(
                     `${sectionKey}:${question.key}`,
-                    !value || value === "none" ? "" : value,
+                    !value || value === "none" ? "" : value
                   )
                 }
-                >
-                  <SelectTrigger id={`cilo-binding-${question.key}`}>
+              >
+                <SelectTrigger id={`cilo-binding-${question.key}`}>
                   <SelectValue placeholder="Select a CILO">
                     {selectedCiloId ? selectedCiloLabel : undefined}
                   </SelectValue>
@@ -1214,11 +1196,7 @@ function QuestionCard({
                       selectedCiloIds.has(cilo.id) && selectedCiloId !== cilo.id;
 
                     return (
-                      <SelectItem
-                        key={cilo.id}
-                        value={cilo.id}
-                        disabled={usedByAnotherQuestion}
-                      >
+                      <SelectItem key={cilo.id} value={cilo.id} disabled={usedByAnotherQuestion}>
                         {formatCiloOptionLabel(cilo, index)}
                       </SelectItem>
                     );

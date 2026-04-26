@@ -7,13 +7,7 @@ import { Copy, MoreVertical, Pencil, Plus, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -92,8 +86,8 @@ export function AdminToolsPage({ templates }: AdminToolsPageProps) {
         <div className="space-y-2">
           <h1 className="text-heading-lg">Evaluation Tools</h1>
           <p className="text-body-md text-text-secondary">
-            Manage institutional baseline evaluation templates. These templates
-            can be adopted by program heads for their programs.
+            Manage institutional baseline evaluation templates. These templates can be adopted by
+            program heads for their programs.
           </p>
         </div>
         <Button render={<Link href="/admin/instruments/new" />}>
@@ -106,9 +100,9 @@ export function AdminToolsPage({ templates }: AdminToolsPageProps) {
       {templates.length === 0 ? (
         <Card>
           <CardContent className="py-12 text-center">
-            <p className="text-sm text-muted-foreground">
-              No baseline templates yet. Click &quot;Create Template&quot; to
-              build your first evaluation tool.
+            <p className="text-muted-foreground text-sm">
+              No baseline templates yet. Click &quot;Create Template&quot; to build your first
+              evaluation tool.
             </p>
           </CardContent>
         </Card>
@@ -119,31 +113,21 @@ export function AdminToolsPage({ templates }: AdminToolsPageProps) {
               <CardHeader>
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 space-y-1">
-                    <CardTitle className="truncate text-base font-bold">
-                      {template.name}
-                    </CardTitle>
-                    <CardDescription className="text-xs">
-                      {template.code}
-                    </CardDescription>
+                    <CardTitle className="truncate text-base font-bold">{template.name}</CardTitle>
+                    <CardDescription className="text-xs">{template.code}</CardDescription>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
-                    <Badge
-                      variant={template.is_active ? "default" : "secondary"}
-                    >
+                    <Badge variant={template.is_active ? "default" : "secondary"}>
                       {template.is_active ? "Active" : "Inactive"}
                     </Badge>
                     <DropdownMenu>
-                      <DropdownMenuTrigger className="inline-flex size-8 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary">
+                      <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-8 items-center justify-center rounded-md transition-colors">
                         <MoreVertical className="size-4" />
                         <span className="sr-only">Actions</span>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          render={
-                            <Link
-                              href={`/admin/instruments/${template.id}/edit`}
-                            />
-                          }
+                          render={<Link href={`/admin/instruments/${template.id}/edit`} />}
                         >
                           <Pencil className="mr-2 size-4" />
                           Edit
@@ -158,9 +142,7 @@ export function AdminToolsPage({ templates }: AdminToolsPageProps) {
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           disabled={isPending}
-                          onClick={() =>
-                            handleToggleActive(template.id, template.is_active)
-                          }
+                          onClick={() => handleToggleActive(template.id, template.is_active)}
                         >
                           {template.is_active ? "Deactivate" : "Activate"}
                         </DropdownMenuItem>
@@ -179,11 +161,9 @@ export function AdminToolsPage({ templates }: AdminToolsPageProps) {
               </CardHeader>
               <CardContent className="space-y-3">
                 {template.description && (
-                  <p className="line-clamp-2 text-sm text-text-secondary">
-                    {template.description}
-                  </p>
+                  <p className="text-text-secondary line-clamp-2 text-sm">{template.description}</p>
                 )}
-                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <div className="text-muted-foreground flex items-center justify-between text-xs">
                   <span>Institutional baseline</span>
                   <span>
                     {template._count.versions} version
@@ -191,9 +171,7 @@ export function AdminToolsPage({ templates }: AdminToolsPageProps) {
                   </span>
                 </div>
                 <Badge variant="secondary" className="w-fit text-xs">
-                  {template.template_type === "COURSE_BOUND"
-                    ? "Course-bound"
-                    : "Program-wide"}
+                  {template.template_type === "COURSE_BOUND" ? "Course-bound" : "Program-wide"}
                 </Badge>
                 {template.is_faculty_accessible && (
                   <Badge variant="outline" className="text-xs">
@@ -219,23 +197,15 @@ export function AdminToolsPage({ templates }: AdminToolsPageProps) {
               <DialogTitle>Delete Template</DialogTitle>
               <DialogDescription>
                 Are you sure you want to delete{" "}
-                <span className="font-semibold">{deleteTarget.name}</span> (
-                {deleteTarget.code})? This action cannot be undone and will
-                remove all associated versions.
+                <span className="font-semibold">{deleteTarget.name}</span> ({deleteTarget.code})?
+                This action cannot be undone and will remove all associated versions.
               </DialogDescription>
             </DialogHeader>
             <div className="flex justify-end gap-2 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setDeleteTarget(null)}
-              >
+              <Button variant="outline" onClick={() => setDeleteTarget(null)}>
                 Cancel
               </Button>
-              <Button
-                variant="destructive"
-                disabled={isPending}
-                onClick={handleConfirmDelete}
-              >
+              <Button variant="destructive" disabled={isPending} onClick={handleConfirmDelete}>
                 {isPending ? "Deleting..." : "Delete"}
               </Button>
             </div>

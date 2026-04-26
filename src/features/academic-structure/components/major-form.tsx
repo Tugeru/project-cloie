@@ -44,9 +44,7 @@ export function MajorForm({
   return (
     <form ref={formRef} action={handleSubmit} className="flex items-end gap-3">
       <input type="hidden" name="program_id" value={programId} />
-      {defaultValues?.id && (
-        <input type="hidden" name="id" value={defaultValues.id} />
-      )}
+      {defaultValues?.id && <input type="hidden" name="id" value={defaultValues.id} />}
 
       <div className="flex-1 space-y-1">
         <Label htmlFor={`major-name-${programId}`} className="text-xs">

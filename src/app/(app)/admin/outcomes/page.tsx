@@ -18,7 +18,7 @@ export default async function AdminOutcomesPage() {
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Graduate Outcomes</h1>
-        <p className="text-sm text-text-secondary">
+        <p className="text-text-secondary text-sm">
           The MVP outcome model now centers on Graduate Outcomes and CILO-to-GO mapping.
         </p>
       </div>
@@ -32,11 +32,9 @@ export default async function AdminOutcomesPage() {
         </CardHeader>
         <CardContent className="grid gap-3 md:grid-cols-2">
           {programs.map((program) => (
-            <div key={program.id} className="rounded-xl border border-border px-4 py-3">
+            <div key={program.id} className="border-border rounded-xl border px-4 py-3">
               <p className="font-medium">{program.code}</p>
-              <p className="text-sm text-text-muted">
-                {program._count.gos} GO(s)
-              </p>
+              <p className="text-text-muted text-sm">{program._count.gos} GO(s)</p>
             </div>
           ))}
         </CardContent>

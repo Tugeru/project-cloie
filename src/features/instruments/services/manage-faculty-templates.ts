@@ -4,14 +4,9 @@ import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { listFacultyCourseContexts } from "@/features/evaluations/services/list-faculty-course-contexts";
 import type { SaveFacultyTemplateDraftInput } from "../schemas/program-head-template";
-import {
-  listTemplateLikertQuestions,
-  type TemplateStructure,
-} from "../types";
+import { listTemplateLikertQuestions, type TemplateStructure } from "../types";
 
-type ServiceResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 export type FacultyTemplateBindingItem = {
   ciloId: string;
@@ -61,7 +56,7 @@ function generateFacultyTemplateCode(sourceCode: string, userId: string) {
   const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
   return `${slugify(sourceCode)}_FAC_${userId.slice(0, 6).toUpperCase()}_${suffix}`.substring(
     0,
-    50,
+    50
   );
 }
 
@@ -131,7 +126,7 @@ async function resolveFacultyCourseContext(input: {
       (context) =>
         context.courseId === input.boundCourseId &&
         context.programId === input.boundProgramId &&
-        context.majorId === (input.boundMajorId ?? null),
+        context.majorId === (input.boundMajorId ?? null)
     ) ?? null
   );
 }
@@ -160,10 +155,7 @@ async function validateDraftBindings(input: {
 
   const likertQuestions = listTemplateLikertQuestions(input.structure);
   const questionMap = new Map(
-    likertQuestions.map((question) => [
-      `${question.sectionKey}:${question.itemKey}`,
-      question,
-    ]),
+    likertQuestions.map((question) => [`${question.sectionKey}:${question.itemKey}`, question])
   );
   const cilos = await prisma.cILO.findMany({
     where: {
@@ -213,7 +205,7 @@ async function validateDraftBindings(input: {
 }
 
 export async function saveFacultyTemplateDraft(
-  input: SaveFacultyTemplateDraftInput,
+  input: SaveFacultyTemplateDraftInput
 ): Promise<ServiceResult<{ id: string }>> {
   const auth = await requireFacultySession();
 
@@ -352,7 +344,7 @@ export async function saveFacultyTemplateDraft(
 }
 
 export async function duplicateFacultyTemplate(
-  templateId: string,
+  templateId: string
 ): Promise<ServiceResult<{ id: string }>> {
   const auth = await requireFacultySession();
 
@@ -414,7 +406,7 @@ export async function duplicateFacultyTemplate(
 }
 
 export async function getFacultyTemplatePublicationContext(
-  templateId: string,
+  templateId: string
 ): Promise<ServiceResult<FacultyTemplatePublicationContext>> {
   const auth = await requireFacultySession();
 

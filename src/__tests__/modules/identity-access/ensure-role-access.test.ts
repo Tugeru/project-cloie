@@ -4,7 +4,9 @@ import { ensureRoleAccess } from "@/features/auth/policies/ensure-role-access";
 
 describe("ensureRoleAccess", () => {
   it("redirects anonymous access to login", () => {
-    expect(ensureRoleAccess({ primaryRole: null, roles: [], allowedRoles: [ROLES.ADMIN] })).toBe("/login");
+    expect(ensureRoleAccess({ primaryRole: null, roles: [], allowedRoles: [ROLES.ADMIN] })).toBe(
+      "/login"
+    );
   });
 
   it("allows a matching role", () => {
@@ -13,7 +15,7 @@ describe("ensureRoleAccess", () => {
         primaryRole: ROLES.ADMIN,
         roles: [ROLES.ADMIN],
         allowedRoles: [ROLES.ADMIN],
-      }),
+      })
     ).toBeNull();
   });
 
@@ -23,7 +25,7 @@ describe("ensureRoleAccess", () => {
         primaryRole: ROLES.FACULTY,
         roles: [ROLES.FACULTY, ROLES.STUDENT],
         allowedRoles: [ROLES.STUDENT],
-      }),
+      })
     ).toBeNull();
   });
 
@@ -33,7 +35,7 @@ describe("ensureRoleAccess", () => {
         primaryRole: ROLES.STUDENT,
         roles: [ROLES.STUDENT],
         allowedRoles: [ROLES.ADMIN],
-      }),
+      })
     ).toBe("/unauthorized");
   });
 });

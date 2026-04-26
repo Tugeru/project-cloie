@@ -52,7 +52,7 @@ describe("publishCourseBoundEvaluation", () => {
     vi.clearAllMocks();
 
     yearLevelFindManyMock.mockImplementation(async ({ where }) =>
-      where.id.in.map((id: string) => ({ id })),
+      where.id.in.map((id: string) => ({ id }))
     );
 
     transactionMock.mockImplementation(async (callback) =>
@@ -72,7 +72,7 @@ describe("publishCourseBoundEvaluation", () => {
         studentAcademicProfile: {
           findMany: studentAcademicProfileFindManyMock,
         },
-      }),
+      })
     );
   });
 
@@ -87,7 +87,7 @@ describe("publishCourseBoundEvaluation", () => {
         templateId: "template-1",
         term: AcademicTerm.FIRST_TERM,
         yearLevelIds: ["year-4"],
-      }),
+      })
     ).resolves.toEqual({
       error: "Faculty authentication is required.",
       success: false,
@@ -170,7 +170,7 @@ describe("publishCourseBoundEvaluation", () => {
         templateId: "template-1",
         term: AcademicTerm.FIRST_TERM,
         yearLevelIds: ["year-4", "year-4", "year-3"],
-      }),
+      })
     ).resolves.toEqual({
       assignmentCount: 2,
       evaluationId: "evaluation-1",
@@ -222,8 +222,7 @@ describe("publishCourseBoundEvaluation", () => {
           section_key: "outcomes",
         },
         {
-          cilo_description_snapshot:
-            "Produce a proposal-aligned outline defense artifact.",
+          cilo_description_snapshot: "Produce a proposal-aligned outline defense artifact.",
           cilo_id: "cilo-2",
           course_bound_evaluation_id: "evaluation-1",
           item_key: "q2",
@@ -277,7 +276,7 @@ describe("publishCourseBoundEvaluation", () => {
         templateId: "template-1",
         term: AcademicTerm.FIRST_TERM,
         yearLevelIds: ["year-4"],
-      }),
+      })
     ).resolves.toEqual({
       error: "Every saved CILO must be assigned to one Likert question before publishing.",
       success: false,
@@ -347,7 +346,7 @@ describe("publishCourseBoundEvaluation", () => {
         templateId: "template-1",
         term: AcademicTerm.FIRST_TERM,
         yearLevelIds: ["year-4"],
-      }),
+      })
     ).resolves.toEqual({
       error: "An evaluation is already published for this course context.",
       success: false,

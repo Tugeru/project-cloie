@@ -15,10 +15,10 @@ describe("bootstrap outline defense demo", () => {
           email: "faculty@acd.edu.ph",
           firstName: "Outline Demo",
           lastName: "Faculty",
-        },
-      ),
+        }
+      )
     ).toThrowError(
-      "Refusing to reuse existing user faculty@acd.edu.ph because it does not match the outline defense demo marker.",
+      "Refusing to reuse existing user faculty@acd.edu.ph because it does not match the outline defense demo marker."
     );
   });
 
@@ -34,8 +34,8 @@ describe("bootstrap outline defense demo", () => {
           email: "faculty@acd.edu.ph",
           firstName: "Outline Demo",
           lastName: "Faculty",
-        },
-      ),
+        }
+      )
     ).not.toThrow();
   });
 });

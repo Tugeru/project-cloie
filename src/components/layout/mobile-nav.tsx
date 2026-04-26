@@ -16,7 +16,7 @@ export function MobileNav({ roles = [] }: MobileNavProps) {
   const mainNav = getMobileNavByRoles(roles);
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-50 flex h-16 items-center justify-between border-t border-border bg-surface px-4 pb-safe lg:hidden">
+    <nav className="border-border bg-surface pb-safe fixed inset-x-0 bottom-0 z-50 flex h-16 items-center justify-between border-t px-4 lg:hidden">
       {mainNav.map((item) => {
         const isActive = pathname === item.href;
         return (
@@ -29,7 +29,12 @@ export function MobileNav({ roles = [] }: MobileNavProps) {
             )}
           >
             <item.icon className={cn("size-6", isActive && "text-primary")} />
-            <span className={cn("text-[10px] font-medium leading-none", isActive ? "text-primary" : "text-text-muted")}>
+            <span
+              className={cn(
+                "text-[10px] leading-none font-medium",
+                isActive ? "text-primary" : "text-text-muted"
+              )}
+            >
               {item.name}
             </span>
           </Link>

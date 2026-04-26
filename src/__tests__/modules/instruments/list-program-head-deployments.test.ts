@@ -112,7 +112,7 @@ function mockAuthenticatedPH() {
 
 function mockPHAssignments(programIds = [PROGRAM_ID]) {
   programHeadAssignmentFindManyMock.mockResolvedValue(
-    programIds.map((pid) => ({ program_id: pid })),
+    programIds.map((pid) => ({ program_id: pid }))
   );
 }
 
@@ -139,9 +139,8 @@ describe("listProgramHeadDeployments", () => {
     mockProgram();
     centralDeploymentFindManyMock.mockResolvedValue([MOCK_DEPLOYMENT_RAW]);
 
-    const { listProgramHeadDeployments } = await import(
-      "@/features/evaluations/services/list-program-head-deployments"
-    );
+    const { listProgramHeadDeployments } =
+      await import("@/features/evaluations/services/list-program-head-deployments");
 
     const result = await listProgramHeadDeployments();
 
@@ -168,9 +167,8 @@ describe("listProgramHeadDeployments", () => {
     mockProgram();
     centralDeploymentFindManyMock.mockResolvedValue([MOCK_DEPLOYMENT_RAW]);
 
-    const { listProgramHeadDeployments } = await import(
-      "@/features/evaluations/services/list-program-head-deployments"
-    );
+    const { listProgramHeadDeployments } =
+      await import("@/features/evaluations/services/list-program-head-deployments");
 
     await listProgramHeadDeployments();
 
@@ -179,16 +177,15 @@ describe("listProgramHeadDeployments", () => {
         where: {
           program_id: { in: [PROGRAM_ID] },
         },
-      }),
+      })
     );
   });
 
   it("rejects unauthenticated users", async () => {
     resolveAuthSessionMock.mockResolvedValue(null);
 
-    const { listProgramHeadDeployments } = await import(
-      "@/features/evaluations/services/list-program-head-deployments"
-    );
+    const { listProgramHeadDeployments } =
+      await import("@/features/evaluations/services/list-program-head-deployments");
 
     const result = await listProgramHeadDeployments();
 
@@ -203,9 +200,8 @@ describe("listProgramHeadDeployments", () => {
       roles: [ROLES.FACULTY],
     });
 
-    const { listProgramHeadDeployments } = await import(
-      "@/features/evaluations/services/list-program-head-deployments"
-    );
+    const { listProgramHeadDeployments } =
+      await import("@/features/evaluations/services/list-program-head-deployments");
 
     const result = await listProgramHeadDeployments();
 
@@ -218,9 +214,8 @@ describe("listProgramHeadDeployments", () => {
     mockAuthenticatedPH();
     programHeadAssignmentFindManyMock.mockResolvedValue([]);
 
-    const { listProgramHeadDeployments } = await import(
-      "@/features/evaluations/services/list-program-head-deployments"
-    );
+    const { listProgramHeadDeployments } =
+      await import("@/features/evaluations/services/list-program-head-deployments");
 
     const result = await listProgramHeadDeployments();
 
@@ -235,9 +230,8 @@ describe("listProgramHeadDeployments", () => {
     mockProgram();
     centralDeploymentFindManyMock.mockResolvedValue([]);
 
-    const { listProgramHeadDeployments } = await import(
-      "@/features/evaluations/services/list-program-head-deployments"
-    );
+    const { listProgramHeadDeployments } =
+      await import("@/features/evaluations/services/list-program-head-deployments");
 
     const result = await listProgramHeadDeployments();
 
@@ -258,9 +252,8 @@ describe("listProgramHeadDeployments", () => {
     };
     centralDeploymentFindManyMock.mockResolvedValue([deploymentWithDetails]);
 
-    const { listProgramHeadDeployments } = await import(
-      "@/features/evaluations/services/list-program-head-deployments"
-    );
+    const { listProgramHeadDeployments } =
+      await import("@/features/evaluations/services/list-program-head-deployments");
 
     const result = await listProgramHeadDeployments();
 
@@ -290,9 +283,8 @@ describe("closeCentralDeployment", () => {
     });
     centralDeploymentUpdateMock.mockResolvedValue({});
 
-    const { closeCentralDeployment } = await import(
-      "@/features/evaluations/services/publish-central-deployment"
-    );
+    const { closeCentralDeployment } =
+      await import("@/features/evaluations/services/publish-central-deployment");
 
     const result = await closeCentralDeployment("deploy-1");
 
@@ -313,9 +305,8 @@ describe("closeCentralDeployment", () => {
     });
     centralDeploymentUpdateMock.mockResolvedValue({});
 
-    const { closeCentralDeployment } = await import(
-      "@/features/evaluations/services/publish-central-deployment"
-    );
+    const { closeCentralDeployment } =
+      await import("@/features/evaluations/services/publish-central-deployment");
 
     const result = await closeCentralDeployment("deploy-1");
 
@@ -331,9 +322,8 @@ describe("closeCentralDeployment", () => {
       status: "CLOSED",
     });
 
-    const { closeCentralDeployment } = await import(
-      "@/features/evaluations/services/publish-central-deployment"
-    );
+    const { closeCentralDeployment } =
+      await import("@/features/evaluations/services/publish-central-deployment");
 
     const result = await closeCentralDeployment("deploy-1");
 
@@ -351,9 +341,8 @@ describe("closeCentralDeployment", () => {
       status: "ARCHIVED",
     });
 
-    const { closeCentralDeployment } = await import(
-      "@/features/evaluations/services/publish-central-deployment"
-    );
+    const { closeCentralDeployment } =
+      await import("@/features/evaluations/services/publish-central-deployment");
 
     const result = await closeCentralDeployment("deploy-1");
 
@@ -371,9 +360,8 @@ describe("closeCentralDeployment", () => {
       status: "ACTIVE",
     });
 
-    const { closeCentralDeployment } = await import(
-      "@/features/evaluations/services/publish-central-deployment"
-    );
+    const { closeCentralDeployment } =
+      await import("@/features/evaluations/services/publish-central-deployment");
 
     const result = await closeCentralDeployment("deploy-other");
 
@@ -385,9 +373,8 @@ describe("closeCentralDeployment", () => {
   it("rejects unauthenticated users", async () => {
     resolveAuthSessionMock.mockResolvedValue(null);
 
-    const { closeCentralDeployment } = await import(
-      "@/features/evaluations/services/publish-central-deployment"
-    );
+    const { closeCentralDeployment } =
+      await import("@/features/evaluations/services/publish-central-deployment");
 
     const result = await closeCentralDeployment("deploy-1");
 
@@ -402,9 +389,8 @@ describe("closeCentralDeployment", () => {
       roles: [ROLES.STUDENT],
     });
 
-    const { closeCentralDeployment } = await import(
-      "@/features/evaluations/services/publish-central-deployment"
-    );
+    const { closeCentralDeployment } =
+      await import("@/features/evaluations/services/publish-central-deployment");
 
     const result = await closeCentralDeployment("deploy-1");
 
@@ -418,9 +404,8 @@ describe("closeCentralDeployment", () => {
     mockPHFirstAssignment();
     centralDeploymentFindUniqueMock.mockResolvedValue(null);
 
-    const { closeCentralDeployment } = await import(
-      "@/features/evaluations/services/publish-central-deployment"
-    );
+    const { closeCentralDeployment } =
+      await import("@/features/evaluations/services/publish-central-deployment");
 
     const result = await closeCentralDeployment("nonexistent");
 

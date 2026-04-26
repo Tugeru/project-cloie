@@ -10,7 +10,7 @@ export function getLatestMigrationVersion(files: string[], source = "supabase/mi
 
   if (sqlFiles.length === 0) {
     throw new Error(
-      `No Supabase SQL migrations were found in ${source}. Run pnpm supabase:migration:baseline or pnpm supabase:migration:diff first.`,
+      `No Supabase SQL migrations were found in ${source}. Run pnpm supabase:migration:baseline or pnpm supabase:migration:diff first.`
     );
   }
 
@@ -19,14 +19,14 @@ export function getLatestMigrationVersion(files: string[], source = "supabase/mi
 
 export function getLatestMigrationVersionFromDirectory(
   migrationsPath: string,
-  readDirectory: (path: string) => string[] = readdirSync,
+  readDirectory: (path: string) => string[] = readdirSync
 ) {
   try {
     return getLatestMigrationVersion(readDirectory(migrationsPath), migrationsPath);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") {
       throw new Error(
-        `Supabase migrations directory was not found at ${migrationsPath}. Run pnpm supabase:init and create a migration first.`,
+        `Supabase migrations directory was not found at ${migrationsPath}. Run pnpm supabase:init and create a migration first.`
       );
     }
 
@@ -46,7 +46,7 @@ export function parseRemoteMigrationVersions(migrationListOutput: string) {
 export function assertBaselineRepairSafe(remoteVersions: string[]) {
   if (remoteVersions.length > 0) {
     throw new Error(
-      `The linked project already has remote migration history (latest remote version: ${remoteVersions.at(-1)}). \`pnpm supabase:migration:repair-latest\` is only for an empty remote history during baseline setup or recovery.`,
+      `The linked project already has remote migration history (latest remote version: ${remoteVersions.at(-1)}). \`pnpm supabase:migration:repair-latest\` is only for an empty remote history during baseline setup or recovery.`
     );
   }
 }
@@ -58,7 +58,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const migrationListOutput = execFileSync(
     getSupabaseCommand(),
     ["migration", "list", "--linked"],
-    { encoding: "utf8", shell: process.platform === "win32" },
+    { encoding: "utf8", shell: process.platform === "win32" }
   );
 
   assertBaselineRepairSafe(parseRemoteMigrationVersions(migrationListOutput));
@@ -66,7 +66,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   execFileSync(
     getSupabaseCommand(),
     ["migration", "repair", version, "--status", status, "--linked"],
-    { shell: process.platform === "win32", stdio: "inherit" },
+    { shell: process.platform === "win32", stdio: "inherit" }
   );
 
   console.log(`Repaired linked migration history for ${version} as ${status}`);

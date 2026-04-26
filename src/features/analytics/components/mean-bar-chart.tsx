@@ -29,7 +29,7 @@ export function MeanBarChart({ title, data }: MeanBarChartProps) {
   return (
     <div className="space-y-3">
       <h3 className="text-base font-semibold">{title}</h3>
-      <div className="h-72 w-full rounded-xl border border-border p-3">
+      <div className="border-border h-72 w-full rounded-xl border p-3">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={chartData} margin={{ bottom: 10, left: 0, right: 0, top: 10 }}>
             <CartesianGrid strokeDasharray="3 3" vertical={false} />

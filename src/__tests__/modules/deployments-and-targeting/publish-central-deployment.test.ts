@@ -105,7 +105,7 @@ function setupTransaction() {
       userRole: {
         findMany: userRoleFindManyMock,
       },
-    }),
+    })
   );
 }
 
@@ -186,10 +186,7 @@ describe("publishCentralDeployment", () => {
       where: {
         id: "template-1",
         is_active: true,
-        OR: [
-          { program_id: "program-1" },
-          { program_id: null },
-        ],
+        OR: [{ program_id: "program-1" }, { program_id: null }],
         template_type: "PROGRAM_WIDE",
       },
       select: { id: true, name: true, program_id: true, template_type: true },
@@ -328,9 +325,7 @@ describe("publishCentralDeployment", () => {
     centralDeploymentCreateMock.mockResolvedValue({
       id: "deployment-2",
     });
-    studentAcademicProfileFindManyMock.mockResolvedValue([
-      { user_id: "student-5" },
-    ]);
+    studentAcademicProfileFindManyMock.mockResolvedValue([{ user_id: "student-5" }]);
 
     const result = await publishCentralDeployment({
       ...baseInput,
@@ -370,10 +365,7 @@ describe("publishCentralDeployment", () => {
     centralDeploymentCreateMock.mockResolvedValue({
       id: "deployment-3",
     });
-    userRoleFindManyMock.mockResolvedValue([
-      { user_id: "alumni-1" },
-      { user_id: "alumni-2" },
-    ]);
+    userRoleFindManyMock.mockResolvedValue([{ user_id: "alumni-1" }, { user_id: "alumni-2" }]);
 
     const result = await publishCentralDeployment({
       ...baseInput,

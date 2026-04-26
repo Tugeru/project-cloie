@@ -10,7 +10,7 @@ import type {
 } from "../types";
 
 async function assertFacultyManagedCiloScope(
-  context: FacultyManagedCiloContext,
+  context: FacultyManagedCiloContext
 ): Promise<{ courseId: string; majorId: string | null; programId: string } | null> {
   const availableContexts = await listFacultyCourseContexts();
 
@@ -18,7 +18,7 @@ async function assertFacultyManagedCiloScope(
     (candidate) =>
       candidate.courseId === context.courseId &&
       candidate.programId === context.programId &&
-      candidate.majorId === context.majorId,
+      candidate.majorId === context.majorId
   );
 
   if (!matchingContext) {
@@ -33,7 +33,7 @@ async function assertFacultyManagedCiloScope(
 }
 
 export async function loadFacultyManagedCilos(
-  context: FacultyManagedCiloContext,
+  context: FacultyManagedCiloContext
 ): Promise<FacultyManagedCiloLoadResult> {
   const authSession = await resolveAuthSession();
 
@@ -72,7 +72,7 @@ export async function loadFacultyManagedCilos(
 }
 
 export async function saveFacultyManagedCilos(
-  input: FacultyManagedCiloSaveInput,
+  input: FacultyManagedCiloSaveInput
 ): Promise<FacultyManagedCiloSaveResult> {
   const authSession = await resolveAuthSession();
 
@@ -102,10 +102,10 @@ export async function saveFacultyManagedCilos(
     }));
 
   await prisma.$transaction(async (tx) => {
-      await tx.cILO.deleteMany({
-        where: {
-          course_id: scopedContext.courseId,
-        },
+    await tx.cILO.deleteMany({
+      where: {
+        course_id: scopedContext.courseId,
+      },
     });
 
     if (normalizedItems.length > 0) {

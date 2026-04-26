@@ -91,7 +91,13 @@ function formatRole(role: SystemRole) {
   return role.replaceAll("_", " ");
 }
 
-function RoleAssignmentForm({ userId, existingRoles }: { userId: string; existingRoles: SystemRole[] }) {
+function RoleAssignmentForm({
+  userId,
+  existingRoles,
+}: {
+  userId: string;
+  existingRoles: SystemRole[];
+}) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
@@ -115,7 +121,7 @@ function RoleAssignmentForm({ userId, existingRoles }: { userId: string; existin
   }
 
   if (availableRoles.length === 0) {
-    return <p className="text-xs text-text-muted">All system roles are already assigned.</p>;
+    return <p className="text-text-muted text-xs">All system roles are already assigned.</p>;
   }
 
   return (
@@ -134,7 +140,7 @@ function RoleAssignmentForm({ userId, existingRoles }: { userId: string; existin
           <select
             id={`role-${userId}`}
             name="role"
-            className="h-9 rounded-lg border border-input bg-transparent px-3 text-sm"
+            className="border-input h-9 rounded-lg border bg-transparent px-3 text-sm"
             defaultValue={availableRoles[0]}
           >
             {availableRoles.map((role) => (
@@ -169,7 +175,7 @@ function StudentContextForm({
     program.majors.map((major) => ({
       id: major.id,
       label: `${program.code} - ${major.name}`,
-    })),
+    }))
   );
 
   function handleSubmit(formData: FormData) {
@@ -205,11 +211,15 @@ function StudentContextForm({
   }
 
   return (
-    <form ref={formRef} action={handleSubmit} className="space-y-3 rounded-xl border border-border p-4">
+    <form
+      ref={formRef}
+      action={handleSubmit}
+      className="border-border space-y-3 rounded-xl border p-4"
+    >
       <input type="hidden" name="user_id" value={user.id} />
       <div className="space-y-1">
         <p className="text-sm font-semibold">Student Academic Context</p>
-        <p className="text-xs text-text-muted">
+        <p className="text-text-muted text-xs">
           Program, optional major, year level, academic year, and graduating eligibility.
         </p>
       </div>
@@ -228,7 +238,7 @@ function StudentContextForm({
           <select
             id={`student-program-${user.id}`}
             name="program_id"
-            className="h-9 w-full rounded-lg border border-input bg-transparent px-3 text-sm"
+            className="border-input h-9 w-full rounded-lg border bg-transparent px-3 text-sm"
             defaultValue={user.student_profile?.program_id ?? ""}
             required
           >
@@ -249,7 +259,7 @@ function StudentContextForm({
           <select
             id={`student-major-${user.id}`}
             name="major_id"
-            className="h-9 w-full rounded-lg border border-input bg-transparent px-3 text-sm"
+            className="border-input h-9 w-full rounded-lg border bg-transparent px-3 text-sm"
             defaultValue={user.student_profile?.major_id ?? ""}
           >
             <option value="">Program-wide / none</option>
@@ -267,7 +277,7 @@ function StudentContextForm({
           <select
             id={`student-year-${user.id}`}
             name="year_level_id"
-            className="h-9 w-full rounded-lg border border-input bg-transparent px-3 text-sm"
+            className="border-input h-9 w-full rounded-lg border bg-transparent px-3 text-sm"
             defaultValue={user.student_profile?.year_level_id ?? ""}
             required
           >
@@ -321,7 +331,13 @@ function StudentContextForm({
           {isPending ? "Saving..." : "Save Student Context"}
         </Button>
         {user.student_profile && (
-          <Button type="button" variant="outline" size="sm" disabled={isPending} onClick={handleDeleteContext}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isPending}
+            onClick={handleDeleteContext}
+          >
             Remove Context
           </Button>
         )}
@@ -379,7 +395,7 @@ function ProgramLinkForm({
           <select
             id={`${fieldName}-${userId}`}
             name="program_id"
-            className="h-9 min-w-52 rounded-lg border border-input bg-transparent px-3 text-sm"
+            className="border-input h-9 min-w-52 rounded-lg border bg-transparent px-3 text-sm"
             defaultValue=""
           >
             <option value="" disabled>
@@ -400,13 +416,7 @@ function ProgramLinkForm({
   );
 }
 
-function IndustryProfileForm({
-  user,
-  programs,
-}: {
-  user: UserItem;
-  programs: ProgramOption[];
-}) {
+function IndustryProfileForm({ user, programs }: { user: UserItem; programs: ProgramOption[] }) {
   const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [isPending, startTransition] = useTransition();
@@ -445,11 +455,15 @@ function IndustryProfileForm({
   }
 
   return (
-    <form ref={formRef} action={handleSubmit} className="space-y-3 rounded-xl border border-border p-4">
+    <form
+      ref={formRef}
+      action={handleSubmit}
+      className="border-border space-y-3 rounded-xl border p-4"
+    >
       <input type="hidden" name="user_id" value={user.id} />
       <div className="space-y-1">
         <p className="text-sm font-semibold">Industry Partner Profile</p>
-        <p className="text-xs text-text-muted">
+        <p className="text-text-muted text-xs">
           Track company details and optional program alignment for invite-backed responses.
         </p>
       </div>
@@ -493,7 +507,7 @@ function IndustryProfileForm({
         <select
           id={`industry-program-${user.id}`}
           name="program_id"
-          className="h-9 w-full rounded-lg border border-input bg-transparent px-3 text-sm"
+          className="border-input h-9 w-full rounded-lg border bg-transparent px-3 text-sm"
           defaultValue={user.industry_partner_profile?.program_id ?? ""}
         >
           <option value="">No specific program</option>
@@ -510,7 +524,13 @@ function IndustryProfileForm({
           {isPending ? "Saving..." : "Save Industry Profile"}
         </Button>
         {user.industry_partner_profile && (
-          <Button type="button" variant="outline" size="sm" disabled={isPending} onClick={handleDeleteProfile}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={isPending}
+            onClick={handleDeleteProfile}
+          >
             Remove Profile
           </Button>
         )}
@@ -551,14 +571,20 @@ function ExternalInviteForm({ programs }: { programs: ProgramOption[] }) {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="invite-email">Email</Label>
-          <Input id="invite-email" name="email" type="email" placeholder="name@example.com" required />
+          <Input
+            id="invite-email"
+            name="email"
+            type="email"
+            placeholder="name@example.com"
+            required
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="invite-role">Role</Label>
           <select
             id="invite-role"
             name="role"
-            className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm"
+            className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm"
             defaultValue={SystemRole.ALUMNI}
           >
             <option value={SystemRole.ALUMNI}>Alumni</option>
@@ -580,7 +606,7 @@ function ExternalInviteForm({ programs }: { programs: ProgramOption[] }) {
         <select
           id="invite-program"
           name="program_id"
-          className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm"
+          className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm"
           defaultValue=""
         >
           <option value="">College-wide / no program</option>
@@ -720,15 +746,15 @@ export function AdminUserManagement({
           </CardHeader>
           <CardContent className="space-y-3">
             {invites.length === 0 && (
-              <p className="text-sm text-text-muted">No invite drafts yet.</p>
+              <p className="text-text-muted text-sm">No invite drafts yet.</p>
             )}
             {invites.map((invite) => (
-              <div key={invite.id} className="rounded-xl border border-border px-4 py-3">
+              <div key={invite.id} className="border-border rounded-xl border px-4 py-3">
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div className="space-y-1">
                     <p className="font-medium">{invite.invitee_name ?? invite.email}</p>
-                    <p className="text-sm text-text-muted">{invite.email}</p>
-                    <p className="text-xs text-text-secondary">
+                    <p className="text-text-muted text-sm">{invite.email}</p>
+                    <p className="text-text-secondary text-xs">
                       {formatRole(invite.role)}
                       {invite.program ? ` • ${invite.program.code}` : " • College-wide"}
                       {invite.company_name ? ` • ${invite.company_name}` : ""}
@@ -750,7 +776,7 @@ export function AdminUserManagement({
                     )}
                   </div>
                 </div>
-                {invite.note && <p className="mt-2 text-sm text-text-muted">{invite.note}</p>}
+                {invite.note && <p className="text-text-muted mt-2 text-sm">{invite.note}</p>}
               </div>
             ))}
           </CardContent>
@@ -795,12 +821,12 @@ export function AdminUserManagement({
                   {userRoles.map((role) => (
                     <span
                       key={role}
-                      className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs font-medium"
+                      className="border-border inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium"
                     >
                       {formatRole(role)}
                       <button
                         type="button"
-                        className="text-text-muted transition-colors hover:text-danger"
+                        className="text-text-muted hover:text-danger transition-colors"
                         disabled={isPending}
                         onClick={() => handleRevokeRole(user.id, role)}
                       >
@@ -819,29 +845,29 @@ export function AdminUserManagement({
                 )}
 
                 {(hasFacultyRole || user.faculty_program_affiliations.length > 0) && (
-                  <section className="space-y-3 rounded-xl border border-border p-4">
+                  <section className="border-border space-y-3 rounded-xl border p-4">
                     <div className="space-y-1">
                       <p className="text-sm font-semibold">Faculty Program Affiliations</p>
-                      <p className="text-xs text-text-muted">
+                      <p className="text-text-muted text-xs">
                         Control the scoped program catalog available during faculty publishing.
                       </p>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
                       {user.faculty_program_affiliations.length === 0 && (
-                        <p className="text-xs text-text-muted">No affiliations yet.</p>
+                        <p className="text-text-muted text-xs">No affiliations yet.</p>
                       )}
                       {user.faculty_program_affiliations.map((affiliation) => (
                         <span
                           key={affiliation.id}
-                          className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs"
+                          className="border-border inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs"
                         >
                           {affiliation.program.code}
                           {!affiliation.is_active && " (inactive)"}
                           {affiliation.is_active && (
                             <button
                               type="button"
-                              className="text-text-muted transition-colors hover:text-danger"
+                              className="text-text-muted hover:text-danger transition-colors"
                               disabled={isPending}
                               onClick={() => handleDeactivateFacultyAffiliation(affiliation.id)}
                             >
@@ -863,29 +889,29 @@ export function AdminUserManagement({
                 )}
 
                 {(hasProgramHeadRole || user.program_head_assignments.length > 0) && (
-                  <section className="space-y-3 rounded-xl border border-border p-4">
+                  <section className="border-border space-y-3 rounded-xl border p-4">
                     <div className="space-y-1">
                       <p className="text-sm font-semibold">Program Head Assignments</p>
-                      <p className="text-xs text-text-muted">
+                      <p className="text-text-muted text-xs">
                         Define the program scope available in the leadership portal.
                       </p>
                     </div>
 
                     <div className="flex flex-wrap gap-2">
                       {user.program_head_assignments.length === 0 && (
-                        <p className="text-xs text-text-muted">No program-head assignments yet.</p>
+                        <p className="text-text-muted text-xs">No program-head assignments yet.</p>
                       )}
                       {user.program_head_assignments.map((assignment) => (
                         <span
                           key={assignment.id}
-                          className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-xs"
+                          className="border-border inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs"
                         >
                           {assignment.program.code}
                           {!assignment.is_active && " (inactive)"}
                           {assignment.is_active && (
                             <button
                               type="button"
-                              className="text-text-muted transition-colors hover:text-danger"
+                              className="text-text-muted hover:text-danger transition-colors"
                               disabled={isPending}
                               onClick={() => handleDeactivateProgramHeadAssignment(assignment.id)}
                             >

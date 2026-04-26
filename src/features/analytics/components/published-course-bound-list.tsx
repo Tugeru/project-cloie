@@ -30,11 +30,11 @@ export function PublishedCourseBoundList({
     <section className="space-y-4">
       <header className="space-y-1">
         <h1 className="text-2xl font-bold">{title}</h1>
-        <p className="text-sm text-text-muted">{subtitle}</p>
+        <p className="text-text-muted text-sm">{subtitle}</p>
       </header>
 
       {items.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border p-5 text-sm text-text-muted">
+        <div className="border-border text-text-muted rounded-lg border border-dashed p-5 text-sm">
           {emptyMessage}
         </div>
       ) : (
@@ -44,18 +44,23 @@ export function PublishedCourseBoundList({
               <Card>
                 <CardHeader className="gap-2">
                   <CardTitle>{item.evaluationTitle}</CardTitle>
-                  <p className="text-sm text-text-muted">
-                    {item.courseTitle} | {item.programLabel} | {item.academicYear} {item.semester} {item.term}
+                  <p className="text-text-muted text-sm">
+                    {item.courseTitle} | {item.programLabel} | {item.academicYear} {item.semester}{" "}
+                    {item.term}
                   </p>
                 </CardHeader>
 
                 <CardContent className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div className="grid gap-1 text-sm text-text-muted">
+                  <div className="text-text-muted grid gap-1 text-sm">
                     <p>
-                      Responses: <span className="font-semibold text-text-primary">{item.responseCount}</span>
+                      Responses:{" "}
+                      <span className="text-text-primary font-semibold">{item.responseCount}</span>
                     </p>
                     <p>
-                      Overall Mean: <span className="font-semibold text-text-primary">{formatMean(item.overallMean)}</span>
+                      Overall Mean:{" "}
+                      <span className="text-text-primary font-semibold">
+                        {formatMean(item.overallMean)}
+                      </span>
                     </p>
                   </div>
 

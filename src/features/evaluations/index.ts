@@ -14,6 +14,13 @@ export type {
   CourseBoundPublicationCiloInput,
   PublishCourseBoundEvaluationInput,
   PublishCourseBoundEvaluationResult,
+  FacultyPublishedEvaluationItem,
+  FacultyPublishedEvaluationCiloBinding,
+  FacultyPublishedEvaluationTarget,
+  FacultyEvaluationDetail,
+  ListFacultyPublishedEvaluationsResult,
+  GetFacultyEvaluationDetailResult,
+  CloseFacultyEvaluationResult,
 } from "./types";
 
 // ─── Central Deployments ─────────────────────────────────────────────────────
@@ -37,14 +44,19 @@ export type {
   ListProgramHeadDeploymentsResult,
 } from "./services/list-program-head-deployments";
 
-export {
-  publishCentralDeploymentSchema,
-} from "./schemas/central-deployment";
+export { publishCentralDeploymentSchema } from "./schemas/central-deployment";
 
-export type {
-  PublishCentralDeploymentInput,
-} from "./schemas/central-deployment";
+export type { PublishCentralDeploymentInput } from "./schemas/central-deployment";
 
 // ─── Components ──────────────────────────────────────────────────────────────
 
 export { PublishCentralDeploymentForm } from "./components/publish-central-deployment-form";
+export { FacultyPublishedEvaluationsTable } from "./components/faculty-published-evaluations-table";
+export { EvaluationDetailDialog } from "./components/evaluation-detail-dialog";
+export { CloseEvaluationDialog } from "./components/close-evaluation-dialog";
+
+// ─── Faculty Published Evaluations ────────────────────────────────────────────
+
+export { listFacultyPublishedEvaluations } from "./services/list-faculty-published-evaluations";
+export { getFacultyEvaluationDetail } from "./services/get-faculty-evaluation-detail";
+export { closeFacultyEvaluation } from "./services/close-faculty-evaluation";

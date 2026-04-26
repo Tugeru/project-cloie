@@ -17,16 +17,12 @@ interface MobileSidebarDrawerProps {
   };
 }
 
-export function MobileSidebarDrawerTrigger({
-  onClick,
-}: {
-  onClick: () => void;
-}) {
+export function MobileSidebarDrawerTrigger({ onClick }: { onClick: () => void }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="flex size-9 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary lg:hidden"
+      className="text-text-muted hover:bg-surface-muted hover:text-text-primary flex size-9 items-center justify-center rounded-md transition-colors lg:hidden"
       aria-label="Open navigation menu"
     >
       <Menu className="size-5" />
@@ -34,10 +30,7 @@ export function MobileSidebarDrawerTrigger({
   );
 }
 
-export function MobileSidebarDrawer({
-  roles = [],
-  user,
-}: MobileSidebarDrawerProps) {
+export function MobileSidebarDrawer({ roles = [], user }: MobileSidebarDrawerProps) {
   const [isOpen, setIsOpen] = useState(false);
   const pathname = usePathname();
   const mainNav = getMainNavByRoles(roles);
@@ -48,7 +41,7 @@ export function MobileSidebarDrawer({
       <button
         type="button"
         onClick={() => setIsOpen(true)}
-        className="flex size-9 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary lg:hidden"
+        className="text-text-muted hover:bg-surface-muted hover:text-text-primary flex size-9 items-center justify-center rounded-md transition-colors lg:hidden"
         aria-label="Open navigation menu"
       >
         <Menu className="size-5" />
@@ -66,17 +59,13 @@ export function MobileSidebarDrawer({
       {/* Drawer */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col bg-surface shadow-xl transition-transform duration-300 ease-in-out lg:hidden",
-          isOpen ? "translate-x-0" : "-translate-x-full",
+          "bg-surface fixed inset-y-0 left-0 z-50 flex w-72 flex-col shadow-xl transition-transform duration-300 ease-in-out lg:hidden",
+          isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Header */}
-        <div className="flex h-16 shrink-0 items-center justify-between border-b border-border px-5">
-          <Link
-            href="/"
-            className="flex items-center gap-3"
-            onClick={() => setIsOpen(false)}
-          >
+        <div className="border-border flex h-16 shrink-0 items-center justify-between border-b px-5">
+          <Link href="/" className="flex items-center gap-3" onClick={() => setIsOpen(false)}>
             <Image
               src="/logos/cloie-logo.png"
               alt="CLOIE Logo"
@@ -84,14 +73,12 @@ export function MobileSidebarDrawer({
               height={28}
               className="rounded"
             />
-            <span className="text-title-md font-bold tracking-tight text-primary">
-              CLOIE
-            </span>
+            <span className="text-title-md text-primary font-bold tracking-tight">CLOIE</span>
           </Link>
           <button
             type="button"
             onClick={() => setIsOpen(false)}
-            className="flex size-8 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary"
+            className="text-text-muted hover:bg-surface-muted hover:text-text-primary flex size-8 items-center justify-center rounded-md transition-colors"
             aria-label="Close navigation menu"
           >
             <X className="size-5" />
@@ -109,19 +96,14 @@ export function MobileSidebarDrawer({
                   href={item.href}
                   onClick={() => setIsOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2.5 text-body-md font-medium transition-colors",
+                    "text-body-md flex items-center gap-3 rounded-md px-3 py-2.5 font-medium transition-colors",
                     isActive
                       ? "bg-primary-soft text-primary"
-                      : "text-text-secondary hover:bg-surface-hover hover:text-text-primary",
+                      : "text-text-secondary hover:bg-surface-hover hover:text-text-primary"
                   )}
                 >
                   <item.icon
-                    className={cn(
-                      "size-5 shrink-0",
-                      isActive
-                        ? "text-primary"
-                        : "text-text-muted",
-                    )}
+                    className={cn("size-5 shrink-0", isActive ? "text-primary" : "text-text-muted")}
                   />
                   {item.name}
                 </Link>
@@ -132,20 +114,16 @@ export function MobileSidebarDrawer({
 
         {/* User info footer */}
         {user && (
-          <div className="border-t border-border p-4">
+          <div className="border-border border-t p-4">
             <div className="flex items-center gap-3 px-3 py-2">
-              <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-primary text-white">
-                <span className="text-body-sm font-semibold">
-                  {user.name?.[0] || "U"}
-                </span>
+              <div className="bg-primary flex size-9 shrink-0 items-center justify-center rounded-full text-white">
+                <span className="text-body-sm font-semibold">{user.name?.[0] || "U"}</span>
               </div>
               <div className="flex flex-col overflow-hidden">
-                <span className="truncate text-label-md font-semibold text-text-primary">
+                <span className="text-label-md text-text-primary truncate font-semibold">
                   {user.name || "User"}
                 </span>
-                <span className="truncate text-caption text-text-muted">
-                  {user.email || ""}
-                </span>
+                <span className="text-caption text-text-muted truncate">{user.email || ""}</span>
               </div>
             </div>
           </div>

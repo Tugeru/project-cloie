@@ -12,53 +12,53 @@
    * ======================================== */
 
   /* Primary — Modern Blue (Foundation & Structure) */
-  --color-primary: #2563EB;
-  --color-primary-hover: #1D4ED8;
-  --color-primary-active: #1E40AF;
-  --color-on-primary: #FFFFFF;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-active: #1e40af;
+  --color-on-primary: #ffffff;
 
   /* Primary Tints / Support (Blue shades) */
-  --color-primary-soft: #EFF6FF;
-  --color-primary-muted: #DBEAFE;
-  --color-primary-border: #BFDBFE;
+  --color-primary-soft: #eff6ff;
+  --color-primary-muted: #dbeafe;
+  --color-primary-border: #bfdbfe;
 
   /* Secondary — Accent Gold */
-  --color-secondary: #D49900;
-  --color-secondary-hover: #B88200;
-  --color-secondary-soft: #FFF4D6;
-  --color-on-secondary: #2F2200;
+  --color-secondary: #d49900;
+  --color-secondary-hover: #b88200;
+  --color-secondary-soft: #fff4d6;
+  --color-on-secondary: #2f2200;
 
   /* ========================================
    * 2. Neutral Surfaces
    * ======================================== */
-  --color-background: #F8FAFC;
-  --color-surface: #FFFFFF;
-  --color-surface-alt: #F1F5F9;
-  --color-surface-muted: #E2E8F0;
-  --color-border: #E2E8F0;
-  --color-border-strong: #CBD5E1;
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f1f5f9;
+  --color-surface-muted: #e2e8f0;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
 
   /* ========================================
    * 3. Text Colors
    * ======================================== */
-  --color-text-primary: #0F172A;
+  --color-text-primary: #0f172a;
   --color-text-secondary: #334155;
-  --color-text-muted: #64748B;
-  --color-text-on-dark: #FFFFFF;
+  --color-text-muted: #64748b;
+  --color-text-on-dark: #ffffff;
 
   /* ========================================
    * 4. Semantic Colors
    * ======================================== */
   --color-success: #059669;
-  --color-success-soft: #ECFDF5;
-  --color-warning: #D97706;
-  --color-warning-soft: #FFFBEB;
-  --color-danger: #DC2626;
-  --color-danger-soft: #FEF2F2;
+  --color-success-soft: #ecfdf5;
+  --color-warning: #d97706;
+  --color-warning-soft: #fffbeb;
+  --color-danger: #dc2626;
+  --color-danger-soft: #fef2f2;
 
   /* Info is used as the Interactive Cyan Accent */
-  --color-info: #1AA3E9;
-  --color-info-soft: #E0F4FE;
+  --color-info: #1aa3e9;
+  --color-info-soft: #e0f4fe;
 
   /* ========================================
    * 5. Shadows (Tight & High Contrast only)

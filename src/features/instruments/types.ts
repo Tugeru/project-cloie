@@ -43,7 +43,7 @@ export type TemplateLikertQuestionOption = {
 };
 
 export function listTemplateLikertQuestions(
-  structure: TemplateStructure,
+  structure: TemplateStructure
 ): TemplateLikertQuestionOption[] {
   return structure.flatMap((section) =>
     section.questions
@@ -53,7 +53,7 @@ export function listTemplateLikertQuestions(
         prompt: question.prompt,
         sectionKey: section.key,
         sectionTitle: section.title,
-      })),
+      }))
   );
 }
 

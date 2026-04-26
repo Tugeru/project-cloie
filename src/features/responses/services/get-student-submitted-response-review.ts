@@ -101,12 +101,13 @@ export function buildSubmittedResponseSections({
     name: section.title,
     description: section.description ?? "",
     items: getReviewItems(section).map((item) => {
-      const answerKey = item.kind === "quantitative"
-        ? buildStudentEvaluationAnswerKey(section.key, "quantitative", item.key)
-        : buildStudentEvaluationAnswerKey(section.key, "qualitative", item.key);
-      
+      const answerKey =
+        item.kind === "quantitative"
+          ? buildStudentEvaluationAnswerKey(section.key, "quantitative", item.key)
+          : buildStudentEvaluationAnswerKey(section.key, "qualitative", item.key);
+
       const rawAnswer = answers[answerKey];
-      
+
       let answer: string | number | undefined;
       if (item.kind === "quantitative") {
         answer = typeof rawAnswer === "number" ? rawAnswer : undefined;
@@ -118,10 +119,9 @@ export function buildSubmittedResponseSections({
       return {
         kind: item.kind,
         prompt: item.prompt,
-        ...(item.kind === "quantitative" 
+        ...(item.kind === "quantitative"
           ? { itemKey: item.key, answer: answer as number | undefined }
-          : { promptKey: item.key, answer: answer as string | undefined }
-        ),
+          : { promptKey: item.key, answer: answer as string | undefined }),
       };
     }),
   }));
@@ -152,7 +152,7 @@ function buildCentralProgramLabel(input: {
 }
 
 export async function getStudentSubmittedResponseReview(
-  responseId: string,
+  responseId: string
 ): Promise<SubmittedResponseReview | null> {
   const authSession = await resolveAuthSession();
 
@@ -207,11 +207,13 @@ export async function getStudentSubmittedResponseReview(
   const answers: Record<string, string | number> = {};
 
   for (const item of response.quant_items) {
-    answers[buildStudentEvaluationAnswerKey(item.section_key, "quantitative", item.item_key)] = item.rating_value;
+    answers[buildStudentEvaluationAnswerKey(item.section_key, "quantitative", item.item_key)] =
+      item.rating_value;
   }
 
   for (const item of response.qual_items) {
-    answers[buildStudentEvaluationAnswerKey(item.section_key, "qualitative", item.prompt_key)] = item.text_content;
+    answers[buildStudentEvaluationAnswerKey(item.section_key, "qualitative", item.prompt_key)] =
+      item.text_content;
   }
 
   if (response.assignment.course_bound) {
@@ -227,8 +229,7 @@ export async function getStudentSubmittedResponseReview(
       responseId: response.id,
       sections: buildSubmittedResponseSections({
         answers,
-        structureSnapshot:
-          response.assignment.course_bound.instrument.structure_snapshot,
+        structureSnapshot: response.assignment.course_bound.instrument.structure_snapshot,
       }),
       submittedAt: response.submitted_at,
     };
@@ -244,14 +245,12 @@ export async function getStudentSubmittedResponseReview(
         majorName: response.assignment.central_deployment.major?.name ?? null,
         programCode: response.assignment.central_deployment.program?.code ?? null,
         programName: response.assignment.central_deployment.program?.name ?? null,
-        yearLevelName:
-          response.assignment.central_deployment.year_level?.name ?? null,
+        yearLevelName: response.assignment.central_deployment.year_level?.name ?? null,
       }),
       responseId: response.id,
       sections: buildSubmittedResponseSections({
         answers,
-        structureSnapshot:
-          response.assignment.central_deployment.instrument.structure_snapshot,
+        structureSnapshot: response.assignment.central_deployment.instrument.structure_snapshot,
       }),
       submittedAt: response.submitted_at,
     };

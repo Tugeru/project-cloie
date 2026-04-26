@@ -3,10 +3,12 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ROLES } from "@/lib/constants/roles";
 import { resolveReviewerProgramScope } from "@/features/academic-structure/services/resolve-reviewer-program-scope";
 
-const { facultyProgramAffiliationFindManyMock, programHeadAssignmentFindManyMock } = vi.hoisted(() => ({
-  facultyProgramAffiliationFindManyMock: vi.fn(),
-  programHeadAssignmentFindManyMock: vi.fn(),
-}));
+const { facultyProgramAffiliationFindManyMock, programHeadAssignmentFindManyMock } = vi.hoisted(
+  () => ({
+    facultyProgramAffiliationFindManyMock: vi.fn(),
+    programHeadAssignmentFindManyMock: vi.fn(),
+  })
+);
 
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
@@ -35,7 +37,7 @@ describe("resolveReviewerProgramScope", () => {
       resolveReviewerProgramScope({
         reviewerId: "faculty-1",
         reviewerRole: ROLES.FACULTY,
-      }),
+      })
     ).resolves.toEqual(["program-1", "program-2"]);
 
     expect(facultyProgramAffiliationFindManyMock).toHaveBeenCalledWith({
@@ -55,7 +57,7 @@ describe("resolveReviewerProgramScope", () => {
       resolveReviewerProgramScope({
         reviewerId: "program-head-1",
         reviewerRole: ROLES.PROGRAM_HEAD,
-      }),
+      })
     ).resolves.toEqual(["program-2", "program-3"]);
 
     expect(programHeadAssignmentFindManyMock).toHaveBeenCalledWith({
@@ -70,7 +72,7 @@ describe("resolveReviewerProgramScope", () => {
       resolveReviewerProgramScope({
         reviewerId: "dean-1",
         reviewerRole: ROLES.DEAN,
-      }),
+      })
     ).resolves.toBeNull();
 
     expect(programHeadAssignmentFindManyMock).not.toHaveBeenCalled();

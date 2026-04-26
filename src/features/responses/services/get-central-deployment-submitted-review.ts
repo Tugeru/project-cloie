@@ -26,11 +26,7 @@ function buildProgramLabel(input: {
   yearLevelName: string | null;
 }): string {
   return (
-    [
-      input.programCode ?? input.programName ?? "Program-wide",
-      input.majorName,
-      input.yearLevelName,
-    ]
+    [input.programCode ?? input.programName ?? "Program-wide", input.majorName, input.yearLevelName]
       .filter((value): value is string => Boolean(value))
       .join(" • ") || "College-wide"
   );
@@ -46,7 +42,7 @@ function buildProgramLabel(input: {
  * can view it.
  */
 export async function getCentralDeploymentSubmittedReview(
-  responseId: string,
+  responseId: string
 ): Promise<CentralDeploymentSubmittedReview | null> {
   const authSession = await resolveAuthSession();
 
@@ -92,23 +88,13 @@ export async function getCentralDeploymentSubmittedReview(
   const answers: Record<string, string | number> = {};
 
   for (const item of response.quant_items) {
-    answers[
-      buildStudentEvaluationAnswerKey(
-        item.section_key,
-        "quantitative",
-        item.item_key,
-      )
-    ] = item.rating_value;
+    answers[buildStudentEvaluationAnswerKey(item.section_key, "quantitative", item.item_key)] =
+      item.rating_value;
   }
 
   for (const item of response.qual_items) {
-    answers[
-      buildStudentEvaluationAnswerKey(
-        item.section_key,
-        "qualitative",
-        item.prompt_key,
-      )
-    ] = item.text_content;
+    answers[buildStudentEvaluationAnswerKey(item.section_key, "qualitative", item.prompt_key)] =
+      item.text_content;
   }
 
   return {

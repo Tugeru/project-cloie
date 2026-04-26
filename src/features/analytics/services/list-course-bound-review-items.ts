@@ -79,7 +79,7 @@ export async function listCourseBoundReviewItems(): Promise<CourseBoundReviewLis
       .map((assignment) => assignment.response)
       .filter((response) => Boolean(response));
     const quantRatings = submittedResponses.flatMap((response) =>
-      response!.quant_items.map((item) => item.rating_value),
+      response!.quant_items.map((item) => item.rating_value)
     );
 
     return {

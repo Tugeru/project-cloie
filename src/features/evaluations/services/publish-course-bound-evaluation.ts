@@ -8,9 +8,7 @@ import type {
   PublishCourseBoundEvaluationResult,
 } from "../types";
 
-function buildPublicationStatus(
-  activationAt: Date | null | undefined,
-): "ACTIVE" | "SCHEDULED" {
+function buildPublicationStatus(activationAt: Date | null | undefined): "ACTIVE" | "SCHEDULED" {
   if (activationAt && activationAt.getTime() > Date.now()) {
     return DeploymentStatus.SCHEDULED;
   }
@@ -25,14 +23,19 @@ function toUniqueValues(values: string[]) {
 function isUniqueConstraintError(error: unknown) {
   return Boolean(
     error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error as { code?: string }).code === "P2002",
+    typeof error === "object" &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
   );
 }
 
 function isCourseContextDuplicatePublishError(error: unknown) {
-  if (!isUniqueConstraintError(error) || !error || typeof error !== "object" || !("meta" in error)) {
+  if (
+    !isUniqueConstraintError(error) ||
+    !error ||
+    typeof error !== "object" ||
+    !("meta" in error)
+  ) {
     return false;
   }
 
@@ -44,7 +47,9 @@ function isCourseContextDuplicatePublishError(error: unknown) {
 
   if (Array.isArray(target)) {
     const targetSet = new Set(target);
-    return ["course_id", "academic_year", "semester", "term"].every((field) => targetSet.has(field));
+    return ["course_id", "academic_year", "semester", "term"].every((field) =>
+      targetSet.has(field)
+    );
   }
 
   return false;

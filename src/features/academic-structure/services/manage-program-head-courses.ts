@@ -7,21 +7,19 @@ import type {
   UpdateProgramHeadCourseInput,
 } from "../schemas/program-head-course";
 
-type ServiceResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 function isUniqueConstraintError(error: unknown): boolean {
   return Boolean(
     error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error as { code?: string }).code === "P2002",
+    typeof error === "object" &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
   );
 }
 
 async function resolveAndValidatePHScope(
-  userId: string,
+  userId: string
 ): Promise<ServiceResult<{ programIds: string[] }>> {
   const assignments = await prisma.programHeadAssignment.findMany({
     where: { program_head_id: userId, is_active: true },
@@ -42,7 +40,7 @@ async function resolveAndValidatePHScope(
 
 async function validateMajorBelongsToProgram(
   majorId: string,
-  programIds: string[],
+  programIds: string[]
 ): Promise<ServiceResult<{ programId: string }>> {
   const major = await prisma.major.findUnique({
     where: { id: majorId },
@@ -68,7 +66,7 @@ async function validateMajorBelongsToProgram(
 }
 
 export async function createProgramHeadCourse(
-  input: CreateProgramHeadCourseInput,
+  input: CreateProgramHeadCourseInput
 ): Promise<ServiceResult<{ id: string }>> {
   const session = await resolveAuthSession();
 
@@ -92,10 +90,7 @@ export async function createProgramHeadCourse(
   let majorId: string | null = null;
 
   if (input.major_id) {
-    const majorResult = await validateMajorBelongsToProgram(
-      input.major_id,
-      programIds,
-    );
+    const majorResult = await validateMajorBelongsToProgram(input.major_id, programIds);
 
     if (!majorResult.success) {
       return majorResult;
@@ -135,7 +130,7 @@ export async function createProgramHeadCourse(
 }
 
 export async function updateProgramHeadCourse(
-  input: UpdateProgramHeadCourseInput,
+  input: UpdateProgramHeadCourseInput
 ): Promise<ServiceResult<{ id: string }>> {
   const session = await resolveAuthSession();
 
@@ -171,10 +166,7 @@ export async function updateProgramHeadCourse(
     };
   }
 
-  if (
-    !existingCourse.program_id ||
-    !programIds.includes(existingCourse.program_id)
-  ) {
+  if (!existingCourse.program_id || !programIds.includes(existingCourse.program_id)) {
     return {
       success: false,
       error: "You do not have permission to modify this course.",
@@ -185,10 +177,7 @@ export async function updateProgramHeadCourse(
   let majorId: string | null = null;
 
   if (input.major_id) {
-    const majorResult = await validateMajorBelongsToProgram(
-      input.major_id,
-      programIds,
-    );
+    const majorResult = await validateMajorBelongsToProgram(input.major_id, programIds);
 
     if (!majorResult.success) {
       return majorResult;
@@ -225,7 +214,7 @@ export async function updateProgramHeadCourse(
 
 export async function toggleProgramHeadCourseActive(
   id: string,
-  is_active: boolean,
+  is_active: boolean
 ): Promise<ServiceResult> {
   const session = await resolveAuthSession();
 
@@ -260,10 +249,7 @@ export async function toggleProgramHeadCourseActive(
     };
   }
 
-  if (
-    !existingCourse.program_id ||
-    !programIds.includes(existingCourse.program_id)
-  ) {
+  if (!existingCourse.program_id || !programIds.includes(existingCourse.program_id)) {
     return {
       success: false,
       error: "You do not have permission to modify this course.",

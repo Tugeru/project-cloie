@@ -27,12 +27,16 @@ export default async function DeanCiloReviewDetailPage({
 
       <section className="space-y-1">
         <h1 className="text-2xl font-bold">{detail.evaluationTitle}</h1>
-        <p className="text-sm text-text-muted">
-          {detail.courseTitle} | {detail.programLabel} | {detail.academicYear} {detail.semester} {detail.term}
+        <p className="text-text-muted text-sm">
+          {detail.courseTitle} | {detail.programLabel} | {detail.academicYear} {detail.semester}{" "}
+          {detail.term}
         </p>
       </section>
 
-      <CourseBoundReviewTabs detail={detail} responseBasePath={`/dean/cilo-reviews/${detail.evaluationId}`} />
+      <CourseBoundReviewTabs
+        detail={detail}
+        responseBasePath={`/dean/cilo-reviews/${detail.evaluationId}`}
+      />
     </div>
   );
 }

@@ -19,9 +19,7 @@ import {
 
 type ActionResult = { success: true } | { success: false; error: string };
 
-export async function createProgramAction(
-  formData: FormData
-): Promise<ActionResult> {
+export async function createProgramAction(formData: FormData): Promise<ActionResult> {
   const parsed = createProgramSchema.safeParse({
     code: formData.get("code"),
     name: formData.get("name"),
@@ -42,9 +40,7 @@ export async function createProgramAction(
   return { success: true };
 }
 
-export async function updateProgramAction(
-  formData: FormData
-): Promise<ActionResult> {
+export async function updateProgramAction(formData: FormData): Promise<ActionResult> {
   const parsed = updateProgramSchema.safeParse({
     id: formData.get("id"),
     code: formData.get("code"),
@@ -80,9 +76,7 @@ export async function toggleProgramActiveAction(
   return { success: true };
 }
 
-export async function createMajorAction(
-  formData: FormData
-): Promise<ActionResult> {
+export async function createMajorAction(formData: FormData): Promise<ActionResult> {
   const parsed = createMajorSchema.safeParse({
     program_id: formData.get("program_id"),
     name: formData.get("name"),
@@ -102,9 +96,7 @@ export async function createMajorAction(
   return { success: true };
 }
 
-export async function updateMajorAction(
-  formData: FormData
-): Promise<ActionResult> {
+export async function updateMajorAction(formData: FormData): Promise<ActionResult> {
   const parsed = updateMajorSchema.safeParse({
     id: formData.get("id"),
     name: formData.get("name"),

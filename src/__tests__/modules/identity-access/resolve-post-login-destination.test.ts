@@ -27,7 +27,7 @@ describe("resolvePostLoginDestination", () => {
         intent: "student",
         primaryRole: null,
         profileGate: { status: "ROLE_SELECTION_REQUIRED" },
-      }),
+      })
     ).toBe("/onboarding?intent=student");
   });
 
@@ -38,7 +38,7 @@ describe("resolvePostLoginDestination", () => {
         intent: null,
         primaryRole: ROLES.STUDENT,
         profileGate: { status: "STUDENT_ONBOARDING_REQUIRED", intent: "student" },
-      }),
+      })
     ).toBe("/onboarding?intent=student");
   });
 
@@ -49,7 +49,7 @@ describe("resolvePostLoginDestination", () => {
         intent: null,
         primaryRole: ROLES.STUDENT,
         profileGate: { status: "COMPLETE" },
-      }),
+      })
     ).toBe("/student/dashboard");
 
     expect(
@@ -58,7 +58,7 @@ describe("resolvePostLoginDestination", () => {
         intent: null,
         primaryRole: ROLES.ALUMNI,
         profileGate: { status: "COMPLETE" },
-      }),
+      })
     ).toBe("/alumni/dashboard");
 
     expect(
@@ -67,7 +67,7 @@ describe("resolvePostLoginDestination", () => {
         intent: null,
         primaryRole: ROLES.INDUSTRY_PARTNER,
         profileGate: { status: "COMPLETE" },
-      }),
+      })
     ).toBe("/industry-partner/dashboard");
   });
 
@@ -78,7 +78,7 @@ describe("resolvePostLoginDestination", () => {
         intent: null,
         primaryRole: ROLES.ADMIN,
         profileGate: { status: "COMPLETE" },
-      }),
+      })
     ).toBe("/profile");
   });
 
@@ -89,7 +89,7 @@ describe("resolvePostLoginDestination", () => {
         intent: null,
         primaryRole: ROLES.ADMIN,
         profileGate: { status: "COMPLETE" },
-      }),
+      })
     ).toBe("/admin/dashboard");
 
     expect(
@@ -98,7 +98,7 @@ describe("resolvePostLoginDestination", () => {
         intent: null,
         primaryRole: ROLES.FACULTY,
         profileGate: { status: "COMPLETE" },
-      }),
+      })
     ).toBe("/faculty/dashboard");
   });
 });

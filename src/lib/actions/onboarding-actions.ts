@@ -8,7 +8,10 @@ import { studentProfileSchema, type StudentProfileInput } from "@/lib/schemas/st
 export async function registerStudentProfile(data: StudentProfileInput) {
   try {
     const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user || !user.email) {
       return { error: "Authentication session invalid or missing." };
@@ -17,7 +20,7 @@ export async function registerStudentProfile(data: StudentProfileInput) {
     const validatedData = studentProfileSchema.parse(data);
 
     // Determine current Academic Year
-    // TODO: Tech Debt - This naive calendar-year logic fails for overlapping semesters 
+    // TODO: Tech Debt - This naive calendar-year logic fails for overlapping semesters
     // (e.g., enrolling in Jan 2027 for the 2nd semester of AY 2026-2027 yields "2027-2028").
     // Must be replaced with a central "Active Academic Term" global setting query.
     const currentYear = new Date().getFullYear();
@@ -76,6 +79,11 @@ export async function registerStudentProfile(data: StudentProfileInput) {
     return { success: true };
   } catch (error: unknown) {
     console.error("Failed to register student profile:", error);
-    return { error: error instanceof Error ? error.message : "An unexpected error occurred during database persistence." };
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred during database persistence.",
+    };
   }
 }

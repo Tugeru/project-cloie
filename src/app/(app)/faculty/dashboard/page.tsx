@@ -1,16 +1,6 @@
 import { redirect } from "next/navigation";
-import {
-  BarChart3,
-  Clock,
-  FileCheck,
-  Layers,
-} from "lucide-react";
-import {
-  Card,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { BarChart3, Clock, FileCheck, Layers } from "lucide-react";
+import { Card, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { getFacultyDashboard } from "@/features/analytics/services/get-faculty-dashboard";
 import { CourseMeanPieChart } from "@/features/analytics/components/course-mean-pie-chart";
@@ -31,7 +21,7 @@ export default async function FacultyDashboardPage() {
       <div className="space-y-2">
         <h1 className="text-heading-lg">Dashboard</h1>
         <p className="text-body-md text-text-secondary">
-          <span className="font-semibold text-primary">
+          <span className="text-primary font-semibold">
             {dashboard.programCode} — {dashboard.programLabel}
           </span>{" "}
           · Evaluation insights and response analytics
@@ -43,22 +33,22 @@ export default async function FacultyDashboardPage() {
         <KPICard
           label="Active Evaluations"
           value={dashboard.kpi.activeEvaluations}
-          icon={<Layers className="size-5 text-muted-foreground" />}
+          icon={<Layers className="text-muted-foreground size-5" />}
         />
         <KPICard
           label="Responses Received"
           value={dashboard.kpi.totalResponses}
-          icon={<FileCheck className="size-5 text-muted-foreground" />}
+          icon={<FileCheck className="text-muted-foreground size-5" />}
         />
         <KPICard
           label="Overall Mean"
           value={dashboard.kpi.overallMean ?? "—"}
-          icon={<BarChart3 className="size-5 text-muted-foreground" />}
+          icon={<BarChart3 className="text-muted-foreground size-5" />}
         />
         <KPICard
           label="Pending Responses"
           value={dashboard.kpi.pendingResponses}
-          icon={<Clock className="size-5 text-muted-foreground" />}
+          icon={<Clock className="text-muted-foreground size-5" />}
         />
       </div>
 
@@ -94,7 +84,7 @@ function KPICard({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardDescription className="text-xs font-semibold uppercase tracking-wider">
+          <CardDescription className="text-xs font-semibold tracking-wider uppercase">
             {label}
           </CardDescription>
           {icon}

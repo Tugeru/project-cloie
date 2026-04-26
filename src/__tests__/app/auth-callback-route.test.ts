@@ -7,12 +7,12 @@ const {
   resolveAuthSessionFromUserMock,
   resolvePostLoginDestinationMock,
 } = vi.hoisted(() => ({
-    exchangeCodeForSessionMock: vi.fn(),
-    signOutMock: vi.fn(),
-    resolveAuthSessionMock: vi.fn(),
-    resolveAuthSessionFromUserMock: vi.fn(),
-    resolvePostLoginDestinationMock: vi.fn(),
-  }));
+  exchangeCodeForSessionMock: vi.fn(),
+  signOutMock: vi.fn(),
+  resolveAuthSessionMock: vi.fn(),
+  resolveAuthSessionFromUserMock: vi.fn(),
+  resolvePostLoginDestinationMock: vi.fn(),
+}));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
@@ -120,7 +120,9 @@ describe("auth callback route", () => {
       data: { user: { id: "user-3", email: "user@acd.edu.ph" } },
     });
 
-    const response = await GET(new Request("https://cloie.test/api/auth/callback?code=abc&next=profile"));
+    const response = await GET(
+      new Request("https://cloie.test/api/auth/callback?code=abc&next=profile")
+    );
 
     expect(resolvePostLoginDestinationMock).toHaveBeenCalledWith({
       requestedPath: "profile",

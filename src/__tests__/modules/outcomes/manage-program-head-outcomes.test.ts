@@ -78,13 +78,9 @@ describe("manage-program-head-outcomes", () => {
 
     // Default: PH is authenticated with an active program assignment
     resolveAuthSessionMock.mockResolvedValue(PH_SESSION);
-    programHeadAssignmentFindManyMock.mockResolvedValue([
-      { program_id: PROGRAM_ID },
-    ]);
+    programHeadAssignmentFindManyMock.mockResolvedValue([{ program_id: PROGRAM_ID }]);
 
-    const mod = await import(
-      "@/features/outcomes/services/manage-program-head-outcomes"
-    );
+    const mod = await import("@/features/outcomes/services/manage-program-head-outcomes");
     listProgramGOs = mod.listProgramGOs;
     createGO = mod.createGO;
     updateGO = mod.updateGO;
@@ -260,8 +256,7 @@ describe("manage-program-head-outcomes", () => {
 
     expect(result).toEqual({
       success: false,
-      error:
-        "Cannot delete GO with existing CILO mappings. Remove mappings first.",
+      error: "Cannot delete GO with existing CILO mappings. Remove mappings first.",
     });
     expect(goDeleteMock).not.toHaveBeenCalled();
   });

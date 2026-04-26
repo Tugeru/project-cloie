@@ -2,21 +2,19 @@ import { SystemRole } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import type { CreateAdminUserInput } from "../schemas/create-user";
 
-type ServiceResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 function isUniqueConstraintError(error: unknown): boolean {
   return Boolean(
     error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error as { code?: string }).code === "P2002",
+    typeof error === "object" &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
   );
 }
 
 export async function createAdminUser(
-  input: CreateAdminUserInput,
+  input: CreateAdminUserInput
 ): Promise<ServiceResult<{ id: string }>> {
   const { first_name, last_name, email, role, program_ids, program_id, major_id } = input;
 
@@ -80,8 +78,7 @@ export async function createAdminUser(
         }
 
         case SystemRole.INDUSTRY_PARTNER: {
-          const primaryProgramId =
-            program_ids && program_ids.length > 0 ? program_ids[0] : null;
+          const primaryProgramId = program_ids && program_ids.length > 0 ? program_ids[0] : null;
           await tx.industryPartnerProfile.create({
             data: {
               user_id: newUser.id,

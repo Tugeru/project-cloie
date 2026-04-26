@@ -5,11 +5,6 @@ export default async function DeanCoursesPage() {
   const { courses, kpi, programs } = await listAdminCoursesSummary();
 
   return (
-    <AdminCoursesList
-      courses={courses}
-      kpi={kpi}
-      programs={programs}
-      basePath="/dean/courses"
-    />
+    <AdminCoursesList courses={courses} kpi={kpi} programs={programs} basePath="/dean/courses" />
   );
 }

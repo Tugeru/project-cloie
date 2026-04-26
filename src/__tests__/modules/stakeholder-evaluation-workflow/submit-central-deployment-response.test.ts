@@ -1,18 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const {
-  createMock,
-  findAssignmentMock,
-  findResponseMock,
-  resolveAuthSessionMock,
-  updateMock,
-} = vi.hoisted(() => ({
-  createMock: vi.fn(),
-  findAssignmentMock: vi.fn(),
-  findResponseMock: vi.fn(),
-  resolveAuthSessionMock: vi.fn(),
-  updateMock: vi.fn(),
-}));
+const { createMock, findAssignmentMock, findResponseMock, resolveAuthSessionMock, updateMock } =
+  vi.hoisted(() => ({
+    createMock: vi.fn(),
+    findAssignmentMock: vi.fn(),
+    findResponseMock: vi.fn(),
+    resolveAuthSessionMock: vi.fn(),
+    updateMock: vi.fn(),
+  }));
 
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
@@ -97,9 +92,8 @@ describe("submitCentralDeploymentResponse", () => {
   it("rejects unauthenticated requests", async () => {
     resolveAuthSessionMock.mockResolvedValue(null);
 
-    const { submitCentralDeploymentResponse } = await import(
-      "@/features/responses/services/submit-central-deployment-response"
-    );
+    const { submitCentralDeploymentResponse } =
+      await import("@/features/responses/services/submit-central-deployment-response");
 
     const result = await submitCentralDeploymentResponse({
       assignmentId: "assignment-1",
@@ -116,9 +110,8 @@ describe("submitCentralDeploymentResponse", () => {
     resolveAuthSessionMock.mockResolvedValue({ userId: "user-1" });
     findAssignmentMock.mockResolvedValue(null);
 
-    const { submitCentralDeploymentResponse } = await import(
-      "@/features/responses/services/submit-central-deployment-response"
-    );
+    const { submitCentralDeploymentResponse } =
+      await import("@/features/responses/services/submit-central-deployment-response");
 
     const result = await submitCentralDeploymentResponse({
       assignmentId: "nonexistent-assignment",
@@ -137,15 +130,14 @@ describe("submitCentralDeploymentResponse", () => {
       makeAssignment({
         activationAt: new Date("2026-03-01T00:00:00.000Z"),
         deadlineAt: new Date("2026-03-15T00:00:00.000Z"),
-      }),
+      })
     );
 
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-01T00:00:00.000Z"));
 
-    const { submitCentralDeploymentResponse } = await import(
-      "@/features/responses/services/submit-central-deployment-response"
-    );
+    const { submitCentralDeploymentResponse } =
+      await import("@/features/responses/services/submit-central-deployment-response");
 
     const result = await submitCentralDeploymentResponse({
       assignmentId: "assignment-1",
@@ -168,9 +160,8 @@ describe("submitCentralDeploymentResponse", () => {
       status: "SUBMITTED",
     });
 
-    const { submitCentralDeploymentResponse } = await import(
-      "@/features/responses/services/submit-central-deployment-response"
-    );
+    const { submitCentralDeploymentResponse } =
+      await import("@/features/responses/services/submit-central-deployment-response");
 
     const result = await submitCentralDeploymentResponse({
       assignmentId: "assignment-1",
@@ -189,9 +180,8 @@ describe("submitCentralDeploymentResponse", () => {
     findResponseMock.mockResolvedValue({ id: "response-1", status: "IN_PROGRESS" });
     updateMock.mockResolvedValue({ id: "response-1" });
 
-    const { submitCentralDeploymentResponse } = await import(
-      "@/features/responses/services/submit-central-deployment-response"
-    );
+    const { submitCentralDeploymentResponse } =
+      await import("@/features/responses/services/submit-central-deployment-response");
 
     const result = await submitCentralDeploymentResponse({
       assignmentId: "assignment-1",
@@ -211,7 +201,7 @@ describe("submitCentralDeploymentResponse", () => {
           status: "SUBMITTED",
         }),
         where: { id: "response-1" },
-      }),
+      })
     );
   });
 
@@ -221,9 +211,8 @@ describe("submitCentralDeploymentResponse", () => {
     findResponseMock.mockResolvedValue({ id: "response-1", status: "IN_PROGRESS" });
     updateMock.mockResolvedValue({ id: "response-1" });
 
-    const { submitCentralDeploymentResponse } = await import(
-      "@/features/responses/services/submit-central-deployment-response"
-    );
+    const { submitCentralDeploymentResponse } =
+      await import("@/features/responses/services/submit-central-deployment-response");
 
     await submitCentralDeploymentResponse({
       assignmentId: "assignment-1",
@@ -236,7 +225,7 @@ describe("submitCentralDeploymentResponse", () => {
           status: "SUBMITTED",
           submitted_at: expect.any(Date),
         }),
-      }),
+      })
     );
   });
 
@@ -247,9 +236,8 @@ describe("submitCentralDeploymentResponse", () => {
     createMock.mockResolvedValue({ id: "new-response-1", status: "IN_PROGRESS" });
     updateMock.mockResolvedValue({ id: "new-response-1" });
 
-    const { submitCentralDeploymentResponse } = await import(
-      "@/features/responses/services/submit-central-deployment-response"
-    );
+    const { submitCentralDeploymentResponse } =
+      await import("@/features/responses/services/submit-central-deployment-response");
 
     const result = await submitCentralDeploymentResponse({
       assignmentId: "assignment-1",
@@ -271,7 +259,7 @@ describe("submitCentralDeploymentResponse", () => {
           respondent_id: "user-1",
           status: "IN_PROGRESS",
         }),
-      }),
+      })
     );
   });
 
@@ -283,9 +271,8 @@ describe("submitCentralDeploymentResponse", () => {
       central_deployment: null,
     });
 
-    const { submitCentralDeploymentResponse } = await import(
-      "@/features/responses/services/submit-central-deployment-response"
-    );
+    const { submitCentralDeploymentResponse } =
+      await import("@/features/responses/services/submit-central-deployment-response");
 
     const result = await submitCentralDeploymentResponse({
       assignmentId: "assignment-1",

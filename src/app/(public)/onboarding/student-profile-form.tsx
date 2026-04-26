@@ -4,10 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { customZodResolver } from "@/lib/forms/zod-resolver";
-import {
-  studentProfileSchema,
-  type StudentProfileInput,
-} from "@/lib/schemas/student-profile";
+import { studentProfileSchema, type StudentProfileInput } from "@/lib/schemas/student-profile";
 import { registerStudentProfile } from "@/lib/actions/onboarding-actions";
 import { createClient } from "@/lib/supabase/client";
 
@@ -16,14 +13,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  AlertCircle,
-  ArrowLeft,
-  ArrowRight,
-  GraduationCap,
-  Mail,
-  UserCircle,
-} from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, GraduationCap, Mail, UserCircle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -83,8 +73,7 @@ export function StudentProfileForm({
 
   const selectedProgramId = watch("program_id");
   const selectedProgramObj = programs.find((p) => p.id === selectedProgramId);
-  const requiresMajor =
-    selectedProgramObj?.majors && selectedProgramObj.majors.length > 0;
+  const requiresMajor = selectedProgramObj?.majors && selectedProgramObj.majors.length > 0;
 
   // Lookup helpers to display labels instead of UUIDs
   const getProgramLabel = (id: string) => {
@@ -121,34 +110,30 @@ export function StudentProfileForm({
   };
 
   return (
-    <Card className="overflow-hidden border-border shadow-lg">
+    <Card className="border-border overflow-hidden shadow-lg">
       {/* Step indicator header */}
-      <div className="flex items-center justify-between border-b border-border bg-surface px-6 py-3">
-        <span className="text-label-md font-bold uppercase tracking-wider text-primary">
+      <div className="border-border bg-surface flex items-center justify-between border-b px-6 py-3">
+        <span className="text-label-md text-primary font-bold tracking-wider uppercase">
           Onboarding
         </span>
         <span className="text-caption text-text-muted">Step 1 of 1</span>
       </div>
-      <div className="h-1 w-full bg-primary" />
+      <div className="bg-primary h-1 w-full" />
 
       <form onSubmit={handleSubmit(onSubmit)}>
         <CardContent className="space-y-8 px-6 py-8 sm:px-8">
           {/* Page heading */}
           <div className="space-y-1">
-            <h1 className="font-heading text-2xl font-bold text-text-primary">
+            <h1 className="font-heading text-text-primary text-2xl font-bold">
               Student Profile Setup
             </h1>
             <p className="text-body-sm text-text-secondary">
-              Please provide your academic details to continue with your
-              registration.
+              Please provide your academic details to continue with your registration.
             </p>
           </div>
 
           {globalError && (
-            <Alert
-              variant="destructive"
-              className="border-danger/50 bg-danger-soft text-danger"
-            >
+            <Alert variant="destructive" className="border-danger/50 bg-danger-soft text-danger">
               <AlertCircle className="size-4" />
               <AlertDescription>{globalError}</AlertDescription>
             </Alert>
@@ -157,8 +142,8 @@ export function StudentProfileForm({
           {/* Section: Identity Information */}
           <div className="space-y-5">
             <div className="flex items-center gap-2">
-              <UserCircle className="size-5 text-primary" />
-              <h2 className="text-label-lg font-bold uppercase tracking-wider text-primary">
+              <UserCircle className="text-primary size-5" />
+              <h2 className="text-label-lg text-primary font-bold tracking-wider uppercase">
                 Identity Information
               </h2>
             </div>
@@ -167,66 +152,50 @@ export function StudentProfileForm({
               <div className="space-y-2">
                 <Label
                   htmlFor="first_name"
-                  className="text-label-sm font-semibold uppercase tracking-wider text-text-secondary"
+                  className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase"
                 >
                   First Name
                 </Label>
                 <Input
                   id="first_name"
                   {...register("first_name")}
-                  className={
-                    errors.first_name
-                      ? "border-danger focus-visible:ring-danger"
-                      : ""
-                  }
+                  className={errors.first_name ? "border-danger focus-visible:ring-danger" : ""}
                 />
                 {errors.first_name && (
-                  <p className="text-xs text-danger">
-                    {errors.first_name.message}
-                  </p>
+                  <p className="text-danger text-xs">{errors.first_name.message}</p>
                 )}
               </div>
 
               <div className="space-y-2">
                 <Label
                   htmlFor="last_name"
-                  className="text-label-sm font-semibold uppercase tracking-wider text-text-secondary"
+                  className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase"
                 >
                   Last Name
                 </Label>
                 <Input
                   id="last_name"
                   {...register("last_name")}
-                  className={
-                    errors.last_name
-                      ? "border-danger focus-visible:ring-danger"
-                      : ""
-                  }
+                  className={errors.last_name ? "border-danger focus-visible:ring-danger" : ""}
                 />
                 {errors.last_name && (
-                  <p className="text-xs text-danger">
-                    {errors.last_name.message}
-                  </p>
+                  <p className="text-danger text-xs">{errors.last_name.message}</p>
                 )}
               </div>
             </div>
 
             {initialFirstName && (
-              <p className="text-caption text-text-muted">
-                Retrieved from your Google account
-              </p>
+              <p className="text-caption text-text-muted">Retrieved from your Google account</p>
             )}
 
             {/* Institutional Email */}
             <div className="space-y-2">
-              <Label className="text-label-sm font-semibold uppercase tracking-wider text-text-secondary">
+              <Label className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase">
                 Institutional Email
               </Label>
-              <div className="flex items-center gap-3 rounded-lg border border-border bg-surface-muted px-4 py-2.5">
-                <Mail className="size-4 shrink-0 text-text-muted" />
-                <span className="text-body-md text-text-secondary">
-                  {email}
-                </span>
+              <div className="border-border bg-surface-muted flex items-center gap-3 rounded-lg border px-4 py-2.5">
+                <Mail className="text-text-muted size-4 shrink-0" />
+                <span className="text-body-md text-text-secondary">{email}</span>
               </div>
             </div>
           </div>
@@ -234,15 +203,15 @@ export function StudentProfileForm({
           {/* Section: Academic Records */}
           <div className="space-y-5">
             <div className="flex items-center gap-2">
-              <GraduationCap className="size-5 text-primary" />
-              <h2 className="text-label-lg font-bold uppercase tracking-wider text-primary">
+              <GraduationCap className="text-primary size-5" />
+              <h2 className="text-label-lg text-primary font-bold tracking-wider uppercase">
                 Academic Records
               </h2>
             </div>
 
             {/* Academic Program */}
             <div className="space-y-2">
-              <Label className="text-label-sm font-semibold uppercase tracking-wider text-text-secondary">
+              <Label className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase">
                 Academic Program
               </Label>
               <Controller
@@ -250,9 +219,7 @@ export function StudentProfileForm({
                 control={control}
                 render={({ field }) => (
                   <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger
-                      className={`w-full ${errors.program_id ? "border-danger" : ""}`}
-                    >
+                    <SelectTrigger className={`w-full ${errors.program_id ? "border-danger" : ""}`}>
                       <SelectValue placeholder="Select your program">
                         {field.value ? getProgramLabel(field.value) : null}
                       </SelectValue>
@@ -268,7 +235,7 @@ export function StudentProfileForm({
                 )}
               />
               {errors.program_id && (
-                <p className="flex items-center gap-1 text-xs text-danger">
+                <p className="text-danger flex items-center gap-1 text-xs">
                   <AlertCircle className="size-3" />
                   {errors.program_id.message}
                 </p>
@@ -277,7 +244,7 @@ export function StudentProfileForm({
 
             {/* Major — conditional */}
             <div className="space-y-2">
-              <Label className="text-label-sm font-semibold uppercase tracking-wider text-text-secondary">
+              <Label className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase">
                 Major (if applicable)
               </Label>
               {requiresMajor ? (
@@ -285,18 +252,11 @@ export function StudentProfileForm({
                   name="major_id"
                   control={control}
                   rules={{
-                    required: requiresMajor
-                      ? "A major is required for this program"
-                      : false,
+                    required: requiresMajor ? "A major is required for this program" : false,
                   }}
                   render={({ field }) => (
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value || ""}
-                    >
-                      <SelectTrigger
-                        className={`w-full ${errors.major_id ? "border-danger" : ""}`}
-                      >
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <SelectTrigger className={`w-full ${errors.major_id ? "border-danger" : ""}`}>
                         <SelectValue placeholder="Select your major">
                           {field.value ? getMajorLabel(field.value) : null}
                         </SelectValue>
@@ -312,14 +272,12 @@ export function StudentProfileForm({
                   )}
                 />
               ) : (
-                <div className="flex items-center rounded-lg border border-border bg-surface-muted px-4 py-2.5">
-                  <span className="text-body-md text-text-muted">
-                    General / No Major
-                  </span>
+                <div className="border-border bg-surface-muted flex items-center rounded-lg border px-4 py-2.5">
+                  <span className="text-body-md text-text-muted">General / No Major</span>
                 </div>
               )}
               {errors.major_id && (
-                <p className="flex items-center gap-1 text-xs text-danger">
+                <p className="text-danger flex items-center gap-1 text-xs">
                   <AlertCircle className="size-3" />
                   {errors.major_id.message}
                 </p>
@@ -331,7 +289,7 @@ export function StudentProfileForm({
               <div className="space-y-2">
                 <Label
                   htmlFor="student_id_number"
-                  className="text-label-sm font-semibold uppercase tracking-wider text-text-secondary"
+                  className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase"
                 >
                   School ID Number
                 </Label>
@@ -340,13 +298,11 @@ export function StudentProfileForm({
                   placeholder="e.g., 1000816695"
                   {...register("student_id_number")}
                   className={
-                    errors.student_id_number
-                      ? "border-danger focus-visible:ring-danger"
-                      : ""
+                    errors.student_id_number ? "border-danger focus-visible:ring-danger" : ""
                   }
                 />
                 {errors.student_id_number && (
-                  <p className="flex items-center gap-1 text-xs text-danger">
+                  <p className="text-danger flex items-center gap-1 text-xs">
                     <AlertCircle className="size-3" />
                     Required field
                   </p>
@@ -354,7 +310,7 @@ export function StudentProfileForm({
               </div>
 
               <div className="space-y-2">
-                <Label className="text-label-sm font-semibold uppercase tracking-wider text-text-secondary">
+                <Label className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase">
                   Year Level
                 </Label>
                 <Controller
@@ -366,9 +322,7 @@ export function StudentProfileForm({
                         className={`w-full ${errors.year_level_id ? "border-danger" : ""}`}
                       >
                         <SelectValue placeholder="Select year">
-                          {field.value
-                            ? getYearLevelLabel(field.value)
-                            : null}
+                          {field.value ? getYearLevelLabel(field.value) : null}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
@@ -382,7 +336,7 @@ export function StudentProfileForm({
                   )}
                 />
                 {errors.year_level_id && (
-                  <p className="flex items-center gap-1 text-xs text-danger">
+                  <p className="text-danger flex items-center gap-1 text-xs">
                     <AlertCircle className="size-3" />
                     {errors.year_level_id.message}
                   </p>
@@ -392,7 +346,7 @@ export function StudentProfileForm({
           </div>
         </CardContent>
 
-        <CardFooter className="flex flex-col gap-3 px-6 pb-8 pt-2 sm:px-8">
+        <CardFooter className="flex flex-col gap-3 px-6 pt-2 pb-8 sm:px-8">
           <Button
             type="submit"
             className="w-full gap-2 py-6 text-base font-semibold"
@@ -404,7 +358,7 @@ export function StudentProfileForm({
 
           <button
             type="button"
-            className="flex items-center justify-center gap-2 py-2 text-sm font-medium text-text-muted transition-colors hover:text-text-primary"
+            className="text-text-muted hover:text-text-primary flex items-center justify-center gap-2 py-2 text-sm font-medium transition-colors"
             onClick={async () => {
               const supabase = createClient();
               await supabase.auth.signOut();

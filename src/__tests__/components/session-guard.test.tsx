@@ -4,15 +4,19 @@ import { ROLES } from "@/lib/constants/roles";
 
 const REDIRECT_ERROR = "NEXT_REDIRECT";
 
-const { redirectMock, resolveAuthSessionMock, resolvePostLoginDestinationMock, ensureRoleAccessMock } =
-  vi.hoisted(() => ({
-    redirectMock: vi.fn((path: string) => {
-      throw new Error(`${REDIRECT_ERROR}:${path}`);
-    }),
-    resolveAuthSessionMock: vi.fn(),
-    resolvePostLoginDestinationMock: vi.fn(),
-    ensureRoleAccessMock: vi.fn(),
-  }));
+const {
+  redirectMock,
+  resolveAuthSessionMock,
+  resolvePostLoginDestinationMock,
+  ensureRoleAccessMock,
+} = vi.hoisted(() => ({
+  redirectMock: vi.fn((path: string) => {
+    throw new Error(`${REDIRECT_ERROR}:${path}`);
+  }),
+  resolveAuthSessionMock: vi.fn(),
+  resolvePostLoginDestinationMock: vi.fn(),
+  ensureRoleAccessMock: vi.fn(),
+}));
 
 vi.mock("next/navigation", () => ({
   redirect: redirectMock,
@@ -42,7 +46,9 @@ describe("SessionGuard", () => {
   it("redirects unauthenticated users to login", async () => {
     resolveAuthSessionMock.mockResolvedValue(null);
 
-    await expect(SessionGuard({ children: <div>Protected</div> })).rejects.toThrow(`${REDIRECT_ERROR}:/login`);
+    await expect(SessionGuard({ children: <div>Protected</div> })).rejects.toThrow(
+      `${REDIRECT_ERROR}:/login`
+    );
   });
 
   it("redirects onboarding-required users through resolvePostLoginDestination", async () => {
@@ -52,7 +58,7 @@ describe("SessionGuard", () => {
     });
 
     await expect(SessionGuard({ children: <div>Protected</div> })).rejects.toThrow(
-      `${REDIRECT_ERROR}:/onboarding?intent=student`,
+      `${REDIRECT_ERROR}:/onboarding?intent=student`
     );
     expect(resolvePostLoginDestinationMock).toHaveBeenCalledWith({
       requestedPath: "/dashboard",
@@ -70,9 +76,9 @@ describe("SessionGuard", () => {
     });
     ensureRoleAccessMock.mockReturnValue("/unauthorized");
 
-    await expect(SessionGuard({ children: <div>Protected</div>, allowedRoles: [ROLES.ADMIN] })).rejects.toThrow(
-      `${REDIRECT_ERROR}:/unauthorized`,
-    );
+    await expect(
+      SessionGuard({ children: <div>Protected</div>, allowedRoles: [ROLES.ADMIN] })
+    ).rejects.toThrow(`${REDIRECT_ERROR}:/unauthorized`);
     expect(ensureRoleAccessMock).toHaveBeenCalledWith({
       primaryRole: ROLES.FACULTY,
       roles: [ROLES.FACULTY],
@@ -109,7 +115,7 @@ describe("SessionGuard", () => {
       SessionGuard({
         children: <div>Protected</div>,
         allowedRoles: [ROLES.FACULTY],
-      }),
+      })
     ).rejects.toThrow(`${REDIRECT_ERROR}:/onboarding?intent=student`);
   });
 
@@ -121,7 +127,10 @@ describe("SessionGuard", () => {
       profileGate: { status: "COMPLETE" },
     });
 
-    const result = await SessionGuard({ children: <div>Allowed Content</div>, allowedRoles: [ROLES.ADMIN] });
+    const result = await SessionGuard({
+      children: <div>Allowed Content</div>,
+      allowedRoles: [ROLES.ADMIN],
+    });
 
     render(result);
     expect(screen.getByText("Allowed Content")).toBeInTheDocument();

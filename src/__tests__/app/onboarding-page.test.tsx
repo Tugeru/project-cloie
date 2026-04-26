@@ -28,7 +28,9 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("next/link", () => ({
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => <a href={href}>{children}</a>,
+  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -97,9 +99,9 @@ describe("OnboardingPage", () => {
       error: new Error("auth failed"),
     });
 
-    await expect(
-      OnboardingPage({ searchParams: Promise.resolve({}) })
-    ).rejects.toThrow(`${REDIRECT_ERROR}:/login`);
+    await expect(OnboardingPage({ searchParams: Promise.resolve({}) })).rejects.toThrow(
+      `${REDIRECT_ERROR}:/login`
+    );
   });
 
   it("redirects complete users through resolvePostLoginDestination", async () => {
@@ -108,9 +110,9 @@ describe("OnboardingPage", () => {
       profileGate: { status: "COMPLETE" },
     });
 
-    await expect(
-      OnboardingPage({ searchParams: Promise.resolve({}) })
-    ).rejects.toThrow(`${REDIRECT_ERROR}:/student/dashboard`);
+    await expect(OnboardingPage({ searchParams: Promise.resolve({}) })).rejects.toThrow(
+      `${REDIRECT_ERROR}:/student/dashboard`
+    );
     expect(resolvePostLoginDestinationMock).toHaveBeenCalledWith({
       requestedPath: "/dashboard",
       intent: null,

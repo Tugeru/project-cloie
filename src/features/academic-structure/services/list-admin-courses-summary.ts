@@ -100,9 +100,7 @@ export async function listAdminCoursesSummary(): Promise<{
       description: c.description,
       courseScope: c.course_scope,
       courseScopeLabel:
-        c.course_scope === CourseScope.GENERAL_EDUCATION
-          ? "General Education"
-          : "Program-Specific",
+        c.course_scope === CourseScope.GENERAL_EDUCATION ? "General Education" : "Program-Specific",
       isActive: c.is_active,
       programId: c.program?.id ?? null,
       programCode: c.program?.code ?? null,

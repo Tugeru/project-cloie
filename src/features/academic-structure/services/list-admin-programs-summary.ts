@@ -62,9 +62,7 @@ export async function listAdminProgramsSummary(): Promise<{
     if (p.majors.length > 0) programsWithMajors++;
     totalMajors += p.majors.length;
 
-    const activeMajorNames = p.majors
-      .filter((m) => m.is_active)
-      .map((m) => m.name);
+    const activeMajorNames = p.majors.filter((m) => m.is_active).map((m) => m.name);
 
     return {
       id: p.id,

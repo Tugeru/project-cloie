@@ -15,9 +15,7 @@ import {
  * Thin `"use server"` wrapper — authenticates via session, works for any
  * stakeholder role (ALUMNI, INDUSTRY_PARTNER, GRADUATING_STUDENT).
  */
-export async function saveCentralDeploymentDraftAction(
-  payload: SaveCentralDeploymentDraftInput,
-) {
+export async function saveCentralDeploymentDraftAction(payload: SaveCentralDeploymentDraftInput) {
   return await saveCentralDeploymentDraft(payload);
 }
 
@@ -28,7 +26,7 @@ export async function saveCentralDeploymentDraftAction(
  * stakeholder role (ALUMNI, INDUSTRY_PARTNER, GRADUATING_STUDENT).
  */
 export async function submitCentralDeploymentResponseAction(
-  payload: SubmitCentralDeploymentResponseInput,
+  payload: SubmitCentralDeploymentResponseInput
 ) {
   return await submitCentralDeploymentResponse(payload);
 }

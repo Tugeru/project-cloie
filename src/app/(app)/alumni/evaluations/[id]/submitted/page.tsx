@@ -7,11 +7,7 @@ import { getCentralDeploymentEvaluationSession } from "@/features/responses/serv
 import { getCentralDeploymentSubmittedReview } from "@/features/responses/services/get-central-deployment-submitted-review";
 import { SubmittedResponseReview } from "@/features/responses/components/submitted-response-review";
 
-export default async function AlumniSubmittedPage({
-  params,
-}: {
-  params: Promise<{ id: string }>;
-}) {
+export default async function AlumniSubmittedPage({ params }: { params: Promise<{ id: string }> }) {
   const session = await resolveAuthSession();
 
   if (!session) {
@@ -21,24 +17,21 @@ export default async function AlumniSubmittedPage({
   const { id: deploymentId } = await params;
 
   // Get the session to find the responseId
-  const evalSession =
-    await getCentralDeploymentEvaluationSession(deploymentId);
+  const evalSession = await getCentralDeploymentEvaluationSession(deploymentId);
 
   // If no session or no submitted response, redirect back
   if (!evalSession?.session.responseId) {
     redirect(`/alumni/evaluations/${deploymentId}`);
   }
 
-  const review = await getCentralDeploymentSubmittedReview(
-    evalSession.session.responseId,
-  );
+  const review = await getCentralDeploymentSubmittedReview(evalSession.session.responseId);
 
   if (!review) {
     notFound();
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="animate-in fade-in space-y-6 duration-500">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
         <Link href="/alumni/evaluations">
           <ArrowLeft className="mr-2 size-4" /> Back to Evaluations

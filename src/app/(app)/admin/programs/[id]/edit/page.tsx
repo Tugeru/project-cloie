@@ -21,10 +21,7 @@ export default async function EditProgramPage({ params }: Props) {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link
-          href="/admin/programs"
-          className={buttonVariants({ variant: "outline", size: "sm" })}
-        >
+        <Link href="/admin/programs" className={buttonVariants({ variant: "outline", size: "sm" })}>
           ← Back to Programs
         </Link>
         <div>

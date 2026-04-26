@@ -27,12 +27,8 @@ type InitialSelection = Partial<
 interface FacultyCiloWorkspaceProps {
   courseContexts: FacultyCourseContext[];
   initialSelection?: InitialSelection;
-  loadAction: (
-    payload: FacultyManagedCiloContext,
-  ) => Promise<FacultyManagedCiloLoadResult>;
-  saveAction: (
-    payload: FacultyManagedCiloSaveInput,
-  ) => Promise<FacultyManagedCiloSaveResult>;
+  loadAction: (payload: FacultyManagedCiloContext) => Promise<FacultyManagedCiloLoadResult>;
+  saveAction: (payload: FacultyManagedCiloSaveInput) => Promise<FacultyManagedCiloSaveResult>;
 }
 
 function createDraftItem(description = "") {
@@ -49,17 +45,13 @@ export function FacultyCiloWorkspace({
   saveAction,
 }: FacultyCiloWorkspaceProps) {
   const [courseType, setCourseType] = useState<FacultyCourseContext["courseType"]>(
-    initialSelection?.courseType ?? "PROGRAM_SPECIFIC",
+    initialSelection?.courseType ?? "PROGRAM_SPECIFIC"
   );
   const [programId, setProgramId] = useState(initialSelection?.programId ?? "");
   const [majorId, setMajorId] = useState(initialSelection?.majorId ?? "");
   const [courseId, setCourseId] = useState(initialSelection?.courseId ?? "");
-  const [academicYear, setAcademicYear] = useState(
-    initialSelection?.academicYear ?? "",
-  );
-  const [semester, setSemester] = useState(
-    initialSelection?.semester ?? SEMESTER_OPTIONS[0].value,
-  );
+  const [academicYear, setAcademicYear] = useState(initialSelection?.academicYear ?? "");
+  const [semester, setSemester] = useState(initialSelection?.semester ?? SEMESTER_OPTIONS[0].value);
   const [term, setTerm] = useState(initialSelection?.term ?? TERM_OPTIONS[0].value);
   const [items, setItems] = useState(() => [createDraftItem()]);
   const [error, setError] = useState<string | null>(null);
@@ -70,38 +62,36 @@ export function FacultyCiloWorkspace({
   const autoLoadRef = useRef(false);
 
   const programs = useMemo(
-    () =>
-      [
-        ...new Map(
-          courseContexts.map((context) => [
-            context.programId,
-            {
-              code: context.programCode,
-              id: context.programId,
-              name: context.programName,
-            },
-          ]),
-        ).values(),
-      ],
-    [courseContexts],
+    () => [
+      ...new Map(
+        courseContexts.map((context) => [
+          context.programId,
+          {
+            code: context.programCode,
+            id: context.programId,
+            name: context.programName,
+          },
+        ])
+      ).values(),
+    ],
+    [courseContexts]
   );
 
   const availableMajors = useMemo(
-    () =>
-      [
-        ...new Map(
-          courseContexts
-            .filter((context) => context.programId === programId && context.majorId)
-            .map((context) => [
-              context.majorId,
-              {
-                id: context.majorId!,
-                name: context.majorName ?? "Unnamed Major",
-              },
-            ]),
-        ).values(),
-      ],
-    [courseContexts, programId],
+    () => [
+      ...new Map(
+        courseContexts
+          .filter((context) => context.programId === programId && context.majorId)
+          .map((context) => [
+            context.majorId,
+            {
+              id: context.majorId!,
+              name: context.majorName ?? "Unnamed Major",
+            },
+          ])
+      ).values(),
+    ],
+    [courseContexts, programId]
   );
 
   const availableCourses = useMemo(
@@ -121,11 +111,10 @@ export function FacultyCiloWorkspace({
 
         return context.majorId === null || context.majorId === majorId;
       }),
-    [courseContexts, courseType, majorId, programId],
+    [courseContexts, courseType, majorId, programId]
   );
 
-  const selectedCourse =
-    availableCourses.find((context) => context.courseId === courseId) ?? null;
+  const selectedCourse = availableCourses.find((context) => context.courseId === courseId) ?? null;
 
   const contextPayload = useMemo<FacultyManagedCiloContext | null>(() => {
     if (!programId || !courseId) {
@@ -174,13 +163,13 @@ export function FacultyCiloWorkspace({
               description: item.description,
               id: item.id,
             }))
-          : [createDraftItem()],
+          : [createDraftItem()]
       );
       setIsLoaded(true);
       setSuccessMessage(
         result.hasSavedCilos
           ? `Loaded ${result.items.length} saved CILO(s) for this course context.`
-          : "No saved CILOs were found for this context yet. Start building them below.",
+          : "No saved CILOs were found for this context yet. Start building them below."
       );
     } catch {
       setError("Unable to load CILOs right now. Please try again.");
@@ -216,13 +205,13 @@ export function FacultyCiloWorkspace({
               description: item.description,
               id: item.id,
             }))
-          : [createDraftItem()],
+          : [createDraftItem()]
       );
       setIsLoaded(true);
       setSuccessMessage(
         result.items.length > 0
           ? `Saved ${result.items.length} CILO(s). Return to the faculty template builder to bind them to Likert questions before publishing.`
-          : "Saved an empty CILO set for this course context.",
+          : "Saved an empty CILO set for this course context."
       );
     } catch {
       setError("Unable to save CILOs right now. Please try again.");
@@ -244,19 +233,19 @@ export function FacultyCiloWorkspace({
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Manage CILOs</h1>
-        <p className="text-sm text-text-muted">
-          Select a scoped course context, load its saved CILOs, then refine the set.
-          Faculty now bind these CILOs inside the template builder before publishing.
+        <p className="text-text-muted text-sm">
+          Select a scoped course context, load its saved CILOs, then refine the set. Faculty now
+          bind these CILOs inside the template builder before publishing.
         </p>
       </div>
 
-      <section className="space-y-5 rounded-xl border border-border bg-surface p-5">
+      <section className="border-border bg-surface space-y-5 rounded-xl border p-5">
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
             <Label htmlFor="workspace-course-type">Course Type</Label>
             <select
               id="workspace-course-type"
-              className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              className="border-input h-9 w-full rounded-lg border bg-transparent px-2.5 text-sm"
               value={courseType}
               onChange={(event) => {
                 setCourseType(event.target.value as FacultyCourseContext["courseType"]);
@@ -273,7 +262,7 @@ export function FacultyCiloWorkspace({
             <Label htmlFor="workspace-program">Program Context</Label>
             <select
               id="workspace-program"
-              className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              className="border-input h-9 w-full rounded-lg border bg-transparent px-2.5 text-sm"
               value={programId}
               onChange={(event) => {
                 setProgramId(event.target.value);
@@ -296,7 +285,7 @@ export function FacultyCiloWorkspace({
               <Label htmlFor="workspace-major">Major Context</Label>
               <select
                 id="workspace-major"
-                className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+                className="border-input h-9 w-full rounded-lg border bg-transparent px-2.5 text-sm"
                 value={majorId}
                 onChange={(event) => {
                   setMajorId(event.target.value);
@@ -318,7 +307,7 @@ export function FacultyCiloWorkspace({
             <Label htmlFor="workspace-course">Course</Label>
             <select
               id="workspace-course"
-              className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              className="border-input h-9 w-full rounded-lg border bg-transparent px-2.5 text-sm"
               value={courseId}
               onChange={(event) => {
                 setCourseId(event.target.value);
@@ -354,7 +343,7 @@ export function FacultyCiloWorkspace({
             <Label htmlFor="workspace-semester">Semester</Label>
             <select
               id="workspace-semester"
-              className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              className="border-input h-9 w-full rounded-lg border bg-transparent px-2.5 text-sm"
               value={semester}
               onChange={(event) => {
                 setSemester(event.target.value as typeof semester);
@@ -373,7 +362,7 @@ export function FacultyCiloWorkspace({
             <Label htmlFor="workspace-term">Term</Label>
             <select
               id="workspace-term"
-              className="h-9 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm"
+              className="border-input h-9 w-full rounded-lg border bg-transparent px-2.5 text-sm"
               value={term}
               onChange={(event) => {
                 setTerm(event.target.value as typeof term);
@@ -389,7 +378,7 @@ export function FacultyCiloWorkspace({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
+        <div className="border-border flex flex-wrap items-center gap-3 border-t pt-4">
           <Button
             type="button"
             variant="outline"
@@ -413,34 +402,34 @@ export function FacultyCiloWorkspace({
         </div>
       </section>
 
-      <section className="space-y-4 rounded-xl border border-border bg-surface p-5">
+      <section className="border-border bg-surface space-y-4 rounded-xl border p-5">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h2 className="text-lg font-semibold">CILO Workspace</h2>
-            <p className="text-sm text-text-muted">
+            <p className="text-text-muted text-sm">
               Load a course context first, then add, edit, reorder, or remove CILOs.
             </p>
           </div>
           {contextPayload && (
-            <p className="text-xs font-medium uppercase tracking-wide text-text-muted">
+            <p className="text-text-muted text-xs font-medium tracking-wide uppercase">
               {isLoaded ? "Save here, then bind in the template builder" : "Load context to begin"}
             </p>
           )}
         </div>
 
-        {error && <p className="text-sm text-danger">{error}</p>}
-        {successMessage && <p className="text-sm text-success">{successMessage}</p>}
+        {error && <p className="text-danger text-sm">{error}</p>}
+        {successMessage && <p className="text-success text-sm">{successMessage}</p>}
 
         {!isLoaded ? (
-          <div className="rounded-lg border border-dashed border-border p-5 text-sm text-text-muted">
+          <div className="border-border text-text-muted rounded-lg border border-dashed p-5 text-sm">
             Select the course context above, then load its saved CILOs to start working.
           </div>
         ) : (
           <div className="space-y-4">
             {items.map((item, index) => (
-              <div key={item.id} className="space-y-3 rounded-xl border border-border p-4">
+              <div key={item.id} className="border-border space-y-3 rounded-xl border p-4">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p className="text-sm font-semibold text-text-primary">CILO {index + 1}</p>
+                  <p className="text-text-primary text-sm font-semibold">CILO {index + 1}</p>
                   <div className="flex flex-wrap gap-2">
                     <Button
                       type="button"
@@ -480,7 +469,7 @@ export function FacultyCiloWorkspace({
                         setItems((current) =>
                           current.length === 1
                             ? [createDraftItem()]
-                            : current.filter((entry) => entry.id !== item.id),
+                            : current.filter((entry) => entry.id !== item.id)
                         );
                       }}
                     >
@@ -496,17 +485,15 @@ export function FacultyCiloWorkspace({
                     const nextDescription = event.target.value;
                     setItems((current) =>
                       current.map((entry) =>
-                        entry.id === item.id
-                          ? { ...entry, description: nextDescription }
-                          : entry,
-                      ),
+                        entry.id === item.id ? { ...entry, description: nextDescription } : entry
+                      )
                     );
                   }}
                 />
               </div>
             ))}
 
-            <div className="flex flex-wrap gap-3 border-t border-border pt-4">
+            <div className="border-border flex flex-wrap gap-3 border-t pt-4">
               <Button
                 type="button"
                 variant="outline"

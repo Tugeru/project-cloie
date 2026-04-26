@@ -8,10 +8,7 @@ type DeploymentAvailabilityInput = {
 
 export const STUDENT_EVALUATION_UNAVAILABLE_ERROR = "This evaluation is not currently available.";
 
-export function isDeploymentAvailable(
-  evaluation: DeploymentAvailabilityInput,
-  now = new Date(),
-) {
+export function isDeploymentAvailable(evaluation: DeploymentAvailabilityInput, now = new Date()) {
   if (
     evaluation.status !== DeploymentStatus.ACTIVE &&
     evaluation.status !== DeploymentStatus.SCHEDULED
@@ -32,14 +29,14 @@ export function isDeploymentAvailable(
 
 export function isCourseBoundEvaluationAvailable(
   evaluation: DeploymentAvailabilityInput,
-  now = new Date(),
+  now = new Date()
 ) {
   return isDeploymentAvailable(evaluation, now);
 }
 
 export function isCentralDeploymentAvailable(
   evaluation: DeploymentAvailabilityInput,
-  now = new Date(),
+  now = new Date()
 ) {
   return isDeploymentAvailable(evaluation, now);
 }

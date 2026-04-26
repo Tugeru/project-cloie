@@ -48,7 +48,7 @@ export type AdminUsersSummaryResult = {
 function resolveHighestRole(roles: SystemRole[]): SystemRole | null {
   if (roles.length === 0) return null;
   return roles.reduce((best, role) =>
-    (ROLE_LEVELS[role] ?? 0) > (ROLE_LEVELS[best] ?? 0) ? role : best,
+    (ROLE_LEVELS[role] ?? 0) > (ROLE_LEVELS[best] ?? 0) ? role : best
   );
 }
 

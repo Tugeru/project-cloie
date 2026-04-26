@@ -50,7 +50,7 @@ export function CourseForm({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [scope, setScope] = useState<CourseScope>(
-    defaultValues?.course_scope ?? CourseScope.PROGRAM_SPECIFIC,
+    defaultValues?.course_scope ?? CourseScope.PROGRAM_SPECIFIC
   );
   const [programId, setProgramId] = useState(defaultValues?.program_id ?? "");
 
@@ -116,9 +116,7 @@ export function CourseForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor={`course-description-${defaultValues?.id ?? "new"}`}>
-          Description
-        </Label>
+        <Label htmlFor={`course-description-${defaultValues?.id ?? "new"}`}>Description</Label>
         <Textarea
           id={`course-description-${defaultValues?.id ?? "new"}`}
           name="description"
@@ -134,7 +132,7 @@ export function CourseForm({
           <select
             id={`course-scope-${defaultValues?.id ?? "new"}`}
             name="course_scope"
-            className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm"
+            className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm"
             value={scope}
             onChange={(event) => {
               const nextScope = event.target.value as CourseScope;
@@ -154,7 +152,7 @@ export function CourseForm({
           <select
             id={`course-program-${defaultValues?.id ?? "new"}`}
             name="program_id"
-            className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm disabled:opacity-60"
+            className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm disabled:opacity-60"
             value={programId}
             onChange={(event) => setProgramId(event.target.value)}
             disabled={scope === CourseScope.GENERAL_EDUCATION}
@@ -173,7 +171,7 @@ export function CourseForm({
           <select
             id={`course-major-${defaultValues?.id ?? "new"}`}
             name="major_id"
-            className="h-10 w-full rounded-lg border border-input bg-transparent px-3 text-sm disabled:opacity-60"
+            className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm disabled:opacity-60"
             defaultValue={defaultValues?.major_id ?? ""}
             disabled={scope === CourseScope.GENERAL_EDUCATION || !programId}
           >

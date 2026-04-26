@@ -1,19 +1,14 @@
 import { prisma } from "@/lib/db/prisma";
-import type {
-  CreateYearLevelInput,
-  UpdateYearLevelInput,
-} from "../schemas/year-level";
+import type { CreateYearLevelInput, UpdateYearLevelInput } from "../schemas/year-level";
 
-type ServiceResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 function isUniqueConstraintError(error: unknown): boolean {
   return Boolean(
     error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error as { code?: string }).code === "P2002",
+    typeof error === "object" &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
   );
 }
 
@@ -33,7 +28,7 @@ export async function listYearLevels() {
 }
 
 export async function createYearLevel(
-  input: CreateYearLevelInput,
+  input: CreateYearLevelInput
 ): Promise<ServiceResult<{ id: string }>> {
   try {
     const yearLevel = await prisma.yearLevel.create({
@@ -57,7 +52,7 @@ export async function createYearLevel(
 }
 
 export async function updateYearLevel(
-  input: UpdateYearLevelInput,
+  input: UpdateYearLevelInput
 ): Promise<ServiceResult<{ id: string }>> {
   try {
     const yearLevel = await prisma.yearLevel.update({

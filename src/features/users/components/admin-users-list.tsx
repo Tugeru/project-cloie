@@ -124,7 +124,7 @@ function ViewUserDialog({
         </DialogHeader>
         <div className="space-y-4 pt-2">
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
               Full Name
             </label>
             <p className="text-sm font-semibold">
@@ -132,16 +132,16 @@ function ViewUserDialog({
             </p>
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
               Email Address
             </label>
             <div className="flex items-center gap-2 text-sm font-semibold">
-              <Mail className="size-4 text-muted-foreground" />
+              <Mail className="text-muted-foreground size-4" />
               {user.email}
             </div>
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
               Role
             </label>
             <div className="flex flex-wrap gap-1.5">
@@ -153,23 +153,19 @@ function ViewUserDialog({
             </div>
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
               Affiliated Program
             </label>
-            <p className="text-sm font-semibold">
-              {user.programLabel || "—"}
-            </p>
+            <p className="text-sm font-semibold">{user.programLabel || "—"}</p>
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
               Major
             </label>
-            <p className="text-sm font-semibold">
-              {user.majorLabel || "—"}
-            </p>
+            <p className="text-sm font-semibold">{user.majorLabel || "—"}</p>
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+            <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
               Status
             </label>
             <div>
@@ -230,37 +226,23 @@ function EditUserDialog({
           <input type="hidden" name="id" value={user.id} />
 
           {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-              {error}
-            </div>
+            <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">{error}</div>
           )}
 
           <div className="space-y-2">
             <Label htmlFor="edit-first-name">First Name</Label>
-            <Input
-              id="edit-first-name"
-              name="first_name"
-              defaultValue={user.firstName}
-              required
-            />
+            <Input id="edit-first-name" name="first_name" defaultValue={user.firstName} required />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="edit-last-name">Last Name</Label>
-            <Input
-              id="edit-last-name"
-              name="last_name"
-              defaultValue={user.lastName}
-              required
-            />
+            <Input id="edit-last-name" name="last_name" defaultValue={user.lastName} required />
           </div>
 
           <div className="space-y-2">
             <Label>Email Address</Label>
             <Input value={user.email} disabled className="opacity-60" />
-            <p className="text-xs text-muted-foreground">
-              Email cannot be changed.
-            </p>
+            <p className="text-muted-foreground text-xs">Email cannot be changed.</p>
           </div>
 
           <div className="space-y-2">
@@ -272,17 +254,11 @@ function EditUserDialog({
                 </Badge>
               ))}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Roles are managed separately.
-            </p>
+            <p className="text-muted-foreground text-xs">Roles are managed separately.</p>
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
             <Button type="submit" disabled={isPending}>
@@ -351,7 +327,7 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
       result = result.filter(
         (u) =>
           `${u.firstName} ${u.lastName}`.toLowerCase().includes(term) ||
-          u.email.toLowerCase().includes(term),
+          u.email.toLowerCase().includes(term)
       );
     }
 
@@ -361,10 +337,7 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
   // ---- Pagination -----------------------------------------------------------
   const totalPages = Math.max(1, Math.ceil(filteredUsers.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
-  const paginatedUsers = filteredUsers.slice(
-    (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE,
-  );
+  const paginatedUsers = filteredUsers.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   // Reset to page 1 when filters change
   const handleRoleChange = (value: string | null) => {
@@ -422,22 +395,22 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
         <KPICard
           label="Total Users"
           value={kpi.totalUsers}
-          icon={<Users className="size-5 text-muted-foreground" />}
+          icon={<Users className="text-muted-foreground size-5" />}
         />
         <KPICard
           label="Total Students"
           value={kpi.totalStudents}
-          icon={<GraduationCap className="size-5 text-muted-foreground" />}
+          icon={<GraduationCap className="text-muted-foreground size-5" />}
         />
         <KPICard
           label="Total Alumni"
           value={kpi.totalAlumni}
-          icon={<UserCheck className="size-5 text-muted-foreground" />}
+          icon={<UserCheck className="text-muted-foreground size-5" />}
         />
         <KPICard
           label="Total Industry Partners"
           value={kpi.totalIndustryPartners}
-          icon={<Briefcase className="size-5 text-muted-foreground" />}
+          icon={<Briefcase className="text-muted-foreground size-5" />}
         />
       </div>
 
@@ -486,9 +459,7 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
         {selectedProgramMajors.length > 0 && (
           <Select value={majorFilter} onValueChange={handleMajorChange}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue>
-                {majorFilter === "__all__" ? "All Majors" : majorFilter}
-              </SelectValue>
+              <SelectValue>{majorFilter === "__all__" ? "All Majors" : majorFilter}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__all__">All Majors</SelectItem>
@@ -503,7 +474,7 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
 
         {/* Search */}
         <div className="relative ml-auto w-full max-w-xs">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
           <Input
             placeholder="Search by name or email..."
             value={searchTerm}
@@ -529,7 +500,7 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
         <TableBody>
           {paginatedUsers.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
+              <TableCell colSpan={7} className="text-muted-foreground h-24 text-center">
                 No users found.
               </TableCell>
             </TableRow>
@@ -556,17 +527,13 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
-                    <DropdownMenuTrigger className="inline-flex size-8 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary">
+                    <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-8 items-center justify-center rounded-md transition-colors">
                       <MoreVertical className="size-4" />
                       <span className="sr-only">Actions</span>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => setViewUser(user)}>
-                        View
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => setEditUser(user)}>
-                        Edit
-                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setViewUser(user)}>View</DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => setEditUser(user)}>Edit</DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         disabled={isPending}
@@ -597,7 +564,7 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
 
           {buildPageNumbers().map((page, idx) =>
             page === "ellipsis" ? (
-              <span key={`ellipsis-${idx}`} className="px-2 text-sm text-muted-foreground">
+              <span key={`ellipsis-${idx}`} className="text-muted-foreground px-2 text-sm">
                 …
               </span>
             ) : (
@@ -609,7 +576,7 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
               >
                 {page}
               </Button>
-            ),
+            )
           )}
 
           <Button
@@ -624,10 +591,10 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
       )}
 
       {/* Result count */}
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-center text-xs">
         Showing {(safePage - 1) * PAGE_SIZE + 1}–
-        {Math.min(safePage * PAGE_SIZE, filteredUsers.length)} of{" "}
-        {filteredUsers.length} user{filteredUsers.length !== 1 ? "s" : ""}
+        {Math.min(safePage * PAGE_SIZE, filteredUsers.length)} of {filteredUsers.length} user
+        {filteredUsers.length !== 1 ? "s" : ""}
       </p>
 
       {/* View User Dialog */}
@@ -659,20 +626,12 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
 // KPI Card sub-component
 // ---------------------------------------------------------------------------
 
-function KPICard({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: number;
-  icon: React.ReactNode;
-}) {
+function KPICard({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardDescription className="text-xs font-semibold uppercase tracking-wider">
+          <CardDescription className="text-xs font-semibold tracking-wider uppercase">
             {label}
           </CardDescription>
           {icon}

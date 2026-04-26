@@ -193,11 +193,7 @@ describe("mapTemplateStructureToSections", () => {
 
       const sections = mapTemplateStructureToSections(structure);
 
-      expect(sections[0].items.map((i) => i.prompt)).toEqual([
-        "First",
-        "Second",
-        "Third",
-      ]);
+      expect(sections[0].items.map((i) => i.prompt)).toEqual(["First", "Second", "Third"]);
     });
   });
 
@@ -283,9 +279,7 @@ describe("mapTemplateStructureToSections", () => {
             { key: "q1", prompt: "Rate delivery.", scale: [1, 2, 3] },
             { key: "q2", prompt: "Rate content." },
           ],
-          qualitative_prompts: [
-            { key: "feedback", prompt: "Any feedback?" },
-          ],
+          qualitative_prompts: [{ key: "feedback", prompt: "Any feedback?" }],
         },
       ];
 
@@ -373,9 +367,7 @@ describe("mapTemplateStructureToSections", () => {
         {
           key: "intermediate",
           title: "Intermediate Section",
-          items: [
-            { kind: "quantitative", key: "q2", prompt: "Rate.", scale: [1, 2, 3] },
-          ],
+          items: [{ kind: "quantitative", key: "q2", prompt: "Rate.", scale: [1, 2, 3] }],
         },
         {
           key: "legacy",
@@ -410,9 +402,7 @@ describe("mapTemplateStructureToSections", () => {
         {
           key: "s1",
           title: "Section",
-          questions: [
-            { key: "q1", prompt: "Rate.", type: "likert" },
-          ],
+          questions: [{ key: "q1", prompt: "Rate.", type: "likert" }],
         },
       ];
 

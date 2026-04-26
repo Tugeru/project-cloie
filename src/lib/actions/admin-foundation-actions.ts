@@ -59,7 +59,7 @@ type ActionResult = { success: true } | { success: false; error: string };
 
 function parseWithSchema<T>(
   schema: ZodType<T>,
-  value: unknown,
+  value: unknown
 ): { success: true; data: T } | { success: false; error: string } {
   const parsed = schema.safeParse(value);
 
@@ -132,7 +132,7 @@ export async function updateCourseAction(formData: FormData): Promise<ActionResu
 
 export async function toggleCourseActiveAction(
   id: string,
-  is_active: boolean,
+  is_active: boolean
 ): Promise<ActionResult> {
   const result = await toggleCourseActive(id, is_active);
 
@@ -209,7 +209,7 @@ export async function deleteYearLevelAction(id: string): Promise<ActionResult> {
 
 export async function toggleUserActiveAction(
   id: string,
-  is_active: boolean,
+  is_active: boolean
 ): Promise<ActionResult> {
   const result = await toggleUserActive(id, is_active);
 
@@ -243,7 +243,7 @@ export async function assignUserRoleAction(formData: FormData): Promise<ActionRe
 
 export async function revokeUserRoleAction(
   userId: string,
-  role: SystemRole,
+  role: SystemRole
 ): Promise<ActionResult> {
   const result = await revokeUserRole(userId, role);
 
@@ -256,7 +256,7 @@ export async function revokeUserRoleAction(
 }
 
 export async function updateStudentAcademicContextAction(
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionResult> {
   const parsed = parseWithSchema(updateStudentAcademicContextSchema, {
     user_id: formData.get("user_id"),
@@ -282,9 +282,7 @@ export async function updateStudentAcademicContextAction(
   return { success: true };
 }
 
-export async function deleteStudentAcademicContextAction(
-  userId: string,
-): Promise<ActionResult> {
+export async function deleteStudentAcademicContextAction(userId: string): Promise<ActionResult> {
   const result = await deleteStudentAcademicContext(userId);
 
   if (!result.success) {
@@ -296,7 +294,7 @@ export async function deleteStudentAcademicContextAction(
 }
 
 export async function createFacultyProgramAffiliationAction(
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionResult> {
   const parsed = parseWithSchema(createFacultyAffiliationSchema, {
     faculty_id: formData.get("faculty_id"),
@@ -317,9 +315,7 @@ export async function createFacultyProgramAffiliationAction(
   return { success: true };
 }
 
-export async function deactivateFacultyProgramAffiliationAction(
-  id: string,
-): Promise<ActionResult> {
+export async function deactivateFacultyProgramAffiliationAction(id: string): Promise<ActionResult> {
   const result = await deactivateFacultyProgramAffiliation(id);
 
   if (!result.success) {
@@ -330,9 +326,7 @@ export async function deactivateFacultyProgramAffiliationAction(
   return { success: true };
 }
 
-export async function createProgramHeadAssignmentAction(
-  formData: FormData,
-): Promise<ActionResult> {
+export async function createProgramHeadAssignmentAction(formData: FormData): Promise<ActionResult> {
   const parsed = parseWithSchema(createProgramHeadAssignmentSchema, {
     program_head_id: formData.get("program_head_id"),
     program_id: formData.get("program_id"),
@@ -352,9 +346,7 @@ export async function createProgramHeadAssignmentAction(
   return { success: true };
 }
 
-export async function deactivateProgramHeadAssignmentAction(
-  id: string,
-): Promise<ActionResult> {
+export async function deactivateProgramHeadAssignmentAction(id: string): Promise<ActionResult> {
   const result = await deactivateProgramHeadAssignment(id);
 
   if (!result.success) {
@@ -366,7 +358,7 @@ export async function deactivateProgramHeadAssignmentAction(
 }
 
 export async function upsertIndustryPartnerProfileAction(
-  formData: FormData,
+  formData: FormData
 ): Promise<ActionResult> {
   const parsed = parseWithSchema(updateIndustryPartnerProfileSchema, {
     user_id: formData.get("user_id"),
@@ -389,9 +381,7 @@ export async function upsertIndustryPartnerProfileAction(
   return { success: true };
 }
 
-export async function deleteIndustryPartnerProfileAction(
-  userId: string,
-): Promise<ActionResult> {
+export async function deleteIndustryPartnerProfileAction(userId: string): Promise<ActionResult> {
   const result = await deleteIndustryPartnerProfile(userId);
 
   if (!result.success) {
@@ -402,9 +392,7 @@ export async function deleteIndustryPartnerProfileAction(
   return { success: true };
 }
 
-export async function createExternalInviteDraftAction(
-  formData: FormData,
-): Promise<ActionResult> {
+export async function createExternalInviteDraftAction(formData: FormData): Promise<ActionResult> {
   const parsed = parseWithSchema(createExternalInviteDraftSchema, {
     email: formData.get("email"),
     role: formData.get("role"),
@@ -439,9 +427,7 @@ export async function revokeExternalInviteAction(id: string): Promise<ActionResu
   return { success: true };
 }
 
-export async function createBaselineTemplateAction(
-  formData: FormData,
-): Promise<ActionResult> {
+export async function createBaselineTemplateAction(formData: FormData): Promise<ActionResult> {
   const parsed = parseWithSchema(createBaselineTemplateSchema, {
     code: formData.get("code"),
     name: formData.get("name"),
@@ -463,9 +449,7 @@ export async function createBaselineTemplateAction(
   return { success: true };
 }
 
-export async function updateBaselineTemplateAction(
-  formData: FormData,
-): Promise<ActionResult> {
+export async function updateBaselineTemplateAction(formData: FormData): Promise<ActionResult> {
   const parsed = parseWithSchema(updateBaselineTemplateSchema, {
     id: formData.get("id"),
     code: formData.get("code"),
@@ -490,7 +474,7 @@ export async function updateBaselineTemplateAction(
 
 export async function toggleBaselineTemplateActiveAction(
   id: string,
-  is_active: boolean,
+  is_active: boolean
 ): Promise<ActionResult> {
   const result = await toggleBaselineTemplateActive(id, is_active);
 

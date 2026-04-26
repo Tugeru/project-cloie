@@ -45,7 +45,7 @@ export type StudentAssignedEvaluationSession = {
 };
 
 export async function getStudentAssignedEvaluationSession(
-  assignmentId: string,
+  assignmentId: string
 ): Promise<StudentAssignedEvaluationSession | null> {
   const authSession = await resolveAuthSession();
 
@@ -113,9 +113,7 @@ export async function getStudentAssignedEvaluationSession(
       return null;
     }
 
-    const sections = mapStructureSnapshotToSections(
-      evaluation.instrument.structure_snapshot,
-    );
+    const sections = mapStructureSnapshotToSections(evaluation.instrument.structure_snapshot);
     const response = assignment.response ?? null;
     const savedAnswers = response
       ? mapSavedAnswerItems({
@@ -123,9 +121,7 @@ export async function getStudentAssignedEvaluationSession(
           quantitativeItems: response.quant_items,
         })
       : {};
-    const answeredItems = response
-      ? response.qual_items.length + response.quant_items.length
-      : 0;
+    const answeredItems = response ? response.qual_items.length + response.quant_items.length : 0;
 
     return {
       assignmentId: assignment.id,
@@ -155,9 +151,7 @@ export async function getStudentAssignedEvaluationSession(
       return null;
     }
 
-    const sections = mapStructureSnapshotToSections(
-      deployment.instrument.structure_snapshot,
-    );
+    const sections = mapStructureSnapshotToSections(deployment.instrument.structure_snapshot);
     const response = assignment.response ?? null;
     const savedAnswers = response
       ? mapSavedAnswerItems({
@@ -165,9 +159,7 @@ export async function getStudentAssignedEvaluationSession(
           quantitativeItems: response.quant_items,
         })
       : {};
-    const answeredItems = response
-      ? response.qual_items.length + response.quant_items.length
-      : 0;
+    const answeredItems = response ? response.qual_items.length + response.quant_items.length : 0;
 
     return {
       assignmentId: assignment.id,

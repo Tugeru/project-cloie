@@ -3,14 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
 import { CourseScope } from "@prisma/client";
-import {
-  BookOpen,
-  GraduationCap,
-  Layers,
-  MoreVertical,
-  Search,
-  Library,
-} from "lucide-react";
+import { BookOpen, GraduationCap, Layers, MoreVertical, Search, Library } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -71,7 +64,12 @@ type AdminCoursesListProps = {
 // Component
 // ---------------------------------------------------------------------------
 
-export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/courses" }: AdminCoursesListProps) {
+export function AdminCoursesList({
+  courses,
+  kpi,
+  programs,
+  basePath = "/admin/courses",
+}: AdminCoursesListProps) {
   // ---- Filter state -------------------------------------------------------
   const [scopeFilter, setScopeFilter] = useState<string>("__all__");
   const [programFilter, setProgramFilter] = useState<string>("__all__");
@@ -90,13 +88,9 @@ export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/co
 
     // Scope filter
     if (scopeFilter === "general_education") {
-      result = result.filter(
-        (c) => c.courseScope === CourseScope.GENERAL_EDUCATION,
-      );
+      result = result.filter((c) => c.courseScope === CourseScope.GENERAL_EDUCATION);
     } else if (scopeFilter === "program_specific") {
-      result = result.filter(
-        (c) => c.courseScope === CourseScope.PROGRAM_SPECIFIC,
-      );
+      result = result.filter((c) => c.courseScope === CourseScope.PROGRAM_SPECIFIC);
     }
 
     // Program filter
@@ -113,9 +107,7 @@ export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/co
     if (searchTerm.trim()) {
       const term = searchTerm.toLowerCase().trim();
       result = result.filter(
-        (c) =>
-          c.code.toLowerCase().includes(term) ||
-          c.title.toLowerCase().includes(term),
+        (c) => c.code.toLowerCase().includes(term) || c.title.toLowerCase().includes(term)
       );
     }
 
@@ -125,10 +117,7 @@ export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/co
   // ---- Pagination ----------------------------------------------------------
   const totalPages = Math.max(1, Math.ceil(filteredCourses.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages);
-  const paginatedCourses = filteredCourses.slice(
-    (safePage - 1) * PAGE_SIZE,
-    safePage * PAGE_SIZE,
-  );
+  const paginatedCourses = filteredCourses.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   // Reset to page 1 when filters change
   const handleScopeChange = (value: string | null) => {
@@ -192,8 +181,8 @@ export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/co
       <div className="space-y-2">
         <h1 className="text-heading-lg">Courses</h1>
         <p className="text-body-md text-text-secondary">
-          Manage the shared course catalog for general education, program-wide,
-          and major-specific contexts.
+          Manage the shared course catalog for general education, program-wide, and major-specific
+          contexts.
         </p>
       </div>
 
@@ -202,30 +191,28 @@ export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/co
         <KPICard
           label="Total Courses"
           value={kpi.totalCourses}
-          icon={<BookOpen className="size-5 text-muted-foreground" />}
+          icon={<BookOpen className="text-muted-foreground size-5" />}
         />
         <KPICard
           label="Active Courses"
           value={kpi.activeCourses}
-          icon={<Layers className="size-5 text-muted-foreground" />}
+          icon={<Layers className="text-muted-foreground size-5" />}
         />
         <KPICard
           label="General Education"
           value={kpi.generalEducationCourses}
-          icon={<Library className="size-5 text-muted-foreground" />}
+          icon={<Library className="text-muted-foreground size-5" />}
         />
         <KPICard
           label="Program-Specific"
           value={kpi.programSpecificCourses}
-          icon={<GraduationCap className="size-5 text-muted-foreground" />}
+          icon={<GraduationCap className="text-muted-foreground size-5" />}
         />
       </div>
 
       {/* Action bar */}
       <div className="flex items-center justify-end">
-        <Button render={<Link href={`${basePath}/new`} />}>
-          Create Course
-        </Button>
+        <Button render={<Link href={`${basePath}/new`} />}>Create Course</Button>
       </div>
 
       {/* Filter bar */}
@@ -254,8 +241,7 @@ export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/co
             <SelectValue>
               {programFilter === "__all__"
                 ? "All Programs"
-                : programs.find((p) => p.id === programFilter)?.code ??
-                  "All Programs"}
+                : (programs.find((p) => p.id === programFilter)?.code ?? "All Programs")}
             </SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -275,8 +261,7 @@ export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/co
               <SelectValue>
                 {majorFilter === "__all__"
                   ? "All Majors"
-                  : availableMajors.find((m) => m.id === majorFilter)?.name ??
-                    "All Majors"}
+                  : (availableMajors.find((m) => m.id === majorFilter)?.name ?? "All Majors")}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
@@ -292,7 +277,7 @@ export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/co
 
         {/* Search */}
         <div className="relative ml-auto w-full max-w-xs">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
           <Input
             placeholder="Search by code or title..."
             value={searchTerm}
@@ -320,10 +305,7 @@ export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/co
         <TableBody>
           {paginatedCourses.length === 0 ? (
             <TableRow>
-              <TableCell
-                colSpan={9}
-                className="h-24 text-center text-muted-foreground"
-              >
+              <TableCell colSpan={9} className="text-muted-foreground h-24 text-center">
                 No courses found.
               </TableCell>
             </TableRow>
@@ -335,45 +317,29 @@ export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/co
                 <TableCell>
                   <Badge variant="outline">{course.courseScopeLabel}</Badge>
                 </TableCell>
+                <TableCell>{course.programCode ?? "—"}</TableCell>
+                <TableCell>{course.majorName ?? "—"}</TableCell>
+                <TableCell className="text-right">{course.ciloCount}</TableCell>
+                <TableCell className="text-right">{course.evaluationCount}</TableCell>
                 <TableCell>
-                  {course.programCode ?? "—"}
-                </TableCell>
-                <TableCell>
-                  {course.majorName ?? "—"}
-                </TableCell>
-                <TableCell className="text-right">
-                  {course.ciloCount}
-                </TableCell>
-                <TableCell className="text-right">
-                  {course.evaluationCount}
-                </TableCell>
-                <TableCell>
-                  <Badge
-                    variant={course.isActive ? "default" : "secondary"}
-                  >
+                  <Badge variant={course.isActive ? "default" : "secondary"}>
                     {course.isActive ? "Active" : "Inactive"}
                   </Badge>
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
-                    <DropdownMenuTrigger className="inline-flex size-8 items-center justify-center rounded-md text-text-muted transition-colors hover:bg-surface-muted hover:text-text-primary">
+                    <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-8 items-center justify-center rounded-md transition-colors">
                       <MoreVertical className="size-4" />
                       <span className="sr-only">Actions</span>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        render={
-                          <Link href={`${basePath}/${course.id}/edit`} />
-                        }
-                      >
+                      <DropdownMenuItem render={<Link href={`${basePath}/${course.id}/edit`} />}>
                         Edit
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         disabled={isPending}
-                        onClick={() =>
-                          handleToggleActive(course.id, course.isActive)
-                        }
+                        onClick={() => handleToggleActive(course.id, course.isActive)}
                       >
                         {course.isActive ? "Deactivate" : "Activate"}
                       </DropdownMenuItem>
@@ -407,10 +373,7 @@ export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/co
 
           {buildPageNumbers().map((page, idx) =>
             page === "ellipsis" ? (
-              <span
-                key={`ellipsis-${idx}`}
-                className="px-2 text-sm text-muted-foreground"
-              >
+              <span key={`ellipsis-${idx}`} className="text-muted-foreground px-2 text-sm">
                 …
               </span>
             ) : (
@@ -422,7 +385,7 @@ export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/co
               >
                 {page}
               </Button>
-            ),
+            )
           )}
 
           <Button
@@ -437,10 +400,9 @@ export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/co
       )}
 
       {/* Result count */}
-      <p className="text-center text-xs text-muted-foreground">
+      <p className="text-muted-foreground text-center text-xs">
         Showing {(safePage - 1) * PAGE_SIZE + 1}–
-        {Math.min(safePage * PAGE_SIZE, filteredCourses.length)} of{" "}
-        {filteredCourses.length} course
+        {Math.min(safePage * PAGE_SIZE, filteredCourses.length)} of {filteredCourses.length} course
         {filteredCourses.length !== 1 ? "s" : ""}
       </p>
     </div>
@@ -451,27 +413,17 @@ export function AdminCoursesList({ courses, kpi, programs, basePath = "/admin/co
 // KPI Card sub-component
 // ---------------------------------------------------------------------------
 
-function KPICard({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: number;
-  icon: React.ReactNode;
-}) {
+function KPICard({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardDescription className="text-xs font-semibold uppercase tracking-wider">
+          <CardDescription className="text-xs font-semibold tracking-wider uppercase">
             {label}
           </CardDescription>
           {icon}
         </div>
-        <CardTitle className="text-2xl font-bold">
-          {value.toLocaleString()}
-        </CardTitle>
+        <CardTitle className="text-2xl font-bold">{value.toLocaleString()}</CardTitle>
       </CardHeader>
     </Card>
   );

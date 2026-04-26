@@ -56,13 +56,13 @@ function isValidSection(value: unknown): value is { key: string; title: string }
 }
 
 function hasQuestionsArray(
-  section: Record<string, unknown>,
+  section: Record<string, unknown>
 ): section is Record<string, unknown> & { questions: unknown[] } {
   return Array.isArray(section.questions);
 }
 
 function hasItemsArray(
-  section: Record<string, unknown>,
+  section: Record<string, unknown>
 ): section is Record<string, unknown> & { items: unknown[] } {
   return Array.isArray(section.items);
 }
@@ -70,9 +70,7 @@ function hasItemsArray(
 // ─── Section mappers ────────────────────────────────────────────────────────
 
 function mapNewFormatSection(section: NewFormatSection): StudentEvaluationSection {
-  const sortedQuestions = [...section.questions].sort(
-    (a, b) => (a.order ?? 0) - (b.order ?? 0),
-  );
+  const sortedQuestions = [...section.questions].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
   return {
     id: section.key,
@@ -86,9 +84,7 @@ function mapNewFormatSection(section: NewFormatSection): StudentEvaluationSectio
           itemKey: q.key,
           prompt: q.prompt,
           scale: descriptors.map((d) => d.value),
-          descriptorLabels: descriptors.length > 0
-            ? descriptors.map((d) => d.label)
-            : undefined,
+          descriptorLabels: descriptors.length > 0 ? descriptors.map((d) => d.label) : undefined,
         };
       }
       // guided_open_ended → qualitative
@@ -163,29 +159,25 @@ function mapLegacySection(section: LegacySection): StudentEvaluationSection {
  *
  * Detection priority: `questions` → `items` → legacy arrays → empty section.
  */
-export function mapTemplateStructureToSections(
-  structure: unknown,
-): StudentEvaluationSection[] {
+export function mapTemplateStructureToSections(structure: unknown): StudentEvaluationSection[] {
   if (!Array.isArray(structure)) {
     return [];
   }
 
-  return structure
-    .filter(isValidSection)
-    .map((rawSection) => {
-      const section = rawSection as Record<string, unknown>;
+  return structure.filter(isValidSection).map((rawSection) => {
+    const section = rawSection as Record<string, unknown>;
 
-      // New format: has `questions` array
-      if (hasQuestionsArray(section)) {
-        return mapNewFormatSection(section as unknown as NewFormatSection);
-      }
+    // New format: has `questions` array
+    if (hasQuestionsArray(section)) {
+      return mapNewFormatSection(section as unknown as NewFormatSection);
+    }
 
-      // Intermediate format: has `items` array
-      if (hasItemsArray(section)) {
-        return mapIntermediateSection(section as unknown as IntermediateSection);
-      }
+    // Intermediate format: has `items` array
+    if (hasItemsArray(section)) {
+      return mapIntermediateSection(section as unknown as IntermediateSection);
+    }
 
-      // Legacy format: has `quantitative_items` and/or `qualitative_prompts`
-      return mapLegacySection(section as unknown as LegacySection);
-    });
+    // Legacy format: has `quantitative_items` and/or `qualitative_prompts`
+    return mapLegacySection(section as unknown as LegacySection);
+  });
 }

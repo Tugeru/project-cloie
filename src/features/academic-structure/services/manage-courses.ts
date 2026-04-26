@@ -2,16 +2,14 @@ import { CourseScope } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import type { CreateCourseInput, UpdateCourseInput } from "../schemas/course";
 
-type ServiceResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 function isUniqueConstraintError(error: unknown): boolean {
   return Boolean(
     error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error as { code?: string }).code === "P2002",
+    typeof error === "object" &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
   );
 }
 
@@ -106,7 +104,7 @@ export async function listCourses() {
 }
 
 export async function createCourse(
-  input: CreateCourseInput,
+  input: CreateCourseInput
 ): Promise<ServiceResult<{ id: string }>> {
   const scopeContext = await ensureCourseScopeContext(input);
 
@@ -139,7 +137,7 @@ export async function createCourse(
 }
 
 export async function updateCourse(
-  input: UpdateCourseInput,
+  input: UpdateCourseInput
 ): Promise<ServiceResult<{ id: string }>> {
   const scopeContext = await ensureCourseScopeContext(input);
 
@@ -172,10 +170,7 @@ export async function updateCourse(
   }
 }
 
-export async function toggleCourseActive(
-  id: string,
-  is_active: boolean,
-): Promise<ServiceResult> {
+export async function toggleCourseActive(id: string, is_active: boolean): Promise<ServiceResult> {
   await prisma.course.update({
     where: { id },
     data: { is_active },

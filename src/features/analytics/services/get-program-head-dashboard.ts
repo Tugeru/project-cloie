@@ -48,7 +48,7 @@ function roundToTwo(n: number): number {
 // ---------------------------------------------------------------------------
 
 export async function getProgramHeadDashboard(
-  programId: string,
+  programId: string
 ): Promise<ProgramHeadDashboardData> {
   // Fetch program info
   const program = await prisma.program.findUniqueOrThrow({
@@ -213,9 +213,7 @@ export async function getProgramHeadDashboard(
     select: { text_content: true },
   });
 
-  const texts = qualResponses
-    .map((r) => r.text_content)
-    .filter((t) => t.trim().length > 0);
+  const texts = qualResponses.map((r) => r.text_content).filter((t) => t.trim().length > 0);
 
   const wordCloudTokens = buildReviewWordCloudTokens(texts);
 

@@ -110,9 +110,8 @@ describe("getCentralDeploymentEvaluationSession", () => {
   it("returns null for unauthenticated users", async () => {
     resolveAuthSessionMock.mockResolvedValue(null);
 
-    const { getCentralDeploymentEvaluationSession } = await import(
-      "@/features/responses/services/get-central-deployment-evaluation-session"
-    );
+    const { getCentralDeploymentEvaluationSession } =
+      await import("@/features/responses/services/get-central-deployment-evaluation-session");
 
     const result = await getCentralDeploymentEvaluationSession("deploy-1");
 
@@ -124,9 +123,8 @@ describe("getCentralDeploymentEvaluationSession", () => {
     resolveAuthSessionMock.mockResolvedValue({ userId: "user-1" });
     findFirstMock.mockResolvedValue(makeAssignment());
 
-    const { getCentralDeploymentEvaluationSession } = await import(
-      "@/features/responses/services/get-central-deployment-evaluation-session"
-    );
+    const { getCentralDeploymentEvaluationSession } =
+      await import("@/features/responses/services/get-central-deployment-evaluation-session");
 
     const result = await getCentralDeploymentEvaluationSession("deploy-1");
 
@@ -150,9 +148,8 @@ describe("getCentralDeploymentEvaluationSession", () => {
     resolveAuthSessionMock.mockResolvedValue({ userId: "user-not-assigned" });
     findFirstMock.mockResolvedValue(null);
 
-    const { getCentralDeploymentEvaluationSession } = await import(
-      "@/features/responses/services/get-central-deployment-evaluation-session"
-    );
+    const { getCentralDeploymentEvaluationSession } =
+      await import("@/features/responses/services/get-central-deployment-evaluation-session");
 
     const result = await getCentralDeploymentEvaluationSession("deploy-1");
 
@@ -165,15 +162,14 @@ describe("getCentralDeploymentEvaluationSession", () => {
       makeAssignment({
         activationAt: new Date("2026-03-01T00:00:00.000Z"),
         deadlineAt: new Date("2026-03-15T00:00:00.000Z"),
-      }),
+      })
     );
 
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-04-01T00:00:00.000Z"));
 
-    const { getCentralDeploymentEvaluationSession } = await import(
-      "@/features/responses/services/get-central-deployment-evaluation-session"
-    );
+    const { getCentralDeploymentEvaluationSession } =
+      await import("@/features/responses/services/get-central-deployment-evaluation-session");
 
     const result = await getCentralDeploymentEvaluationSession("deploy-1");
 
@@ -188,15 +184,14 @@ describe("getCentralDeploymentEvaluationSession", () => {
       makeAssignment({
         activationAt: new Date("2026-07-01T00:00:00.000Z"),
         deadlineAt: new Date("2026-08-01T00:00:00.000Z"),
-      }),
+      })
     );
 
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-05-01T00:00:00.000Z"));
 
-    const { getCentralDeploymentEvaluationSession } = await import(
-      "@/features/responses/services/get-central-deployment-evaluation-session"
-    );
+    const { getCentralDeploymentEvaluationSession } =
+      await import("@/features/responses/services/get-central-deployment-evaluation-session");
 
     const result = await getCentralDeploymentEvaluationSession("deploy-1");
 
@@ -209,9 +204,8 @@ describe("getCentralDeploymentEvaluationSession", () => {
     resolveAuthSessionMock.mockResolvedValue({ userId: "user-1" });
     findFirstMock.mockResolvedValue(makeAssignment());
 
-    const { getCentralDeploymentEvaluationSession } = await import(
-      "@/features/responses/services/get-central-deployment-evaluation-session"
-    );
+    const { getCentralDeploymentEvaluationSession } =
+      await import("@/features/responses/services/get-central-deployment-evaluation-session");
 
     const result = await getCentralDeploymentEvaluationSession("deploy-1");
 
@@ -238,13 +232,10 @@ describe("getCentralDeploymentEvaluationSession", () => {
 
   it("loads saved answers from existing draft response", async () => {
     resolveAuthSessionMock.mockResolvedValue({ userId: "user-1" });
-    findFirstMock.mockResolvedValue(
-      makeAssignment({ withResponse: true }),
-    );
+    findFirstMock.mockResolvedValue(makeAssignment({ withResponse: true }));
 
-    const { getCentralDeploymentEvaluationSession } = await import(
-      "@/features/responses/services/get-central-deployment-evaluation-session"
-    );
+    const { getCentralDeploymentEvaluationSession } =
+      await import("@/features/responses/services/get-central-deployment-evaluation-session");
 
     const result = await getCentralDeploymentEvaluationSession("deploy-1");
 
@@ -267,9 +258,8 @@ describe("getCentralDeploymentEvaluationSession", () => {
       response: null,
     });
 
-    const { getCentralDeploymentEvaluationSession } = await import(
-      "@/features/responses/services/get-central-deployment-evaluation-session"
-    );
+    const { getCentralDeploymentEvaluationSession } =
+      await import("@/features/responses/services/get-central-deployment-evaluation-session");
 
     const result = await getCentralDeploymentEvaluationSession("deploy-1");
 

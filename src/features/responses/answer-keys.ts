@@ -3,7 +3,7 @@ export type StudentEvaluationAnswerKind = "quantitative" | "qualitative";
 export function buildStudentEvaluationAnswerKey(
   sectionKey: string,
   kind: StudentEvaluationAnswerKind,
-  itemKey: string,
+  itemKey: string
 ) {
   return `${sectionKey}:${kind}:${itemKey}`;
 }

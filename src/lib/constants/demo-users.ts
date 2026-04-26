@@ -27,24 +27,48 @@ export const DEMO_USERS = [
   },
 
   // ── New Faculty (3) ───────────────────────────────────────────────────────
-  { email: "faculty-bsed@cloie.test", label: "Faculty — Elena Torres (BSED)", role: SystemRole.FACULTY },
+  {
+    email: "faculty-bsed@cloie.test",
+    label: "Faculty — Elena Torres (BSED)",
+    role: SystemRole.FACULTY,
+  },
   {
     email: "faculty-bsba@cloie.test",
     label: "Faculty — Marco Villanueva (BSBA)",
     role: SystemRole.FACULTY,
   },
-  { email: "faculty-bshm@cloie.test", label: "Faculty — Lisa Mendoza (BSHM)", role: SystemRole.FACULTY },
+  {
+    email: "faculty-bshm@cloie.test",
+    label: "Faculty — Lisa Mendoza (BSHM)",
+    role: SystemRole.FACULTY,
+  },
 
   // ── New Students (6) ──────────────────────────────────────────────────────
-  { email: "student-bsed@cloie.test", label: "Student — Juan Dela Cruz (BSED)", role: SystemRole.STUDENT },
-  { email: "student-bsba@cloie.test", label: "Student — Angela Reyes (BSBA)", role: SystemRole.STUDENT },
+  {
+    email: "student-bsed@cloie.test",
+    label: "Student — Juan Dela Cruz (BSED)",
+    role: SystemRole.STUDENT,
+  },
+  {
+    email: "student-bsba@cloie.test",
+    label: "Student — Angela Reyes (BSBA)",
+    role: SystemRole.STUDENT,
+  },
   {
     email: "student-bsba-grad@cloie.test",
     label: "Graduating — Carlos Santos (BSBA)",
     role: SystemRole.STUDENT,
   },
-  { email: "student-beed@cloie.test", label: "Student — Patricia Luna (BEED)", role: SystemRole.STUDENT },
-  { email: "student-bshm@cloie.test", label: "Student — Daniel Tan (BSHM)", role: SystemRole.STUDENT },
+  {
+    email: "student-beed@cloie.test",
+    label: "Student — Patricia Luna (BEED)",
+    role: SystemRole.STUDENT,
+  },
+  {
+    email: "student-bshm@cloie.test",
+    label: "Student — Daniel Tan (BSHM)",
+    role: SystemRole.STUDENT,
+  },
   {
     email: "student-bshm-grad@cloie.test",
     label: "Graduating — Grace Aquino (BSHM)",

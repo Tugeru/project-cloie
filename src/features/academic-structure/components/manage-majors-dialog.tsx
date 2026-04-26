@@ -87,9 +87,7 @@ export function ManageMajorsDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Manage Majors — {program.code}</DialogTitle>
-          <DialogDescription>
-            Add, toggle, or remove majors for {program.name}.
-          </DialogDescription>
+          <DialogDescription>Add, toggle, or remove majors for {program.name}.</DialogDescription>
         </DialogHeader>
 
         {error && (
@@ -101,16 +99,13 @@ export function ManageMajorsDialog({
         {/* Existing majors list */}
         <div className="space-y-2">
           {majors.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">
+            <p className="text-muted-foreground py-4 text-center text-sm">
               No majors yet. Add one below.
             </p>
           ) : (
             <ul className="divide-y">
               {majors.map((major) => (
-                <li
-                  key={major.id}
-                  className="flex items-center justify-between gap-2 py-2"
-                >
+                <li key={major.id} className="flex items-center justify-between gap-2 py-2">
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-medium">{major.name}</span>
                     <Badge variant={major.is_active ? "default" : "secondary"}>
@@ -128,9 +123,7 @@ export function ManageMajorsDialog({
                       title={major.is_active ? "Deactivate" : "Activate"}
                     >
                       <Power className="size-3.5" />
-                      <span className="sr-only">
-                        {major.is_active ? "Deactivate" : "Activate"}
-                      </span>
+                      <span className="sr-only">{major.is_active ? "Deactivate" : "Activate"}</span>
                     </Button>
 
                     {/* Delete with confirmation */}
@@ -161,7 +154,7 @@ export function ManageMajorsDialog({
                         onClick={() => setConfirmDeleteId(major.id)}
                         title="Delete major"
                       >
-                        <Trash2 className="size-3.5 text-destructive" />
+                        <Trash2 className="text-destructive size-3.5" />
                         <span className="sr-only">Delete</span>
                       </Button>
                     )}
@@ -173,11 +166,7 @@ export function ManageMajorsDialog({
         </div>
 
         {/* Add major form */}
-        <form
-          ref={formRef}
-          action={handleAddMajor}
-          className="flex items-end gap-2 border-t pt-3"
-        >
+        <form ref={formRef} action={handleAddMajor} className="flex items-end gap-2 border-t pt-3">
           <input type="hidden" name="program_id" value={program.id} />
           <div className="flex-1">
             <Input

@@ -18,11 +18,7 @@ function buildProgramLabel(input: {
   yearLevelName: string | null;
 }): string {
   return (
-    [
-      input.programCode ?? input.programName ?? "Program-wide",
-      input.majorName,
-      input.yearLevelName,
-    ]
+    [input.programCode ?? input.programName ?? "Program-wide", input.majorName, input.yearLevelName]
       .filter((value): value is string => Boolean(value))
       .join(" • ") || "College-wide"
   );
@@ -51,7 +47,7 @@ function countSectionItems(sections: StudentEvaluationSection[]) {
  */
 export async function listStakeholderEvaluations(
   stakeholderType: TargetStakeholder,
-  basePath: string = "/alumni",
+  basePath: string = "/alumni"
 ): Promise<{
   active: StudentEvaluationListItem[];
   submitted: StudentEvaluationListItem[];
@@ -105,21 +101,14 @@ export async function listStakeholderEvaluations(
       const response = assignment.response ?? null;
 
       // Skip unavailable deployments unless already submitted
-      if (
-        !response?.submitted_at &&
-        !isCentralDeploymentAvailable(deployment, now)
-      ) {
+      if (!response?.submitted_at && !isCentralDeploymentAvailable(deployment, now)) {
         return [];
       }
 
-      const sections = mapTemplateStructureToSections(
-        deployment.instrument.structure_snapshot,
-      );
+      const sections = mapTemplateStructureToSections(deployment.instrument.structure_snapshot);
       const section = sections[0] ?? buildFallbackSection();
       const totalItems = countSectionItems(sections);
-      const answeredItems = response
-        ? response.qual_items.length + response.quant_items.length
-        : 0;
+      const answeredItems = response ? response.qual_items.length + response.quant_items.length : 0;
 
       const session: StudentEvaluationSession = {
         answeredItems,

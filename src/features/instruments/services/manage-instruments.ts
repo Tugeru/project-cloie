@@ -7,18 +7,16 @@ import type {
   UpdateBaselineTemplateWithStructureInput,
 } from "../schemas/template";
 
-type ServiceResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
 
 const emptyStructure: Prisma.InputJsonValue = [];
 
 function isUniqueConstraintError(error: unknown): boolean {
   return Boolean(
     error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error as { code?: string }).code === "P2002",
+    typeof error === "object" &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
   );
 }
 
@@ -75,7 +73,7 @@ export async function getBaselineTemplate(id: string) {
 // ---------------------------------------------------------------------------
 
 export async function createBaselineTemplate(
-  input: CreateBaselineTemplateInput,
+  input: CreateBaselineTemplateInput
 ): Promise<ServiceResult<{ id: string }>> {
   try {
     const result = await prisma.$transaction(async (tx) => {
@@ -121,7 +119,7 @@ export async function createBaselineTemplate(
 // ---------------------------------------------------------------------------
 
 export async function createBaselineTemplateWithStructure(
-  input: CreateBaselineTemplateWithStructureInput,
+  input: CreateBaselineTemplateWithStructureInput
 ): Promise<ServiceResult<{ id: string }>> {
   const structureJson = input.structure as unknown as Prisma.InputJsonValue;
 
@@ -169,7 +167,7 @@ export async function createBaselineTemplateWithStructure(
 // ---------------------------------------------------------------------------
 
 export async function updateBaselineTemplate(
-  input: UpdateBaselineTemplateInput,
+  input: UpdateBaselineTemplateInput
 ): Promise<ServiceResult> {
   const existing = await prisma.instrumentTemplate.findUnique({
     where: { id: input.id },
@@ -218,7 +216,7 @@ export async function updateBaselineTemplate(
 // ---------------------------------------------------------------------------
 
 export async function updateBaselineTemplateWithStructure(
-  input: UpdateBaselineTemplateWithStructureInput,
+  input: UpdateBaselineTemplateWithStructureInput
 ): Promise<ServiceResult> {
   const existing = await prisma.instrumentTemplate.findUnique({
     where: { id: input.id },
@@ -282,7 +280,7 @@ export async function updateBaselineTemplateWithStructure(
 
 export async function toggleBaselineTemplateActive(
   id: string,
-  is_active: boolean,
+  is_active: boolean
 ): Promise<ServiceResult> {
   const existing = await prisma.instrumentTemplate.findUnique({
     where: { id },
@@ -312,9 +310,7 @@ export async function toggleBaselineTemplateActive(
 // Delete
 // ---------------------------------------------------------------------------
 
-export async function deleteBaselineTemplate(
-  id: string,
-): Promise<ServiceResult> {
+export async function deleteBaselineTemplate(id: string): Promise<ServiceResult> {
   const existing = await prisma.instrumentTemplate.findUnique({
     where: { id },
     select: { program_id: true },
@@ -341,7 +337,7 @@ export async function deleteBaselineTemplate(
 // ---------------------------------------------------------------------------
 
 export async function duplicateBaselineTemplate(
-  id: string,
+  id: string
 ): Promise<ServiceResult<{ id: string }>> {
   const original = await prisma.instrumentTemplate.findUnique({
     where: { id },

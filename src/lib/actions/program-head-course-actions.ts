@@ -16,7 +16,7 @@ type ActionResult = { success: true } | { success: false; error: string };
 
 function parseWithSchema<T>(
   schema: ZodType<T>,
-  value: unknown,
+  value: unknown
 ): { success: true; data: T } | { success: false; error: string } {
   const parsed = schema.safeParse(value);
 
@@ -34,9 +34,7 @@ function revalidateProgramHeadCourses() {
   revalidatePath("/program-head/courses");
 }
 
-export async function createProgramHeadCourseAction(
-  formData: FormData,
-): Promise<ActionResult> {
+export async function createProgramHeadCourseAction(formData: FormData): Promise<ActionResult> {
   const parsed = parseWithSchema(createProgramHeadCourseSchema, {
     code: formData.get("code"),
     title: formData.get("title"),
@@ -59,9 +57,7 @@ export async function createProgramHeadCourseAction(
   return { success: true };
 }
 
-export async function updateProgramHeadCourseAction(
-  formData: FormData,
-): Promise<ActionResult> {
+export async function updateProgramHeadCourseAction(formData: FormData): Promise<ActionResult> {
   const parsed = parseWithSchema(updateProgramHeadCourseSchema, {
     id: formData.get("id"),
     code: formData.get("code"),
@@ -87,7 +83,7 @@ export async function updateProgramHeadCourseAction(
 
 export async function toggleProgramHeadCourseActiveAction(
   id: string,
-  is_active: boolean,
+  is_active: boolean
 ): Promise<ActionResult> {
   const result = await toggleProgramHeadCourseActive(id, is_active);
 

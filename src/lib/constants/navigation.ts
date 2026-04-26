@@ -10,7 +10,7 @@ import {
   Layers3,
   BarChart3,
   Users2,
-  type LucideIcon
+  type LucideIcon,
 } from "lucide-react";
 import { ROLES, type Role } from "@/lib/constants/roles";
 
@@ -34,7 +34,6 @@ export const STUDENT_MOBILE_NAV: NavItem[] = [
   { name: "History", href: "/student/history", icon: History },
   { name: "Profile", href: "/student/profile", icon: UserCircle },
 ];
-
 
 export const FACULTY_NAV: NavItem[] = [
   { name: "Dashboard", href: "/faculty/dashboard", icon: LayoutDashboard },
@@ -87,7 +86,6 @@ export const INDUSTRY_PARTNER_NAV: NavItem[] = [
   { name: "History", href: "/industry-partner/history", icon: History },
   { name: "Profile", href: "/industry-partner/profile", icon: UserCircle },
 ];
-
 
 export const DEFAULT_NAV: NavItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },

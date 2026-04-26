@@ -13,9 +13,7 @@ type ActionResult =
 
 type SimpleActionResult = { success: true } | { success: false; error: string };
 
-export async function publishCentralDeploymentAction(
-  formData: FormData,
-): Promise<ActionResult> {
+export async function publishCentralDeploymentAction(formData: FormData): Promise<ActionResult> {
   const raw: Record<string, unknown> = {
     deployment_name: formData.get("deployment_name"),
     template_id: formData.get("template_id"),
@@ -79,7 +77,7 @@ export async function publishCentralDeploymentAction(
 }
 
 export async function closeCentralDeploymentAction(
-  deploymentId: string,
+  deploymentId: string
 ): Promise<SimpleActionResult> {
   if (!deploymentId || typeof deploymentId !== "string") {
     return { success: false, error: "Deployment ID is required." };

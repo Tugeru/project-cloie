@@ -1,7 +1,10 @@
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { buildStudentEvaluationAnswerKey } from "@/features/responses/answer-keys";
-import type { StudentEvaluationSection, StudentEvaluationSession } from "@/features/responses/types";
+import type {
+  StudentEvaluationSection,
+  StudentEvaluationSession,
+} from "@/features/responses/types";
 import { isCourseBoundEvaluationAvailable } from "./course-bound-availability";
 import { mapTemplateStructureToSections } from "./map-template-structure";
 
@@ -28,7 +31,7 @@ type MapSavedAnswerItemsInput = {
  * shared mapper in `map-template-structure.ts`.
  */
 export function mapStructureSnapshotToSections(
-  structureSnapshot: unknown,
+  structureSnapshot: unknown
 ): StudentEvaluationSection[] {
   return mapTemplateStructureToSections(structureSnapshot);
 }
@@ -40,11 +43,13 @@ export function mapSavedAnswerItems({
   const answers: Record<string, number | string> = {};
 
   for (const item of quantitativeItems) {
-    answers[buildStudentEvaluationAnswerKey(item.section_key, "quantitative", item.item_key)] = item.rating_value;
+    answers[buildStudentEvaluationAnswerKey(item.section_key, "quantitative", item.item_key)] =
+      item.rating_value;
   }
 
   for (const item of qualitativeItems) {
-    answers[buildStudentEvaluationAnswerKey(item.section_key, "qualitative", item.prompt_key)] = item.text_content;
+    answers[buildStudentEvaluationAnswerKey(item.section_key, "qualitative", item.prompt_key)] =
+      item.text_content;
   }
 
   return answers;
@@ -66,7 +71,7 @@ export type StudentCourseBoundEvaluationSession = {
 };
 
 export async function getStudentCourseBoundEvaluationSession(
-  assignmentId: string,
+  assignmentId: string
 ): Promise<StudentCourseBoundEvaluationSession | null> {
   const authSession = await resolveAuthSession();
 
@@ -111,7 +116,7 @@ export async function getStudentCourseBoundEvaluationSession(
   }
 
   const sections = mapStructureSnapshotToSections(
-    assignment.course_bound.instrument.structure_snapshot,
+    assignment.course_bound.instrument.structure_snapshot
   );
   const response = assignment.response ?? null;
   const savedAnswers = response
@@ -120,17 +125,14 @@ export async function getStudentCourseBoundEvaluationSession(
         quantitativeItems: response.quant_items,
       })
     : {};
-  const answeredItems = response
-    ? response.qual_items.length + response.quant_items.length
-    : 0;
+  const answeredItems = response ? response.qual_items.length + response.quant_items.length : 0;
 
   return {
     assignmentId: assignment.id,
     courseTitle: assignment.course_bound.course.title,
     deadlineAt: assignment.course_bound.deadline_at,
     evaluationTitle:
-      assignment.course_bound.deployment_name ??
-      assignment.course_bound.instrument.template.name,
+      assignment.course_bound.deployment_name ?? assignment.course_bound.instrument.template.name,
     programLabel: assignment.course_bound.major?.name ?? assignment.course_bound.program.name,
     savedAnswers,
     sections,
