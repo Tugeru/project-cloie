@@ -792,19 +792,21 @@ export function TemplateBuilder({
                 Active
               </Label>
             </div>
-            <div className="flex items-center gap-3">
-              <Switch
-                id="is-faculty-accessible"
-                checked={isFacultyAccessible}
-                disabled={templateType !== "COURSE_BOUND"}
-                onCheckedChange={setIsFacultyAccessible}
-              />
-              <Label htmlFor="is-faculty-accessible" className="cursor-pointer">
-                Faculty Access
-              </Label>
-            </div>
+            {!facultyMode && (
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="is-faculty-accessible"
+                  checked={isFacultyAccessible}
+                  disabled={templateType !== "COURSE_BOUND"}
+                  onCheckedChange={setIsFacultyAccessible}
+                />
+                <Label htmlFor="is-faculty-accessible" className="cursor-pointer">
+                  Faculty Access
+                </Label>
+              </div>
+            )}
           </div>
-          {effectiveTemplateType !== "COURSE_BOUND" && (
+          {!facultyMode && effectiveTemplateType !== "COURSE_BOUND" && (
             <p className="text-text-secondary text-xs">
               Faculty access is available only for course-bound templates.
             </p>
