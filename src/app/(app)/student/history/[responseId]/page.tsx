@@ -21,8 +21,9 @@ export default async function StudentSubmittedResponseReviewPage({
     <div className="animate-in fade-in space-y-6 duration-500">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
-          <Link href="/student/history">
-            <ArrowLeft className="mr-2 size-4" /> Back to History
+          <Link href="/student/history" className="inline-flex items-center gap-2">
+            <ArrowLeft className="size-4" />
+            <span>Back to History</span>
           </Link>
         </Button>
       </div>

@@ -374,9 +374,7 @@ function BaselineCard({ baseline }: { baseline: InstitutionalBaselineItem }) {
         <Badge variant={isProgramWide ? "default" : "outline"}>
           {isProgramWide ? "Program-wide" : "Course-bound"}
         </Badge>
-        {baseline.is_faculty_accessible && (
-          <Badge variant="outline">Faculty Accessible</Badge>
-        )}
+        {baseline.is_faculty_accessible && <Badge variant="outline">Faculty Accessible</Badge>}
       </div>
 
       {/* Actions */}

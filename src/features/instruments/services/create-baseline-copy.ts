@@ -14,7 +14,9 @@ interface CreateBaselineCopyInput {
   structure: TemplateStructure;
 }
 
-async function requirePHSession(): Promise<ServiceResult<{ userId: string; programIds: string[] }>> {
+async function requirePHSession(): Promise<
+  ServiceResult<{ userId: string; programIds: string[] }>
+> {
   const session = await resolveAuthSession();
 
   if (!session || !session.roles.includes(ROLES.PROGRAM_HEAD)) {
