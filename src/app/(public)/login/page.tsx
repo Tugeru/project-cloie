@@ -27,31 +27,26 @@ export default async function LoginPage({
             priority
           />
         </div>
-        <h1 className="text-display-md font-bold tracking-tight text-[#2563eb]">
-          CLOIE
-        </h1>
+        <h1 className="text-display-md font-bold tracking-tight text-[#2563eb]">CLOIE</h1>
         <p className="mt-2 text-center text-[#64748b]">
           Comprehensive Learning Outcomes
           <br />
           and Instructional Evaluation
         </p>
-        <p className="mt-1 text-sm font-medium text-[#2563eb]">
-          Assumption College of Davao
-        </p>
+        <p className="mt-1 text-sm font-medium text-[#2563eb]">Assumption College of Davao</p>
       </div>
 
       {/* Error Alerts */}
       {error === "invalid_domain" && (
         <Alert
           variant="destructive"
-          className="mb-6 animate-in slide-in-from-top-2 border-red-500/20 bg-red-50/80 backdrop-blur-sm duration-300"
+          className="animate-in slide-in-from-top-2 mb-6 border-red-500/20 bg-red-50/80 backdrop-blur-sm duration-300"
         >
           <AlertCircle className="size-5 shrink-0 text-red-500" />
           <div className="ml-3">
             <AlertTitle className="text-red-700">Access Restricted</AlertTitle>
             <AlertDescription className="text-red-600/90">
-              Please use your official{" "}
-              <span className="font-semibold">@acd.edu.ph</span> or{" "}
+              Please use your official <span className="font-semibold">@acd.edu.ph</span> or{" "}
               <span className="font-semibold">@acdeducation.com</span> email.
             </AlertDescription>
           </div>
@@ -61,7 +56,7 @@ export default async function LoginPage({
       {error === "auth-failure" && (
         <Alert
           variant="destructive"
-          className="mb-6 animate-in slide-in-from-top-2 border-red-500/20 bg-red-50/80 backdrop-blur-sm duration-300"
+          className="animate-in slide-in-from-top-2 mb-6 border-red-500/20 bg-red-50/80 backdrop-blur-sm duration-300"
         >
           <AlertCircle className="size-5 shrink-0 text-red-500" />
           <div className="ml-3">
@@ -75,11 +70,9 @@ export default async function LoginPage({
 
       {/* Main Card */}
       <Card className="overflow-hidden border border-[#e2e8f0]/60 bg-white/95 shadow-xl backdrop-blur-sm transition-shadow duration-300 hover:shadow-2xl">
-        <CardHeader className="space-y-3 pb-6 pt-8 text-center">
-          <CardTitle className="text-heading-lg font-bold text-[#0f172a]">
-            Welcome Back! 
-          </CardTitle>
-          <CardDescription className="mx-auto max-w-[280px] text-body-md text-[#64748b]">
+        <CardHeader className="space-y-3 pt-8 pb-6 text-center">
+          <CardTitle className="text-heading-lg font-bold text-[#0f172a]">Welcome Back!</CardTitle>
+          <CardDescription className="text-body-md mx-auto max-w-[280px] text-[#64748b]">
             Sign in with your institutional Google account to access your dashboard.
           </CardDescription>
         </CardHeader>
@@ -100,7 +93,7 @@ export default async function LoginPage({
               <span className="w-full border-t border-[#e2e8f0]" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-white px-4 text-xs font-medium uppercase tracking-wider text-[#94a3b8]">
+              <span className="bg-white px-4 text-xs font-medium tracking-wider text-[#94a3b8] uppercase">
                 or
               </span>
             </div>
@@ -119,11 +112,17 @@ export default async function LoginPage({
           <div className="pt-4 text-center">
             <p className="text-caption text-[#94a3b8]">
               By signing in, you agree to our{" "}
-              <a href="#" className="underline-offset-2 transition-colors hover:text-[#2563eb] hover:underline">
+              <a
+                href="#"
+                className="underline-offset-2 transition-colors hover:text-[#2563eb] hover:underline"
+              >
                 Terms
               </a>{" "}
               and{" "}
-              <a href="#" className="underline-offset-2 transition-colors hover:text-[#2563eb] hover:underline">
+              <a
+                href="#"
+                className="underline-offset-2 transition-colors hover:text-[#2563eb] hover:underline"
+              >
                 Privacy Policy
               </a>
             </p>

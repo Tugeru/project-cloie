@@ -45,15 +45,11 @@ export function GoogleSignInButton({ intent }: { intent?: "student" | "faculty" 
       variant="outline"
       onClick={handleSignIn}
       disabled={isLoading}
-      className={`
-        h-12 w-full gap-3 border-2 font-semibold transition-all duration-300
-        ${
-          isStudent
-            ? "border-[#d49900]/30 bg-white hover:border-[#d49900] hover:bg-[#fff4d6]/50 hover:text-[#b88200]"
-            : "border-[#2563eb]/30 bg-white hover:border-[#2563eb] hover:bg-[#eff6ff]/50 hover:text-[#1d4ed8]"
-        }
-        disabled:opacity-60
-      `}
+      className={`h-12 w-full gap-3 border-2 font-semibold transition-all duration-300 ${
+        isStudent
+          ? "border-[#d49900]/30 bg-white hover:border-[#d49900] hover:bg-[#fff4d6]/50 hover:text-[#b88200]"
+          : "border-[#2563eb]/30 bg-white hover:border-[#2563eb] hover:bg-[#eff6ff]/50 hover:text-[#1d4ed8]"
+      } disabled:opacity-60`}
     >
       {isLoading ? (
         <Loader2
@@ -86,11 +82,7 @@ export function GoogleSignInButton({ intent }: { intent?: "student" | "faculty" 
         </svg>
       )}
       <span className="text-[#334155]">
-        {isLoading
-          ? "Connecting..."
-          : isStudent
-            ? "Sign up as Student"
-            : "Sign in with Google"}
+        {isLoading ? "Connecting..." : isStudent ? "Sign up as Student" : "Sign in with Google"}
       </span>
     </Button>
   );

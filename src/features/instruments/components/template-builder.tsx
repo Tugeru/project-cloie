@@ -4,6 +4,14 @@ import { useCallback, useEffect, useMemo, useState, useTransition } from "react"
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -47,7 +55,7 @@ type FacultyBuilderConfig = {
   validatePublishReadinessAction: (templateId: string) => Promise<ActionResult<{ id: string }>>;
 };
 
-interface TemplateBuilderProps {
+export interface TemplateBuilderProps {
   initialData?: {
     id?: string;
     name: string;
@@ -68,6 +76,15 @@ interface TemplateBuilderProps {
     toastMessage: string;
   };
   toolsHref?: string;
+  onSaveResult?: (
+    result: { success: true; id: string } | { success: false; error: string }
+  ) => void;
+  isInstitutionalBaseline?: boolean;
+  onSaveAsCopy?: (
+    baselineId: string,
+    customName: string,
+    structure: TemplateStructure
+  ) => Promise<ActionResult<{ id: string }>>;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -136,6 +153,9 @@ export function TemplateBuilder({
   programLabel,
   saveSuccessConfig,
   toolsHref = "/program-head/tools",
+  onSaveResult,
+  isInstitutionalBaseline = false,
+  onSaveAsCopy,
 }: TemplateBuilderProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -172,6 +192,11 @@ export function TemplateBuilder({
 
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Copy name dialog state for institutional baselines
+  const [copyNameDialogOpen, setCopyNameDialogOpen] = useState(false);
+  const [copyName, setCopyName] = useState(initialData?.name ?? "");
+  const [isCopyPending, setIsCopyPending] = useState(false);
 
   const facultyMode = Boolean(facultyConfig);
   const effectiveTemplateType: EvaluationTemplateType = facultyMode ? "COURSE_BOUND" : templateType;
@@ -585,19 +610,48 @@ export function TemplateBuilder({
     if (!result.success) {
       setError(result.error);
       showToast(result.error, "error");
-      return null;
+      return { success: false as const, error: result.error };
     }
 
-    return result.data?.id ?? templateId ?? null;
+    const id = result.data?.id ?? templateId ?? null;
+    return { success: true as const, id };
   }, [buildFormData, onSave, templateId]);
 
-  const handleSave = useCallback(() => {
-    startTransition(async () => {
-      const savedId = await saveDraft();
+  const handleSaveAsCopy = useCallback(async () => {
+    if (!templateId || !onSaveAsCopy) return;
 
-      if (!savedId) {
+    setIsCopyPending(true);
+    const result = await onSaveAsCopy(templateId, copyName, sections);
+    setIsCopyPending(false);
+    setCopyNameDialogOpen(false);
+
+    if (!result.success) {
+      setError(result.error);
+      onSaveResult?.({ success: false, error: result.error });
+      return;
+    }
+
+    onSaveResult?.({ success: true, id: result.data!.id });
+    router.push(`${toolsHref}/${result.data!.id}/edit`);
+  }, [templateId, onSaveAsCopy, copyName, sections, toolsHref, router, onSaveResult]);
+
+  const handleSave = useCallback(() => {
+    // If editing an institutional baseline, show copy name dialog
+    if (isInstitutionalBaseline && templateId && onSaveAsCopy) {
+      setCopyName(initialData?.name ?? "");
+      setCopyNameDialogOpen(true);
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await saveDraft();
+
+      if (!result.success) {
+        onSaveResult?.({ success: false, error: result.error });
         return;
       }
+
+      onSaveResult?.({ success: true, id: result.id! });
 
       if (saveSuccessConfig) {
         router.push(
@@ -611,7 +665,17 @@ export function TemplateBuilder({
         router.push(toolsHref);
       }
     });
-  }, [router, saveDraft, saveSuccessConfig, templateId, toolsHref]);
+  }, [
+    isInstitutionalBaseline,
+    templateId,
+    onSaveAsCopy,
+    initialData?.name,
+    router,
+    saveDraft,
+    saveSuccessConfig,
+    toolsHref,
+    onSaveResult,
+  ]);
 
   const handlePublish = useCallback(() => {
     if (!facultyConfig) {
@@ -619,13 +683,13 @@ export function TemplateBuilder({
     }
 
     startTransition(async () => {
-      const savedId = await saveDraft();
+      const saveResult = await saveDraft();
 
-      if (!savedId) {
+      if (!saveResult.success) {
         return;
       }
 
-      const result = await facultyConfig.validatePublishReadinessAction(savedId);
+      const result = await facultyConfig.validatePublishReadinessAction(saveResult.id!);
 
       if (!result.success) {
         showToast(result.error, "error");
@@ -633,7 +697,7 @@ export function TemplateBuilder({
         return;
       }
 
-      router.push(`/faculty/cilo-evaluations/new?templateId=${savedId}`);
+      router.push(`/faculty/cilo-evaluations/new?templateId=${saveResult.id}`);
     });
   }, [facultyConfig, router, saveDraft]);
 
@@ -933,9 +997,46 @@ export function TemplateBuilder({
           </Button>
         )}
         <Button onClick={handleSave} disabled={isPending}>
-          {isPending ? "Saving…" : "Save Template"}
+          {isPending
+            ? isInstitutionalBaseline
+              ? "Creating Copy…"
+              : "Saving…"
+            : isInstitutionalBaseline
+              ? "Save as Program Copy"
+              : "Save Template"}
         </Button>
       </div>
+
+      {/* Copy Name Dialog for Institutional Baselines */}
+      <Dialog open={copyNameDialogOpen} onOpenChange={setCopyNameDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Save as Program Copy</DialogTitle>
+            <DialogDescription>
+              You are editing an institutional baseline. Saving will create a program-owned copy.
+              Enter a name for your copy:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="copy-name">Template Name</Label>
+            <Input
+              id="copy-name"
+              value={copyName}
+              onChange={(e) => setCopyName(e.target.value)}
+              placeholder="Enter template name"
+              className="mt-2"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCopyNameDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveAsCopy} disabled={!copyName.trim() || isCopyPending}>
+              {isCopyPending ? "Creating…" : "Create Copy"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

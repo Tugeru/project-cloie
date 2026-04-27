@@ -35,6 +35,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ProgramHeadDeploymentItem } from "@/features/evaluations/services/list-program-head-deployments";
 import type { ProgramHeadTemplateItem } from "@/features/instruments/services/manage-program-head-templates";
+import type { InstitutionalBaselineItem } from "@/features/instruments/services/list-institutional-baselines";
 import { closeCentralDeploymentAction } from "@/lib/actions/central-deployment-actions";
 import {
   deleteTemplateAction,
@@ -45,6 +46,7 @@ import {
 type ProgramHeadToolsPageProps = {
   templates: ProgramHeadTemplateItem[];
   deployments: ProgramHeadDeploymentItem[];
+  baselines: InstitutionalBaselineItem[];
   program: { id: string; code: string; name: string };
 };
 
@@ -75,6 +77,7 @@ function formatSemester(semester: string): string {
 export function ProgramHeadToolsPage({
   templates,
   deployments,
+  baselines,
   program,
 }: ProgramHeadToolsPageProps) {
   return (
@@ -110,7 +113,7 @@ export function ProgramHeadToolsPage({
         </div>
 
         <TabsContent value="templates" className="pt-6">
-          <TemplatesGrid templates={templates} />
+          <TemplatesGrid templates={templates} baselines={baselines} />
         </TabsContent>
 
         <TabsContent value="published" className="pt-6">
@@ -121,22 +124,54 @@ export function ProgramHeadToolsPage({
   );
 }
 
-function TemplatesGrid({ templates }: { templates: ProgramHeadTemplateItem[] }) {
-  if (templates.length === 0) {
+function TemplatesGrid({
+  templates,
+  baselines,
+}: {
+  templates: ProgramHeadTemplateItem[];
+  baselines: InstitutionalBaselineItem[];
+}) {
+  const hasContent = templates.length > 0 || baselines.length > 0;
+
+  if (!hasContent) {
     return (
       <div className="border-outline-variant rounded-xl border-2 border-dashed py-16 text-center">
         <p className="font-body text-on-surface-variant">
-          No templates found. Create your first template to get started.
+          No templates found. Create your first template or import from institutional baselines.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {templates.map((template) => (
-        <TemplateCard key={template.id} template={template} />
-      ))}
+    <div className="space-y-8">
+      {/* Program Templates */}
+      {templates.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="font-label text-text-secondary text-xs font-semibold tracking-[0.05em] uppercase">
+            Program Templates
+          </h3>
+          <div className="grid gap-4 md:grid-cols-2">
+            {templates.map((template) => (
+              <TemplateCard key={template.id} template={template} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Institutional Baselines */}
+      {baselines.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="font-label text-text-secondary text-xs font-semibold tracking-[0.05em] uppercase">
+            Institutional Baselines (Copy to Customize)
+          </h3>
+          <div className="grid gap-4 md:grid-cols-2">
+            {baselines.map((baseline) => (
+              <BaselineCard key={baseline.id} baseline={baseline} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -147,7 +182,6 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
   const [error, setError] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const isInstitutional = template.program_id === null;
   const isProgramWide = template.template_type === "PROGRAM_WIDE";
 
   function handleDuplicate() {
@@ -201,28 +235,26 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
             {template.is_active ? "Active" : "Inactive"}
           </span>
 
-          {!isInstitutional && (
-            <DropdownMenu>
-              <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-7 items-center justify-center rounded-md opacity-0 transition-opacity group-hover:opacity-100">
-                <MoreVertical className="size-4" />
-                <span className="sr-only">Actions</span>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side="bottom">
-                <DropdownMenuItem disabled={isPending} onClick={handleToggleActive}>
-                  {template.is_active ? "Deactivate" : "Activate"}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  variant="destructive"
-                  disabled={isPending}
-                  onClick={() => setShowDeleteDialog(true)}
-                >
-                  <Trash2 className="size-4" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-7 items-center justify-center rounded-md opacity-0 transition-opacity group-hover:opacity-100">
+              <MoreVertical className="size-4" />
+              <span className="sr-only">Actions</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="bottom">
+              <DropdownMenuItem disabled={isPending} onClick={handleToggleActive}>
+                {template.is_active ? "Deactivate" : "Activate"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                disabled={isPending}
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash2 className="size-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <h3 className="font-headline text-on-surface text-lg font-semibold">{template.name}</h3>
@@ -232,8 +264,7 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <span className="font-label text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase">
-            {isInstitutional ? "Institutional baseline" : "Program-owned"} -{" "}
-            {template._count.versions} version(s)
+            Program-owned - {template._count.versions} version(s)
           </span>
           <Badge variant="secondary" className="text-xs">
             {isProgramWide ? "Program-wide" : "Course-bound"}
@@ -252,12 +283,8 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
             variant="outline"
             size="sm"
             className="flex-1"
-            disabled={isInstitutional || isPending}
-            render={
-              isInstitutional ? undefined : (
-                <Link href={`/program-head/tools/${template.id}/edit`} />
-              )
-            }
+            disabled={isPending}
+            render={<Link href={`/program-head/tools/${template.id}/edit`} />}
           >
             <Pencil className="size-3.5" data-icon="inline-start" />
             Edit
@@ -318,10 +345,60 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
   );
 }
 
+function BaselineCard({ baseline }: { baseline: InstitutionalBaselineItem }) {
+  const router = useRouter();
+
+  const isProgramWide = baseline.template_type === "PROGRAM_WIDE";
+
+  return (
+    <div className="bg-surface group border-outline-variant hover:border-outline relative flex flex-col overflow-hidden rounded-xl border transition-all">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 p-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="font-body text-on-surface truncate text-base font-semibold">
+              {baseline.name}
+            </h3>
+            <Badge variant="secondary" className="shrink-0">
+              Institutional
+            </Badge>
+          </div>
+          <p className="font-body text-on-surface-variant mt-1 line-clamp-2 text-sm">
+            {baseline.description || "No description"}
+          </p>
+        </div>
+      </div>
+
+      {/* Meta row */}
+      <div className="flex items-center gap-2 px-4 py-2">
+        <Badge variant={isProgramWide ? "default" : "outline"}>
+          {isProgramWide ? "Program-wide" : "Course-bound"}
+        </Badge>
+        {baseline.is_faculty_accessible && (
+          <Badge variant="outline">Faculty Accessible</Badge>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="mt-auto flex items-center justify-end gap-2 border-t p-4">
+        <Button
+          variant="outline"
+          size="sm"
+          render={<Link href={`/program-head/tools/${baseline.id}/edit`} />}
+        >
+          <Pencil className="mr-1 size-3.5" />
+          Edit & Copy
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 type DeploymentStatusFilter = "ALL" | "ACTIVE" | "SCHEDULED" | "CLOSED" | "ARCHIVED";
 
 function PublishedDeploymentsTable({ deployments }: { deployments: ProgramHeadDeploymentItem[] }) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<DeploymentStatusFilter>("ALL");
   const [localDeployments, setLocalDeployments] = useState(deployments);
