@@ -1,5 +1,6 @@
 "use server";
 
+import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { studentProfileSchema, type StudentProfileInput } from "@/lib/schemas/student-profile";
@@ -7,7 +8,10 @@ import { studentProfileSchema, type StudentProfileInput } from "@/lib/schemas/st
 export async function registerStudentProfile(data: StudentProfileInput) {
   try {
     const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
 
     if (authError || !user || !user.email) {
       return { error: "Authentication session invalid or missing." };
@@ -15,17 +19,8 @@ export async function registerStudentProfile(data: StudentProfileInput) {
 
     const validatedData = studentProfileSchema.parse(data);
 
-    // Get the global STUDENT role
-    const studentRole = await prisma.role.findUnique({
-      where: { name: "STUDENT" },
-    });
-
-    if (!studentRole) {
-      return { error: "System initialization error: STUDENT role missing." };
-    }
-
     // Determine current Academic Year
-    // TODO: Tech Debt - This naive calendar-year logic fails for overlapping semesters 
+    // TODO: Tech Debt - This naive calendar-year logic fails for overlapping semesters
     // (e.g., enrolling in Jan 2027 for the 2nd semester of AY 2026-2027 yields "2027-2028").
     // Must be replaced with a central "Active Academic Term" global setting query.
     const currentYear = new Date().getFullYear();
@@ -50,11 +45,11 @@ export async function registerStudentProfile(data: StudentProfileInput) {
 
       // 2. Assign Global Role (Idempotent)
       await tx.userRole.upsert({
-        where: { user_id_role_id: { user_id: user.id, role_id: studentRole.id } },
-        update: {}, // Role assignment has no other fields to update
+        where: { user_id_role: { user_id: user.id, role: ROLES.STUDENT } },
+        update: {},
         create: {
           user_id: user.id,
-          role_id: studentRole.id,
+          role: ROLES.STUDENT,
         },
       });
 
@@ -67,6 +62,7 @@ export async function registerStudentProfile(data: StudentProfileInput) {
           year_level_id: validatedData.year_level_id,
           student_id_number: validatedData.student_id_number,
           academic_year: academicYear,
+          is_graduating: false,
         },
         create: {
           user_id: user.id,
@@ -75,6 +71,7 @@ export async function registerStudentProfile(data: StudentProfileInput) {
           year_level_id: validatedData.year_level_id,
           student_id_number: validatedData.student_id_number,
           academic_year: academicYear,
+          is_graduating: false,
         },
       });
     });
@@ -82,6 +79,11 @@ export async function registerStudentProfile(data: StudentProfileInput) {
     return { success: true };
   } catch (error: unknown) {
     console.error("Failed to register student profile:", error);
-    return { error: error instanceof Error ? error.message : "An unexpected error occurred during database persistence." };
+    return {
+      error:
+        error instanceof Error
+          ? error.message
+          : "An unexpected error occurred during database persistence.",
+    };
   }
 }

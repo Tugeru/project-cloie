@@ -16,15 +16,13 @@ function resolveTailwindcssPackagePath(): string {
   } catch {
     // Fallback: use the directory where pnpm was invoked (set by pnpm as
     // INIT_CWD) or the nearest package root (npm_config_local_prefix).
-    const root =
-      process.env.INIT_CWD ??
-      process.env.npm_config_local_prefix ??
-      process.cwd();
+    const root = process.env.INIT_CWD ?? process.env.npm_config_local_prefix ?? process.cwd();
     return path.join(root, "node_modules", "tailwindcss");
   }
 }
 
 const nextConfig: NextConfig = {
+  allowedDevOrigins: ["*.trycloudflare.com"],
   turbopack: {
     resolveAlias: {
       // Absolute alias so Turbopack's CSS @import resolver finds tailwindcss

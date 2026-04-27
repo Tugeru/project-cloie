@@ -1,31 +1,130 @@
-import { HeroCard } from "@/components/student/dashboard/hero-card";
-import { StatCards } from "@/components/student/dashboard/stat-cards";
-import { EvaluationListCard } from "@/components/student/dashboard/evaluation-list-card";
 import Link from "next/link";
-import { listStudentCourseBoundEvaluations } from "@/modules/student-evaluation-workflow/services/list-student-course-bound-evaluations";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { listStudentAssignedEvaluations } from "@/features/responses/services/list-student-assigned-evaluations";
+import { EvaluationListCard } from "@/features/users/components/evaluation-list-card";
+import { HeroCard } from "@/features/users/components/hero-card";
+import { StatCards } from "@/features/users/components/stat-cards";
+import { prisma } from "@/lib/db/prisma";
 
 export default async function StudentDashboardPage() {
-  const { active } = await listStudentCourseBoundEvaluations();
+  const session = await resolveAuthSession();
+  const { active, submitted } = await listStudentAssignedEvaluations();
   const inProgressCount = active.filter((item) => item.status === "IN_PROGRESS").length;
+  const resumeItem = active.find((item) => item.status === "IN_PROGRESS") ?? active[0] ?? null;
+
+  const profile = session
+    ? await prisma.studentAcademicProfile.findUnique({
+        where: { user_id: session.userId },
+        include: {
+          major: true,
+          program: true,
+          user: true,
+          year_level: true,
+        },
+      })
+    : null;
+
+  const contextLabel = profile
+    ? [
+        profile.program.code,
+        profile.major?.name ?? null,
+        profile.year_level.name,
+        profile.academic_year,
+      ]
+        .filter(Boolean)
+        .join(" • ")
+    : "Student portal";
+
+  const displayName = profile?.user.first_name ?? "Student";
 
   return (
     <div className="animate-in fade-in duration-500">
-      <HeroCard name="Andy" program="BSIT" year="4th Year" section="Section A" />
-      <StatCards pending={active.length} inProgress={inProgressCount} completed={0} />
-      
-      <section className="mt-8">
-        <div className="flex items-center justify-between mb-5">
+      <HeroCard name={displayName} contextLabel={contextLabel} />
+      <StatCards
+        pending={active.length}
+        inProgress={inProgressCount}
+        completed={submitted.length}
+      />
+
+      {session?.isGraduating && (
+        <Card className="border-primary/30 bg-primary-soft/40 mt-6">
+          <CardContent className="p-4">
+            <p className="text-primary font-semibold">Graduating Eligibility Active</p>
+            <p className="text-text-secondary text-sm">
+              Graduating-student tools appear here only when a real program-level deployment assigns
+              them to your account.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+      {resumeItem && (
+        <section className="mt-8 space-y-4">
           <div>
-            <h3 className="text-xl font-extrabold font-heading">Active Evaluations</h3>
-            <p className="text-sm text-text-muted font-medium">Prioritize forms closing soon</p>
+            <h3 className="font-heading text-xl font-extrabold">Continue</h3>
+            <p className="text-text-muted text-sm font-medium">Pick up where you left off.</p>
           </div>
-          <Link href="/student/evaluations" className="text-primary text-sm font-bold hover:underline">View All</Link>
+
+          <Card className="border-border overflow-hidden shadow-sm">
+            <CardContent className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between">
+              <div className="space-y-2">
+                <p className="text-primary text-xs font-semibold tracking-wider uppercase">
+                  {resumeItem.status === "IN_PROGRESS" ? "In Progress" : "Pending"}
+                </p>
+                <div>
+                  <h4 className="text-xl font-bold">
+                    {resumeItem.courseTitle ?? resumeItem.evaluationTitle}
+                  </h4>
+                  <p className="text-text-secondary text-sm">
+                    {resumeItem.courseTitle
+                      ? `${resumeItem.evaluationTitle} • ${resumeItem.programLabel}`
+                      : resumeItem.programLabel}
+                  </p>
+                </div>
+                {resumeItem.status === "IN_PROGRESS" && (
+                  <p className="text-secondary text-sm font-medium">
+                    {resumeItem.progress}% complete
+                  </p>
+                )}
+              </div>
+
+              {resumeItem.href && (
+                <Button render={<Link href={resumeItem.href} />} className="font-semibold">
+                  {resumeItem.status === "IN_PROGRESS" ? "Resume" : "Start Evaluation"}
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        </section>
+      )}
+
+      <section className="mt-8">
+        <div className="mb-5 flex items-center justify-between">
+          <div>
+            <h3 className="font-heading text-xl font-extrabold">Pending Evaluations</h3>
+            <p className="text-text-muted text-sm font-medium">
+              Prioritize forms that are active and closing soon.
+            </p>
+          </div>
+          <Link
+            href="/student/evaluations"
+            className="text-primary text-sm font-bold hover:underline"
+          >
+            View All
+          </Link>
         </div>
 
         <div className="grid gap-4">
-          {active.map((evalItem) => (
-            <EvaluationListCard key={evalItem.evaluationId} {...evalItem} />
+          {active.slice(0, 3).map((evalItem) => (
+            <EvaluationListCard key={evalItem.assignmentId} {...evalItem} />
           ))}
+          {active.length === 0 && (
+            <div className="border-border rounded-xl border-2 border-dashed py-12 text-center">
+              <p className="text-text-muted font-medium">No active evaluations found.</p>
+            </div>
+          )}
         </div>
       </section>
     </div>

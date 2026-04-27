@@ -3,21 +3,21 @@ import {
   buildQualitativeUpserts,
   buildQuantitativeUpserts,
   saveStudentCourseBoundDraft,
-} from "@/modules/student-evaluation-workflow/services/save-student-course-bound-draft";
+} from "@/features/responses/services/save-student-course-bound-draft";
 
 const {
   createMock,
   deleteManyQualMock,
   deleteManyQuantMock,
   findAssignmentMock,
-  findResponseMock,
+  findResponseByAssignmentMock,
   resolveAuthSessionMock,
 } = vi.hoisted(() => ({
   createMock: vi.fn(),
   deleteManyQualMock: vi.fn(),
   deleteManyQuantMock: vi.fn(),
   findAssignmentMock: vi.fn(),
-  findResponseMock: vi.fn(),
+  findResponseByAssignmentMock: vi.fn(),
   resolveAuthSessionMock: vi.fn(),
 }));
 
@@ -36,12 +36,12 @@ vi.mock("@/lib/db/prisma", () => ({
     },
     response: {
       create: createMock,
-      findFirst: findResponseMock,
+      findUnique: findResponseByAssignmentMock,
     },
   },
 }));
 
-vi.mock("@/modules/identity-access/services/resolve-auth-session", () => ({
+vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
 }));
 
@@ -50,7 +50,7 @@ const section = {
   id: "section-a",
   items: [],
   name: "Section A",
-} as const;
+};
 
 describe("buildQuantitativeUpserts", () => {
   it("creates quantitative upserts only for the current section", () => {
@@ -65,7 +65,7 @@ describe("buildQuantitativeUpserts", () => {
         responseId: "response-1",
         section,
         updatedAt: "2026-04-20T10:00:00.000Z",
-      }),
+      })
     ).toEqual([
       {
         item_key: "q1",
@@ -98,7 +98,7 @@ describe("buildQualitativeUpserts", () => {
         responseId: "response-1",
         section,
         updatedAt: "2026-04-20T10:00:00.000Z",
-      }),
+      })
     ).toEqual([
       {
         prompt_key: "remarks",
@@ -121,6 +121,7 @@ describe("buildQualitativeUpserts", () => {
 describe("saveStudentCourseBoundDraft", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
   });
 
   it("creates or reuses a draft response and reports success", async () => {
@@ -129,6 +130,7 @@ describe("saveStudentCourseBoundDraft", () => {
       course_bound_id: "course-bound-1",
       id: "assignment-1",
       course_bound: {
+        activation_at: new Date("2026-04-01T00:00:00.000Z"),
         instrument: {
           structure_snapshot: [
             {
@@ -140,9 +142,11 @@ describe("saveStudentCourseBoundDraft", () => {
             },
           ],
         },
+        deadline_at: new Date("2026-05-20T00:00:00.000Z"),
+        status: "ACTIVE",
       },
     });
-    findResponseMock.mockResolvedValue(null);
+    findResponseByAssignmentMock.mockResolvedValue(null);
     createMock.mockResolvedValue({ id: "response-1" });
 
     await expect(
@@ -152,12 +156,12 @@ describe("saveStudentCourseBoundDraft", () => {
         },
         assignmentId: "assignment-1",
         sectionKey: "section-a",
-      }),
+      })
     ).resolves.toEqual(
       expect.objectContaining({
         responseId: "response-1",
         success: true,
-      }),
+      })
     );
   });
 
@@ -167,6 +171,7 @@ describe("saveStudentCourseBoundDraft", () => {
       course_bound_id: "course-bound-1",
       id: "assignment-1",
       course_bound: {
+        activation_at: new Date("2026-04-01T00:00:00.000Z"),
         instrument: {
           structure_snapshot: [
             {
@@ -178,19 +183,62 @@ describe("saveStudentCourseBoundDraft", () => {
             },
           ],
         },
+        deadline_at: new Date("2026-05-20T00:00:00.000Z"),
+        status: "ACTIVE",
       },
     });
-    findResponseMock.mockResolvedValue({ id: "response-1", status: "SUBMITTED" });
+    findResponseByAssignmentMock.mockResolvedValue({ id: "response-1", status: "SUBMITTED" });
 
     await expect(
       saveStudentCourseBoundDraft({
         answers: { "section-a:quantitative:q1": 4 },
         assignmentId: "assignment-1",
         sectionKey: "section-a",
-      }),
+      })
     ).resolves.toEqual({
       error: "This evaluation has already been submitted.",
       success: false,
     });
+  });
+
+  it("rejects draft saves when the course-bound evaluation is unavailable", async () => {
+    resolveAuthSessionMock.mockResolvedValue({ userId: "user-1" });
+    findAssignmentMock.mockResolvedValue({
+      course_bound_id: "course-bound-1",
+      id: "assignment-1",
+      course_bound: {
+        activation_at: new Date("2026-05-15T00:00:00.000Z"),
+        deadline_at: new Date("2026-05-20T00:00:00.000Z"),
+        instrument: {
+          structure_snapshot: [
+            {
+              items: [
+                { key: "q1", kind: "quantitative", prompt: "Question 1", scale: [1, 2, 3, 4, 5] },
+              ],
+              key: "section-a",
+              title: "Section A",
+            },
+          ],
+        },
+        status: "SCHEDULED",
+      },
+    });
+    findResponseByAssignmentMock.mockResolvedValue(null);
+
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-10T00:00:00.000Z"));
+
+    await expect(
+      saveStudentCourseBoundDraft({
+        answers: { "section-a:quantitative:q1": 4 },
+        assignmentId: "assignment-1",
+        sectionKey: "section-a",
+      })
+    ).resolves.toEqual({
+      error: "This evaluation is not currently available.",
+      success: false,
+    });
+
+    vi.useRealTimers();
   });
 });

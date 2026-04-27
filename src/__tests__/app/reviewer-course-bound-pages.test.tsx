@@ -1,0 +1,230 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { render, screen } from "@testing-library/react";
+import type { ReactNode } from "react";
+
+const {
+  listCourseBoundReviewItemsMock,
+  getCourseBoundReviewDetailMock,
+  getCourseBoundResponseReviewMock,
+} = vi.hoisted(() => ({
+  getCourseBoundResponseReviewMock: vi.fn(),
+  getCourseBoundReviewDetailMock: vi.fn(),
+  listCourseBoundReviewItemsMock: vi.fn(),
+}));
+
+vi.mock("next/link", () => ({
+  default: ({ children, href }: { children: ReactNode; href: string }) => (
+    <a href={href}>{children}</a>
+  ),
+}));
+
+vi.mock("next/navigation", () => ({
+  notFound: vi.fn(() => {
+    throw new Error("NEXT_NOT_FOUND");
+  }),
+}));
+
+vi.mock("@/features/analytics/services/list-course-bound-review-items", () => ({
+  listCourseBoundReviewItems: listCourseBoundReviewItemsMock,
+}));
+
+vi.mock("@/features/analytics/services/get-course-bound-review-detail", () => ({
+  getCourseBoundReviewDetail: getCourseBoundReviewDetailMock,
+}));
+
+vi.mock("@/features/analytics/services/get-course-bound-response-review", () => ({
+  getCourseBoundResponseReview: getCourseBoundResponseReviewMock,
+}));
+
+vi.mock("@/features/analytics/components/published-course-bound-list", () => ({
+  PublishedCourseBoundList: ({ title }: { title: string }) => <div>Published list: {title}</div>,
+}));
+
+vi.mock("@/features/analytics/components/course-bound-review-tabs", () => ({
+  CourseBoundReviewTabs: ({ responseBasePath }: { responseBasePath: string }) => (
+    <div>Tabs base path: {responseBasePath}</div>
+  ),
+}));
+
+vi.mock("@/features/analytics/components/anonymized-response-detail", () => ({
+  AnonymizedResponseDetail: ({
+    response,
+  }: {
+    response: { evaluationTitle: string; respondentLabel: string };
+  }) => (
+    <div>
+      Response detail: {response.evaluationTitle} ({response.respondentLabel})
+    </div>
+  ),
+}));
+
+const reviewList = [
+  {
+    academicYear: "2025-2026",
+    courseTitle: "Capstone 2",
+    deadlineAt: new Date("2026-01-10T10:00:00.000Z"),
+    evaluationId: "eval-1",
+    evaluationTitle: "Post-Term CILO Evaluation Tool",
+    overallMean: 4.25,
+    programLabel: "BSIT",
+    responseCount: 20,
+    reviewerRole: "FACULTY" as const,
+    semester: "2ND",
+    term: "REGULAR",
+  },
+];
+
+const reviewDetail = {
+  ...reviewList[0],
+  responseCards: [
+    {
+      overallMean: 4.2,
+      responseId: "response-1",
+      respondentLabel: "Respondent R-827493",
+      submittedAt: new Date("2026-01-05T08:00:00.000Z"),
+    },
+  ],
+  sections: [
+    {
+      id: "teaching",
+      mean: 4.2,
+      name: "Teaching",
+      qualitativePromptCount: 1,
+      quantitativeQuestionCount: 1,
+      questions: [{ itemKey: "clarity", mean: 4.2, prompt: "Clarity" }],
+    },
+  ],
+  wordCloudTokens: [{ text: "clear", value: 2 }],
+};
+
+const responseDetail = {
+  academicYear: "2025-2026",
+  courseTitle: "Capstone 2",
+  evaluationId: "eval-1",
+  evaluationTitle: "Post-Term CILO Evaluation Tool",
+  overallMean: 4.2,
+  programLabel: "BSIT",
+  responseId: "response-1",
+  respondentLabel: "Respondent R-827493",
+  reviewerRole: "FACULTY" as const,
+  sections: [
+    {
+      id: "teaching",
+      mean: 4.2,
+      name: "Teaching",
+      qualitativeResponses: [{ prompt: "Remarks", promptKey: "remarks", text: "Very clear." }],
+      quantitativeResponses: [{ itemKey: "clarity", prompt: "Clarity", rating: 4 }],
+    },
+  ],
+  submittedAt: new Date("2026-01-05T08:00:00.000Z"),
+};
+
+describe("reviewer course-bound pages", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    listCourseBoundReviewItemsMock.mockResolvedValue(reviewList);
+    getCourseBoundReviewDetailMock.mockResolvedValue(reviewDetail);
+    getCourseBoundResponseReviewMock.mockResolvedValue(responseDetail);
+  });
+
+  it("renders faculty detail page with shared tabs", async () => {
+    const FacultyEvaluationPage = (
+      await import("../../app/(app)/faculty/cilo-evaluations/[evaluationId]/page")
+    ).default;
+    const page = await FacultyEvaluationPage({
+      params: Promise.resolve({ evaluationId: "eval-1" }),
+    });
+
+    render(page);
+
+    expect(getCourseBoundReviewDetailMock).toHaveBeenCalledWith("eval-1");
+    expect(
+      screen.getByText("Tabs base path: /faculty/cilo-evaluations/eval-1")
+    ).toBeInTheDocument();
+  });
+
+  it("renders faculty response page with read-only anonymized response detail", async () => {
+    const FacultyResponsePage = (
+      await import("../../app/(app)/faculty/cilo-evaluations/[evaluationId]/responses/[responseId]/page")
+    ).default;
+    const page = await FacultyResponsePage({
+      params: Promise.resolve({ evaluationId: "eval-1", responseId: "response-1" }),
+    });
+
+    render(page);
+
+    expect(getCourseBoundResponseReviewMock).toHaveBeenCalledWith("response-1");
+    expect(
+      screen.getByText("Response detail: Post-Term CILO Evaluation Tool (Respondent R-827493)")
+    ).toBeInTheDocument();
+  });
+
+  it("renders program-head list and detail flow using shared review components", async () => {
+    const ProgramHeadListPage = (await import("../../app/(app)/program-head/cilo-reviews/page"))
+      .default;
+    const ProgramHeadDetailPage = (
+      await import("../../app/(app)/program-head/cilo-reviews/[evaluationId]/page")
+    ).default;
+
+    render(await ProgramHeadListPage());
+    expect(listCourseBoundReviewItemsMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("Published list: Program CILO Reviews")).toBeInTheDocument();
+
+    const detail = await ProgramHeadDetailPage({
+      params: Promise.resolve({ evaluationId: "eval-1" }),
+    });
+    render(detail);
+    expect(getCourseBoundReviewDetailMock).toHaveBeenCalledWith("eval-1");
+    expect(
+      screen.getByText("Tabs base path: /program-head/cilo-reviews/eval-1")
+    ).toBeInTheDocument();
+  });
+
+  it("renders dean list and detail flow using shared review components", async () => {
+    const DeanListPage = (await import("../../app/(app)/dean/cilo-reviews/page")).default;
+    const DeanDetailPage = (await import("../../app/(app)/dean/cilo-reviews/[evaluationId]/page"))
+      .default;
+
+    render(await DeanListPage());
+    expect(listCourseBoundReviewItemsMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByText("Published list: College CILO Reviews")).toBeInTheDocument();
+
+    const detail = await DeanDetailPage({ params: Promise.resolve({ evaluationId: "eval-1" }) });
+    render(detail);
+    expect(getCourseBoundReviewDetailMock).toHaveBeenCalledWith("eval-1");
+    expect(screen.getByText("Tabs base path: /dean/cilo-reviews/eval-1")).toBeInTheDocument();
+  });
+
+  it("renders role response pages and routes missing payloads to notFound", async () => {
+    const ProgramHeadResponsePage = (
+      await import("../../app/(app)/program-head/cilo-reviews/[evaluationId]/responses/[responseId]/page")
+    ).default;
+    const DeanResponsePage = (
+      await import("../../app/(app)/dean/cilo-reviews/[evaluationId]/responses/[responseId]/page")
+    ).default;
+
+    render(
+      await ProgramHeadResponsePage({
+        params: Promise.resolve({ evaluationId: "eval-1", responseId: "response-1" }),
+      })
+    );
+    expect(getCourseBoundResponseReviewMock).toHaveBeenCalledWith("response-1");
+    expect(
+      screen.getByText("Response detail: Post-Term CILO Evaluation Tool (Respondent R-827493)")
+    ).toBeInTheDocument();
+
+    render(
+      await DeanResponsePage({
+        params: Promise.resolve({ evaluationId: "eval-1", responseId: "response-1" }),
+      })
+    );
+    expect(getCourseBoundResponseReviewMock).toHaveBeenCalledWith("response-1");
+
+    getCourseBoundResponseReviewMock.mockResolvedValueOnce(null);
+    await expect(
+      ProgramHeadResponsePage({
+        params: Promise.resolve({ evaluationId: "eval-1", responseId: "missing" }),
+      })
+    ).rejects.toThrow("NEXT_NOT_FOUND");
+  });
+});

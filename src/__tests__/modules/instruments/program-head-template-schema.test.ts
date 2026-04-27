@@ -1,0 +1,56 @@
+import { describe, expect, test } from "vitest";
+import {
+  createProgramHeadTemplateSchema,
+  templateQuestionSchema,
+} from "@/features/instruments/schemas/program-head-template";
+
+describe("program-head-template schema", () => {
+  test("rejects duplicate suggested responses after trimming", () => {
+    const result = templateQuestionSchema.safeParse({
+      key: "question-1",
+      prompt: "Suggestions",
+      type: "guided_open_ended",
+      order: 0,
+      required: true,
+      suggestedResponses: ["Alpha", "Alpha ", "Beta"],
+    });
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      return;
+    }
+
+    expect(result.error.issues[0]?.message).toBe(
+      "Predefined responses must be unique within a question."
+    );
+  });
+
+  test("accepts unique suggested responses in a template payload", () => {
+    const result = createProgramHeadTemplateSchema.safeParse({
+      name: "Graduate Exit Tool",
+      description: "",
+      template_type: "PROGRAM_WIDE",
+      is_faculty_accessible: false,
+      structure: [
+        {
+          key: "section-1",
+          title: "Feedback",
+          description: "",
+          order: 0,
+          questions: [
+            {
+              key: "question-1",
+              prompt: "Suggestions",
+              type: "guided_open_ended",
+              order: 0,
+              required: true,
+              suggestedResponses: ["Alpha", "Beta"],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result.success).toBe(true);
+  });
+});

@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import * as saveDraftService from "@/modules/student-evaluation-workflow/services/save-student-course-bound-draft";
-import * as submitResponseService from "@/modules/student-evaluation-workflow/services/submit-student-course-bound-response";
+import * as saveDraftService from "@/features/responses/services/save-student-course-bound-draft";
+import * as submitResponseService from "@/features/responses/services/submit-student-course-bound-response";
 
 import {
   saveStudentCourseBoundDraftAction,
@@ -29,7 +29,7 @@ describe("student evaluation server actions", () => {
       responseId: "response-1",
       savedAt: "2026-05-01T10:00:00.000Z",
       success: true,
-    };
+    } as const;
 
     const saveDraftSpy = vi
       .spyOn(saveDraftService, "saveStudentCourseBoundDraft")
@@ -51,7 +51,7 @@ describe("student evaluation server actions", () => {
       responseId: "response-1",
       status: "SUBMITTED",
       success: true,
-    };
+    } as const;
 
     const submitResponseSpy = vi
       .spyOn(submitResponseService, "submitStudentCourseBoundResponse")

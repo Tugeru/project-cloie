@@ -31,6 +31,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   const dbPassword = process.env.SUPABASE_DB_PASSWORD;
 
   execFileSync(getSupabaseCommand(), buildLinkArgs(projectRef, dbPassword), {
+    shell: process.platform === "win32",
     stdio: "inherit",
   });
 }

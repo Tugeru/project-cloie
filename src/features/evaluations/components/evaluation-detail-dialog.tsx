@@ -1,0 +1,230 @@
+"use client";
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import type { FacultyEvaluationDetail } from "../types";
+
+interface EvaluationDetailDialogProps {
+  detail: FacultyEvaluationDetail | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+function formatDate(date: Date | string | null): string {
+  if (!date) return "--";
+  const d = typeof date === "string" ? new Date(date) : date;
+  return d.toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function formatSemester(semester: string): string {
+  if (semester === "FIRST" || semester === "1ST") return "1st Semester";
+  if (semester === "SECOND" || semester === "2ND") return "2nd Semester";
+  if (semester === "SUMMER") return "Summer";
+  return semester;
+}
+
+function formatTerm(term: string): string {
+  if (term === "FIRST_TERM") return "1st Term";
+  if (term === "SECOND_TERM") return "2nd Term";
+  return term;
+}
+
+function getStatusColor(status: string): string {
+  switch (status) {
+    case "ACTIVE":
+      return "bg-primary text-primary-foreground";
+    case "SCHEDULED":
+      return "bg-amber-100 text-amber-800";
+    case "CLOSED":
+      return "bg-gray-100 text-gray-600";
+    case "ARCHIVED":
+      return "bg-gray-100 text-gray-400";
+    default:
+      return "bg-gray-100 text-gray-600";
+  }
+}
+
+export function EvaluationDetailDialog({
+  detail,
+  open,
+  onOpenChange,
+}: EvaluationDetailDialogProps) {
+  if (!detail) return null;
+
+  const bindingByCiloId = new Map(
+    detail.templateBindings.filter((b) => b.ciloId).map((binding) => [binding.ciloId, binding])
+  );
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-h-[90vh] max-w-3xl overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">{detail.deploymentName}</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-6 pt-2">
+          {/* Status & Academic Period */}
+          <div className="flex flex-wrap items-center gap-2">
+            <Badge className={getStatusColor(detail.status)}>
+              {detail.status.charAt(0) + detail.status.slice(1).toLowerCase()}
+            </Badge>
+            <span className="text-muted-foreground text-sm">
+              {detail.academicYear} • {formatSemester(detail.semester)} • {formatTerm(detail.term)}
+            </span>
+          </div>
+
+          {/* Course Info */}
+          <div className="rounded-lg border p-4">
+            <h4 className="text-muted-foreground mb-3 text-sm font-semibold tracking-wide uppercase">
+              Course Information
+            </h4>
+            <div className="grid gap-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Course:</span>
+                <span className="font-medium">
+                  {detail.courseInfo.courseCode} - {detail.courseInfo.courseTitle}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Scope:</span>
+                <span className="font-medium capitalize">{detail.courseInfo.courseScope}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Program:</span>
+                <span className="font-medium">
+                  {detail.courseInfo.programCode} - {detail.courseInfo.programName}
+                </span>
+              </div>
+              {detail.courseInfo.majorName && (
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Major:</span>
+                  <span className="font-medium">{detail.courseInfo.majorName}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Timeline */}
+          <div className="rounded-lg border p-4">
+            <h4 className="text-muted-foreground mb-3 text-sm font-semibold tracking-wide uppercase">
+              Timeline
+            </h4>
+            <div className="grid gap-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Published:</span>
+                <span className="font-medium">{formatDate(detail.publishedAt)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Activation:</span>
+                <span className="font-medium">
+                  {detail.activationAt ? formatDate(detail.activationAt) : "Immediate"}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Deadline:</span>
+                <span className="font-medium">
+                  {detail.deadlineAt ? formatDate(detail.deadlineAt) : "No deadline"}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Response Progress */}
+          <div className="rounded-lg border p-4">
+            <h4 className="text-muted-foreground mb-3 text-sm font-semibold tracking-wide uppercase">
+              Response Progress
+            </h4>
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <div className="mb-2 flex justify-between text-sm">
+                  <span>Completed</span>
+                  <span className="font-medium">
+                    {detail.responseCount} / {detail.totalAssignments}
+                  </span>
+                </div>
+                <div className="bg-muted h-2 rounded-full">
+                  <div
+                    className="bg-primary h-2 rounded-full transition-all"
+                    style={{
+                      width:
+                        detail.totalAssignments > 0
+                          ? `${(detail.responseCount / detail.totalAssignments) * 100}%`
+                          : "0%",
+                    }}
+                  />
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-2xl font-bold">
+                  {detail.totalAssignments > 0
+                    ? Math.round((detail.responseCount / detail.totalAssignments) * 100)
+                    : 0}
+                  %
+                </div>
+                <div className="text-muted-foreground text-xs">completion rate</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Target Year Levels */}
+          <div className="rounded-lg border p-4">
+            <h4 className="text-muted-foreground mb-3 text-sm font-semibold tracking-wide uppercase">
+              Target Year Levels
+            </h4>
+            <div className="flex flex-wrap gap-2">
+              {detail.targets.length === 0 ? (
+                <span className="text-muted-foreground text-sm">No specific targets</span>
+              ) : (
+                detail.targets.map((target, index) => (
+                  <Badge key={index} variant="outline">
+                    {target.yearLevelName ?? "All Year Levels"}
+                  </Badge>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* CILO Bindings */}
+          <div className="space-y-3">
+            <h4 className="text-muted-foreground text-sm font-semibold tracking-wide uppercase">
+              CILO Question Bindings
+            </h4>
+            {detail.cilos.length === 0 ? (
+              <p className="text-muted-foreground text-sm">No CILOs mapped.</p>
+            ) : (
+              <ol className="space-y-3">
+                {detail.cilos.map((cilo) => {
+                  const binding = bindingByCiloId.get(cilo.id);
+                  return (
+                    <li key={cilo.id} className="rounded-lg border p-4">
+                      <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+                        {cilo.label}
+                      </p>
+                      <p className="text-foreground mt-2 text-sm">{cilo.description}</p>
+                      {binding && (
+                        <div className="bg-muted mt-3 rounded-md p-3">
+                          <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
+                            Bound Likert Question
+                          </p>
+                          <p className="text-foreground mt-1 text-sm">
+                            {binding.questionPromptSnapshot}
+                          </p>
+                        </div>
+                      )}
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

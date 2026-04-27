@@ -1,0 +1,43 @@
+import { notFound, redirect } from "next/navigation";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { getCentralDeploymentEvaluationSession } from "@/features/responses/services/get-central-deployment-evaluation-session";
+import { WizardShell } from "@/features/responses/components/wizard-shell";
+import {
+  saveCentralDeploymentDraftAction,
+  submitCentralDeploymentResponseAction,
+} from "@/lib/actions/stakeholder-evaluation-actions";
+
+export default async function IndustryPartnerEvaluationPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const session = await resolveAuthSession();
+
+  if (!session) {
+    redirect("/login");
+  }
+
+  const { id: deploymentId } = await params;
+  const evalSession = await getCentralDeploymentEvaluationSession(deploymentId);
+
+  if (!evalSession) {
+    notFound();
+  }
+
+  // If already submitted, redirect to the submitted review page
+  if (evalSession.session.submittedAt) {
+    redirect(`/industry-partner/evaluations/${deploymentId}/submitted`);
+  }
+
+  return (
+    <WizardShell
+      assignmentId={evalSession.assignmentId}
+      title={evalSession.evaluationTitle}
+      sections={evalSession.sections}
+      initialAnswers={evalSession.savedAnswers}
+      onSaveDraft={saveCentralDeploymentDraftAction}
+      onSubmitResponse={submitCentralDeploymentResponseAction}
+    />
+  );
+}

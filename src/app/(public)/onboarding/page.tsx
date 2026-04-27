@@ -1,10 +1,12 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
+import { UserPlus, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
 import { prisma } from "@/lib/db/prisma";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { resolveAuthSessionFromUser } from "@/modules/identity-access/services/resolve-auth-session";
-import { resolvePostLoginDestination } from "@/modules/identity-access/services/resolve-post-login-destination";
+import { Card, CardContent } from "@/components/ui/card";
+import { resolveAuthSessionFromUser } from "@/features/auth/services/resolve-auth-session";
+import { resolvePostLoginDestination } from "@/features/auth/services/resolve-post-login-destination";
 import { createClient } from "@/lib/supabase/server";
 import { StudentProfileForm } from "./student-profile-form";
 
@@ -40,14 +42,24 @@ export default async function OnboardingPage({
 
   const resolvedParams = await searchParams;
   const intent = resolvedParams?.intent as string | undefined;
+  const step = resolvedParams?.step as string | undefined;
 
   const meta = user.user_metadata || {};
-  const firstNameFallback = meta.full_name ? meta.full_name.split(" ")[0] : "";
-  const lastNameFallback = meta.full_name ? meta.full_name.split(" ").slice(1).join(" ") : "";
+  // Use Google's structured name fields (given_name / family_name) when available.
+  // These are pre-separated by Google and handle multi-word first names correctly.
+  // Fall back to splitting full_name only if structured fields are missing.
+  const firstNameFallback = meta.given_name ?? (meta.full_name ? meta.full_name.split(" ")[0] : "");
+  const lastNameFallback =
+    meta.family_name ?? (meta.full_name ? meta.full_name.split(" ").slice(1).join(" ") : "");
 
-  if (intent === "student") {
-    const programs = await prisma.program.findMany({ include: { majors: true } });
-    const yearLevels = await prisma.yearLevel.findMany({ orderBy: { order: "asc" } });
+  // Step 2: Show the student profile form
+  if (intent === "student" && step === "form") {
+    const programs = await prisma.program.findMany({
+      include: { majors: true },
+    });
+    const yearLevels = await prisma.yearLevel.findMany({
+      orderBy: { order: "asc" },
+    });
 
     return (
       <div className="mx-auto w-full max-w-2xl py-8">
@@ -62,26 +74,106 @@ export default async function OnboardingPage({
     );
   }
 
+  // Step 1: Show the landing card (mockup design)
+  if (intent === "student") {
+    return (
+      <div className="mx-auto w-full max-w-lg">
+        <Card className="border-border overflow-hidden shadow-lg">
+          {/* Blue header banner with icon */}
+          <div className="bg-primary flex items-center justify-center py-10">
+            <div className="flex size-16 items-center justify-center rounded-2xl bg-white/20 backdrop-blur-sm">
+              <UserPlus className="size-8 text-white" />
+            </div>
+          </div>
+
+          <CardContent className="space-y-6 px-8 py-8">
+            {/* Heading */}
+            <h1 className="font-heading text-primary text-center text-2xl font-bold">
+              Complete Your Student Profile
+            </h1>
+
+            {/* Info callout */}
+            <div className="border-warning bg-warning-soft/30 flex gap-3 rounded-lg border-l-4 p-4">
+              <CheckCircle className="text-warning mt-0.5 size-5 shrink-0" />
+              <p className="text-body-sm text-text-secondary">
+                We found your ACD account, but your student profile is not yet set up. Please
+                complete your registration to access the platform.
+              </p>
+            </div>
+
+            {/* CTA button */}
+            <Button
+              render={<Link href="?intent=student&step=form" />}
+              className="w-full gap-2 py-6 text-base font-semibold"
+            >
+              Continue Setup
+              <ArrowRight className="size-5" />
+            </Button>
+
+            {/* Back link */}
+            <Link
+              href="/login"
+              className="text-text-muted hover:text-text-primary flex items-center justify-center gap-2 text-sm font-medium transition-colors"
+            >
+              <ArrowLeft className="size-4" />
+              Cancel / Back to Login
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Default: Role selection (no intent specified)
   return (
-    <div className="mx-auto w-full max-w-md">
-      <Card className="overflow-hidden border-border shadow-card text-center">
-        <div className="h-2 w-full bg-gradient-to-r from-primary to-info" />
-        <CardHeader className="mt-2 space-y-2 pb-6">
-          <CardTitle className="font-heading text-display-sm font-bold text-text-primary">Welcome to CLOIE</CardTitle>
-          <CardDescription className="mt-2 px-2 text-body-md text-text-secondary">
-            Let&apos;s get your account set up. Who are you logging in as today?
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col gap-4">
+    <div className="mx-auto w-full max-w-lg">
+      <Card className="border-border overflow-hidden shadow-lg">
+        {/* Blue header banner */}
+        <div className="bg-primary flex items-center justify-center py-10">
+          <div className="flex items-center gap-3">
+            <Image
+              src="/logos/cloie-logo.png"
+              alt="CLOIE Logo"
+              width={40}
+              height={40}
+              className="rounded-lg brightness-0 invert"
+            />
+            <span className="text-2xl font-bold tracking-tight text-white">CLOIE</span>
+          </div>
+        </div>
+
+        <CardContent className="space-y-6 px-8 py-8">
+          <div className="space-y-2 text-center">
+            <h1 className="font-heading text-text-primary text-2xl font-bold">Welcome to CLOIE</h1>
+            <p className="text-body-md text-text-secondary">
+              Let&apos;s get your account set up. Who are you logging in as today?
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <Button
+              render={<Link href="?intent=student" />}
+              variant="outline"
+              className="h-14 text-base font-semibold"
+            >
+              I am a Student
+            </Button>
+            <Button
+              variant="outline"
+              disabled
+              className="h-14 cursor-not-allowed border-dashed text-base opacity-50"
+            >
+              I am a Faculty Member (Coming Soon)
+            </Button>
+          </div>
+
           <Link
-            href="?intent=student"
-            className="inline-flex h-16 items-center justify-center rounded-lg border border-primary/30 bg-background text-[17px] font-semibold shadow-sm transition-all duration-300 hover:bg-primary-soft hover:text-primary"
+            href="/login"
+            className="text-text-muted hover:text-text-primary flex items-center justify-center gap-2 text-sm font-medium transition-colors"
           >
-            I am a Student
+            <ArrowLeft className="size-4" />
+            Back to Login
           </Link>
-          <Button variant="outline" disabled className="h-16 cursor-not-allowed border-dashed bg-surface text-[17px] opacity-50 shadow-sm">
-            I am a Faculty Member (Coming Soon)
-          </Button>
         </CardContent>
       </Card>
     </div>

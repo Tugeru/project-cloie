@@ -1,0 +1,383 @@
+import { ROLES } from "@/lib/constants/roles";
+import { prisma } from "@/lib/db/prisma";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import type { CreateGOInput, UpdateGOInput } from "../schemas/go";
+
+type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
+
+function isUniqueConstraintError(error: unknown): boolean {
+  return Boolean(
+    error &&
+    typeof error === "object" &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
+  );
+}
+
+async function resolveAndValidatePHScope(
+  userId: string
+): Promise<ServiceResult<{ programIds: string[] }>> {
+  const assignments = await prisma.programHeadAssignment.findMany({
+    where: { program_head_id: userId, is_active: true },
+    select: { program_id: true },
+  });
+
+  const programIds = [...new Set(assignments.map((a) => a.program_id))];
+
+  if (programIds.length === 0) {
+    return {
+      success: false,
+      error: "No active program assignment found for this Program Head.",
+    };
+  }
+
+  return { success: true, data: { programIds } };
+}
+
+// ─── List GOs ────────────────────────────────────────────────────────────────
+
+export type ProgramGOItem = {
+  id: string;
+  code: string;
+  description: string;
+  is_active: boolean;
+  program_id: string;
+  created_at: Date;
+  updated_at: Date;
+  _count: { cilo_mappings: number };
+};
+
+export type ListProgramGOsResult = {
+  gos: ProgramGOItem[];
+  program: { id: string; code: string; name: string };
+};
+
+export async function listProgramGOs(): Promise<ServiceResult<ListProgramGOsResult>> {
+  const session = await resolveAuthSession();
+
+  if (!session || !session.roles.includes(ROLES.PROGRAM_HEAD)) {
+    return {
+      success: false,
+      error: "Program Head authentication is required.",
+    };
+  }
+
+  const scopeResult = await resolveAndValidatePHScope(session.userId);
+
+  if (!scopeResult.success) {
+    return scopeResult;
+  }
+
+  const { programIds } = scopeResult.data;
+  const programId = programIds[0];
+
+  const program = await prisma.program.findUnique({
+    where: { id: programId },
+    select: { id: true, code: true, name: true },
+  });
+
+  if (!program) {
+    return { success: false, error: "Assigned program not found." };
+  }
+
+  const gos = await prisma.gO.findMany({
+    where: { program_id: programId },
+    include: {
+      _count: {
+        select: { cilo_mappings: true },
+      },
+    },
+    orderBy: { code: "asc" },
+  });
+
+  return {
+    success: true,
+    data: { gos, program },
+  };
+}
+
+// ─── Create GO ───────────────────────────────────────────────────────────────
+
+export async function createGO(input: CreateGOInput): Promise<ServiceResult<{ id: string }>> {
+  const session = await resolveAuthSession();
+
+  if (!session || !session.roles.includes(ROLES.PROGRAM_HEAD)) {
+    return {
+      success: false,
+      error: "Program Head authentication is required.",
+    };
+  }
+
+  const scopeResult = await resolveAndValidatePHScope(session.userId);
+
+  if (!scopeResult.success) {
+    return scopeResult;
+  }
+
+  const { programIds } = scopeResult.data;
+  const programId = programIds[0];
+
+  try {
+    const go = await prisma.gO.create({
+      data: {
+        code: input.code,
+        description: input.description,
+        program_id: programId,
+      },
+    });
+
+    return { success: true, data: { id: go.id } };
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      return {
+        success: false,
+        error: `A GO with code "${input.code}" already exists in this program.`,
+      };
+    }
+
+    throw error;
+  }
+}
+
+// ─── Update GO ───────────────────────────────────────────────────────────────
+
+export async function updateGO(input: UpdateGOInput): Promise<ServiceResult<{ id: string }>> {
+  const session = await resolveAuthSession();
+
+  if (!session || !session.roles.includes(ROLES.PROGRAM_HEAD)) {
+    return {
+      success: false,
+      error: "Program Head authentication is required.",
+    };
+  }
+
+  const scopeResult = await resolveAndValidatePHScope(session.userId);
+
+  if (!scopeResult.success) {
+    return scopeResult;
+  }
+
+  const { programIds } = scopeResult.data;
+
+  const existingGO = await prisma.gO.findUnique({
+    where: { id: input.id },
+    select: { id: true, program_id: true },
+  });
+
+  if (!existingGO) {
+    return { success: false, error: "Graduate Outcome not found." };
+  }
+
+  if (!programIds.includes(existingGO.program_id)) {
+    return {
+      success: false,
+      error: "You do not have permission to modify this Graduate Outcome.",
+    };
+  }
+
+  try {
+    const go = await prisma.gO.update({
+      where: { id: input.id },
+      data: {
+        code: input.code,
+        description: input.description,
+      },
+    });
+
+    return { success: true, data: { id: go.id } };
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      return {
+        success: false,
+        error: `A GO with code "${input.code}" already exists in this program.`,
+      };
+    }
+
+    throw error;
+  }
+}
+
+// ─── Delete GO ───────────────────────────────────────────────────────────────
+
+export async function deleteGO(id: string): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+
+  if (!session || !session.roles.includes(ROLES.PROGRAM_HEAD)) {
+    return {
+      success: false,
+      error: "Program Head authentication is required.",
+    };
+  }
+
+  const scopeResult = await resolveAndValidatePHScope(session.userId);
+
+  if (!scopeResult.success) {
+    return scopeResult;
+  }
+
+  const { programIds } = scopeResult.data;
+
+  const existingGO = await prisma.gO.findUnique({
+    where: { id },
+    select: {
+      id: true,
+      program_id: true,
+      _count: { select: { cilo_mappings: true } },
+    },
+  });
+
+  if (!existingGO) {
+    return { success: false, error: "Graduate Outcome not found." };
+  }
+
+  if (!programIds.includes(existingGO.program_id)) {
+    return {
+      success: false,
+      error: "You do not have permission to delete this Graduate Outcome.",
+    };
+  }
+
+  if (existingGO._count.cilo_mappings > 0) {
+    return {
+      success: false,
+      error: "Cannot delete GO with existing CILO mappings. Remove mappings first.",
+    };
+  }
+
+  await prisma.gO.delete({ where: { id } });
+
+  return { success: true, data: undefined };
+}
+
+// ─── Reorder GOs ─────────────────────────────────────────────────────────────
+
+export async function reorderGOs(orderedIds: string[]): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+
+  if (!session || !session.roles.includes(ROLES.PROGRAM_HEAD)) {
+    return {
+      success: false,
+      error: "Program Head authentication is required.",
+    };
+  }
+
+  const scopeResult = await resolveAndValidatePHScope(session.userId);
+
+  if (!scopeResult.success) {
+    return scopeResult;
+  }
+
+  const { programIds } = scopeResult.data;
+
+  // Verify all IDs belong to PH's program
+  const gos = await prisma.gO.findMany({
+    where: { id: { in: orderedIds } },
+    select: { id: true, program_id: true },
+  });
+
+  if (gos.length !== orderedIds.length) {
+    return {
+      success: false,
+      error: "One or more GO IDs were not found.",
+    };
+  }
+
+  const invalidGOs = gos.filter((go) => !programIds.includes(go.program_id));
+
+  if (invalidGOs.length > 0) {
+    return {
+      success: false,
+      error: "You do not have permission to reorder these Graduate Outcomes.",
+    };
+  }
+
+  return { success: true, data: undefined };
+}
+
+// ─── List CILO Mappings for Program ──────────────────────────────────────────
+
+export type CILOMappingItem = {
+  id: string;
+  description: string;
+  go: { id: string; code: string; description: string };
+};
+
+export type CourseCILOMappings = {
+  courseId: string;
+  courseCode: string;
+  courseTitle: string;
+  cilos: Array<{
+    id: string;
+    description: string;
+    mappedGOs: Array<{ id: string; code: string; description: string }>;
+  }>;
+};
+
+export async function listCILOMappingsForProgram(): Promise<ServiceResult<CourseCILOMappings[]>> {
+  const session = await resolveAuthSession();
+
+  if (!session || !session.roles.includes(ROLES.PROGRAM_HEAD)) {
+    return {
+      success: false,
+      error: "Program Head authentication is required.",
+    };
+  }
+
+  const scopeResult = await resolveAndValidatePHScope(session.userId);
+
+  if (!scopeResult.success) {
+    return scopeResult;
+  }
+
+  const { programIds } = scopeResult.data;
+  const programId = programIds[0];
+
+  // Find all courses within this program that have CILOs
+  const courses = await prisma.course.findMany({
+    where: {
+      program_id: programId,
+      cilos: { some: {} },
+    },
+    select: {
+      id: true,
+      code: true,
+      title: true,
+      cilos: {
+        select: {
+          id: true,
+          description: true,
+          cilo_mappings: {
+            select: {
+              go: {
+                select: {
+                  id: true,
+                  code: true,
+                  description: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { created_at: "asc" },
+      },
+    },
+    orderBy: { code: "asc" },
+  });
+
+  const result: CourseCILOMappings[] = courses.map((course) => ({
+    courseId: course.id,
+    courseCode: course.code,
+    courseTitle: course.title,
+    cilos: course.cilos.map((cilo) => ({
+      id: cilo.id,
+      description: cilo.description,
+      mappedGOs: cilo.cilo_mappings.map((mapping) => ({
+        id: mapping.go.id,
+        code: mapping.go.code,
+        description: mapping.go.description,
+      })),
+    })),
+  }));
+
+  return { success: true, data: result };
+}

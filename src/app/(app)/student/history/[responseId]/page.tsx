@@ -1,5 +1,5 @@
-import { SubmittedResponseReview } from "@/components/student/evaluations/submitted-response-review";
-import { getStudentSubmittedResponseReview } from "@/modules/student-evaluation-workflow/services/get-student-submitted-response-review";
+import { SubmittedResponseReview } from "@/features/responses/components/submitted-response-review";
+import { getStudentSubmittedResponseReview } from "@/features/responses/services/get-student-submitted-response-review";
 import { notFound } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
@@ -18,7 +18,7 @@ export default async function StudentSubmittedResponseReviewPage({
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="animate-in fade-in space-y-6 duration-500">
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="sm" asChild>
           <Link href="/student/history">
@@ -30,6 +30,7 @@ export default async function StudentSubmittedResponseReviewPage({
       <SubmittedResponseReview
         evaluationTitle={review.evaluationTitle}
         courseTitle={review.courseTitle}
+        programLabel={review.programLabel}
         submittedAt={review.submittedAt}
         sections={review.sections}
       />

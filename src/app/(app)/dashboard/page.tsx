@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
-import { resolveAuthSession } from "@/modules/identity-access/services/resolve-auth-session";
-import { resolvePostLoginDestination } from "@/modules/identity-access/services/resolve-post-login-destination";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { resolvePostLoginDestination } from "@/features/auth/services/resolve-post-login-destination";
 
 export default async function DashboardPage() {
   // SessionGuard in the parent layout guarantees a session exists here.

@@ -1,0 +1,17 @@
+# Force LF line endings in the Git index for all text files.
+# Working-tree copies on Windows will be checked out as LF too (matching
+# the Prettier "endOfLine": "lf" setting), so there are zero conversion
+# surprises when switching between Windows and WSL.
+* text=auto eol=lf
+
+# Explicitly mark known binary formats so Git never tries to diff/merge them.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary

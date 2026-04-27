@@ -3,7 +3,7 @@ import {
   buildStudentEvaluationListItem,
   deriveStudentEvaluationStatus,
   listStudentCourseBoundEvaluations,
-} from "@/modules/student-evaluation-workflow/services/list-student-course-bound-evaluations";
+} from "@/features/responses/services/list-student-course-bound-evaluations";
 
 const { findManyMock, resolveAuthSessionMock } = vi.hoisted(() => ({
   findManyMock: vi.fn(),
@@ -18,7 +18,7 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
-vi.mock("@/modules/identity-access/services/resolve-auth-session", () => ({
+vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
 }));
 
@@ -32,7 +32,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: null,
         submittedAt: null,
         totalItems: 6,
-      }),
+      })
     ).toEqual({ progress: 0, status: "NOT_STARTED" });
   });
 
@@ -45,7 +45,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: "response-1",
         submittedAt: null,
         totalItems: 6,
-      }),
+      })
     ).toEqual({ progress: 50, status: "IN_PROGRESS" });
   });
 
@@ -58,7 +58,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: null,
         submittedAt: null,
         totalItems: 6,
-      }),
+      })
     ).toEqual({ progress: 0, status: "DUE_SOON" });
   });
 
@@ -71,7 +71,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: "response-1",
         submittedAt: new Date("2026-05-11T00:00:00.000Z"),
         totalItems: 6,
-      }),
+      })
     ).toEqual({ progress: 50, status: "SUBMITTED" });
   });
 
@@ -84,7 +84,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: null,
         submittedAt: new Date("2026-05-11T00:00:00.000Z"),
         totalItems: 6,
-      }),
+      })
     ).toEqual({ progress: 50, status: "SUBMITTED" });
   });
 
@@ -97,7 +97,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: "response-1",
         submittedAt: null,
         totalItems: 0,
-      }),
+      })
     ).toEqual({ progress: 0, status: "IN_PROGRESS" });
   });
 
@@ -110,7 +110,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: "response-1",
         submittedAt: null,
         totalItems: 6,
-      }),
+      })
     ).toEqual({ progress: 100, status: "IN_PROGRESS" });
 
     expect(
@@ -121,7 +121,7 @@ describe("deriveStudentEvaluationStatus", () => {
         responseId: "response-1",
         submittedAt: null,
         totalItems: 6,
-      }),
+      })
     ).toEqual({ progress: 0, status: "IN_PROGRESS" });
   });
 });
@@ -130,10 +130,12 @@ describe("buildStudentEvaluationListItem", () => {
   it("shapes the workflow list item", () => {
     expect(
       buildStudentEvaluationListItem({
+        assignmentId: "assignment-1",
         courseTitle: "ITE 18 - Capstone 1",
         deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
         evaluationId: "evaluation-1",
         evaluationTitle: "Post-Term CILO Evaluation Tool",
+        href: "/student/evaluations/evaluation-1",
         now: new Date("2026-05-10T00:00:00.000Z"),
         programLabel: "BSIT • 4th Year",
         section: {
@@ -148,12 +150,15 @@ describe("buildStudentEvaluationListItem", () => {
           submittedAt: null,
           totalItems: 6,
         },
-      }),
+      })
     ).toEqual({
+      assignmentId: "assignment-1",
       courseTitle: "ITE 18 - Capstone 1",
       deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
+      deploymentType: "COURSE_BOUND",
       evaluationId: "evaluation-1",
       evaluationTitle: "Post-Term CILO Evaluation Tool",
+      href: "/student/evaluations/evaluation-1",
       progress: 50,
       programLabel: "BSIT • 4th Year",
       section: {
@@ -176,6 +181,84 @@ describe("buildStudentEvaluationListItem", () => {
 describe("listStudentCourseBoundEvaluations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useRealTimers();
+  });
+
+  it("excludes unavailable unsubmitted assignments from the active list", async () => {
+    resolveAuthSessionMock.mockResolvedValue({ userId: "user-1" });
+    findManyMock.mockResolvedValue([
+      {
+        course_bound_id: "eval-scheduled",
+        id: "assignment-scheduled",
+        course_bound: {
+          activation_at: new Date("2026-05-15T00:00:00.000Z"),
+          course: { title: "Capstone 1" },
+          deadline_at: new Date("2026-05-20T00:00:00.000Z"),
+          instrument: {
+            structure_snapshot: [{ key: "section-a", title: "Section A" }],
+            template: { name: "Scheduled Evaluation" },
+          },
+          program: { name: "BSIT" },
+          status: "SCHEDULED",
+        },
+        response: null,
+      },
+      {
+        course_bound_id: "eval-expired",
+        id: "assignment-expired",
+        course_bound: {
+          activation_at: new Date("2026-05-01T00:00:00.000Z"),
+          course: { title: "Networks" },
+          deadline_at: new Date("2026-05-05T00:00:00.000Z"),
+          instrument: {
+            structure_snapshot: [{ key: "section-b", title: "Section B" }],
+            template: { name: "Expired Evaluation" },
+          },
+          program: { name: "BSIT" },
+          status: "ACTIVE",
+        },
+        response: null,
+      },
+      {
+        course_bound_id: "eval-submitted",
+        id: "assignment-submitted",
+        course_bound: {
+          activation_at: new Date("2026-05-01T00:00:00.000Z"),
+          course: { title: "Databases" },
+          deadline_at: new Date("2026-05-05T00:00:00.000Z"),
+          instrument: {
+            structure_snapshot: [{ key: "section-c", title: "Section C" }],
+            template: { name: "Submitted Evaluation" },
+          },
+          program: { name: "BSIT" },
+          status: "ACTIVE",
+        },
+        response: {
+          id: "response-submitted",
+          qual_items: [],
+          quant_items: [],
+          status: "SUBMITTED",
+          submitted_at: new Date("2026-05-04T00:00:00.000Z"),
+        },
+      },
+    ]);
+
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-05-10T00:00:00.000Z"));
+
+    await expect(listStudentCourseBoundEvaluations()).resolves.toEqual({
+      active: [],
+      submitted: [
+        expect.objectContaining({
+          assignmentId: "assignment-submitted",
+          deploymentType: "COURSE_BOUND",
+          evaluationId: "assignment-submitted",
+          status: "SUBMITTED",
+        }),
+      ],
+    });
+
+    vi.useRealTimers();
   });
 
   it("returns active and submitted course-bound assignments with workflow hrefs", async () => {
@@ -185,55 +268,53 @@ describe("listStudentCourseBoundEvaluations", () => {
         course_bound_id: "eval-active",
         id: "assignment-1",
         course_bound: {
+          activation_at: new Date("2026-04-01T00:00:00.000Z"),
           course: { title: "Capstone 1" },
           deadline_at: new Date("2026-05-20T00:00:00.000Z"),
           instrument: {
-            structure_snapshot: [
-              { key: "section-a", title: "Section A" },
-            ],
+            structure_snapshot: [{ key: "section-a", title: "Section A" }],
             template: { name: "Post-Term CILO Evaluation Tool" },
           },
           program: { name: "BSIT" },
+          status: "ACTIVE",
         },
-        responses: [
-          {
-            id: "response-1",
-            qual_items: [],
-            quant_items: [{ id: "q-1" }],
-            status: "IN_PROGRESS",
-            submitted_at: null,
-          },
-        ],
+        response: {
+          id: "response-1",
+          qual_items: [],
+          quant_items: [{ id: "q-1" }],
+          status: "IN_PROGRESS",
+          submitted_at: null,
+        },
       },
       {
         course_bound_id: "eval-submitted",
         id: "assignment-2",
         course_bound: {
+          activation_at: new Date("2026-04-01T00:00:00.000Z"),
           course: { title: "Networks" },
           deadline_at: new Date("2026-05-10T00:00:00.000Z"),
           instrument: {
-            structure_snapshot: [
-              { key: "section-b", title: "Section B" },
-            ],
+            structure_snapshot: [{ key: "section-b", title: "Section B" }],
             template: { name: "Midterm Evaluation" },
           },
           program: { name: "BSIT" },
+          status: "ACTIVE",
         },
-        responses: [
-          {
-            id: "response-2",
-            qual_items: [],
-            quant_items: [{ id: "q-1" }],
-            status: "SUBMITTED",
-            submitted_at: new Date("2026-05-09T00:00:00.000Z"),
-          },
-        ],
+        response: {
+          id: "response-2",
+          qual_items: [],
+          quant_items: [{ id: "q-1" }],
+          status: "SUBMITTED",
+          submitted_at: new Date("2026-05-09T00:00:00.000Z"),
+        },
       },
     ]);
 
     await expect(listStudentCourseBoundEvaluations()).resolves.toEqual({
       active: [
         expect.objectContaining({
+          assignmentId: "assignment-1",
+          deploymentType: "COURSE_BOUND",
           evaluationId: "assignment-1",
           href: "/student/evaluations/assignment-1",
           status: "IN_PROGRESS",
@@ -241,6 +322,8 @@ describe("listStudentCourseBoundEvaluations", () => {
       ],
       submitted: [
         expect.objectContaining({
+          assignmentId: "assignment-2",
+          deploymentType: "COURSE_BOUND",
           evaluationId: "assignment-2",
           href: "/student/history/response-2",
           status: "SUBMITTED",

@@ -1,58 +1,78 @@
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
+import Link from "next/link";
+import { Calendar, Eye, FileText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { FileText, Eye, Calendar } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { listStudentCourseBoundEvaluations } from "@/modules/student-evaluation-workflow/services/list-student-course-bound-evaluations";
-import Link from "next/link";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { listStudentAssignedEvaluations } from "@/features/responses/services/list-student-assigned-evaluations";
 
 export default async function StudentHistoryPage() {
-  const { submitted } = await listStudentCourseBoundEvaluations();
+  const { submitted } = await listStudentAssignedEvaluations();
 
   const formatDate = (date: Date | null) => {
     if (!date) return "N/A";
-    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+    return date.toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
+    <div className="animate-in fade-in space-y-6 duration-500">
       <div>
-        <h1 className="text-2xl font-black font-heading">Submission History</h1>
-        <p className="text-text-muted text-sm">A permanent record of all your completed evaluation forms.</p>
+        <h1 className="font-heading text-2xl font-black">Submission History</h1>
+        <p className="text-text-muted text-sm">
+          A permanent record of all your completed evaluation forms.
+        </p>
       </div>
 
-      {/* Desktop Table View */}
-      <div className="hidden md:block bg-surface rounded-xl border border-border overflow-hidden">
+      <div className="border-border bg-surface hidden overflow-hidden rounded-xl border md:block">
         <Table>
           <TableHeader className="bg-surface-muted/50">
             <TableRow>
-              <TableHead className="font-bold text-[10px] uppercase tracking-wider">Evaluation Form</TableHead>
-              <TableHead className="font-bold text-[10px] uppercase tracking-wider">Submission Date</TableHead>
-              <TableHead className="font-bold text-[10px] uppercase tracking-wider">Status</TableHead>
-              <TableHead className="text-right font-bold text-[10px] uppercase tracking-wider">Actions</TableHead>
+              <TableHead className="text-[10px] font-bold tracking-wider uppercase">
+                Evaluation Form
+              </TableHead>
+              <TableHead className="text-[10px] font-bold tracking-wider uppercase">
+                Submission Date
+              </TableHead>
+              <TableHead className="text-[10px] font-bold tracking-wider uppercase">
+                Status
+              </TableHead>
+              <TableHead className="text-right text-[10px] font-bold tracking-wider uppercase">
+                Actions
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {submitted.map((sub) => (
-              <TableRow key={sub.evaluationId} className="hover:bg-surface-muted/30 transition-colors">
+              <TableRow
+                key={sub.assignmentId}
+                className="hover:bg-surface-muted/30 transition-colors"
+              >
                 <TableCell>
                   <div className="flex flex-col">
-                    <span className="font-bold text-text-primary">{sub.evaluationTitle}</span>
-                    <span className="text-xs text-text-muted">{sub.courseTitle}</span>
+                    <span className="text-text-primary font-bold">{sub.evaluationTitle}</span>
+                    <span className="text-text-muted text-xs">
+                      {sub.courseTitle ?? sub.programLabel}
+                    </span>
                   </div>
                 </TableCell>
                 <TableCell className="text-sm font-medium">
                   {sub.session.submittedAt ? formatDate(sub.session.submittedAt) : "N/A"}
                 </TableCell>
                 <TableCell>
-                  <Badge variant="secondary" className="text-[10px] uppercase font-bold bg-green-100 text-green-800 border-green-200">Submitted</Badge>
+                  <Badge className="border-green-200 bg-green-100 text-[10px] font-bold text-green-800 uppercase">
+                    Submitted
+                  </Badge>
                 </TableCell>
                 <TableCell className="text-right">
                   <div className="flex justify-end gap-2">
@@ -63,7 +83,7 @@ export default async function StudentHistoryPage() {
                       disabled={!sub.href}
                       render={sub.href ? <Link href={sub.href} /> : undefined}
                     >
-                        <Eye className="size-4" />
+                      <Eye className="size-4" />
                     </Button>
                   </div>
                 </TableCell>
@@ -73,24 +93,34 @@ export default async function StudentHistoryPage() {
         </Table>
       </div>
 
-      {/* Mobile Card View */}
       <div className="grid gap-4 md:hidden">
         {submitted.map((sub) => (
-          <Card key={sub.evaluationId} className="border-border shadow-sm active:scale-[0.98] transition-transform">
-            <CardContent className="p-4 space-y-4">
-              <div className="flex justify-between items-start gap-2">
+          <Card
+            key={sub.assignmentId}
+            className="border-border shadow-sm transition-transform active:scale-[0.98]"
+          >
+            <CardContent className="space-y-4 p-4">
+              <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <h3 className="font-bold text-text-primary leading-tight mb-1">{sub.evaluationTitle}</h3>
-                  <p className="text-xs text-text-muted font-medium">{sub.courseTitle}</p>
+                  <h3 className="text-text-primary mb-1 leading-tight font-bold">
+                    {sub.evaluationTitle}
+                  </h3>
+                  <p className="text-text-muted text-xs font-medium">
+                    {sub.courseTitle ?? sub.programLabel}
+                  </p>
                 </div>
-                <Badge variant="secondary" className="text-[9px] uppercase font-bold shrink-0 bg-green-100 text-green-800 border-green-200">Submitted</Badge>
+                <Badge className="shrink-0 border-green-200 bg-green-100 text-[9px] font-bold text-green-800 uppercase">
+                  Submitted
+                </Badge>
               </div>
 
-              <div className="py-3 border-y border-border/50">
+              <div className="border-border/50 border-y py-3">
                 <div className="flex items-center gap-2">
-                  <Calendar className="size-3.5 text-text-muted" />
+                  <Calendar className="text-text-muted size-3.5" />
                   <div className="flex flex-col">
-                    <span className="text-[9px] font-black uppercase text-text-muted tracking-tighter">Date</span>
+                    <span className="text-text-muted text-[9px] font-black tracking-tighter uppercase">
+                      Date
+                    </span>
                     <span className="text-xs font-bold">
                       {sub.session.submittedAt ? formatDate(sub.session.submittedAt) : "N/A"}
                     </span>
@@ -102,11 +132,11 @@ export default async function StudentHistoryPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="flex-1 font-bold gap-2 text-xs"
+                  className="flex-1 gap-2 text-xs font-bold"
                   disabled={!sub.href}
                   render={sub.href ? <Link href={sub.href} /> : undefined}
                 >
-                    <Eye className="size-3.5" /> View Answers
+                  <Eye className="size-3.5" /> View Answers
                 </Button>
               </div>
             </CardContent>
@@ -115,8 +145,8 @@ export default async function StudentHistoryPage() {
       </div>
 
       {submitted.length === 0 && (
-        <div className="py-12 text-center bg-surface rounded-xl border border-dashed border-border">
-          <FileText className="size-12 text-text-muted/20 mx-auto mb-4" />
+        <div className="border-border bg-surface rounded-xl border border-dashed py-12 text-center">
+          <FileText className="text-text-muted/20 mx-auto mb-4 size-12" />
           <p className="text-text-muted font-medium">No submissions recorded yet.</p>
         </div>
       )}

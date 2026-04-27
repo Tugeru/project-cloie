@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
   buildSubmittedResponseSections,
   getStudentSubmittedResponseReview,
-} from "@/modules/student-evaluation-workflow/services/get-student-submitted-response-review";
+} from "@/features/responses/services/get-student-submitted-response-review";
 
 const { findFirstMock, resolveAuthSessionMock } = vi.hoisted(() => ({
   findFirstMock: vi.fn(),
@@ -17,7 +17,7 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
-vi.mock("@/modules/identity-access/services/resolve-auth-session", () => ({
+vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
 }));
 
@@ -35,26 +35,41 @@ describe("buildSubmittedResponseSections", () => {
             key: "section-a",
             items: [
               { kind: "qualitative", key: "remarks", prompt: "Remarks" },
-              { kind: "quantitative", key: "q1", prompt: "Clarity of instruction", scale: [1,2,3,4,5] },
+              {
+                kind: "quantitative",
+                key: "q1",
+                prompt: "Clarity of instruction",
+                scale: [1, 2, 3, 4, 5],
+              },
             ],
             title: "Section A",
           },
           {
             key: "section-b",
             items: [
-              { kind: "quantitative", key: "q2", prompt: "Usefulness of activities", scale: [1,2,3,4,5] },
+              {
+                kind: "quantitative",
+                key: "q2",
+                prompt: "Usefulness of activities",
+                scale: [1, 2, 3, 4, 5],
+              },
             ],
             title: "Section B",
           },
         ],
-      }),
+      })
     ).toEqual([
       {
         id: "section-a",
         name: "Section A",
         description: "",
         items: [
-          { kind: "qualitative", promptKey: "remarks", prompt: "Remarks", answer: "More examples would help." },
+          {
+            kind: "qualitative",
+            promptKey: "remarks",
+            prompt: "Remarks",
+            answer: "More examples would help.",
+          },
           { kind: "quantitative", itemKey: "q1", prompt: "Clarity of instruction", answer: 4 },
         ],
       },
@@ -78,13 +93,11 @@ describe("buildSubmittedResponseSections", () => {
         structureSnapshot: [
           {
             key: "section-a",
-            items: [
-              { kind: "qualitative", key: "remarks", prompt: "Remarks" },
-            ],
+            items: [{ kind: "qualitative", key: "remarks", prompt: "Remarks" }],
             title: "Section A",
           },
         ],
-      }),
+      })
     ).toEqual([
       {
         id: "section-a",
@@ -112,14 +125,60 @@ describe("buildSubmittedResponseSections", () => {
             title: "Section A",
           },
         ],
-      }),
+      })
     ).toEqual([
       {
         description: "",
         id: "section-a",
         items: [
           { answer: 5, itemKey: "q1", kind: "quantitative", prompt: "Question 1" },
-          { answer: "Legacy remarks", kind: "qualitative", prompt: "Remarks", promptKey: "remarks" },
+          {
+            answer: "Legacy remarks",
+            kind: "qualitative",
+            prompt: "Remarks",
+            promptKey: "remarks",
+          },
+        ],
+        name: "Section A",
+      },
+    ]);
+  });
+
+  it("supports current questions[] snapshots when building submitted review sections", () => {
+    expect(
+      buildSubmittedResponseSections({
+        answers: {
+          "section-a:qualitative:remarks": "Very reflective.",
+          "section-a:quantitative:q1": 3,
+        },
+        structureSnapshot: [
+          {
+            key: "section-a",
+            questions: [
+              { key: "q1", prompt: "How clear was the lesson?", type: "likert" },
+              { key: "remarks", prompt: "Additional comments", type: "guided_open_ended" },
+            ],
+            title: "Section A",
+          },
+        ],
+      })
+    ).toEqual([
+      {
+        description: "",
+        id: "section-a",
+        items: [
+          {
+            answer: 3,
+            itemKey: "q1",
+            kind: "quantitative",
+            prompt: "How clear was the lesson?",
+          },
+          {
+            answer: "Very reflective.",
+            kind: "qualitative",
+            prompt: "Additional comments",
+            promptKey: "remarks",
+          },
         ],
         name: "Section A",
       },
@@ -154,9 +213,7 @@ describe("getStudentSubmittedResponseReview", () => {
       },
       id: "response-1",
       qual_items: [],
-      quant_items: [
-        { item_key: "q1", rating_value: 5, section_key: "section-a" },
-      ],
+      quant_items: [{ item_key: "q1", rating_value: 5, section_key: "section-a" }],
       submitted_at: new Date("2026-05-20T10:00:00.000Z"),
     });
 
@@ -165,7 +222,22 @@ describe("getStudentSubmittedResponseReview", () => {
         courseTitle: "Capstone 1",
         evaluationTitle: "Post-Term CILO Evaluation Tool",
         responseId: "response-1",
-      }),
+        sections: [
+          {
+            description: "",
+            id: "section-a",
+            items: [
+              {
+                answer: 5,
+                itemKey: "q1",
+                kind: "quantitative",
+                prompt: "Question 1",
+              },
+            ],
+            name: "Section A",
+          },
+        ],
+      })
     );
   });
 });

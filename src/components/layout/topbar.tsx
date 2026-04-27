@@ -1,5 +1,18 @@
-import { Bell } from "lucide-react";
+"use client";
+
+import { useRouter } from "next/navigation";
+import { Bell, ChevronDown, LogOut } from "lucide-react";
 import Image from "next/image";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MobileSidebarDrawer } from "./mobile-sidebar-drawer";
+import type { Role } from "@/lib/constants/roles";
+import type { MobileNavMode } from "@/lib/constants/navigation";
 
 interface TopbarProps {
   user?: {
@@ -7,41 +20,77 @@ interface TopbarProps {
     email?: string | null;
     image?: string | null;
   };
+  mobileNavMode?: MobileNavMode;
+  roles?: Role[];
 }
 
-export function Topbar({ user }: TopbarProps) {
+export function Topbar({ user, mobileNavMode = "bottom-nav", roles }: TopbarProps) {
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "GET" });
+    router.push("/login");
+    router.refresh();
+  };
+
+  const initials = user?.name?.[0]?.toUpperCase() || "U";
+  const showHamburger = mobileNavMode === "hamburger";
+
   return (
-    <header className="sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b border-border bg-surface px-4 sm:px-6">
-      {/* Mobile left-side branding (hidden on desktop since sidebar has it) */}
+    <header className="border-border bg-surface sticky top-0 z-40 flex h-16 w-full items-center justify-between border-b px-4 sm:px-6">
+      {/* Left side: branding (mobile) or hamburger trigger */}
       <div className="flex items-center gap-3 lg:hidden">
-        <Image 
-          src="/logos/cloie-logo.png" 
-          alt="CLOIE Logo" 
-          width={28} 
-          height={28} 
-          className="rounded"
-        />
-        <span className="text-title-md font-bold text-primary tracking-tight">CLOIE</span>
+        {showHamburger ? (
+          <MobileSidebarDrawer roles={roles} user={user} />
+        ) : (
+          <>
+            <Image
+              src="/logos/cloie-logo.png"
+              alt="CLOIE Logo"
+              width={28}
+              height={28}
+              className="rounded"
+            />
+            <span className="text-title-md text-primary font-bold tracking-tight">CLOIE</span>
+          </>
+        )}
       </div>
-
       <div className="hidden lg:flex" /> {/* Empty spacer for desktop */}
-
       {/* Right side actions */}
-      <div className="flex items-center gap-4">
-        <button 
+      <div className="flex items-center gap-3">
+        <button
           type="button"
-          className="relative flex size-9 items-center justify-center rounded-full text-text-muted hover:bg-surface-muted hover:text-text-primary transition-colors"
+          className="text-text-muted hover:bg-surface-muted hover:text-text-primary relative flex size-9 items-center justify-center rounded-full transition-colors"
         >
           <Bell className="size-5" />
-          <span className="absolute right-1.5 top-1.5 size-2 rounded-full bg-danger ring-2 ring-surface" />
+          <span className="bg-danger ring-surface absolute top-1.5 right-1.5 size-2 rounded-full ring-2" />
         </button>
 
-        {/* Mobile profile avatar (Desktop has it in sidebar) */}
-        <div className="flex size-8 items-center justify-center rounded-full bg-primary text-white lg:hidden">
-          <span className="text-caption font-semibold">
-            {user?.name?.[0] || "U"}
-          </span>
-        </div>
+        {/* Profile avatar + dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger className="hover:bg-surface-muted flex items-center gap-2 rounded-full py-1 pr-2 pl-1 transition-colors focus:outline-none">
+            <div className="bg-primary flex size-8 shrink-0 items-center justify-center rounded-full text-white">
+              <span className="text-caption font-semibold">{initials}</span>
+            </div>
+            <ChevronDown className="text-text-muted size-4" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" sideOffset={8} className="w-56">
+            <div className="px-3 py-2">
+              <p className="text-label-md text-text-primary font-semibold">
+                {user?.name || "User"}
+              </p>
+              <p className="text-caption text-text-muted">{user?.email || "No email"}</p>
+            </div>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              className="text-danger focus:text-danger cursor-pointer gap-2"
+              onClick={handleLogout}
+            >
+              <LogOut className="size-4" />
+              Logout
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </header>
   );

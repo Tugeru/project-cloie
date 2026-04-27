@@ -49,6 +49,9 @@ prisma/*.db-journal
 # agent / ai
 .agent
 .worktrees/
+.roo
+AGENTS.md
+/plans
 
 # project docs (kept in repo but ignored in some workflows)
 /docs
@@ -56,3 +59,8 @@ prisma/*.db-journal
 # IDE
 .idea
 .vscode
+
+# Mockups
+/mockups
+
+

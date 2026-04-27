@@ -11,6 +11,73 @@ datasource db {
   directUrl = env("DIRECT_URL")
 }
 
+enum SystemRole {
+  ADMIN
+  DEAN
+  PROGRAM_HEAD
+  FACULTY
+  STUDENT
+  ALUMNI
+  INDUSTRY_PARTNER
+}
+
+enum AcademicSemester {
+  FIRST  @map("1ST")
+  SECOND @map("2ND")
+  SUMMER
+
+  @@map("academic_semester")
+}
+
+enum AcademicTerm {
+  FIRST_TERM
+  SECOND_TERM
+
+  @@map("academic_term")
+}
+
+enum InviteStatus {
+  DRAFT
+  SENT
+  ACCEPTED
+  REVOKED
+}
+
+enum CourseScope {
+  GENERAL_EDUCATION
+  PROGRAM_SPECIFIC
+  MAJOR_SPECIFIC
+}
+
+enum DeploymentStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  CLOSED
+  ARCHIVED
+}
+
+enum ResponseStatus {
+  IN_PROGRESS
+  SUBMITTED
+}
+
+enum DeploymentType {
+  COURSE_BOUND
+  CENTRAL
+}
+
+enum TargetStakeholder {
+  STUDENT
+  ALUMNI
+  INDUSTRY_PARTNER
+}
+
+enum EvaluationTemplateType {
+  PROGRAM_WIDE
+  COURSE_BOUND
+}
+
 // ============================================================================
 // Core Academic Entities
 // ============================================================================
@@ -31,29 +98,24 @@ model User {
   evaluation_assignments  EvaluationAssignment[]
   responses            Response[]
   created_cilos        CILO[]
+  faculty_program_affiliations FacultyProgramAffiliation[]
+  program_head_assignments ProgramHeadAssignment[]
+  created_external_invites ExternalStakeholderInvite[] @relation("ExternalInviteCreator")
+  industry_partner_profile IndustryPartnerProfile?
+  faculty_owned_templates InstrumentTemplate[] @relation("FacultyOwnedInstrumentTemplates")
 
   @@map("users")
 }
 
-model Role {
-  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String     @unique // ADMIN, DEAN, PROGRAM_HEAD, FACULTY, STUDENT, GRADUATING_STUDENT, ALUMNI, INDUSTRY_PARTNER
-  description String?
-
-  users       UserRole[]
-
-  @@map("roles")
-}
-
 model UserRole {
-  user_id     String   @db.Uuid
-  role_id     String   @db.Uuid
-  assigned_at DateTime @default(now())
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id     String     @db.Uuid
+  role        SystemRole
+  assigned_at DateTime   @default(now())
 
-  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
-  role        Role     @relation(fields: [role_id], references: [id], onDelete: Cascade)
+  user        User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@id([user_id, role_id])
+  @@unique([user_id, role])
   @@map("user_roles")
 }
 
@@ -68,12 +130,17 @@ model Program {
 
   majors               Major[]
   courses              Course[]
-  sections             Section[]
   student_profiles     StudentAcademicProfile[]
-  plos                 PLO[]
   gos                  GO[]
   course_evaluations   CourseBoundEvaluation[]
+  faculty_program_affiliations FacultyProgramAffiliation[]
+  program_head_assignments ProgramHeadAssignment[]
+  course_bound_targets CourseBoundEvaluationTarget[]
   central_deployments  CentralDeployment[]
+  external_stakeholder_invites ExternalStakeholderInvite[]
+  instrument_templates InstrumentTemplate[]
+  bound_instrument_templates InstrumentTemplate[] @relation("BoundInstrumentTemplateProgram")
+  industry_partner_profiles IndustryPartnerProfile[]
 
   @@map("programs")
 }
@@ -87,36 +154,33 @@ model Major {
   updated_at  DateTime @updatedAt
 
   program              Program                  @relation(fields: [program_id], references: [id], onDelete: Cascade)
+  courses              Course[]
   student_profiles     StudentAcademicProfile[]
   course_evaluations   CourseBoundEvaluation[]
+  central_deployments  CentralDeployment[]
+  bound_instrument_templates InstrumentTemplate[] @relation("BoundInstrumentTemplateMajor")
 
+  @@unique([program_id, name])
   @@map("majors")
 }
 
-model CourseType {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String   @unique // PROGRAM_SPECIFIC, GENERAL_EDUCATION
-
-  courses     Course[]
-
-  @@map("course_types")
-}
-
 model Course {
-  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code           String   @unique
-  title          String
-  description    String?
-  program_id     String?  @db.Uuid
-  course_type_id String   @db.Uuid
-  is_active      Boolean  @default(true)
-  created_at     DateTime @default(now())
-  updated_at     DateTime @updatedAt
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code         String      @unique
+  title        String
+  description  String?
+  program_id   String?     @db.Uuid
+  major_id     String?     @db.Uuid
+  course_scope CourseScope @default(PROGRAM_SPECIFIC)
+  is_active    Boolean     @default(true)
+  created_at   DateTime    @default(now())
+  updated_at   DateTime    @updatedAt
 
-  program        Program?    @relation(fields: [program_id], references: [id], onDelete: SetNull)
-  course_type    CourseType  @relation(fields: [course_type_id], references: [id], onDelete: Restrict)
-  cilos          CILO[]
-  evaluations    CourseBoundEvaluation[]
+  program      Program?    @relation(fields: [program_id], references: [id], onDelete: SetNull)
+  major        Major?      @relation(fields: [major_id], references: [id], onDelete: SetNull)
+  cilos        CILO[]
+  evaluations  CourseBoundEvaluation[]
+  bound_instrument_templates InstrumentTemplate[] @relation("BoundInstrumentTemplateCourse")
 
   @@map("courses")
 }
@@ -126,27 +190,11 @@ model YearLevel {
   name        String   @unique // 1st Year, 2nd Year, etc.
   order       Int
 
-  sections         Section[]
   student_profiles StudentAcademicProfile[]
+  course_bound_targets CourseBoundEvaluationTarget[]
+  central_deployments CentralDeployment[]
 
   @@map("year_levels")
-}
-
-model Section {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name          String
-  year_level_id String   @db.Uuid
-  program_id    String   @db.Uuid
-  academic_year String
-  semester      String
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-
-  year_level       YearLevel @relation(fields: [year_level_id], references: [id], onDelete: Restrict)
-  program          Program   @relation(fields: [program_id], references: [id], onDelete: Cascade)
-  student_profiles StudentAcademicProfile[]
-
-  @@map("sections")
 }
 
 model StudentAcademicProfile {
@@ -155,9 +203,9 @@ model StudentAcademicProfile {
   program_id        String   @db.Uuid
   major_id          String?  @db.Uuid
   year_level_id     String   @db.Uuid
-  section_id        String?  @db.Uuid
   student_id_number String?
   academic_year     String
+  is_graduating     Boolean  @default(false)
   created_at        DateTime @default(now())
   updated_at        DateTime @updatedAt
 
@@ -165,7 +213,6 @@ model StudentAcademicProfile {
   program           Program    @relation(fields: [program_id], references: [id], onDelete: Restrict)
   major             Major?     @relation(fields: [major_id], references: [id], onDelete: SetNull)
   year_level        YearLevel  @relation(fields: [year_level_id], references: [id], onDelete: Restrict)
-  section           Section?   @relation(fields: [section_id], references: [id], onDelete: SetNull)
 
   @@map("student_academic_profiles")
 }
@@ -174,28 +221,11 @@ model StudentAcademicProfile {
 // Outcomes Management
 // ============================================================================
 
-model PLO {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code        String
-  description String
-  program_id  String   @db.Uuid
-  order       Int
-  is_active   Boolean  @default(true)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-
-  program       Program        @relation(fields: [program_id], references: [id], onDelete: Cascade)
-  cilo_mappings CILOMapping[]
-
-  @@map("plos")
-}
-
 model GO {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code        String
   description String
   program_id  String   @db.Uuid
-  order       Int
   is_active   Boolean  @default(true)
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
@@ -203,6 +233,7 @@ model GO {
   program       Program        @relation(fields: [program_id], references: [id], onDelete: Cascade)
   cilo_mappings CILOMapping[]
 
+  @@unique([program_id, code])
   @@map("gos")
 }
 
@@ -210,8 +241,6 @@ model CILO {
   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   description   String
   course_id     String   @db.Uuid
-  order         Int
-  academic_term String
   created_by    String   @db.Uuid
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
@@ -219,6 +248,8 @@ model CILO {
   course        Course        @relation(fields: [course_id], references: [id], onDelete: Cascade)
   author        User          @relation(fields: [created_by], references: [id], onDelete: Restrict)
   cilo_mappings CILOMapping[]
+  question_bindings CourseBoundCiloQuestionBinding[]
+  template_question_bindings InstrumentTemplateCiloQuestionBinding[]
 
   @@map("cilos")
 }
@@ -226,13 +257,11 @@ model CILO {
 model CILOMapping {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   cilo_id    String   @db.Uuid
-  plo_id     String?  @db.Uuid
-  go_id      String?  @db.Uuid
+  go_id      String   @db.Uuid
   created_at DateTime @default(now())
 
   cilo       CILO   @relation(fields: [cilo_id], references: [id], onDelete: Cascade)
-  plo        PLO?   @relation(fields: [plo_id], references: [id], onDelete: SetNull)
-  go         GO?    @relation(fields: [go_id], references: [id], onDelete: SetNull)
+  go         GO     @relation(fields: [go_id], references: [id], onDelete: Cascade)
 
   @@map("cilo_mappings")
 }
@@ -242,16 +271,32 @@ model CILOMapping {
 // ============================================================================
 
 model InstrumentTemplate {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code        String   @unique // CILO_EVAL, EXIT_SURVEY, ALUMNI_EVAL, INDUSTRY_EVAL
-  name        String
-  description String?
-  structure   Json     // JSON defining sections and items
-  is_active   Boolean  @default(true)
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
+  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code                  String   @unique // CILO_EVAL, EXIT_SURVEY, ALUMNI_EVAL, INDUSTRY_EVAL
+  name                  String
+  description           String?
+  template_type         EvaluationTemplateType @default(PROGRAM_WIDE)
+  structure             Json     // JSON defining sections and items
+  is_active             Boolean  @default(true)
+  is_faculty_accessible Boolean  @default(false)
+  program_id            String?  @db.Uuid
+  faculty_owner_id      String?  @db.Uuid
+  source_template_id    String?  @db.Uuid
+  bound_course_id       String?  @db.Uuid
+  bound_program_id      String?  @db.Uuid
+  bound_major_id        String?  @db.Uuid
+  created_at            DateTime @default(now())
+  updated_at            DateTime @updatedAt
 
-  versions    InstrumentVersion[]
+  program               Program? @relation(fields: [program_id], references: [id], onDelete: SetNull)
+  faculty_owner         User?    @relation("FacultyOwnedInstrumentTemplates", fields: [faculty_owner_id], references: [id], onDelete: Cascade)
+  source_template       InstrumentTemplate? @relation("InstrumentTemplateCopies", fields: [source_template_id], references: [id], onDelete: SetNull)
+  derived_templates     InstrumentTemplate[] @relation("InstrumentTemplateCopies")
+  bound_course          Course?  @relation("BoundInstrumentTemplateCourse", fields: [bound_course_id], references: [id], onDelete: SetNull)
+  bound_program         Program? @relation("BoundInstrumentTemplateProgram", fields: [bound_program_id], references: [id], onDelete: SetNull)
+  bound_major           Major?   @relation("BoundInstrumentTemplateMajor", fields: [bound_major_id], references: [id], onDelete: SetNull)
+  versions              InstrumentVersion[]
+  template_cilo_question_bindings InstrumentTemplateCiloQuestionBinding[]
 
   @@map("instrument_templates")
 }
@@ -276,18 +321,19 @@ model InstrumentVersion {
 model CourseBoundEvaluation {
   id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   instrument_version_id String   @db.Uuid
+  deployment_name       String
   course_id             String   @db.Uuid
   program_id            String   @db.Uuid
   major_id              String?  @db.Uuid
-  semester              String
-  term                  String
+  semester              AcademicSemester
+  term                  AcademicTerm
   academic_year         String
   faculty_id            String   @db.Uuid
   cilos_snapshot        Json     // Snapshot of CILOs at time of publishing
   course_info_snapshot  Json     // Snapshot of course info at time of publishing
   activation_at         DateTime?
   deadline_at           DateTime?
-  status                String   // DRAFT, SCHEDULED, ACTIVE, CLOSED, ARCHIVED
+  status                DeploymentStatus
   published_at          DateTime?
   created_at            DateTime @default(now())
   updated_at            DateTime @updatedAt
@@ -298,28 +344,144 @@ model CourseBoundEvaluation {
   major                 Major?            @relation(fields: [major_id], references: [id], onDelete: SetNull)
   faculty               User              @relation(fields: [faculty_id], references: [id], onDelete: Restrict)
   assignments           EvaluationAssignment[] @relation("CourseBoundAssignments")
+  targets               CourseBoundEvaluationTarget[]
+  cilo_question_bindings CourseBoundCiloQuestionBinding[]
 
+  @@unique([course_id, academic_year, semester, term])
   @@map("course_bound_evaluations")
+}
+
+model CourseBoundCiloQuestionBinding {
+  id                         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  course_bound_evaluation_id String   @db.Uuid
+  cilo_id                    String?  @db.Uuid
+  cilo_description_snapshot  String
+  section_key                String
+  item_key                   String
+  question_prompt_snapshot   String
+  created_at                 DateTime @default(now())
+  updated_at                 DateTime @updatedAt
+
+  course_bound_evaluation    CourseBoundEvaluation @relation(fields: [course_bound_evaluation_id], references: [id], onDelete: Cascade)
+  cilo                       CILO?                 @relation(fields: [cilo_id], references: [id], onDelete: SetNull)
+  quantitative_items         QuantitativeResponseItem[]
+
+  @@unique([course_bound_evaluation_id, cilo_id], map: "course_bound_cilo_question_bindings_eval_cilo_key")
+  @@unique([course_bound_evaluation_id, section_key, item_key], map: "course_bound_cilo_question_bindings_eval_question_key")
+  @@map("course_bound_cilo_question_bindings")
+}
+
+model InstrumentTemplateCiloQuestionBinding {
+  id                         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  template_id                String   @db.Uuid
+  cilo_id                    String?  @db.Uuid
+  cilo_description_snapshot  String
+  section_key                String
+  item_key                   String
+  question_prompt_snapshot   String
+  created_at                 DateTime @default(now())
+  updated_at                 DateTime @updatedAt
+
+  template                   InstrumentTemplate @relation(fields: [template_id], references: [id], onDelete: Cascade)
+  cilo                       CILO?              @relation(fields: [cilo_id], references: [id], onDelete: SetNull)
+
+  @@unique([template_id, cilo_id], map: "itcqb_template_cilo_key")
+  @@unique([template_id, section_key, item_key], map: "itcqb_template_question_key")
+  @@map("instrument_template_cilo_question_bindings")
+}
+
+model FacultyProgramAffiliation {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  faculty_id String   @db.Uuid
+  program_id String   @db.Uuid
+  is_active  Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  faculty    User     @relation(fields: [faculty_id], references: [id], onDelete: Cascade)
+  program    Program  @relation(fields: [program_id], references: [id], onDelete: Cascade)
+
+  @@unique([faculty_id, program_id])
+  @@map("faculty_program_affiliations")
+}
+
+model ProgramHeadAssignment {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  program_head_id String   @db.Uuid
+  program_id      String   @db.Uuid
+  is_active       Boolean  @default(true)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+
+  program_head    User     @relation(fields: [program_head_id], references: [id], onDelete: Cascade)
+  program         Program  @relation(fields: [program_id], references: [id], onDelete: Cascade)
+
+  @@unique([program_head_id, program_id])
+  @@map("program_head_assignments")
+}
+
+model CourseBoundEvaluationTarget {
+  id                         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  course_bound_evaluation_id String   @db.Uuid
+  program_id                 String   @db.Uuid
+  year_level_id              String?  @db.Uuid
+  created_at                 DateTime @default(now())
+  updated_at                 DateTime @updatedAt
+
+  course_bound_evaluation    CourseBoundEvaluation @relation(fields: [course_bound_evaluation_id], references: [id], onDelete: Cascade)
+  program                    Program               @relation(fields: [program_id], references: [id], onDelete: Cascade)
+  year_level                 YearLevel?            @relation(fields: [year_level_id], references: [id], onDelete: SetNull)
+
+  @@unique([course_bound_evaluation_id, program_id, year_level_id])
+  @@map("course_bound_evaluation_targets")
 }
 
 model CentralDeployment {
   id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   instrument_version_id String   @db.Uuid
+  deployment_name       String
   program_id            String?  @db.Uuid
-  target_stakeholder    String   // GRADUATING_STUDENT, ALUMNI, INDUSTRY_PARTNER
+  major_id              String?  @db.Uuid
+  year_level_id         String?  @db.Uuid
+  target_stakeholder    TargetStakeholder
   academic_year         String
-  semester              String
+  semester              AcademicSemester
   activation_at         DateTime?
   deadline_at           DateTime?
-  status                String
+  status                DeploymentStatus
   created_at            DateTime @default(now())
   updated_at            DateTime @updatedAt
 
   instrument            InstrumentVersion @relation(fields: [instrument_version_id], references: [id], onDelete: Restrict)
   program               Program?          @relation(fields: [program_id], references: [id], onDelete: SetNull)
+  major                 Major?            @relation(fields: [major_id], references: [id], onDelete: SetNull)
+  year_level            YearLevel?        @relation(fields: [year_level_id], references: [id], onDelete: SetNull)
   assignments           EvaluationAssignment[] @relation("CentralDeployments")
 
   @@map("central_deployments")
+}
+
+model ExternalStakeholderInvite {
+  id               String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email            String
+  role             SystemRole
+  program_id       String?      @db.Uuid
+  invited_by       String?      @db.Uuid
+  invitee_name     String?
+  company_name     String?
+  note             String?
+  status           InviteStatus @default(DRAFT)
+  sent_at          DateTime?
+  accepted_at      DateTime?
+  created_at       DateTime     @default(now())
+  updated_at       DateTime     @updatedAt
+
+  inviter          User?        @relation("ExternalInviteCreator", fields: [invited_by], references: [id], onDelete: SetNull)
+  program          Program?     @relation(fields: [program_id], references: [id], onDelete: SetNull)
+
+  @@index([role, status])
+  @@unique([email, role, program_id])
+  @@map("external_stakeholder_invites")
 }
 
 model EvaluationAssignment {
@@ -332,18 +494,18 @@ model EvaluationAssignment {
   course_bound            CourseBoundEvaluation? @relation("CourseBoundAssignments", fields: [course_bound_id], references: [id], onDelete: Cascade)
   central_deployment      CentralDeployment?     @relation("CentralDeployments", fields: [central_deployment_id], references: [id], onDelete: Cascade)
   respondent              User                   @relation(fields: [respondent_id], references: [id], onDelete: Restrict)
-  responses               Response[]
+  response                Response?
 
   @@map("evaluation_assignments")
 }
 
 model Response {
   id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  assignment_id   String   @db.Uuid
+  assignment_id   String   @unique @db.Uuid
   respondent_id   String   @db.Uuid
-  deployment_type String   // COURSE_BOUND or CENTRAL
+  deployment_type DeploymentType
   deployment_id   String   @db.Uuid
-  status          String   // IN_PROGRESS, SUBMITTED
+  status          ResponseStatus
   submitted_at    DateTime?
   created_at      DateTime @default(now())
   updated_at      DateTime @updatedAt
@@ -356,9 +518,25 @@ model Response {
   @@map("responses")
 }
 
+model IndustryPartnerProfile {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String   @unique @db.Uuid
+  company_name  String
+  position      String?
+  program_id    String?  @db.Uuid
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  user          User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+  program       Program? @relation(fields: [program_id], references: [id], onDelete: SetNull)
+
+  @@map("industry_partner_profiles")
+}
+
 model QuantitativeResponseItem {
   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   response_id   String   @db.Uuid
+  cilo_question_binding_id String? @db.Uuid
   section_key   String
   item_key      String
   rating_value  Int
@@ -366,6 +544,7 @@ model QuantitativeResponseItem {
   updated_at    DateTime @updatedAt
 
   response      Response @relation(fields: [response_id], references: [id], onDelete: Cascade)
+  cilo_question_binding CourseBoundCiloQuestionBinding? @relation(fields: [cilo_question_binding_id], references: [id], onDelete: SetNull)
 
   @@map("quantitative_response_items")
 }

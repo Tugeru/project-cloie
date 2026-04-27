@@ -22,6 +22,7 @@ function requireEnv(name: "SUPABASE_ACCESS_TOKEN") {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   execFileSync(getSupabaseCommand(), buildLoginArgs(requireEnv("SUPABASE_ACCESS_TOKEN")), {
+    shell: process.platform === "win32",
     stdio: "inherit",
   });
 }
