@@ -119,6 +119,13 @@ export function PublishCourseBoundEvaluationForm({
       return;
     }
 
+    if (!/^\d{4}-\d{4}$/.test(academicYear.trim())) {
+      const message = "Academic year must be in YYYY-YYYY format (e.g. 2026-2027).";
+      setError(message);
+      showToast(message, "error");
+      return;
+    }
+
     if (selectedYearLevelIds.length === 0) {
       const message = "Please select at least one target year level.";
       setError(message);
@@ -279,6 +286,9 @@ export function PublishCourseBoundEvaluationForm({
                 value={academicYear}
                 onChange={(event) => setAcademicYear(event.target.value)}
               />
+              <p className="text-text-muted text-xs">
+                Must match the academic year stored in student profiles (YYYY-YYYY).
+              </p>
             </div>
 
             <div className="space-y-2">

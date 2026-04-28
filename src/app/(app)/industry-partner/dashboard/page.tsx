@@ -87,12 +87,12 @@ export default async function IndustryPartnerDashboardPage() {
 
         <div className="grid gap-4">
           {active
-            .filter((item) => item.status === "NOT_STARTED")
+            .filter((item) => item.status === "NOT_STARTED" || item.status === "DUE_SOON")
             .slice(0, 3)
             .map((evalItem) => (
               <EvaluationListCard key={evalItem.assignmentId} {...evalItem} />
             ))}
-          {active.filter((item) => item.status === "NOT_STARTED").length === 0 && (
+          {active.filter((item) => item.status === "NOT_STARTED" || item.status === "DUE_SOON").length === 0 && (
             <div className="border-border rounded-xl border-2 border-dashed py-12 text-center">
               <p className="text-text-muted font-medium">No active evaluations found.</p>
             </div>

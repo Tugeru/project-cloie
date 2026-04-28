@@ -37,6 +37,17 @@ export default async function NewFacultyCiloEvaluationPage({
   }
 
   const params = await searchParams;
+
+  function deriveCurrentAcademicYear(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const startYear = month >= 8 ? year : year - 1;
+    return `${startYear}-${startYear + 1}`;
+  }
+
+  const resolvedAcademicYear = params.academicYear ?? deriveCurrentAcademicYear();
+
   const yearLevels = await prisma.yearLevel.findMany({
     orderBy: { order: "asc" },
     select: {
@@ -59,7 +70,7 @@ export default async function NewFacultyCiloEvaluationPage({
   return (
     <PublishCourseBoundEvaluationForm
       initialSelection={{
-        academicYear: params.academicYear,
+        academicYear: resolvedAcademicYear,
         semester:
           params.semester === "SECOND" || params.semester === "SUMMER"
             ? params.semester
