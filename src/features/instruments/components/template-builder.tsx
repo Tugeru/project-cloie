@@ -1452,7 +1452,9 @@ function LikertDescriptorsEditor({
                 {idx < descriptors.length - 1 && (
                   <div className="bg-border absolute top-1/2 left-full h-px w-full" />
                 )}
-                <div className="border-primary/40 bg-surface h-5 w-5 rounded-full border-2" />
+                <div className="border-primary/40 bg-surface flex h-6 w-6 items-center justify-center rounded-full border-2 text-xs font-semibold text-primary/60">
+                  {descriptor.value}
+                </div>
               </div>
             </div>
             {/* Editable label */}

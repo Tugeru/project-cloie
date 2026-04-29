@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { AcademicSemester, AcademicTerm, CourseScope } from "@prisma/client";
 import { Button } from "@/components/ui/button";
@@ -64,7 +65,7 @@ type PublicationContext = {
   };
 };
 
-type Step = "configure" | "preview" | "success";
+type Step = "configure" | "preview";
 
 const SECTION_OPTIONS: { label: string; value: StudentSection | null }[] = [
   { label: "None / Not specified", value: null },
@@ -129,8 +130,9 @@ export function PublishCourseBoundEvaluationForm({
 
   // Status
   const [error, setError] = useState<string | null>(null);
-  const [publishedAssignmentCount, setPublishedAssignmentCount] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const router = useRouter();
 
   const fallbackPublishErrorMessage = "Unable to publish evaluation right now. Please try again.";
 
@@ -262,9 +264,9 @@ export function PublishCourseBoundEvaluationForm({
         return;
       }
 
-      setPublishedAssignmentCount(result.assignmentCount);
-      setStep("success");
-      showToast("Evaluation published successfully.");
+      const toastMessage = `Evaluation published successfully! ${result.assignmentCount} assignment(s) created.`;
+      router.push(`/faculty/tools?toast=${encodeURIComponent(toastMessage)}`);
+      return;
     } catch {
       setError(fallbackPublishErrorMessage);
       showToast(fallbackPublishErrorMessage, "error");
@@ -618,23 +620,6 @@ export function PublishCourseBoundEvaluationForm({
           </section>
         )}
 
-        {step === "success" && (
-          <section className="border-border bg-surface space-y-4 rounded-xl border p-5 lg:col-span-2">
-            <h3 className="text-lg font-semibold text-success">Evaluation Published Successfully</h3>
-            <p className="text-text-muted text-sm">
-              The evaluation has been published and assignments have been created for{" "}
-              {publishedAssignmentCount ?? (previewRespondents.length - excludedRespondentIds.length)} student(s).
-            </p>
-            <div className="flex flex-col gap-2 sm:flex-row">
-              <Button asChild type="button">
-                <Link href="/faculty/cilo-evaluations">View Published Evaluations</Link>
-              </Button>
-              <Button asChild type="button" variant="outline">
-                <Link href="/faculty/tools">Back to Tools</Link>
-              </Button>
-            </div>
-          </section>
-        )}
       </div>
     </div>
   );
