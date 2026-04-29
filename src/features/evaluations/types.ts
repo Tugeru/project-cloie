@@ -1,4 +1,4 @@
-import { AcademicSemester, AcademicTerm, CourseScope, DeploymentStatus, StudentSection } from "@prisma/client";
+import { AcademicSemester, AcademicTerm, CourseScope, DeploymentStatus, StudentSection, TargetStakeholder } from "@prisma/client";
 
 export type { StudentSection };
 
@@ -228,4 +228,40 @@ export type CloseFacultyEvaluationResult =
     }
   | {
       success: true;
+    };
+
+// ============================================================================
+// Preview Central Deployment Respondents (Program Head publish flow)
+// ============================================================================
+
+export type PreviewCentralDeploymentInput = {
+  academicYear: string;
+  majorId?: string;
+  programId: string;
+  targetStakeholder: TargetStakeholder;
+  yearLevelId?: string;
+};
+
+export type PreviewCentralDeploymentRespondent = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  majorName: string | null;
+  programCode: string | null;
+  section: StudentSection | null;
+  stakeholderType: TargetStakeholder;
+  studentId: string | null;
+  userId: string;
+  yearLevelName: string | null;
+};
+
+export type PreviewCentralDeploymentResult =
+  | {
+      error: string;
+      success: false;
+    }
+  | {
+      respondents: PreviewCentralDeploymentRespondent[];
+      success: true;
+      totalCount: number;
     };

@@ -1,4 +1,4 @@
-import { InviteStatus, SystemRole } from "@prisma/client";
+import { InviteStatus, StudentSection, SystemRole } from "@prisma/client";
 import { z } from "zod";
 
 const optionalUuidField = z.preprocess(
@@ -40,6 +40,10 @@ export const updateStudentAcademicContextSchema = z.object({
     .trim()
     .min(4, "Academic year is required.")
     .max(20, "Academic year must be 20 characters or fewer."),
+  section: z.preprocess(
+    (value) => (value === "" || value == null ? undefined : value),
+    z.nativeEnum(StudentSection).optional()
+  ),
 });
 
 export const createFacultyAffiliationSchema = z.object({

@@ -177,7 +177,10 @@ export async function publishCentralDeployment(
       // 8b. Create EvaluationAssignment records for target respondents
       let respondentIds: string[] = [];
 
-      if (input.target_stakeholder === "STUDENT") {
+      if (input.respondent_ids && input.respondent_ids.length > 0) {
+        // Use the curated list from preview/exclude flow
+        respondentIds = [...new Set(input.respondent_ids)];
+      } else if (input.target_stakeholder === "STUDENT") {
         const whereClause: Record<string, unknown> = {
           program_id: programId,
           year_level_id: input.year_level_id,
@@ -194,13 +197,24 @@ export async function publishCentralDeployment(
 
         respondentIds = [...new Set(studentProfiles.map((p) => p.user_id))];
       } else if (input.target_stakeholder === "ALUMNI") {
-        // Find users with ALUMNI role
-        const alumniRoles = await tx.userRole.findMany({
-          where: { role: ROLES.ALUMNI },
-          select: { user_id: true },
+        // Find accepted alumni invites scoped to this program
+        const invites = await tx.externalStakeholderInvite.findMany({
+          where: {
+            role: ROLES.ALUMNI,
+            program_id: programId,
+            status: "ACCEPTED",
+          },
+          select: { email: true },
         });
 
-        respondentIds = [...new Set(alumniRoles.map((r) => r.user_id))];
+        if (invites.length > 0) {
+          const emails = invites.map((i) => i.email);
+          const users = await tx.user.findMany({
+            where: { email: { in: emails } },
+            select: { id: true },
+          });
+          respondentIds = [...new Set(users.map((u) => u.id))];
+        }
       } else if (input.target_stakeholder === "INDUSTRY_PARTNER") {
         // Find users with INDUSTRY_PARTNER role and matching program
         const industryProfiles = await tx.industryPartnerProfile.findMany({

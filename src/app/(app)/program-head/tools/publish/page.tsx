@@ -2,7 +2,10 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { listProgramHeadTemplates } from "@/features/instruments/services/manage-program-head-templates";
 import { PublishCentralDeploymentForm } from "@/features/evaluations/components/publish-central-deployment-form";
-import { publishCentralDeploymentAction } from "@/lib/actions/central-deployment-actions";
+import {
+  publishCentralDeploymentAction,
+  previewCentralDeploymentRespondentsAction,
+} from "@/lib/actions/central-deployment-actions";
 import { prisma } from "@/lib/db/prisma";
 
 export const metadata = {
@@ -83,8 +86,10 @@ export default async function ProgramHeadPublishToolPage({ searchParams }: PageP
         templates={activeTemplates}
         yearLevels={yearLevels}
         majors={majors}
+        programId={program.id}
         programLabel={`${program.code} — ${program.name}`}
         preselectedTemplateId={preselectedTemplateId}
+        previewAction={previewCentralDeploymentRespondentsAction}
         publishAction={publishCentralDeploymentAction}
       />
     </div>

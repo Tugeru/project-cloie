@@ -12,6 +12,7 @@ export const publishCentralDeploymentSchema = z
     year_level_id: z.string().uuid().optional(),
     activation_at: z.coerce.date().optional(),
     deadline_at: z.coerce.date().optional(),
+    respondent_ids: z.array(z.string().uuid()).optional(),
   })
   .superRefine((value, ctx) => {
     if (value.target_stakeholder === "STUDENT" && !value.year_level_id) {

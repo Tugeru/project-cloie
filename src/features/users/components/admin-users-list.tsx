@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { SystemRole } from "@prisma/client";
+import { StudentSection, SystemRole } from "@prisma/client";
 import {
   MoreVertical,
   Search,
@@ -49,7 +49,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { toggleUserActiveAction } from "@/lib/actions/admin-foundation-actions";
+import {
+  toggleUserActiveAction,
+  updateStudentAcademicContextAction,
+} from "@/lib/actions/admin-foundation-actions";
 import { updateAdminUserAction } from "@/lib/actions/admin-user-crud-actions";
 
 import type {
@@ -89,6 +92,12 @@ function formatRole(role: SystemRole): string {
 // Props
 // ---------------------------------------------------------------------------
 
+const SECTION_OPTIONS: { label: string; value: StudentSection }[] = [
+  { label: "Morning", value: "MORNING" },
+  { label: "Afternoon", value: "AFTERNOON" },
+  { label: "Evening", value: "EVENING" },
+];
+
 type AdminUsersListProps = {
   users: AdminUserSummaryItem[];
   kpi: AdminUsersKPI;
@@ -98,6 +107,7 @@ type AdminUsersListProps = {
     name: string;
     majors: Array<{ id: string; name: string }>;
   }>;
+  yearLevels: Array<{ id: string; name: string }>;
 };
 
 // ---------------------------------------------------------------------------
@@ -164,6 +174,14 @@ function ViewUserDialog({
             </label>
             <p className="text-sm font-semibold">{user.majorLabel || "—"}</p>
           </div>
+          {user.roles.includes(SystemRole.STUDENT) && (
+            <div className="space-y-1">
+              <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
+                Section
+              </label>
+              <p className="text-sm font-semibold">{user.sectionLabel}</p>
+            </div>
+          )}
           <div className="space-y-1">
             <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
               Status
@@ -180,6 +198,130 @@ function ViewUserDialog({
             Close
           </Button>
         </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Student Context Dialog
+// ---------------------------------------------------------------------------
+
+function StudentContextDialog({
+  user,
+  open,
+  onOpenChange,
+  programs,
+  yearLevels,
+}: {
+  user: AdminUserSummaryItem;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  programs: Array<{ id: string; code: string; name: string; majors: Array<{ id: string; name: string }> }>;
+  yearLevels: Array<{ id: string; name: string }>;
+}) {
+  const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [selectedSection, setSelectedSection] = useState<string>("");
+
+  function handleSubmit(formData: FormData) {
+    setError(null);
+    startTransition(async () => {
+      const result = await updateStudentAcademicContextAction(formData);
+      if (!result.success) {
+        setError(result.error);
+        return;
+      }
+      onOpenChange(false);
+    });
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Student Academic Context</DialogTitle>
+          <DialogDescription>
+            Update section and academic details for {user.firstName} {user.lastName}.
+          </DialogDescription>
+        </DialogHeader>
+        <form action={handleSubmit} className="space-y-4 pt-2">
+          <input type="hidden" name="user_id" value={user.id} />
+
+          {error && (
+            <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">{error}</div>
+          )}
+
+          <div className="space-y-2">
+            <Label htmlFor="sc-program">Program</Label>
+            <Select name="program_id" required>
+              <SelectTrigger id="sc-program" className="w-full">
+                <SelectValue placeholder="Select a program" />
+              </SelectTrigger>
+              <SelectContent>
+                {programs.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.code} — {p.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="sc-year-level">Year Level</Label>
+            <Select name="year_level_id" required>
+              <SelectTrigger id="sc-year-level" className="w-full">
+                <SelectValue placeholder="Select year level" />
+              </SelectTrigger>
+              <SelectContent>
+                {yearLevels.map((yl) => (
+                  <SelectItem key={yl.id} value={yl.id}>
+                    {yl.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="sc-academic-year">Academic Year</Label>
+            <Input id="sc-academic-year" name="academic_year" placeholder="e.g., 2025-2026" required />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="sc-section">Section</Label>
+            <Select
+              name="section"
+              value={selectedSection}
+              onValueChange={(v) => setSelectedSection(v ?? "")}
+            >
+              <SelectTrigger id="sc-section" className="w-full">
+                <SelectValue placeholder="Select section (optional)">
+                  {selectedSection
+                    ? SECTION_OPTIONS.find((o) => o.value === selectedSection)?.label
+                    : null}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {SECTION_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isPending}>
+              {isPending ? "Saving..." : "Save Context"}
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
@@ -275,7 +417,7 @@ function EditUserDialog({
 // Component
 // ---------------------------------------------------------------------------
 
-export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
+export function AdminUsersList({ users, kpi, programs, yearLevels }: AdminUsersListProps) {
   // ---- Filter state -------------------------------------------------------
   const [roleFilter, setRoleFilter] = useState<string>("__all__");
   const [programFilter, setProgramFilter] = useState<string>("__all__");
@@ -287,6 +429,7 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
   // ---- Modal state ---------------------------------------------------------
   const [viewUser, setViewUser] = useState<AdminUserSummaryItem | null>(null);
   const [editUser, setEditUser] = useState<AdminUserSummaryItem | null>(null);
+  const [studentContextUser, setStudentContextUser] = useState<AdminUserSummaryItem | null>(null);
 
   // ---- Derived: majors for selected program --------------------------------
   const selectedProgramMajors = useMemo(() => {
@@ -492,6 +635,7 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
             <TableHead>Role</TableHead>
             <TableHead>Affiliated Program</TableHead>
             <TableHead>Major</TableHead>
+            <TableHead>Section</TableHead>
             <TableHead>Email</TableHead>
             <TableHead>Status</TableHead>
             <TableHead className="w-12">Actions</TableHead>
@@ -500,7 +644,7 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
         <TableBody>
           {paginatedUsers.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={7} className="text-muted-foreground h-24 text-center">
+              <TableCell colSpan={8} className="text-muted-foreground h-24 text-center">
                 No users found.
               </TableCell>
             </TableRow>
@@ -519,6 +663,11 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
                 </TableCell>
                 <TableCell>{user.programLabel}</TableCell>
                 <TableCell>{user.majorLabel}</TableCell>
+                <TableCell>
+                  {user.roles.includes(SystemRole.STUDENT) ? user.sectionLabel : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </TableCell>
                 <TableCell className="text-muted-foreground">{user.email}</TableCell>
                 <TableCell>
                   <Badge variant={user.isActive ? "default" : "secondary"}>
@@ -534,6 +683,11 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem onClick={() => setViewUser(user)}>View</DropdownMenuItem>
                       <DropdownMenuItem onClick={() => setEditUser(user)}>Edit</DropdownMenuItem>
+                      {user.roles.includes(SystemRole.STUDENT) && (
+                        <DropdownMenuItem onClick={() => setStudentContextUser(user)}>
+                          Edit Student Context
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         disabled={isPending}
@@ -616,6 +770,19 @@ export function AdminUsersList({ users, kpi, programs }: AdminUsersListProps) {
           onOpenChange={(open) => {
             if (!open) setEditUser(null);
           }}
+        />
+      )}
+
+      {/* Student Context Dialog */}
+      {studentContextUser && (
+        <StudentContextDialog
+          user={studentContextUser}
+          open={!!studentContextUser}
+          onOpenChange={(open) => {
+            if (!open) setStudentContextUser(null);
+          }}
+          programs={programs}
+          yearLevels={yearLevels}
         />
       )}
     </div>

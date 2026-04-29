@@ -48,9 +48,9 @@ export default async function OnboardingPage({
   // Use Google's structured name fields (given_name / family_name) when available.
   // These are pre-separated by Google and handle multi-word first names correctly.
   // Fall back to splitting full_name only if structured fields are missing.
-  const firstNameFallback = meta.given_name ?? (meta.full_name ? meta.full_name.split(" ")[0] : "");
-  const lastNameFallback =
-    meta.family_name ?? (meta.full_name ? meta.full_name.split(" ").slice(1).join(" ") : "");
+  const nameParts: string[] = meta.full_name ? meta.full_name.trim().split(/\s+/) : [];
+  const firstNameFallback = meta.given_name ?? (nameParts.length > 1 ? nameParts.slice(0, -1).join(" ") : nameParts[0] ?? "");
+  const lastNameFallback = meta.family_name ?? (nameParts.length > 1 ? nameParts[nameParts.length - 1] : "");
 
   // Step 2: Show the student profile form
   if (intent === "student" && step === "form") {
