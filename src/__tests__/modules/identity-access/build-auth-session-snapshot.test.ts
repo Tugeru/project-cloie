@@ -9,11 +9,9 @@ describe("buildAuthSessionSnapshot", () => {
       email: "user@acd.edu.ph",
       roles: [],
       studentProfileId: null,
-      isGraduating: false,
     });
 
     expect(session.primaryRole).toBeNull();
-    expect(session.isGraduating).toBe(false);
     expect(session.profileGate).toEqual({ status: "ROLE_SELECTION_REQUIRED" });
   });
 
@@ -23,7 +21,6 @@ describe("buildAuthSessionSnapshot", () => {
       email: "student@acd.edu.ph",
       roles: [ROLES.STUDENT],
       studentProfileId: null,
-      isGraduating: false,
     });
 
     expect(session.primaryRole).toBe(ROLES.STUDENT);
@@ -33,17 +30,15 @@ describe("buildAuthSessionSnapshot", () => {
     });
   });
 
-  it("preserves graduating eligibility on student sessions", () => {
+  it("marks students with a profile as complete", () => {
     const session = buildAuthSessionSnapshot({
       userId: "user-3",
       email: "student@acd.edu.ph",
       roles: [ROLES.STUDENT],
       studentProfileId: "profile-1",
-      isGraduating: true,
     });
 
     expect(session.primaryRole).toBe(ROLES.STUDENT);
-    expect(session.isGraduating).toBe(true);
     expect(session.profileGate).toEqual({ status: "COMPLETE" });
   });
 
@@ -53,7 +48,6 @@ describe("buildAuthSessionSnapshot", () => {
       email: "faculty@acd.edu.ph",
       roles: [ROLES.FACULTY, ROLES.STUDENT],
       studentProfileId: null,
-      isGraduating: false,
     });
 
     expect(session.primaryRole).toBe(ROLES.FACULTY);
@@ -69,7 +63,6 @@ describe("buildAuthSessionSnapshot", () => {
       email: "faculty@acd.edu.ph",
       roles: [ROLES.FACULTY],
       studentProfileId: null,
-      isGraduating: false,
     });
 
     expect(session.primaryRole).toBe(ROLES.FACULTY);

@@ -62,7 +62,6 @@ export async function registerStudentProfile(data: StudentProfileInput) {
           year_level_id: validatedData.year_level_id,
           student_id_number: validatedData.student_id_number,
           academic_year: academicYear,
-          is_graduating: false,
           section: validatedData.section,
         },
         create: {
@@ -72,7 +71,6 @@ export async function registerStudentProfile(data: StudentProfileInput) {
           year_level_id: validatedData.year_level_id,
           student_id_number: validatedData.student_id_number,
           academic_year: academicYear,
-          is_graduating: false,
           section: validatedData.section,
         },
       });

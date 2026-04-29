@@ -57,7 +57,6 @@ type UserItem = {
     year_level_id: string;
     student_id_number: string | null;
     academic_year: string;
-    is_graduating: boolean;
   };
   faculty_program_affiliations: Array<{
     id: string;
@@ -220,7 +219,7 @@ function StudentContextForm({
       <div className="space-y-1">
         <p className="text-sm font-semibold">Student Academic Context</p>
         <p className="text-text-muted text-xs">
-          Program, optional major, year level, academic year, and graduating eligibility.
+          Program, optional major, year level, and academic year.
         </p>
       </div>
 
@@ -315,16 +314,6 @@ function StudentContextForm({
           />
         </div>
       </div>
-
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          name="is_graduating"
-          value="true"
-          defaultChecked={user.student_profile?.is_graduating ?? false}
-        />
-        Graduating student
-      </label>
 
       <div className="flex flex-wrap gap-2">
         <Button type="submit" size="sm" disabled={isPending}>

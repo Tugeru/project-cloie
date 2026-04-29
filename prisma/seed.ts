@@ -1059,16 +1059,14 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
       mid: null as string | null,
       ylid: y4.id,
       sn: "2026-0001",
-      grad: false,
     },
-    { uid: U.GRAD_BSIT, pid: bsit.id, mid: null, ylid: y4.id, sn: "2026-0002", grad: true },
+    { uid: U.GRAD_BSIT, pid: bsit.id, mid: null, ylid: y4.id, sn: "2026-0002" },
     {
       uid: U.STU_BSED,
       pid: bsed.id,
       mid: mMap.get("BSED:English")?.id ?? null,
       ylid: y3.id,
       sn: "2026-0003",
-      grad: false,
     },
     {
       uid: U.STU_BSBA,
@@ -1076,7 +1074,6 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
       mid: mMap.get("BSBA:Marketing Management")?.id ?? null,
       ylid: y4.id,
       sn: "2026-0004",
-      grad: false,
     },
     {
       uid: U.STU_BSBA_G,
@@ -1084,11 +1081,10 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
       mid: mMap.get("BSBA:Financial Management")?.id ?? null,
       ylid: y4.id,
       sn: "2026-0005",
-      grad: true,
     },
-    { uid: U.STU_BEED, pid: beed.id, mid: null, ylid: y2.id, sn: "2026-0006", grad: false },
-    { uid: U.STU_BSHM, pid: bshm.id, mid: null, ylid: y4.id, sn: "2026-0007", grad: false },
-    { uid: U.STU_BSHM_G, pid: bshm.id, mid: null, ylid: y4.id, sn: "2026-0008", grad: true },
+    { uid: U.STU_BEED, pid: beed.id, mid: null, ylid: y2.id, sn: "2026-0006" },
+    { uid: U.STU_BSHM, pid: bshm.id, mid: null, ylid: y4.id, sn: "2026-0007" },
+    { uid: U.STU_BSHM_G, pid: bshm.id, mid: null, ylid: y4.id, sn: "2026-0008" },
   ];
   for (const s of students) {
     await prisma.studentAcademicProfile.upsert({
@@ -1099,7 +1095,6 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
         year_level_id: s.ylid,
         student_id_number: s.sn,
         academic_year: "2026-2027",
-        is_graduating: s.grad,
       },
       create: {
         user_id: s.uid,
@@ -1108,7 +1103,6 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
         year_level_id: s.ylid,
         student_id_number: s.sn,
         academic_year: "2026-2027",
-        is_graduating: s.grad,
       },
     });
   }

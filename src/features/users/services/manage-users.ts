@@ -255,7 +255,6 @@ export async function upsertStudentAcademicContext(
       year_level_id: input.year_level_id,
       student_id_number: input.student_id_number ?? null,
       academic_year: input.academic_year,
-      is_graduating: input.is_graduating,
     },
     create: {
       user_id: input.user_id,
@@ -264,7 +263,6 @@ export async function upsertStudentAcademicContext(
       year_level_id: input.year_level_id,
       student_id_number: input.student_id_number ?? null,
       academic_year: input.academic_year,
-      is_graduating: input.is_graduating,
     },
   });
 

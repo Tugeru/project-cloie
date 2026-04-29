@@ -100,7 +100,6 @@ describe("supabase client typing", () => {
       major_id: string | null;
       year_level_id: string;
       academic_year: string;
-      is_graduating: boolean;
     }>();
     expectTypeOf<InstrumentTemplateRow>().toMatchTypeOf<{
       program_id: string | null;

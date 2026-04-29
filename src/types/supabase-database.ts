@@ -929,7 +929,6 @@ export type Database = {
           academic_year: string;
           created_at: string;
           id: string;
-          is_graduating: boolean;
           major_id: string | null;
           program_id: string;
           student_id_number: string | null;
@@ -941,7 +940,6 @@ export type Database = {
           academic_year: string;
           created_at?: string;
           id?: string;
-          is_graduating?: boolean;
           major_id?: string | null;
           program_id: string;
           student_id_number?: string | null;
@@ -953,7 +951,6 @@ export type Database = {
           academic_year?: string;
           created_at?: string;
           id?: string;
-          is_graduating?: boolean;
           major_id?: string | null;
           program_id?: string;
           student_id_number?: string | null;

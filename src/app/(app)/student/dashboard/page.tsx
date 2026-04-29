@@ -48,18 +48,6 @@ export default async function StudentDashboardPage() {
         completed={submitted.length}
       />
 
-      {session?.isGraduating && (
-        <Card className="border-primary/30 bg-primary-soft/40 mt-6">
-          <CardContent className="p-4">
-            <p className="text-primary font-semibold">Graduating Eligibility Active</p>
-            <p className="text-text-secondary text-sm">
-              Graduating-student tools appear here only when a real program-level deployment assigns
-              them to your account.
-            </p>
-          </CardContent>
-        </Card>
-      )}
-
       {resumeItem && (
         <section className="mt-8 space-y-4">
           <div>

@@ -12,7 +12,7 @@ type AuthenticatedUser = {
 
 type AuthSessionUserRecord = {
   roles: Array<{ role: Role }>;
-  student_profile: { id: string; is_graduating: boolean } | null;
+  student_profile: { id: string } | null;
 } | null;
 
 const KNOWN_ROLES = new Set<Role>(Object.values(ROLES));
@@ -35,14 +35,12 @@ async function resolveAuthSessionFromAuthenticatedUser(user: AuthenticatedUser) 
       .map((userRole) => userRole.role)
       .filter((roleName): roleName is Role => isKnownRole(roleName)) ?? [];
   const studentProfileId = dbUser?.student_profile?.id ?? null;
-  const isGraduating = dbUser?.student_profile?.is_graduating ?? false;
 
   return buildAuthSessionSnapshot({
     userId: user.id,
     email: user.email,
     roles,
     studentProfileId,
-    isGraduating,
   });
 }
 

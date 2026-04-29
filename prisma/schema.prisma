@@ -214,7 +214,6 @@ model StudentAcademicProfile {
   student_id_number String?
   academic_year     String
   section           StudentSection?
-  is_graduating     Boolean        @default(false)
   created_at        DateTime       @default(now())
   updated_at        DateTime       @updatedAt
 
