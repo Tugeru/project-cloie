@@ -28,6 +28,7 @@ export async function listBaselineTemplates() {
   return prisma.instrumentTemplate.findMany({
     where: {
       program_id: null,
+      faculty_owner_id: null,
     },
     include: {
       versions: {

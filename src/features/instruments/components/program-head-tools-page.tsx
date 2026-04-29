@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ChevronDown,
   ChevronRight,
@@ -80,6 +80,9 @@ export function ProgramHeadToolsPage({
   baselines,
   program,
 }: ProgramHeadToolsPageProps) {
+  const searchParams = useSearchParams();
+  const defaultTab = searchParams.get("tab") === "published" ? "published" : "templates";
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
@@ -92,7 +95,7 @@ export function ProgramHeadToolsPage({
         </div>
       </div>
 
-      <Tabs defaultValue="templates" className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <TabsList variant="line" className="h-auto gap-4">
             <TabsTrigger value="templates" className="px-1 py-2.5 text-sm">

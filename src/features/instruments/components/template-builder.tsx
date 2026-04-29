@@ -638,7 +638,7 @@ export function TemplateBuilder({
   const handleSave = useCallback(() => {
     // If editing an institutional baseline, show copy name dialog
     if (isInstitutionalBaseline && templateId && onSaveAsCopy) {
-      setCopyName(initialData?.name ?? "");
+      setCopyName(name);
       setCopyNameDialogOpen(true);
       return;
     }
@@ -669,7 +669,7 @@ export function TemplateBuilder({
     isInstitutionalBaseline,
     templateId,
     onSaveAsCopy,
-    initialData?.name,
+    name,
     router,
     saveDraft,
     saveSuccessConfig,

@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, useRef, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { showToast } from "@/components/ui/toast";
 import { SEMESTER_OPTIONS } from "@/lib/constants/academic";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -39,11 +41,11 @@ export function PublishCentralDeploymentForm({
   preselectedTemplateId,
   publishAction,
 }: PublishCentralDeploymentFormProps) {
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState(preselectedTemplateId ?? "");
   const [targetStakeholder, setTargetStakeholder] = useState<string>("STUDENT");
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const selectedTemplate = templates.find((t) => t.id === selectedTemplateId);
@@ -54,7 +56,6 @@ export function PublishCentralDeploymentForm({
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
-    setSuccessMessage(null);
 
     if (!selectedTemplateId) {
       setError("Please select a template to deploy.");
@@ -70,14 +71,17 @@ export function PublishCentralDeploymentForm({
 
       if (!result.success) {
         setError(result.error);
+        showToast(result.error, "error");
         return;
       }
 
-      setSuccessMessage(
-        `Deployment published successfully! ${result.assignmentCount} assignment(s) created. Status: ${result.status}.`
+      const toastMessage = `Deployment published successfully! ${result.assignmentCount} assignment(s) created. Status: ${result.status}.`;
+      router.push(
+        `/program-head/tools?tab=published&toast=${encodeURIComponent(toastMessage)}`
       );
     } catch {
       setError("Unable to publish deployment right now. Please try again.");
+      showToast("Unable to publish deployment right now. Please try again.", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -301,11 +305,6 @@ export function PublishCentralDeploymentForm({
 
         {/* Messages */}
         {error && <p className="bg-danger/10 text-danger rounded-lg px-3 py-2 text-sm">{error}</p>}
-        {successMessage && (
-          <p className="bg-success/10 text-success rounded-lg px-3 py-2 text-sm">
-            {successMessage}
-          </p>
-        )}
 
         {/* Actions */}
         <div className="border-border flex items-center justify-end gap-3 border-t pt-4">
