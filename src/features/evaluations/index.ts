@@ -7,6 +7,7 @@
 
 // ─── Course-Bound Evaluations ────────────────────────────────────────────────
 
+export { previewCourseBoundRespondents } from "./services/preview-course-bound-respondents";
 export { publishCourseBoundEvaluation } from "./services/publish-course-bound-evaluation";
 
 export type {
@@ -14,6 +15,10 @@ export type {
   CourseBoundPublicationCiloInput,
   PublishCourseBoundEvaluationInput,
   PublishCourseBoundEvaluationResult,
+  PreviewRespondent,
+  PreviewCourseBoundRespondentsInput,
+  PreviewCourseBoundRespondentsResult,
+  StudentSection,
   FacultyPublishedEvaluationItem,
   FacultyPublishedEvaluationCiloBinding,
   FacultyPublishedEvaluationTarget,

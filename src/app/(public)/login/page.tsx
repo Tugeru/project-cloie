@@ -16,14 +16,20 @@ export default async function LoginPage({
     <div className="animate-in fade-in slide-in-from-bottom-4 zoom-in-95 relative z-10 mx-auto w-full max-w-md duration-500">
       {/* Header Section */}
       <div className="mb-8 flex flex-col items-center">
-        <div className="relative mb-5">
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-[#2563eb]/20 to-[#d49900]/20 blur-xl" />
+        <div className="mb-5 flex items-center gap-4">
+          <Image
+            src="/logos/acd-logo.png"
+            alt="Assumption College of Davao Logo"
+            width={56}
+            height={56}
+            className="shrink-0 object-contain"
+          />
           <Image
             src="/logos/cloie-logo.png"
             alt="CLOIE Logo"
-            width={80}
-            height={80}
-            className="relative rounded-2xl shadow-lg transition-transform duration-300 hover:scale-105"
+            width={64}
+            height={64}
+            className="rounded-2xl shadow-lg"
             priority
           />
         </div>

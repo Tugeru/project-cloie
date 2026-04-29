@@ -2,9 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, type Resolver } from "react-hook-form";
+import { StudentSection } from "@prisma/client";
 import { customZodResolver } from "@/lib/forms/zod-resolver";
-import { studentProfileSchema, type StudentProfileInput } from "@/lib/schemas/student-profile";
+import {
+  studentProfileSchema,
+  type StudentProfileFormValues,
+  type StudentProfileInput,
+} from "@/lib/schemas/student-profile";
 import { registerStudentProfile } from "@/lib/actions/onboarding-actions";
 import { createClient } from "@/lib/supabase/client";
 
@@ -21,6 +26,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
+const SECTION_OPTIONS: { label: string; value: StudentSection }[] = [
+  { label: "Morning", value: "MORNING" },
+  { label: "Afternoon", value: "AFTERNOON" },
+  { label: "Evening", value: "EVENING" },
+];
 
 type Program = {
   id: string;
@@ -59,8 +70,8 @@ export function StudentProfileForm({
     handleSubmit,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<StudentProfileInput>({
-    resolver: customZodResolver(studentProfileSchema),
+  } = useForm<StudentProfileFormValues>({
+    resolver: customZodResolver(studentProfileSchema) as Resolver<StudentProfileFormValues>,
     defaultValues: {
       first_name: initialFirstName,
       last_name: initialLastName,
@@ -68,6 +79,7 @@ export function StudentProfileForm({
       major_id: "",
       year_level_id: "",
       student_id_number: "",
+      section: "",
     },
   });
 
@@ -91,9 +103,14 @@ export function StudentProfileForm({
     return yl ? yl.name : "";
   };
 
-  const onSubmit = async (data: StudentProfileInput) => {
+  const getSectionLabel = (value: StudentSection | "") => {
+    const option = SECTION_OPTIONS.find((opt) => opt.value === value);
+    return option ? option.label : "";
+  };
+
+  const onSubmit = async (data: StudentProfileFormValues) => {
     setGlobalError(null);
-    const result = await registerStudentProfile(data);
+    const result = await registerStudentProfile(data as StudentProfileInput);
 
     if (result.error) {
       setGlobalError(result.error);
@@ -342,6 +359,45 @@ export function StudentProfileForm({
                   </p>
                 )}
               </div>
+            </div>
+
+            {/* Section */}
+            <div className="space-y-2">
+              <Label className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase">
+                Section
+              </Label>
+              <Controller
+                name="section"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value}
+                  >
+                    <SelectTrigger className={`w-full ${errors.section ? "border-danger" : ""}`}>
+                      <SelectValue placeholder="Select section">
+                        {field.value ? getSectionLabel(field.value) : null}
+                      </SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SECTION_OPTIONS.map((option) => (
+                        <SelectItem
+                          key={option.value}
+                          value={option.value}
+                        >
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.section && (
+                <p className="text-danger flex items-center gap-1 text-xs">
+                  <AlertCircle className="size-3" />
+                  {errors.section.message}
+                </p>
+              )}
             </div>
           </div>
         </CardContent>

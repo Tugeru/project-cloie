@@ -591,9 +591,9 @@ function DeploymentAccordionRow({
             <DropdownMenuTrigger
               onClick={(e) => e.stopPropagation()}
               render={
-                <div className="hover:bg-muted inline-flex size-8 cursor-pointer items-center justify-center rounded-md">
+                <button type="button" className="hover:bg-muted inline-flex size-8 cursor-pointer items-center justify-center rounded-md">
                   <MoreVertical className="size-4" />
-                </div>
+                </button>
               }
             />
             <DropdownMenuContent align="end">

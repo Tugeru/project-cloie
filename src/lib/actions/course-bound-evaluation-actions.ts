@@ -5,10 +5,12 @@ import {
   loadFacultyManagedCilos,
   saveFacultyManagedCilos,
 } from "@/features/evaluations/services/manage-faculty-cilos";
+import { previewCourseBoundRespondents } from "@/features/evaluations/services/preview-course-bound-respondents";
 import { publishCourseBoundEvaluation } from "@/features/evaluations/services/publish-course-bound-evaluation";
 import type {
   FacultyManagedCiloContext,
   FacultyManagedCiloSaveInput,
+  PreviewCourseBoundRespondentsInput,
   PublishCourseBoundEvaluationInput,
 } from "@/features/evaluations/types";
 
@@ -20,6 +22,12 @@ export async function publishCourseBoundEvaluationAction(
   payload: PublishCourseBoundEvaluationInput
 ) {
   return await publishCourseBoundEvaluation(payload);
+}
+
+export async function previewCourseBoundRespondentsAction(
+  payload: PreviewCourseBoundRespondentsInput
+) {
+  return await previewCourseBoundRespondents(payload);
 }
 
 export async function loadFacultyManagedCilosAction(payload: FacultyManagedCiloContext) {

@@ -78,6 +78,14 @@ enum EvaluationTemplateType {
   COURSE_BOUND
 }
 
+enum StudentSection {
+  MORNING
+  AFTERNOON
+  EVENING
+
+  @@map("student_section")
+}
+
 // ============================================================================
 // Core Academic Entities
 // ============================================================================
@@ -198,16 +206,17 @@ model YearLevel {
 }
 
 model StudentAcademicProfile {
-  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id           String   @unique @db.Uuid
-  program_id        String   @db.Uuid
-  major_id          String?  @db.Uuid
-  year_level_id     String   @db.Uuid
+  id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id           String         @unique @db.Uuid
+  program_id        String         @db.Uuid
+  major_id          String?        @db.Uuid
+  year_level_id     String         @db.Uuid
   student_id_number String?
   academic_year     String
-  is_graduating     Boolean  @default(false)
-  created_at        DateTime @default(now())
-  updated_at        DateTime @updatedAt
+  section           StudentSection?
+  is_graduating     Boolean        @default(false)
+  created_at        DateTime       @default(now())
+  updated_at        DateTime       @updatedAt
 
   user              User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
   program           Program    @relation(fields: [program_id], references: [id], onDelete: Restrict)
@@ -329,6 +338,7 @@ model CourseBoundEvaluation {
   term                  AcademicTerm
   academic_year         String
   faculty_id            String   @db.Uuid
+  section               StudentSection?
   cilos_snapshot        Json     // Snapshot of CILOs at time of publishing
   course_info_snapshot  Json     // Snapshot of course info at time of publishing
   activation_at         DateTime?
@@ -347,7 +357,12 @@ model CourseBoundEvaluation {
   targets               CourseBoundEvaluationTarget[]
   cilo_question_bindings CourseBoundCiloQuestionBinding[]
 
-  @@unique([course_id, academic_year, semester, term])
+  // NOTE: The actual unique constraint uses NULLS NOT DISTINCT (Postgres 15+) so that
+  // two evaluations with section = NULL are treated as duplicates. Prisma does not support
+  // NULLS NOT DISTINCT in @@unique, so the index is managed via Supabase migration
+  // (20260429170000_add_section_and_nulls_not_distinct.sql). The @@index below keeps
+  // Prisma's query planner aware of the index without re-creating it as a standard unique.
+  @@index([course_id, faculty_id, academic_year, semester, term, section])
   @@map("course_bound_evaluations")
 }
 

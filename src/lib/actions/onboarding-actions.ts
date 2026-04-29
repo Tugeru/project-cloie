@@ -63,6 +63,7 @@ export async function registerStudentProfile(data: StudentProfileInput) {
           student_id_number: validatedData.student_id_number,
           academic_year: academicYear,
           is_graduating: false,
+          section: validatedData.section,
         },
         create: {
           user_id: user.id,
@@ -72,6 +73,7 @@ export async function registerStudentProfile(data: StudentProfileInput) {
           student_id_number: validatedData.student_id_number,
           academic_year: academicYear,
           is_graduating: false,
+          section: validatedData.section,
         },
       });
     });
