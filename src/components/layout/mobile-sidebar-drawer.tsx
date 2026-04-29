@@ -17,7 +17,7 @@ interface MobileSidebarDrawerProps {
   };
 }
 
-export function MobileSidebarDrawerTrigger({ onClick }: { onClick: () => void }) {
+function MobileSidebarDrawerTrigger({ onClick }: { onClick: () => void }) {
   return (
     <button
       type="button"

@@ -77,7 +77,7 @@ export const createExternalInviteDraftSchema = z.object({
   note: optionalLongTextField,
 });
 
-export const updateExternalInviteStatusSchema = z.object({
+const updateExternalInviteStatusSchema = z.object({
   id: z.string().uuid(),
   status: z.nativeEnum(InviteStatus),
 });

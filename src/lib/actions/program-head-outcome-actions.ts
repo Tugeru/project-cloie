@@ -86,7 +86,7 @@ export async function deleteGOAction(id: string): Promise<ActionResult> {
   return { success: true };
 }
 
-export async function reorderGOsAction(orderedIds: string[]): Promise<ActionResult> {
+async function reorderGOsAction(orderedIds: string[]): Promise<ActionResult> {
   const result = await reorderGOs(orderedIds);
 
   if (!result.success) {

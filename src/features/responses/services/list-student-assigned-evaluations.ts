@@ -37,7 +37,7 @@ function clampProgress(progress: number) {
   return Math.min(100, Math.max(0, progress));
 }
 
-export function deriveStudentEvaluationStatus({
+function deriveStudentEvaluationStatus({
   answeredItems,
   deadlineAt,
   now = new Date(),
@@ -72,7 +72,7 @@ export function deriveStudentEvaluationStatus({
   return { progress, status: "IN_PROGRESS" };
 }
 
-export function buildStudentEvaluationListItem({
+function buildStudentEvaluationListItem({
   assignmentId,
   courseTitle,
   deadlineAt,

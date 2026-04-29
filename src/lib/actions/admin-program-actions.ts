@@ -96,7 +96,7 @@ export async function createMajorAction(formData: FormData): Promise<ActionResul
   return { success: true };
 }
 
-export async function updateMajorAction(formData: FormData): Promise<ActionResult> {
+async function updateMajorAction(formData: FormData): Promise<ActionResult> {
   const parsed = updateMajorSchema.safeParse({
     id: formData.get("id"),
     name: formData.get("name"),

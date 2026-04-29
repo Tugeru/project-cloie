@@ -13,6 +13,7 @@
 # testing
 /coverage
 /.playwright-mcp
+/.fallow
 
 # next.js
 /.next/

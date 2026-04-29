@@ -1215,7 +1215,7 @@ export type CompositeTypes<
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never;
 
-export const Constants = {
+const Constants = {
   public: {
     Enums: {
       academic_semester: ["1ST", "2ND", "SUMMER"],

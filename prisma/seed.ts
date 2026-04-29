@@ -1521,46 +1521,43 @@ async function seedEvaluations(
     programName: "Bachelor of Science in Information Technology",
   };
 
-  const cbEval1 = await prisma.courseBoundEvaluation.upsert({
+  const existingCbEval1 = await prisma.courseBoundEvaluation.findFirst({
     where: {
-      course_id_academic_year_semester_term: {
-        course_id: itCourse.id,
-        academic_year: "2026-2027",
-        semester: AcademicSemester.SECOND,
-        term: AcademicTerm.SECOND_TERM,
-      },
-    },
-    update: {
-      deployment_name: "IT-OD-401 Post-Term CILO Evaluation",
-      instrument_version_id: ciloVer.id,
-      program_id: bsit.id,
-      major_id: null,
-      faculty_id: U.FAC_BSIT,
-      cilos_snapshot: ciloSnap1,
-      course_info_snapshot: courseSnap1,
-      activation_at: new Date("2026-04-01T08:00:00Z"),
-      deadline_at: new Date("2026-05-31T23:59:00Z"),
-      status: DeploymentStatus.ACTIVE,
-      published_at: new Date("2026-04-01T08:00:00Z"),
-    },
-    create: {
-      deployment_name: "IT-OD-401 Post-Term CILO Evaluation",
       course_id: itCourse.id,
       academic_year: "2026-2027",
       semester: AcademicSemester.SECOND,
       term: AcademicTerm.SECOND_TERM,
-      instrument_version_id: ciloVer.id,
-      program_id: bsit.id,
-      major_id: null,
-      faculty_id: U.FAC_BSIT,
-      cilos_snapshot: ciloSnap1,
-      course_info_snapshot: courseSnap1,
-      activation_at: new Date("2026-04-01T08:00:00Z"),
-      deadline_at: new Date("2026-05-31T23:59:00Z"),
-      status: DeploymentStatus.ACTIVE,
-      published_at: new Date("2026-04-01T08:00:00Z"),
     },
   });
+
+  const cbEval1Data = {
+    deployment_name: "IT-OD-401 Post-Term CILO Evaluation",
+    instrument_version_id: ciloVer.id,
+    program_id: bsit.id,
+    major_id: null,
+    faculty_id: U.FAC_BSIT,
+    cilos_snapshot: ciloSnap1,
+    course_info_snapshot: courseSnap1,
+    activation_at: new Date("2026-04-01T08:00:00Z"),
+    deadline_at: new Date("2026-05-31T23:59:00Z"),
+    status: DeploymentStatus.ACTIVE,
+    published_at: new Date("2026-04-01T08:00:00Z"),
+  };
+
+  const cbEval1 = existingCbEval1
+    ? await prisma.courseBoundEvaluation.update({
+        where: { id: existingCbEval1.id },
+        data: cbEval1Data,
+      })
+    : await prisma.courseBoundEvaluation.create({
+        data: {
+          course_id: itCourse.id,
+          academic_year: "2026-2027",
+          semester: AcademicSemester.SECOND,
+          term: AcademicTerm.SECOND_TERM,
+          ...cbEval1Data,
+        },
+      });
 
   await prisma.courseBoundEvaluationTarget.upsert({
     where: {
@@ -1612,46 +1609,43 @@ async function seedEvaluations(
     programName: "Bachelor of Science in Business Administration",
   };
 
-  const cbEval2 = await prisma.courseBoundEvaluation.upsert({
+  const existingCbEval2 = await prisma.courseBoundEvaluation.findFirst({
     where: {
-      course_id_academic_year_semester_term: {
-        course_id: mktCourse.id,
-        academic_year: "2026-2027",
-        semester: AcademicSemester.SECOND,
-        term: AcademicTerm.SECOND_TERM,
-      },
-    },
-    update: {
-      deployment_name: "MKT301 Post-Term CILO Evaluation",
-      instrument_version_id: ciloVer.id,
-      program_id: bsba.id,
-      major_id: mktMajor?.id ?? null,
-      faculty_id: U.FAC_BSBA,
-      cilos_snapshot: ciloSnap2,
-      course_info_snapshot: courseSnap2,
-      activation_at: new Date("2026-04-01T08:00:00Z"),
-      deadline_at: new Date("2026-05-31T23:59:00Z"),
-      status: DeploymentStatus.ACTIVE,
-      published_at: new Date("2026-04-01T08:00:00Z"),
-    },
-    create: {
-      deployment_name: "MKT301 Post-Term CILO Evaluation",
       course_id: mktCourse.id,
       academic_year: "2026-2027",
       semester: AcademicSemester.SECOND,
       term: AcademicTerm.SECOND_TERM,
-      instrument_version_id: ciloVer.id,
-      program_id: bsba.id,
-      major_id: mktMajor?.id ?? null,
-      faculty_id: U.FAC_BSBA,
-      cilos_snapshot: ciloSnap2,
-      course_info_snapshot: courseSnap2,
-      activation_at: new Date("2026-04-01T08:00:00Z"),
-      deadline_at: new Date("2026-05-31T23:59:00Z"),
-      status: DeploymentStatus.ACTIVE,
-      published_at: new Date("2026-04-01T08:00:00Z"),
     },
   });
+
+  const cbEval2Data = {
+    deployment_name: "MKT301 Post-Term CILO Evaluation",
+    instrument_version_id: ciloVer.id,
+    program_id: bsba.id,
+    major_id: mktMajor?.id ?? null,
+    faculty_id: U.FAC_BSBA,
+    cilos_snapshot: ciloSnap2,
+    course_info_snapshot: courseSnap2,
+    activation_at: new Date("2026-04-01T08:00:00Z"),
+    deadline_at: new Date("2026-05-31T23:59:00Z"),
+    status: DeploymentStatus.ACTIVE,
+    published_at: new Date("2026-04-01T08:00:00Z"),
+  };
+
+  const cbEval2 = existingCbEval2
+    ? await prisma.courseBoundEvaluation.update({
+        where: { id: existingCbEval2.id },
+        data: cbEval2Data,
+      })
+    : await prisma.courseBoundEvaluation.create({
+        data: {
+          course_id: mktCourse.id,
+          academic_year: "2026-2027",
+          semester: AcademicSemester.SECOND,
+          term: AcademicTerm.SECOND_TERM,
+          ...cbEval2Data,
+        },
+      });
 
   await prisma.courseBoundEvaluationTarget.upsert({
     where: {

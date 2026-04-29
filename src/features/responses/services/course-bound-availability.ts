@@ -8,7 +8,7 @@ type DeploymentAvailabilityInput = {
 
 export const STUDENT_EVALUATION_UNAVAILABLE_ERROR = "This evaluation is not currently available.";
 
-export function isDeploymentAvailable(evaluation: DeploymentAvailabilityInput, now = new Date()) {
+function isDeploymentAvailable(evaluation: DeploymentAvailabilityInput, now = new Date()) {
   if (
     evaluation.status !== DeploymentStatus.ACTIVE &&
     evaluation.status !== DeploymentStatus.SCHEDULED

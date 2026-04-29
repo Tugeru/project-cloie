@@ -34,6 +34,6 @@ export async function loadFacultyManagedCilosAction(payload: FacultyManagedCiloC
   return await loadFacultyManagedCilos(payload);
 }
 
-export async function saveFacultyManagedCilosAction(payload: FacultyManagedCiloSaveInput) {
+async function saveFacultyManagedCilosAction(payload: FacultyManagedCiloSaveInput) {
   return await saveFacultyManagedCilos(payload);
 }

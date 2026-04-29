@@ -12,7 +12,7 @@ function isUniqueConstraintError(error: unknown): boolean {
   );
 }
 
-export async function listYearLevels() {
+async function listYearLevels() {
   return prisma.yearLevel.findMany({
     include: {
       _count: {

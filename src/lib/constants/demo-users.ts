@@ -84,4 +84,4 @@ export const DEMO_USERS = [
   },
 ] as const;
 
-export const DEMO_USER_EMAILS = DEMO_USERS.map((user) => user.email);
+const DEMO_USER_EMAILS = DEMO_USERS.map((user) => user.email);

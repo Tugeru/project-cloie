@@ -72,7 +72,7 @@ export const templateQuestionSchema = z
     }
   });
 
-export const templateSectionSchema = z.object({
+const templateSectionSchema = z.object({
   key: z.string().min(1, "Section key is required."),
   title: z
     .string()

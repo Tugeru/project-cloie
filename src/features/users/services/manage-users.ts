@@ -58,7 +58,7 @@ async function ensureProgramMajorRelation(programId: string, majorId?: string) {
   return { success: true as const };
 }
 
-export async function listAdminUsers() {
+async function listAdminUsers() {
   return prisma.user.findMany({
     include: {
       roles: {
@@ -101,7 +101,7 @@ export async function listAdminUsers() {
   });
 }
 
-export async function listExternalStakeholderInvites() {
+async function listExternalStakeholderInvites() {
   return prisma.externalStakeholderInvite.findMany({
     include: {
       program: true,
