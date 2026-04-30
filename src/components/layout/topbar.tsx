@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Bell, ChevronDown, LogOut } from "lucide-react";
+import { ChevronDown, LogOut } from "lucide-react";
 import Image from "next/image";
 import {
   DropdownMenu,
@@ -58,14 +58,6 @@ export function Topbar({ user, mobileNavMode = "bottom-nav", roles }: TopbarProp
       <div className="hidden lg:flex" /> {/* Empty spacer for desktop */}
       {/* Right side actions */}
       <div className="flex items-center gap-3">
-        <button
-          type="button"
-          className="text-text-muted hover:bg-surface-muted hover:text-text-primary relative flex size-9 items-center justify-center rounded-full transition-colors"
-        >
-          <Bell className="size-5" />
-          <span className="bg-danger ring-surface absolute top-1.5 right-1.5 size-2 rounded-full ring-2" />
-        </button>
-
         {/* Profile avatar + dropdown */}
         <DropdownMenu>
           <DropdownMenuTrigger className="hover:bg-surface-muted flex items-center gap-2 rounded-full py-1 pr-2 pl-1 transition-colors focus:outline-none">

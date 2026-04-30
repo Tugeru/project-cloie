@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { showToast } from "@/components/ui/toast";
 import {
   Select,
   SelectContent,
@@ -222,7 +223,18 @@ function StudentContextDialog({
 }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [selectedProgramId, setSelectedProgramId] = useState<string>("");
+  const [selectedYearLevelId, setSelectedYearLevelId] = useState<string>("");
+  const [selectedMajorId, setSelectedMajorId] = useState<string>("");
   const [selectedSection, setSelectedSection] = useState<string>("");
+
+  const selectedProgram = programs.find((p) => p.id === selectedProgramId);
+  const programMajors = selectedProgram?.majors ?? [];
+
+  function handleProgramChange(value: string | null) {
+    setSelectedProgramId(value ?? "");
+    setSelectedMajorId("");
+  }
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -232,6 +244,7 @@ function StudentContextDialog({
         setError(result.error);
         return;
       }
+      showToast("Student context saved successfully.");
       onOpenChange(false);
     });
   }
@@ -254,9 +267,18 @@ function StudentContextDialog({
 
           <div className="space-y-2">
             <Label htmlFor="sc-program">Program</Label>
-            <Select name="program_id" required>
+            <Select
+              name="program_id"
+              required
+              value={selectedProgramId}
+              onValueChange={handleProgramChange}
+            >
               <SelectTrigger id="sc-program" className="w-full">
-                <SelectValue placeholder="Select a program" />
+                <SelectValue placeholder="Select a program">
+                  {selectedProgram
+                    ? `${selectedProgram.code} — ${selectedProgram.name}`
+                    : null}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {programs.map((p) => (
@@ -270,9 +292,18 @@ function StudentContextDialog({
 
           <div className="space-y-2">
             <Label htmlFor="sc-year-level">Year Level</Label>
-            <Select name="year_level_id" required>
+            <Select
+              name="year_level_id"
+              required
+              value={selectedYearLevelId}
+              onValueChange={(v) => setSelectedYearLevelId(v ?? "")}
+            >
               <SelectTrigger id="sc-year-level" className="w-full">
-                <SelectValue placeholder="Select year level" />
+                <SelectValue placeholder="Select year level">
+                  {selectedYearLevelId
+                    ? yearLevels.find((yl) => yl.id === selectedYearLevelId)?.name
+                    : null}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {yearLevels.map((yl) => (
@@ -283,6 +314,32 @@ function StudentContextDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {programMajors.length > 0 && (
+            <div className="space-y-2">
+              <Label htmlFor="sc-major">Major</Label>
+              <Select
+                name="major_id"
+                value={selectedMajorId}
+                onValueChange={(v) => setSelectedMajorId(v ?? "")}
+              >
+                <SelectTrigger id="sc-major" className="w-full">
+                  <SelectValue placeholder="Select major (optional)">
+                    {selectedMajorId
+                      ? programMajors.find((m) => m.id === selectedMajorId)?.name
+                      : null}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {programMajors.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>
+                      {m.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="sc-academic-year">Academic Year</Label>

@@ -824,7 +824,15 @@ export function TemplateBuilder({
                   }}
                 >
                   <SelectTrigger id="faculty-course-type">
-                    <SelectValue />
+                    <SelectValue>
+                      {courseType === "PROGRAM_SPECIFIC"
+                        ? "Program-Specific"
+                        : courseType === "GENERAL_EDUCATION"
+                          ? "General Education"
+                          : courseType === "MAJOR_SPECIFIC"
+                            ? "Major-Specific"
+                            : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="PROGRAM_SPECIFIC">Program-Specific</SelectItem>
@@ -877,7 +885,9 @@ export function TemplateBuilder({
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">All majors / shared courses</SelectItem>
+                      {courseType !== "MAJOR_SPECIFIC" && (
+                        <SelectItem value="none">All majors / shared courses</SelectItem>
+                      )}
                       {availableMajors.map((major) => (
                         <SelectItem key={major.id} value={major.id}>
                           {major.name}
@@ -891,6 +901,7 @@ export function TemplateBuilder({
                 <Label htmlFor="faculty-course-context">Course</Label>
                 <Select
                   value={boundCourseId}
+                  disabled={availableCourses.length === 0}
                   onValueChange={(value) => {
                     const context = facultyCourseContexts.find(
                       (candidate) => candidate.courseId === value
@@ -946,32 +957,47 @@ export function TemplateBuilder({
 
       {/* Section Cards */}
       {sections.map((section, sectionIndex) => (
-        <SectionCard
-          key={section.key}
-          section={section}
-          sectionIndex={sectionIndex}
-          onUpdateSection={updateSection}
-          onRemoveSection={removeSection}
-          onAddQuestion={addQuestion}
-          onRemoveQuestion={removeQuestion}
-          onUpdateQuestion={updateQuestion}
-          onChangeQuestionType={changeQuestionType}
-          onUpdateLikertDescriptor={updateLikertDescriptor}
-          onAddSuggestedResponse={addSuggestedResponse}
-          onRemoveSuggestedResponse={removeSuggestedResponse}
-          ciloOptions={loadedCilos}
-          ciloQuestionBindings={ciloQuestionBindings}
-          selectedCiloLabels={selectedCiloLabels}
-          facultyMode={facultyMode}
-          onCiloBindingChange={(questionKey, ciloId) =>
-            setCiloQuestionBindings((current) => ({
-              ...current,
-              [questionKey]: ciloId,
-            }))
-          }
-          selectedCiloIds={selectedCiloIds}
-          canRemove={sections.length > 1}
-        />
+        <div key={section.key} className="space-y-4">
+          <SectionCard
+            section={section}
+            sectionIndex={sectionIndex}
+            onUpdateSection={updateSection}
+            onRemoveSection={removeSection}
+            onAddQuestion={addQuestion}
+            onRemoveQuestion={removeQuestion}
+            onUpdateQuestion={updateQuestion}
+            onChangeQuestionType={changeQuestionType}
+            onUpdateLikertDescriptor={updateLikertDescriptor}
+            onAddSuggestedResponse={addSuggestedResponse}
+            onRemoveSuggestedResponse={removeSuggestedResponse}
+            ciloOptions={loadedCilos}
+            ciloQuestionBindings={ciloQuestionBindings}
+            selectedCiloLabels={selectedCiloLabels}
+            facultyMode={facultyMode}
+            onCiloBindingChange={(questionKey, ciloId) =>
+              setCiloQuestionBindings((current) => ({
+                ...current,
+                [questionKey]: ciloId,
+              }))
+            }
+            selectedCiloIds={selectedCiloIds}
+            canRemove={sections.length > 1}
+          />
+          {sectionIndex < sections.length - 1 && (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => addSection(sectionIndex + 1)}
+                className="text-text-secondary hover:text-primary hover:bg-primary/5 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+              >
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
+                </svg>
+                Insert Section
+              </button>
+            </div>
+          )}
+        </div>
       ))}
 
       {/* Add Section Button (bottom) */}

@@ -42,6 +42,17 @@ describe("PublishCourseBoundEvaluationForm", () => {
     template: {
       id: "template-1",
       name: "Course-Bound CILO Evaluation",
+      structure: [
+        {
+          key: "outcomes",
+          title: "Learning Outcomes",
+          order: 0,
+          questions: [
+            { key: "q1", prompt: "Students can apply the core concepts taught in the course.", type: "likert" as const, order: 0, required: true },
+            { key: "q2", prompt: "Students can produce maintainable software artifacts.", type: "likert" as const, order: 1, required: true },
+          ],
+        },
+      ],
     },
   };
 

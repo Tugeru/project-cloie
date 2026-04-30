@@ -17,6 +17,7 @@ import type {
   PublishCourseBoundEvaluationResult,
   StudentSection,
 } from "@/features/evaluations/types";
+import type { TemplateStructure } from "@/features/instruments/types";
 
 type YearLevelOption = {
   id: string;
@@ -62,6 +63,7 @@ type PublicationContext = {
   template: {
     id: string;
     name: string;
+    structure: TemplateStructure;
   };
 };
 
@@ -139,6 +141,21 @@ export function PublishCourseBoundEvaluationForm({
   const bindingByCiloId = new Map(
     publicationContext.bindings.map((binding) => [binding.ciloId, binding])
   );
+
+  // Build a lookup from sectionKey:itemKey → { sectionIndex, sectionTitle, questionIndex }
+  const questionLocationMap = new Map<
+    string,
+    { sectionIndex: number; sectionTitle: string; questionIndex: number }
+  >();
+  for (const [sIdx, section] of publicationContext.template.structure.entries()) {
+    for (const [qIdx, question] of section.questions.entries()) {
+      questionLocationMap.set(`${section.key}:${question.key}`, {
+        sectionIndex: sIdx + 1,
+        sectionTitle: section.title,
+        questionIndex: qIdx + 1,
+      });
+    }
+  }
 
   const handleProgramToggle = (programId: string, checked: boolean) => {
     setSelectedProgramIds((previous) => {
@@ -355,16 +372,23 @@ export function PublishCourseBoundEvaluationForm({
                       CILO {index + 1}
                     </p>
                     <p className="text-text-primary mt-2 text-sm">{cilo.description}</p>
-                    {binding && (
-                      <div className="bg-surface-container-low mt-3 rounded-md p-3">
-                        <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
-                          Bound Likert Question
-                        </p>
-                        <p className="text-text-primary mt-1 text-sm">
-                          {binding.questionPromptSnapshot}
-                        </p>
-                      </div>
-                    )}
+                    {binding && (() => {
+                      const location = questionLocationMap.get(
+                        `${binding.sectionKey}:${binding.itemKey}`
+                      );
+                      return (
+                        <div className="bg-surface-container-low mt-3 rounded-md p-3">
+                          <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
+                            {location
+                              ? `Section ${location.sectionIndex}: ${location.sectionTitle} · Question ${location.questionIndex}`
+                              : "Bound Likert Question"}
+                          </p>
+                          <p className="text-text-primary mt-1 text-sm">
+                            {binding.questionPromptSnapshot}
+                          </p>
+                        </div>
+                      );
+                    })()}
                   </li>
                 );
               })}
