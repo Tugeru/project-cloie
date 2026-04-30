@@ -296,23 +296,18 @@ export function ProgramHeadOutcomesPage({ gos: initialGOs, program }: ProgramHea
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Delete Graduate Outcome</DialogTitle>
-            <DialogDescription asChild>
-              <div>
-                <span>
-                  Are you sure you want to delete{" "}
-                  <strong className="text-text-primary">{deletingGO?.code}</strong>? This action
-                  cannot be undone.
-                </span>
-                {deletingGO && deletingGO._count.cilo_mappings > 0 && (
-                  <div className="bg-warning-soft text-text-primary mt-3 rounded-md p-3 text-sm">
-                    <strong>Cannot delete:</strong> this GO has{" "}
-                    {deletingGO._count.cilo_mappings}{" "}
-                    {deletingGO._count.cilo_mappings === 1 ? "CILO" : "CILOs"} mapped to it.
-                    Remove all CILO mappings first.
-                  </div>
-                )}
-              </div>
+            <DialogDescription>
+              Are you sure you want to delete{" "}
+              <strong className="text-text-primary">{deletingGO?.code}</strong>? This action cannot
+              be undone.
             </DialogDescription>
+            {deletingGO && deletingGO._count.cilo_mappings > 0 && (
+              <div className="bg-warning-soft text-text-primary mt-3 rounded-md p-3 text-sm">
+                <strong>Cannot delete:</strong> this GO has {deletingGO._count.cilo_mappings}{" "}
+                {deletingGO._count.cilo_mappings === 1 ? "CILO" : "CILOs"} mapped to it. Remove all
+                CILO mappings first.
+              </div>
+            )}
           </DialogHeader>
           {deleteError && (
             <div className="bg-danger-soft text-danger rounded-md p-3 text-sm">{deleteError}</div>

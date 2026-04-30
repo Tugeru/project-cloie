@@ -191,7 +191,6 @@ export function TemplateBuilder({
   const [isLoadingCilos, setIsLoadingCilos] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Copy name dialog state for institutional baselines
   const [copyNameDialogOpen, setCopyNameDialogOpen] = useState(false);
@@ -521,7 +520,6 @@ export function TemplateBuilder({
 
       if (hasDuplicate) {
         setError("Predefined responses must be unique within a question.");
-        setSuccessMessage(null);
         return;
       }
 
@@ -603,7 +601,6 @@ export function TemplateBuilder({
 
   const saveDraft = useCallback(async () => {
     setError(null);
-    setSuccessMessage(null);
 
     const result = await onSave(buildFormData());
 
@@ -654,16 +651,13 @@ export function TemplateBuilder({
       onSaveResult?.({ success: true, id: result.id! });
 
       if (saveSuccessConfig) {
-        router.push(
-          `${saveSuccessConfig.redirectTo}?toast=${encodeURIComponent(saveSuccessConfig.toastMessage)}`
-        );
+        showToast(saveSuccessConfig.toastMessage, "success");
+        router.push(saveSuccessConfig.redirectTo);
         return;
       }
 
-      setSuccessMessage("Template saved successfully.");
-      if (!templateId) {
-        router.push(toolsHref);
-      }
+      showToast("Template saved successfully.", "success");
+      router.push(toolsHref);
     });
   }, [
     isInstitutionalBaseline,
@@ -719,11 +713,6 @@ export function TemplateBuilder({
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
-        </div>
-      )}
-      {successMessage && (
-        <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700">
-          {successMessage}
         </div>
       )}
 

@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { UserPlus, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
 import { prisma } from "@/lib/db/prisma";
 import { Button } from "@/components/ui/button";
@@ -124,58 +123,6 @@ export default async function OnboardingPage({
     );
   }
 
-  // Default: Role selection (no intent specified)
-  return (
-    <div className="mx-auto w-full max-w-lg">
-      <Card className="border-border overflow-hidden shadow-lg">
-        {/* Blue header banner */}
-        <div className="bg-primary flex items-center justify-center py-10">
-          <div className="flex items-center gap-3">
-            <Image
-              src="/logos/cloie-logo.png"
-              alt="CLOIE Logo"
-              width={40}
-              height={40}
-              className="rounded-lg brightness-0 invert"
-            />
-            <span className="text-2xl font-bold tracking-tight text-white">CLOIE</span>
-          </div>
-        </div>
-
-        <CardContent className="space-y-6 px-8 py-8">
-          <div className="space-y-2 text-center">
-            <h1 className="font-heading text-text-primary text-2xl font-bold">Welcome to CLOIE</h1>
-            <p className="text-body-md text-text-secondary">
-              Let&apos;s get your account set up. Who are you logging in as today?
-            </p>
-          </div>
-
-          <div className="flex flex-col gap-3">
-            <Button
-              render={<Link href="?intent=student" />}
-              variant="outline"
-              className="h-14 text-base font-semibold"
-            >
-              I am a Student
-            </Button>
-            <Button
-              variant="outline"
-              disabled
-              className="h-14 cursor-not-allowed border-dashed text-base opacity-50"
-            >
-              I am a Faculty Member (Coming Soon)
-            </Button>
-          </div>
-
-          <Link
-            href="/login"
-            className="text-text-muted hover:text-text-primary flex items-center justify-center gap-2 text-sm font-medium transition-colors"
-          >
-            <ArrowLeft className="size-4" />
-            Back to Login
-          </Link>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  // Default: skip role selection, go directly to student onboarding
+  redirect("/onboarding?intent=student");
 }
