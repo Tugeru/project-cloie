@@ -83,6 +83,12 @@ const D = {
   BSIT_IND: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
   BSHM_EXIT: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
   BSHM_IND: "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee",
+  CB_BSIT_IT201: "f1111111-1111-4111-8111-111111111111",
+  CB_BSBA_FIN101: "f2222222-2222-4222-8222-222222222222",
+  CB_BSED_EDUC301: "f3333333-3333-4333-8333-333333333333",
+  CB_BSHM_HM401: "f4444444-4444-4444-8444-444444444444",
+  CB_BEED_BEED301: "f5555555-5555-4555-8555-555555555555",
+  CB_BSSW_SW301: "f6666666-6666-4666-8666-666666666666",
 } as const;
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -114,6 +120,13 @@ const EV4: LikertDescriptor[] = [
   { value: 2, label: "Partially Evident" },
   { value: 3, label: "Evident" },
   { value: 4, label: "Highly Evident" },
+];
+const EV5: LikertDescriptor[] = [
+  { value: 1, label: "Poor" },
+  { value: 2, label: "Fair" },
+  { value: 3, label: "Satisfactory" },
+  { value: 4, label: "Very Satisfactory" },
+  { value: 5, label: "Excellent" },
 ];
 
 // helper to make likert questions
@@ -438,14 +451,14 @@ const alumniEvalStructure: TemplateStructure = [
         "program-experience-1",
         "The program provided a strong foundation in my field of study",
         1,
-        AGR4
+        AGR5
       ),
-      lq("program-experience-2", "The courses were relevant to real-world applications", 2, AGR4),
+      lq("program-experience-2", "The courses were relevant to real-world applications", 2, AGR5),
       lq(
         "program-experience-3",
         "The program developed my critical thinking and problem-solving skills",
         3,
-        AGR4
+        AGR5
       ),
     ],
   },
@@ -458,21 +471,21 @@ const alumniEvalStructure: TemplateStructure = [
         "graduate-outcomes-1",
         "I can apply knowledge and skills acquired from the program in my work",
         1,
-        AGR4
+        AGR5
       ),
       lq(
         "graduate-outcomes-2",
         "I can communicate effectively in a professional environment",
         2,
-        AGR4
+        AGR5
       ),
-      lq("graduate-outcomes-3", "I demonstrate ethical and professional behavior", 3, AGR4),
-      lq("graduate-outcomes-4", "I can work effectively with teams and stakeholders", 4, AGR4),
+      lq("graduate-outcomes-3", "I demonstrate ethical and professional behavior", 3, AGR5),
+      lq("graduate-outcomes-4", "I can work effectively with teams and stakeholders", 4, AGR5),
       lq(
         "graduate-outcomes-5",
         "I am capable of independent learning and self-improvement",
         5,
-        AGR4
+        AGR5
       ),
     ],
   },
@@ -481,14 +494,14 @@ const alumniEvalStructure: TemplateStructure = [
     title: "Employment and Readiness",
     order: 3,
     questions: [
-      lq("employment-readiness-1", "The program adequately prepared me for employment", 1, AGR4),
+      lq("employment-readiness-1", "The program adequately prepared me for employment", 1, AGR5),
       lq(
         "employment-readiness-2",
         "The skills I gained are aligned with industry expectations",
         2,
-        AGR4
+        AGR5
       ),
-      lq("employment-readiness-3", "I was able to adapt quickly to workplace demands", 3, AGR4),
+      lq("employment-readiness-3", "I was able to adapt quickly to workplace demands", 3, AGR5),
     ],
   },
   {
@@ -496,8 +509,8 @@ const alumniEvalStructure: TemplateStructure = [
     title: "Overall Assessment",
     order: 4,
     questions: [
-      lq("overall-assessment-1", "Overall satisfaction with the program", 1, AGR4),
-      lq("overall-assessment-2", "Overall readiness as a graduate", 2, AGR4),
+      lq("overall-assessment-1", "Overall satisfaction with the program", 1, AGR5),
+      lq("overall-assessment-2", "Overall readiness as a graduate", 2, AGR5),
     ],
   },
   {
@@ -518,9 +531,9 @@ const industryEvalStructure: TemplateStructure = [
     title: "Knowledge Competence",
     order: 1,
     questions: [
-      lq("knowledge-1", "Applies theoretical knowledge to practical tasks", 1, EV4),
-      lq("knowledge-2", "Demonstrates understanding of industry practices", 2, EV4),
-      lq("knowledge-3", "Shows awareness of professional standards and procedures", 3, EV4),
+      lq("knowledge-1", "Applies theoretical knowledge to practical tasks", 1, EV5),
+      lq("knowledge-2", "Demonstrates understanding of industry practices", 2, EV5),
+      lq("knowledge-3", "Shows awareness of professional standards and procedures", 3, EV5),
     ],
   },
   {
@@ -528,10 +541,10 @@ const industryEvalStructure: TemplateStructure = [
     title: "Skills Competence",
     order: 2,
     questions: [
-      lq("skills-1", "Performs assigned tasks effectively and accurately", 1, EV4),
-      lq("skills-2", "Demonstrates problem-solving and critical thinking", 2, EV4),
-      lq("skills-3", "Communicates clearly (oral and/or written)", 3, EV4),
-      lq("skills-4", "Uses tools, equipment, or technology appropriately", 4, EV4),
+      lq("skills-1", "Performs assigned tasks effectively and accurately", 1, EV5),
+      lq("skills-2", "Demonstrates problem-solving and critical thinking", 2, EV5),
+      lq("skills-3", "Communicates clearly (oral and/or written)", 3, EV5),
+      lq("skills-4", "Uses tools, equipment, or technology appropriately", 4, EV5),
     ],
   },
   {
@@ -539,17 +552,17 @@ const industryEvalStructure: TemplateStructure = [
     title: "Professional and Character Traits",
     order: 3,
     questions: [
-      lq("professional-traits-1", "Demonstrates professionalism and ethical behavior", 1, EV4),
-      lq("professional-traits-2", "Shows initiative and willingness to learn", 2, EV4),
-      lq("professional-traits-3", "Works well with supervisors and colleagues", 3, EV4),
-      lq("professional-traits-4", "Demonstrates responsibility and reliability", 4, EV4),
+      lq("professional-traits-1", "Demonstrates professionalism and ethical behavior", 1, EV5),
+      lq("professional-traits-2", "Shows initiative and willingness to learn", 2, EV5),
+      lq("professional-traits-3", "Works well with supervisors and colleagues", 3, EV5),
+      lq("professional-traits-4", "Demonstrates responsibility and reliability", 4, EV5),
     ],
   },
   {
     key: "overall-readiness",
     title: "Overall Graduate Readiness",
     order: 4,
-    questions: [lq("overall-readiness-1", "Overall readiness for employment in the field", 1, EV4)],
+    questions: [lq("overall-readiness-1", "Overall readiness for employment in the field", 1, EV5)],
   },
   {
     key: "qualitative",
@@ -992,6 +1005,106 @@ async function seedFoundation() {
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSHM",
     },
+    // ── New courses ──────────────────────────────────────────────────────────
+    // BSIT
+    {
+      code: "IT201",
+      title: "Data Structures and Algorithms",
+      scope: CourseScope.PROGRAM_SPECIFIC,
+      pc: "BSIT",
+    },
+    {
+      code: "IT401",
+      title: "Systems Administration and Maintenance",
+      scope: CourseScope.PROGRAM_SPECIFIC,
+      pc: "BSIT",
+    },
+    {
+      code: "IT-CAP-401",
+      title: "Capstone Project 1",
+      scope: CourseScope.PROGRAM_SPECIFIC,
+      pc: "BSIT",
+    },
+    // BSBA
+    {
+      code: "FIN101",
+      title: "Financial Accounting",
+      scope: CourseScope.MAJOR_SPECIFIC,
+      pc: "BSBA",
+      mk: "BSBA:Financial Management",
+    },
+    {
+      code: "HRDM201",
+      title: "Organizational Behavior and Management",
+      scope: CourseScope.MAJOR_SPECIFIC,
+      pc: "BSBA",
+      mk: "BSBA:Human Resource Development Management",
+    },
+    // BSED
+    {
+      code: "EDUC301",
+      title: "Assessment and Evaluation in Education",
+      scope: CourseScope.PROGRAM_SPECIFIC,
+      pc: "BSED",
+    },
+    {
+      code: "SCI201",
+      title: "Science and Technology in Society",
+      scope: CourseScope.MAJOR_SPECIFIC,
+      pc: "BSED",
+      mk: "BSED:Science",
+    },
+    // BSHM
+    {
+      code: "HM401",
+      title: "Events Management",
+      scope: CourseScope.PROGRAM_SPECIFIC,
+      pc: "BSHM",
+    },
+    {
+      code: "HM302",
+      title: "Tourism and Travel Management",
+      scope: CourseScope.PROGRAM_SPECIFIC,
+      pc: "BSHM",
+    },
+    // BEED
+    {
+      code: "BEED301",
+      title: "Teaching Practicum in Elementary Education",
+      scope: CourseScope.PROGRAM_SPECIFIC,
+      pc: "BEED",
+    },
+    {
+      code: "BEED201B",
+      title: "Assessment of Student Learning in Elementary Grades",
+      scope: CourseScope.PROGRAM_SPECIFIC,
+      pc: "BEED",
+    },
+    {
+      code: "BEED102",
+      title: "Educational Psychology and Learning Theories",
+      scope: CourseScope.PROGRAM_SPECIFIC,
+      pc: "BEED",
+    },
+    // BSSW
+    {
+      code: "SW301",
+      title: "Social Welfare and Social Work in the Philippines",
+      scope: CourseScope.PROGRAM_SPECIFIC,
+      pc: "BSSW",
+    },
+    {
+      code: "SW202",
+      title: "Case Work and Social Group Work",
+      scope: CourseScope.PROGRAM_SPECIFIC,
+      pc: "BSSW",
+    },
+    {
+      code: "SW401",
+      title: "Field Practice in Social Work",
+      scope: CourseScope.PROGRAM_SPECIFIC,
+      pc: "BSSW",
+    },
   ];
   const cMap = new Map<string, { id: string; code: string; title: string }>();
   for (const d of cDefs) {
@@ -1059,14 +1172,16 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
       mid: null as string | null,
       ylid: y4.id,
       sn: "2026-0001",
+      sec: "MORNING" as const,
     },
-    { uid: U.GRAD_BSIT, pid: bsit.id, mid: null, ylid: y4.id, sn: "2026-0002" },
+    { uid: U.GRAD_BSIT, pid: bsit.id, mid: null, ylid: y4.id, sn: "2026-0002", sec: "AFTERNOON" as const },
     {
       uid: U.STU_BSED,
       pid: bsed.id,
       mid: mMap.get("BSED:English")?.id ?? null,
       ylid: y3.id,
       sn: "2026-0003",
+      sec: "MORNING" as const,
     },
     {
       uid: U.STU_BSBA,
@@ -1074,6 +1189,7 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
       mid: mMap.get("BSBA:Marketing Management")?.id ?? null,
       ylid: y4.id,
       sn: "2026-0004",
+      sec: "MORNING" as const,
     },
     {
       uid: U.STU_BSBA_G,
@@ -1081,10 +1197,11 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
       mid: mMap.get("BSBA:Financial Management")?.id ?? null,
       ylid: y4.id,
       sn: "2026-0005",
+      sec: "AFTERNOON" as const,
     },
-    { uid: U.STU_BEED, pid: beed.id, mid: null, ylid: y2.id, sn: "2026-0006" },
-    { uid: U.STU_BSHM, pid: bshm.id, mid: null, ylid: y4.id, sn: "2026-0007" },
-    { uid: U.STU_BSHM_G, pid: bshm.id, mid: null, ylid: y4.id, sn: "2026-0008" },
+    { uid: U.STU_BEED, pid: beed.id, mid: null, ylid: y2.id, sn: "2026-0006", sec: "MORNING" as const },
+    { uid: U.STU_BSHM, pid: bshm.id, mid: null, ylid: y4.id, sn: "2026-0007", sec: "EVENING" as const },
+    { uid: U.STU_BSHM_G, pid: bshm.id, mid: null, ylid: y4.id, sn: "2026-0008", sec: "AFTERNOON" as const },
   ];
   for (const s of students) {
     await prisma.studentAcademicProfile.upsert({
@@ -1095,6 +1212,7 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
         year_level_id: s.ylid,
         student_id_number: s.sn,
         academic_year: "2026-2027",
+        section: s.sec,
       },
       create: {
         user_id: s.uid,
@@ -1103,6 +1221,7 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
         year_level_id: s.ylid,
         student_id_number: s.sn,
         academic_year: "2026-2027",
+        section: s.sec,
       },
     });
   }
@@ -1356,7 +1475,7 @@ async function seedOutcomes(
     goMap.set(g.code, go);
   }
 
-  // CILOs for courses with evaluations: IT-OD-401 and MKT301
+  // CILOs for courses with evaluations
   console.log("  → CILOs...");
   const ciloDefsIT = [
     {
@@ -1392,9 +1511,101 @@ async function seedOutcomes(
       createdBy: U.FAC_BSBA,
     },
   ];
+  const ciloDefsNewCourses = [
+    // IT201 — Data Structures and Algorithms
+    {
+      courseCode: "IT201",
+      desc: "Implement fundamental data structures (arrays, linked lists, trees, graphs) in a programming language.",
+      order: 1,
+      createdBy: U.FAC_BSIT,
+    },
+    {
+      courseCode: "IT201",
+      desc: "Analyze the time and space complexity of common algorithms.",
+      order: 2,
+      createdBy: U.FAC_BSIT,
+    },
+    {
+      courseCode: "IT201",
+      desc: "Apply appropriate data structures and algorithms to solve real-world computing problems.",
+      order: 3,
+      createdBy: U.FAC_BSIT,
+    },
+    // FIN101 — Financial Accounting
+    {
+      courseCode: "FIN101",
+      desc: "Prepare and interpret financial statements in accordance with accounting standards.",
+      order: 1,
+      createdBy: U.FAC_BSBA,
+    },
+    {
+      courseCode: "FIN101",
+      desc: "Apply the accounting cycle to record, classify, and summarize business transactions.",
+      order: 2,
+      createdBy: U.FAC_BSBA,
+    },
+    // EDUC301 — Assessment and Evaluation in Education
+    {
+      courseCode: "EDUC301",
+      desc: "Design valid and reliable assessment tools aligned with intended learning outcomes.",
+      order: 1,
+      createdBy: U.FAC_BSED,
+    },
+    {
+      courseCode: "EDUC301",
+      desc: "Analyze and interpret assessment results to inform instructional decisions.",
+      order: 2,
+      createdBy: U.FAC_BSED,
+    },
+    {
+      courseCode: "EDUC301",
+      desc: "Apply principles of authentic and formative assessment in diverse learning contexts.",
+      order: 3,
+      createdBy: U.FAC_BSED,
+    },
+    // HM401 — Events Management
+    {
+      courseCode: "HM401",
+      desc: "Plan and organize hospitality and tourism events applying industry standards and protocols.",
+      order: 1,
+      createdBy: U.FAC_BSHM,
+    },
+    {
+      courseCode: "HM401",
+      desc: "Manage event logistics, budgeting, and stakeholder coordination effectively.",
+      order: 2,
+      createdBy: U.FAC_BSHM,
+    },
+    // BEED301 — Teaching Practicum in Elementary Education
+    {
+      courseCode: "BEED301",
+      desc: "Demonstrate effective classroom management and age-appropriate instructional strategies.",
+      order: 1,
+      createdBy: U.FAC_BSED,
+    },
+    {
+      courseCode: "BEED301",
+      desc: "Design and implement lesson plans that address diverse learner needs in elementary grades.",
+      order: 2,
+      createdBy: U.FAC_BSED,
+    },
+    // SW301 — Social Welfare and Social Work in the Philippines
+    {
+      courseCode: "SW301",
+      desc: "Analyze the historical development and current state of social welfare and social work in the Philippines.",
+      order: 1,
+      createdBy: U.FAC_BSED,
+    },
+    {
+      courseCode: "SW301",
+      desc: "Apply social work frameworks to assess community needs and propose appropriate interventions.",
+      order: 2,
+      createdBy: U.FAC_BSED,
+    },
+  ];
 
   const ciloMap = new Map<string, { id: string; description: string; order: number }[]>();
-  for (const cd of [...ciloDefsIT, ...ciloDefsMKT]) {
+  for (const cd of [...ciloDefsIT, ...ciloDefsMKT, ...ciloDefsNewCourses]) {
     const course = cMap.get(cd.courseCode)!;
     const existingCilo = await prisma.cILO.findFirst({
       where: { course_id: course.id, description: cd.desc },
@@ -1500,11 +1711,15 @@ async function seedEvaluations(
   const indVer = await prisma.instrumentVersion.findFirstOrThrow({
     where: { template: { code: "INDUSTRY_EVAL" }, version_number: 1 },
   });
+  const y3 = await prisma.yearLevel.findUniqueOrThrow({ where: { name: "3rd Year" } });
   const y4 = await prisma.yearLevel.findUniqueOrThrow({ where: { name: "4th Year" } });
 
   const bsit = pMap.get("BSIT")!;
   const bsba = pMap.get("BSBA")!;
   const bshm = pMap.get("BSHM")!;
+  const bsed = pMap.get("BSED")!;
+  const beed = pMap.get("BEED")!;
+  const bssw = pMap.get("BSSW")!;
 
   // ── Course-Bound 1: BSIT IT-OD-401 ──────────────────────────────────
   console.log("  → Course-bound eval: IT-OD-401...");
@@ -1679,6 +1894,172 @@ async function seedEvaluations(
     await ensureAssignment({ courseBoundId: cbEval2.id, respondentId: sid });
   }
 
+  // ── Course-Bound 3–8: New program courses ────────────────────────────
+  console.log("  → New course-bound evals...");
+
+  const newCbDefs = [
+    {
+      id: D.CB_BSIT_IT201,
+      courseCode: "IT201",
+      deployName: "IT201 Post-Term CILO Evaluation",
+      progId: bsit.id,
+      progCode: "BSIT",
+      progName: "Bachelor of Science in Information Technology",
+      majorId: null as string | null,
+      facultyId: U.FAC_BSIT,
+      ylId: y4.id,
+      respondents: [U.STU_BSIT, U.GRAD_BSIT],
+    },
+    {
+      id: D.CB_BSBA_FIN101,
+      courseCode: "FIN101",
+      deployName: "FIN101 Post-Term CILO Evaluation",
+      progId: bsba.id,
+      progCode: "BSBA",
+      progName: "Bachelor of Science in Business Administration",
+      majorId: (await prisma.major.findFirst({ where: { name: "Financial Management" } }))?.id ?? null,
+      facultyId: U.FAC_BSBA,
+      ylId: y4.id,
+      respondents: [U.STU_BSBA_G, U.STU_BSBA],
+    },
+    {
+      id: D.CB_BSED_EDUC301,
+      courseCode: "EDUC301",
+      deployName: "EDUC301 Post-Term CILO Evaluation",
+      progId: bsed.id,
+      progCode: "BSED",
+      progName: "Bachelor of Secondary Education",
+      majorId: null,
+      facultyId: U.FAC_BSED,
+      ylId: y3.id,
+      respondents: [U.STU_BSED],
+    },
+    {
+      id: D.CB_BSHM_HM401,
+      courseCode: "HM401",
+      deployName: "HM401 Post-Term CILO Evaluation",
+      progId: bshm.id,
+      progCode: "BSHM",
+      progName: "Bachelor of Science in Hospitality Management",
+      majorId: null,
+      facultyId: U.FAC_BSHM,
+      ylId: y4.id,
+      respondents: [U.STU_BSHM_G, U.STU_BSHM],
+    },
+    {
+      id: D.CB_BEED_BEED301,
+      courseCode: "BEED301",
+      deployName: "BEED301 Post-Term CILO Evaluation",
+      progId: beed.id,
+      progCode: "BEED",
+      progName: "Bachelor of Elementary Education",
+      majorId: null,
+      facultyId: U.FAC_BSED,
+      ylId: y4.id,
+      respondents: [U.STU_BEED],
+    },
+    {
+      id: D.CB_BSSW_SW301,
+      courseCode: "SW301",
+      deployName: "SW301 Post-Term CILO Evaluation",
+      progId: bssw.id,
+      progCode: "BSSW",
+      progName: "Bachelor of Science in Social Work",
+      majorId: null,
+      facultyId: U.FAC_BSED,
+      ylId: y4.id,
+      respondents: [] as string[],
+    },
+  ];
+
+  const newCbEvals = new Map<string, { id: string }>();
+  for (const def of newCbDefs) {
+    const course = cMap.get(def.courseCode)!;
+    const courseCilos = ciloMap.get(def.courseCode) ?? [];
+    const ciloSnap: Prisma.InputJsonValue = courseCilos.map((c) => ({
+      description: c.description,
+      order: c.order,
+    }));
+    const courseSnap: Prisma.InputJsonValue = {
+      courseCode: course.code,
+      courseTitle: course.title,
+      programCode: def.progCode,
+      programName: def.progName,
+    };
+
+    const existingCb = await prisma.courseBoundEvaluation.findFirst({
+      where: {
+        course_id: course.id,
+        academic_year: "2026-2027",
+        semester: AcademicSemester.SECOND,
+        term: AcademicTerm.SECOND_TERM,
+      },
+    });
+
+    const cbData = {
+      deployment_name: def.deployName,
+      instrument_version_id: ciloVer.id,
+      program_id: def.progId,
+      major_id: def.majorId,
+      faculty_id: def.facultyId,
+      cilos_snapshot: ciloSnap,
+      course_info_snapshot: courseSnap,
+      activation_at: new Date("2026-04-10T08:00:00Z"),
+      deadline_at: new Date("2026-05-31T23:59:00Z"),
+      status: DeploymentStatus.ACTIVE,
+      published_at: new Date("2026-04-10T08:00:00Z"),
+    };
+
+    const cb = existingCb
+      ? await prisma.courseBoundEvaluation.update({ where: { id: existingCb.id }, data: cbData })
+      : await prisma.courseBoundEvaluation.create({
+          data: {
+            course_id: course.id,
+            academic_year: "2026-2027",
+            semester: AcademicSemester.SECOND,
+            term: AcademicTerm.SECOND_TERM,
+            ...cbData,
+          },
+        });
+
+    newCbEvals.set(def.courseCode, cb);
+
+    await prisma.courseBoundEvaluationTarget.upsert({
+      where: {
+        course_bound_evaluation_id_program_id_year_level_id: {
+          course_bound_evaluation_id: cb.id,
+          program_id: def.progId,
+          year_level_id: def.ylId,
+        },
+      },
+      update: {},
+      create: { course_bound_evaluation_id: cb.id, program_id: def.progId, year_level_id: def.ylId },
+    });
+
+    if (courseCilos.length > 0) {
+      await prisma.courseBoundCiloQuestionBinding.createMany({
+        data: courseCilos.map((cilo) => ({
+          cilo_description_snapshot: cilo.description,
+          cilo_id: cilo.id,
+          course_bound_evaluation_id: cb.id,
+          item_key: `cilo-attainment-${cilo.order}`,
+          question_prompt_snapshot:
+            cilo.order === 1
+              ? "I achieved the first course intended learning outcome."
+              : cilo.order === 2
+                ? "I achieved the second course intended learning outcome."
+                : "I achieved the third course intended learning outcome.",
+          section_key: "cilo-items",
+        })),
+        skipDuplicates: true,
+      });
+    }
+
+    for (const respondentId of def.respondents) {
+      await ensureAssignment({ courseBoundId: cb.id, respondentId });
+    }
+  }
+
   // ── Central Deployments ──────────────────────────────────────────────
   console.log("  → Central deployments...");
   const centralDefs = [
@@ -1770,14 +2151,18 @@ async function seedEvaluations(
     await ensureAssignment({ centralDeploymentId: ca.depId, respondentId: ca.respId });
   }
 
-  return { cbEval1, cbEval2 };
+  return { cbEval1, cbEval2, newCbEvals };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // F. Responses with Items
 // ═══════════════════════════════════════════════════════════════════════════════
 
-async function seedResponses(cbEval1Id: string, cbEval2Id: string) {
+async function seedResponses(
+  cbEval1Id: string,
+  cbEval2Id: string,
+  newCbEvals: Map<string, { id: string }>
+) {
   console.log("  → Responses...");
 
   // Helper: create or find a response
@@ -2025,19 +2410,19 @@ async function seedResponses(cbEval1Id: string, cbEval2Id: string) {
     submittedAt: new Date("2026-04-19T11:00:00Z"),
   });
   await seedQuantItems(resp5.id, [
-    { sk: "program-experience", ik: "program-experience-1", val: 4 },
-    { sk: "program-experience", ik: "program-experience-2", val: 3 },
+    { sk: "program-experience", ik: "program-experience-1", val: 5 },
+    { sk: "program-experience", ik: "program-experience-2", val: 4 },
     { sk: "program-experience", ik: "program-experience-3", val: 4 },
-    { sk: "graduate-outcomes", ik: "graduate-outcomes-1", val: 4 },
+    { sk: "graduate-outcomes", ik: "graduate-outcomes-1", val: 5 },
     { sk: "graduate-outcomes", ik: "graduate-outcomes-2", val: 4 },
-    { sk: "graduate-outcomes", ik: "graduate-outcomes-3", val: 3 },
-    { sk: "graduate-outcomes", ik: "graduate-outcomes-4", val: 4 },
+    { sk: "graduate-outcomes", ik: "graduate-outcomes-3", val: 4 },
+    { sk: "graduate-outcomes", ik: "graduate-outcomes-4", val: 5 },
     { sk: "graduate-outcomes", ik: "graduate-outcomes-5", val: 4 },
     { sk: "employment-readiness", ik: "employment-readiness-1", val: 3 },
-    { sk: "employment-readiness", ik: "employment-readiness-2", val: 3 },
+    { sk: "employment-readiness", ik: "employment-readiness-2", val: 4 },
     { sk: "employment-readiness", ik: "employment-readiness-3", val: 4 },
     { sk: "overall-assessment", ik: "overall-assessment-1", val: 4 },
-    { sk: "overall-assessment", ik: "overall-assessment-2", val: 3 },
+    { sk: "overall-assessment", ik: "overall-assessment-2", val: 4 },
   ]);
   await seedQualItems(resp5.id, [
     {
@@ -2072,17 +2457,17 @@ async function seedResponses(cbEval1Id: string, cbEval2Id: string) {
   });
   await seedQuantItems(resp6.id, [
     { sk: "knowledge", ik: "knowledge-1", val: 3 },
-    { sk: "knowledge", ik: "knowledge-2", val: 3 },
+    { sk: "knowledge", ik: "knowledge-2", val: 4 },
     { sk: "knowledge", ik: "knowledge-3", val: 4 },
     { sk: "skills", ik: "skills-1", val: 4 },
     { sk: "skills", ik: "skills-2", val: 3 },
-    { sk: "skills", ik: "skills-3", val: 3 },
-    { sk: "skills", ik: "skills-4", val: 4 },
-    { sk: "professional-traits", ik: "professional-traits-1", val: 4 },
+    { sk: "skills", ik: "skills-3", val: 4 },
+    { sk: "skills", ik: "skills-4", val: 5 },
+    { sk: "professional-traits", ik: "professional-traits-1", val: 5 },
     { sk: "professional-traits", ik: "professional-traits-2", val: 4 },
-    { sk: "professional-traits", ik: "professional-traits-3", val: 3 },
+    { sk: "professional-traits", ik: "professional-traits-3", val: 4 },
     { sk: "professional-traits", ik: "professional-traits-4", val: 4 },
-    { sk: "overall-readiness", ik: "overall-readiness-1", val: 3 },
+    { sk: "overall-readiness", ik: "overall-readiness-1", val: 4 },
   ]);
   await seedQualItems(resp6.id, [
     {
@@ -2180,18 +2565,18 @@ async function seedResponses(cbEval1Id: string, cbEval2Id: string) {
     submittedAt: new Date("2026-04-23T10:00:00Z"),
   });
   await seedQuantItems(resp8.id, [
-    { sk: "knowledge", ik: "knowledge-1", val: 4 },
+    { sk: "knowledge", ik: "knowledge-1", val: 5 },
     { sk: "knowledge", ik: "knowledge-2", val: 4 },
-    { sk: "knowledge", ik: "knowledge-3", val: 3 },
-    { sk: "skills", ik: "skills-1", val: 4 },
+    { sk: "knowledge", ik: "knowledge-3", val: 4 },
+    { sk: "skills", ik: "skills-1", val: 5 },
     { sk: "skills", ik: "skills-2", val: 3 },
-    { sk: "skills", ik: "skills-3", val: 4 },
+    { sk: "skills", ik: "skills-3", val: 5 },
     { sk: "skills", ik: "skills-4", val: 4 },
-    { sk: "professional-traits", ik: "professional-traits-1", val: 4 },
+    { sk: "professional-traits", ik: "professional-traits-1", val: 5 },
     { sk: "professional-traits", ik: "professional-traits-2", val: 4 },
-    { sk: "professional-traits", ik: "professional-traits-3", val: 4 },
-    { sk: "professional-traits", ik: "professional-traits-4", val: 3 },
-    { sk: "overall-readiness", ik: "overall-readiness-1", val: 4 },
+    { sk: "professional-traits", ik: "professional-traits-3", val: 5 },
+    { sk: "professional-traits", ik: "professional-traits-4", val: 4 },
+    { sk: "overall-readiness", ik: "overall-readiness-1", val: 5 },
   ]);
   await seedQualItems(resp8.id, [
     {
@@ -2210,6 +2595,263 @@ async function seedResponses(cbEval1Id: string, cbEval2Id: string) {
       text: "Add more focus on event management and banquet operations in the curriculum.",
     },
     { sk: "recommendation", pk: "recommendation-1", text: "Yes" },
+  ]);
+
+  // ── 9. IT201: STU_BSIT → SUBMITTED ───────────────────────────────────
+  console.log("    • BSIT IT201 student submitted CILO eval...");
+  const it201Id = newCbEvals.get("IT201")!.id;
+  const asgn9 = await prisma.evaluationAssignment.findFirstOrThrow({
+    where: { course_bound_id: it201Id, respondent_id: U.STU_BSIT },
+  });
+  const resp9 = await ensureResponse({
+    assignmentId: asgn9.id,
+    respondentId: U.STU_BSIT,
+    deploymentType: DeploymentType.COURSE_BOUND,
+    deploymentId: it201Id,
+    status: ResponseStatus.SUBMITTED,
+    submittedAt: new Date("2026-04-24T10:00:00Z"),
+  });
+  await seedQuantItems(resp9.id, [
+    { sk: "cilo-items", ik: "cilo-attainment-1", val: 5 },
+    { sk: "cilo-items", ik: "cilo-attainment-2", val: 4 },
+    { sk: "cilo-items", ik: "cilo-attainment-3", val: 4 },
+    { sk: "overall-attainment", ik: "overall-attainment-1", val: 4 },
+    { sk: "facilities", ik: "facilities-1", val: 5 },
+    { sk: "facilities", ik: "facilities-2", val: 4 },
+    { sk: "facilities", ik: "facilities-3", val: 4 },
+    { sk: "facilities", ik: "facilities-4", val: 3 },
+    { sk: "facilities", ik: "facilities-5", val: 4 },
+  ]);
+  await seedQualItems(resp9.id, [
+    {
+      sk: "qualitative",
+      pk: "qualitative-1",
+      text: "The hands-on coding exercises for linked lists and trees were very effective in solidifying CILO 1.",
+    },
+    {
+      sk: "qualitative",
+      pk: "qualitative-2",
+      text: "Big-O analysis (CILO 2) needed more worked examples — more practice problems would help.",
+    },
+    {
+      sk: "qualitative",
+      pk: "qualitative-3",
+      text: "More lab computers with up-to-date IDEs would support algorithm visualization better.",
+    },
+  ]);
+
+  // ── 10. IT201: GRAD_BSIT → IN_PROGRESS ──────────────────────────────
+  console.log("    • BSIT IT201 grad in-progress CILO eval...");
+  const asgn10 = await prisma.evaluationAssignment.findFirstOrThrow({
+    where: { course_bound_id: it201Id, respondent_id: U.GRAD_BSIT },
+  });
+  const resp10 = await ensureResponse({
+    assignmentId: asgn10.id,
+    respondentId: U.GRAD_BSIT,
+    deploymentType: DeploymentType.COURSE_BOUND,
+    deploymentId: it201Id,
+    status: ResponseStatus.IN_PROGRESS,
+  });
+  await seedQuantItems(resp10.id, [
+    { sk: "cilo-items", ik: "cilo-attainment-1", val: 4 },
+    { sk: "cilo-items", ik: "cilo-attainment-2", val: 5 },
+  ]);
+
+  // ── 11. FIN101: STU_BSBA_G → SUBMITTED ──────────────────────────────
+  console.log("    • BSBA FIN101 student submitted CILO eval...");
+  const fin101Id = newCbEvals.get("FIN101")!.id;
+  const asgn11 = await prisma.evaluationAssignment.findFirstOrThrow({
+    where: { course_bound_id: fin101Id, respondent_id: U.STU_BSBA_G },
+  });
+  const resp11 = await ensureResponse({
+    assignmentId: asgn11.id,
+    respondentId: U.STU_BSBA_G,
+    deploymentType: DeploymentType.COURSE_BOUND,
+    deploymentId: fin101Id,
+    status: ResponseStatus.SUBMITTED,
+    submittedAt: new Date("2026-04-25T09:30:00Z"),
+  });
+  await seedQuantItems(resp11.id, [
+    { sk: "cilo-items", ik: "cilo-attainment-1", val: 5 },
+    { sk: "cilo-items", ik: "cilo-attainment-2", val: 4 },
+    { sk: "overall-attainment", ik: "overall-attainment-1", val: 5 },
+    { sk: "facilities", ik: "facilities-1", val: 4 },
+    { sk: "facilities", ik: "facilities-2", val: 3 },
+    { sk: "facilities", ik: "facilities-3", val: 4 },
+    { sk: "facilities", ik: "facilities-4", val: 4 },
+    { sk: "facilities", ik: "facilities-5", val: 4 },
+  ]);
+  await seedQualItems(resp11.id, [
+    {
+      sk: "qualitative",
+      pk: "qualitative-1",
+      text: "Preparing the complete accounting cycle from journal entries to financial statements was highly practical.",
+    },
+    {
+      sk: "qualitative",
+      pk: "qualitative-2",
+      text: "More case studies involving local SMEs would make the content more relatable.",
+    },
+  ]);
+
+  // ── 12. FIN101: STU_BSBA → IN_PROGRESS ──────────────────────────────
+  console.log("    • BSBA FIN101 student in-progress CILO eval...");
+  const asgn12 = await prisma.evaluationAssignment.findFirstOrThrow({
+    where: { course_bound_id: fin101Id, respondent_id: U.STU_BSBA },
+  });
+  const resp12 = await ensureResponse({
+    assignmentId: asgn12.id,
+    respondentId: U.STU_BSBA,
+    deploymentType: DeploymentType.COURSE_BOUND,
+    deploymentId: fin101Id,
+    status: ResponseStatus.IN_PROGRESS,
+  });
+  await seedQuantItems(resp12.id, [
+    { sk: "cilo-items", ik: "cilo-attainment-1", val: 4 },
+  ]);
+
+  // ── 13. EDUC301: STU_BSED → SUBMITTED ───────────────────────────────
+  console.log("    • BSED EDUC301 student submitted CILO eval...");
+  const educ301Id = newCbEvals.get("EDUC301")!.id;
+  const asgn13 = await prisma.evaluationAssignment.findFirstOrThrow({
+    where: { course_bound_id: educ301Id, respondent_id: U.STU_BSED },
+  });
+  const resp13 = await ensureResponse({
+    assignmentId: asgn13.id,
+    respondentId: U.STU_BSED,
+    deploymentType: DeploymentType.COURSE_BOUND,
+    deploymentId: educ301Id,
+    status: ResponseStatus.SUBMITTED,
+    submittedAt: new Date("2026-04-24T14:00:00Z"),
+  });
+  await seedQuantItems(resp13.id, [
+    { sk: "cilo-items", ik: "cilo-attainment-1", val: 4 },
+    { sk: "cilo-items", ik: "cilo-attainment-2", val: 5 },
+    { sk: "cilo-items", ik: "cilo-attainment-3", val: 4 },
+    { sk: "overall-attainment", ik: "overall-attainment-1", val: 4 },
+    { sk: "facilities", ik: "facilities-1", val: 4 },
+    { sk: "facilities", ik: "facilities-2", val: 3 },
+    { sk: "facilities", ik: "facilities-3", val: 4 },
+    { sk: "facilities", ik: "facilities-4", val: 4 },
+    { sk: "facilities", ik: "facilities-5", val: 4 },
+  ]);
+  await seedQualItems(resp13.id, [
+    {
+      sk: "qualitative",
+      pk: "qualitative-1",
+      text: "Designing rubrics and formative assessments was fully achieved — the workshop format was excellent.",
+    },
+    {
+      sk: "qualitative",
+      pk: "qualitative-2",
+      text: "More practice in interpreting standardized test results would strengthen CILO 2 attainment.",
+    },
+    {
+      sk: "qualitative",
+      pk: "qualitative-3",
+      text: "Access to more sample assessment tools from actual schools would be helpful for reference.",
+    },
+  ]);
+
+  // ── 14. HM401: STU_BSHM_G → SUBMITTED ───────────────────────────────
+  console.log("    • BSHM HM401 student submitted CILO eval...");
+  const hm401Id = newCbEvals.get("HM401")!.id;
+  const asgn14 = await prisma.evaluationAssignment.findFirstOrThrow({
+    where: { course_bound_id: hm401Id, respondent_id: U.STU_BSHM_G },
+  });
+  const resp14 = await ensureResponse({
+    assignmentId: asgn14.id,
+    respondentId: U.STU_BSHM_G,
+    deploymentType: DeploymentType.COURSE_BOUND,
+    deploymentId: hm401Id,
+    status: ResponseStatus.SUBMITTED,
+    submittedAt: new Date("2026-04-26T11:00:00Z"),
+  });
+  await seedQuantItems(resp14.id, [
+    { sk: "cilo-items", ik: "cilo-attainment-1", val: 5 },
+    { sk: "cilo-items", ik: "cilo-attainment-2", val: 5 },
+    { sk: "overall-attainment", ik: "overall-attainment-1", val: 5 },
+    { sk: "facilities", ik: "facilities-1", val: 5 },
+    { sk: "facilities", ik: "facilities-2", val: 4 },
+    { sk: "facilities", ik: "facilities-3", val: 4 },
+    { sk: "facilities", ik: "facilities-4", val: 4 },
+    { sk: "facilities", ik: "facilities-5", val: 5 },
+  ]);
+  await seedQualItems(resp14.id, [
+    {
+      sk: "qualitative",
+      pk: "qualitative-1",
+      text: "The actual event simulation with industry guests made CILO 1 highly engaging and professionally relevant.",
+    },
+    {
+      sk: "qualitative",
+      pk: "qualitative-2",
+      text: "Budget management tools like spreadsheets and event planning software should be taught more deeply.",
+    },
+    {
+      sk: "qualitative",
+      pk: "qualitative-3",
+      text: "The event venue and AV equipment were excellent and contributed to a realistic learning experience.",
+    },
+  ]);
+
+  // ── 15. HM401: STU_BSHM → IN_PROGRESS ───────────────────────────────
+  console.log("    • BSHM HM401 student in-progress CILO eval...");
+  const asgn15 = await prisma.evaluationAssignment.findFirstOrThrow({
+    where: { course_bound_id: hm401Id, respondent_id: U.STU_BSHM },
+  });
+  const resp15 = await ensureResponse({
+    assignmentId: asgn15.id,
+    respondentId: U.STU_BSHM,
+    deploymentType: DeploymentType.COURSE_BOUND,
+    deploymentId: hm401Id,
+    status: ResponseStatus.IN_PROGRESS,
+  });
+  await seedQuantItems(resp15.id, [
+    { sk: "cilo-items", ik: "cilo-attainment-1", val: 4 },
+    { sk: "cilo-items", ik: "cilo-attainment-2", val: 4 },
+  ]);
+
+  // ── 16. BEED301: STU_BEED → SUBMITTED ───────────────────────────────
+  console.log("    • BEED BEED301 student submitted CILO eval...");
+  const beed301Id = newCbEvals.get("BEED301")!.id;
+  const asgn16 = await prisma.evaluationAssignment.findFirstOrThrow({
+    where: { course_bound_id: beed301Id, respondent_id: U.STU_BEED },
+  });
+  const resp16 = await ensureResponse({
+    assignmentId: asgn16.id,
+    respondentId: U.STU_BEED,
+    deploymentType: DeploymentType.COURSE_BOUND,
+    deploymentId: beed301Id,
+    status: ResponseStatus.SUBMITTED,
+    submittedAt: new Date("2026-04-25T15:00:00Z"),
+  });
+  await seedQuantItems(resp16.id, [
+    { sk: "cilo-items", ik: "cilo-attainment-1", val: 5 },
+    { sk: "cilo-items", ik: "cilo-attainment-2", val: 4 },
+    { sk: "overall-attainment", ik: "overall-attainment-1", val: 5 },
+    { sk: "facilities", ik: "facilities-1", val: 4 },
+    { sk: "facilities", ik: "facilities-2", val: 4 },
+    { sk: "facilities", ik: "facilities-3", val: 3 },
+    { sk: "facilities", ik: "facilities-4", val: 4 },
+    { sk: "facilities", ik: "facilities-5", val: 4 },
+  ]);
+  await seedQualItems(resp16.id, [
+    {
+      sk: "qualitative",
+      pk: "qualitative-1",
+      text: "Practicum supervisor feedback sessions helped me fully achieve classroom management strategies.",
+    },
+    {
+      sk: "qualitative",
+      pk: "qualitative-2",
+      text: "More practicum hours in inclusive classrooms would strengthen lesson planning for diverse learners.",
+    },
+    {
+      sk: "qualitative",
+      pk: "qualitative-3",
+      text: "Better projectors and printed instructional materials in cooperating schools are needed.",
+    },
   ]);
 }
 
@@ -2233,10 +2875,10 @@ async function main() {
   await seedTemplates();
 
   console.log("[E] Evaluations & deployments...");
-  const { cbEval1, cbEval2 } = await seedEvaluations(pMap, cMap, ciloMap);
+  const { cbEval1, cbEval2, newCbEvals } = await seedEvaluations(pMap, cMap, ciloMap);
 
   console.log("[F] Responses with items...");
-  await seedResponses(cbEval1.id, cbEval2.id);
+  await seedResponses(cbEval1.id, cbEval2.id, newCbEvals);
 
   console.log("\n✅ Seed complete!");
 }
