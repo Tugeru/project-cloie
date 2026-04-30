@@ -26,6 +26,7 @@ type BuildStudentEvaluationListItemInput = {
   evaluationTitle: string;
   courseTitle: string | null;
   programLabel: string;
+  facultyName: string | null;
   deadlineAt: Date | null;
   href: string | null;
   section: StudentEvaluationSection;
@@ -79,6 +80,7 @@ function buildStudentEvaluationListItem({
   deploymentType,
   evaluationId,
   evaluationTitle,
+  facultyName,
   href,
   now,
   programLabel,
@@ -101,6 +103,7 @@ function buildStudentEvaluationListItem({
     deploymentType,
     evaluationId,
     evaluationTitle,
+    facultyName,
     href,
     progress,
     programLabel,
@@ -178,6 +181,7 @@ export async function listStudentAssignedEvaluations(): Promise<{
       course_bound: {
         include: {
           course: true,
+          faculty: { select: { first_name: true, last_name: true } },
           instrument: {
             include: {
               template: true,
@@ -241,6 +245,9 @@ export async function listStudentAssignedEvaluations(): Promise<{
           deploymentType: "COURSE_BOUND",
           evaluationId: assignment.id,
           evaluationTitle: courseBound.deployment_name ?? courseBound.instrument.template.name,
+          facultyName: courseBound.faculty
+            ? `${courseBound.faculty.first_name} ${courseBound.faculty.last_name}`
+            : null,
           href,
           now,
           programLabel: courseBound.major?.name ?? courseBound.program.name,
@@ -290,6 +297,7 @@ export async function listStudentAssignedEvaluations(): Promise<{
           deploymentType: "CENTRAL",
           evaluationId: assignment.id,
           evaluationTitle: deployment.deployment_name ?? deployment.instrument.template.name,
+          facultyName: null,
           href,
           now,
           programLabel: buildCentralProgramLabel({

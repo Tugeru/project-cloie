@@ -25,7 +25,7 @@ export function Sidebar({ user, roles = [] }: SidebarProps) {
   return (
     <aside className="border-border bg-surface fixed inset-y-0 left-0 z-50 hidden w-64 flex-col border-r lg:flex">
       <div className="border-border flex h-16 shrink-0 items-center border-b px-6">
-        <Link href="/" className="flex items-center gap-3">
+        <div className="flex items-center gap-3">
           <Image
             src="/logos/cloie-logo.png"
             alt="CLOIE Logo"
@@ -34,7 +34,7 @@ export function Sidebar({ user, roles = [] }: SidebarProps) {
             className="rounded"
           />
           <span className="text-title-lg text-primary font-bold tracking-tight">CLOIE</span>
-        </Link>
+        </div>
       </div>
 
       <div className="flex flex-1 flex-col overflow-y-auto px-4 py-6">

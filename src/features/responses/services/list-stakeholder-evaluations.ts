@@ -143,6 +143,7 @@ export async function listStakeholderEvaluations(
           deploymentType: "CENTRAL" as const,
           evaluationId: deployment.id,
           evaluationTitle: deployment.deployment_name ?? deployment.instrument.template.name,
+          facultyName: null,
           href,
           progress,
           programLabel: buildProgramLabel({

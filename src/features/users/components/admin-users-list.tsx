@@ -89,6 +89,28 @@ function formatRole(role: SystemRole): string {
     .join(" ");
 }
 
+/** Returns accessible Tailwind bg+text classes for each role. */
+function getRoleBadgeClass(role: SystemRole): string {
+  switch (role) {
+    case SystemRole.ADMIN:
+      return "bg-red-100 text-red-700";
+    case SystemRole.DEAN:
+      return "bg-purple-100 text-purple-700";
+    case SystemRole.PROGRAM_HEAD:
+      return "bg-indigo-100 text-indigo-700";
+    case SystemRole.FACULTY:
+      return "bg-blue-100 text-blue-700";
+    case SystemRole.STUDENT:
+      return "bg-emerald-100 text-emerald-700";
+    case SystemRole.ALUMNI:
+      return "bg-amber-100 text-amber-800";
+    case SystemRole.INDUSTRY_PARTNER:
+      return "bg-sky-100 text-sky-700";
+    default:
+      return "bg-slate-100 text-slate-700";
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Props
 // ---------------------------------------------------------------------------
@@ -157,7 +179,7 @@ function ViewUserDialog({
             </label>
             <div className="flex flex-wrap gap-1.5">
               {user.roles.map((role) => (
-                <Badge key={role} variant="secondary">
+                <Badge key={role} className={getRoleBadgeClass(role)}>
                   {formatRole(role)}
                 </Badge>
               ))}
@@ -448,7 +470,7 @@ function EditUserDialog({
             <Label>Role</Label>
             <div className="flex flex-wrap gap-1.5">
               {user.roles.map((role) => (
-                <Badge key={role} variant="secondary">
+                <Badge key={role} className={getRoleBadgeClass(role)}>
                   {formatRole(role)}
                 </Badge>
               ))}
@@ -713,7 +735,7 @@ export function AdminUsersList({ users, kpi, programs, yearLevels }: AdminUsersL
                 </TableCell>
                 <TableCell>
                   {user.primaryRole ? (
-                    <Badge variant="secondary">{formatRole(user.primaryRole)}</Badge>
+                    <Badge className={getRoleBadgeClass(user.primaryRole)}>{formatRole(user.primaryRole)}</Badge>
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}

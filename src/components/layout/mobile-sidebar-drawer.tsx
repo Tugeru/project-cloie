@@ -65,7 +65,7 @@ export function MobileSidebarDrawer({ roles = [], user }: MobileSidebarDrawerPro
       >
         {/* Header */}
         <div className="border-border flex h-16 shrink-0 items-center justify-between border-b px-5">
-          <Link href="/" className="flex items-center gap-3" onClick={() => setIsOpen(false)}>
+          <div className="flex items-center gap-3">
             <Image
               src="/logos/cloie-logo.png"
               alt="CLOIE Logo"
@@ -74,7 +74,7 @@ export function MobileSidebarDrawer({ roles = [], user }: MobileSidebarDrawerPro
               className="rounded"
             />
             <span className="text-title-md text-primary font-bold tracking-tight">CLOIE</span>
-          </Link>
+          </div>
           <button
             type="button"
             onClick={() => setIsOpen(false)}

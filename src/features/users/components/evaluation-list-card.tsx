@@ -11,6 +11,7 @@ export function EvaluationListCard({
   deadlineAt,
   deploymentType,
   evaluationTitle,
+  facultyName,
   href,
   programLabel,
   progress,
@@ -48,9 +49,22 @@ export function EvaluationListCard({
             {evaluationTitle}
           </h4>
 
-          <p className="text-text-secondary truncate text-sm font-medium">
-            {courseTitle ? `${courseTitle} • ${programLabel}` : programLabel}
-          </p>
+          {deploymentType === "COURSE_BOUND" && courseTitle ? (
+            <>
+              <p className="text-text-secondary truncate text-sm font-medium">
+                {courseTitle}
+              </p>
+              {facultyName && (
+                <p className="text-text-muted mt-0.5 text-sm">
+                  Published by {facultyName}
+                </p>
+              )}
+            </>
+          ) : (
+            <p className="text-text-secondary truncate text-sm font-medium">
+              {programLabel}
+            </p>
+          )}
           <p className="text-text-muted mt-1 text-xs font-semibold tracking-wide uppercase">
             {deploymentType === "CENTRAL" ? "Central Deployment" : "Course-Bound Evaluation"}
           </p>

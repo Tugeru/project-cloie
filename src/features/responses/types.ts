@@ -36,6 +36,7 @@ export type StudentEvaluationListItem = {
   evaluationTitle: string;
   courseTitle: string | null;
   programLabel: string;
+  facultyName: string | null;
   deadlineAt: Date | null;
   href: string | null;
   status: StudentEvaluationListStatus;

@@ -27,8 +27,8 @@ export function HeroCard({
         <div className="flex gap-3">
           <Button
             render={<Link href={evaluationsHref} />}
-            variant="secondary"
-            className="font-semibold"
+            variant="outline"
+            className="border-white/20 bg-white text-primary hover:bg-white/90 font-semibold"
           >
             My Evaluations
           </Button>

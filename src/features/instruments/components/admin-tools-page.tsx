@@ -28,6 +28,18 @@ import {
   deleteAdminTemplateAction,
 } from "@/lib/actions/admin-template-actions";
 
+type TemplateActions = {
+  onToggleActive: (id: string, is_active: boolean) => Promise<{ success: true } | { success: false; error: string }>;
+  onDuplicate: (id: string) => Promise<{ success: true } | { success: false; error: string }>;
+  onDelete: (id: string) => Promise<{ success: true } | { success: false; error: string }>;
+};
+
+const DEFAULT_ACTIONS: TemplateActions = {
+  onToggleActive: toggleAdminTemplateActiveAction,
+  onDuplicate: duplicateAdminTemplateAction,
+  onDelete: deleteAdminTemplateAction,
+};
+
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
@@ -45,27 +57,29 @@ type TemplateItem = {
 
 type AdminToolsPageProps = {
   templates: TemplateItem[];
+  basePath?: string;
+  actions?: TemplateActions;
 };
 
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
-export function AdminToolsPage({ templates }: AdminToolsPageProps) {
+export function AdminToolsPage({ templates, basePath = "/admin/instruments", actions = DEFAULT_ACTIONS }: AdminToolsPageProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [deleteTarget, setDeleteTarget] = useState<TemplateItem | null>(null);
 
   function handleToggleActive(id: string, currentActive: boolean) {
     startTransition(async () => {
-      await toggleAdminTemplateActiveAction(id, !currentActive);
+      await actions.onToggleActive(id, !currentActive);
       router.refresh();
     });
   }
 
   function handleDuplicate(id: string) {
     startTransition(async () => {
-      await duplicateAdminTemplateAction(id);
+      await actions.onDuplicate(id);
       router.refresh();
     });
   }
@@ -73,7 +87,7 @@ export function AdminToolsPage({ templates }: AdminToolsPageProps) {
   function handleConfirmDelete() {
     if (!deleteTarget) return;
     startTransition(async () => {
-      await deleteAdminTemplateAction(deleteTarget.id);
+      await actions.onDelete(deleteTarget.id);
       setDeleteTarget(null);
       router.refresh();
     });
@@ -90,7 +104,7 @@ export function AdminToolsPage({ templates }: AdminToolsPageProps) {
             program heads for their programs.
           </p>
         </div>
-        <Button render={<Link href="/admin/instruments/new" />}>
+        <Button render={<Link href={`${basePath}/new`} />}>
           <Plus className="mr-2 size-4" />
           Create Template
         </Button>
@@ -127,7 +141,7 @@ export function AdminToolsPage({ templates }: AdminToolsPageProps) {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          render={<Link href={`/admin/instruments/${template.id}/edit`} />}
+                          render={<Link href={`${basePath}/${template.id}/edit`} />}
                         >
                           <Pencil className="mr-2 size-4" />
                           Edit
