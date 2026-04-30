@@ -1,12 +1,28 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Edit, ExternalLink, Plus, Trash2 } from "lucide-react";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Edit, GripVertical, ListChecks, Plus, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -14,146 +30,137 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  createGOAction,
-  deleteGOAction,
-  updateGOAction,
-} from "@/lib/actions/program-head-outcome-actions";
+import { deleteGOAction, reorderGOsAction } from "@/lib/actions/program-head-outcome-actions";
+import { GOFormDialog } from "./go-form-dialog";
 import type { ProgramGOItem } from "../services/manage-program-head-outcomes";
-
-type GOFormMode = "create" | "edit";
 
 type ProgramHeadOutcomesPageProps = {
   gos: ProgramGOItem[];
   program: { id: string; code: string; name: string };
 };
 
-function StatCard({
-  label,
-  value,
-  muted = false,
+function SortableGORow({
+  go,
+  onEdit,
+  onDelete,
 }: {
-  label: string;
-  value: number;
-  muted?: boolean;
+  go: ProgramGOItem;
+  onEdit: (go: ProgramGOItem) => void;
+  onDelete: (go: ProgramGOItem) => void;
 }) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: go.id,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 10 : undefined,
+  };
+
   return (
-    <div className="border-border bg-surface hover:bg-surface-alt flex h-28 flex-col justify-between rounded-lg border p-5 transition-colors">
-      <span className="text-text-muted text-xs font-semibold tracking-wider uppercase">
-        {label}
-      </span>
-      <span
-        className={`font-heading text-3xl font-bold ${muted ? "text-text-muted" : "text-text-primary"}`}
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`bg-surface border-border flex items-start gap-3 rounded-xl border p-4 shadow-sm transition-shadow ${
+        isDragging ? "shadow-lg opacity-90" : "hover:shadow-md"
+      }`}
+    >
+      {/* Drag Handle */}
+      <button
+        className="text-text-muted hover:text-text-secondary mt-0.5 cursor-grab touch-none p-1 active:cursor-grabbing"
+        aria-label="Drag to reorder"
+        {...attributes}
+        {...listeners}
       >
-        {value}
-      </span>
+        <GripVertical className="h-4 w-4" />
+      </button>
+
+      {/* Content */}
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="default" className="shrink-0 font-semibold">
+            {go.code}
+          </Badge>
+          {go._count.cilo_mappings > 0 ? (
+            <Badge
+              variant="outline"
+              className="border-success/40 bg-success/10 text-success shrink-0 text-xs"
+            >
+              {go._count.cilo_mappings} {go._count.cilo_mappings === 1 ? "CILO" : "CILOs"} mapped
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="text-text-muted shrink-0 text-xs">
+              No mappings
+            </Badge>
+          )}
+        </div>
+        <p className="text-body-md text-text-secondary leading-relaxed">{go.description}</p>
+      </div>
+
+      {/* Actions */}
+      <div className="flex shrink-0 items-center gap-1">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-text-muted hover:text-text-primary h-8 w-8"
+          title="Edit"
+          onClick={() => onEdit(go)}
+        >
+          <Edit className="h-4 w-4" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-text-muted hover:text-danger h-8 w-8"
+          title="Delete"
+          onClick={() => onDelete(go)}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </div>
     </div>
   );
 }
 
-function GOFormDialog({
-  mode,
-  go,
-  open,
-  onOpenChange,
-}: {
-  mode: GOFormMode;
-  go?: ProgramGOItem;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}) {
+export function ProgramHeadOutcomesPage({ gos: initialGOs, program }: ProgramHeadOutcomesPageProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-
-  function handleSubmit(formData: FormData) {
-    setError(null);
-
-    startTransition(async () => {
-      const action = mode === "create" ? createGOAction : updateGOAction;
-
-      const result = await action(formData);
-
-      if (!result.success) {
-        setError(result.error);
-        return;
-      }
-
-      onOpenChange(false);
-      router.refresh();
-    });
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>
-            {mode === "create" ? "Add Graduate Outcome" : "Edit Graduate Outcome"}
-          </DialogTitle>
-          <DialogDescription>
-            {mode === "create"
-              ? "Create a new Graduate Outcome for your program."
-              : "Update Graduate Outcome details."}
-          </DialogDescription>
-        </DialogHeader>
-        <form action={handleSubmit} className="space-y-4">
-          {mode === "edit" && go && <input type="hidden" name="id" value={go.id} />}
-
-          {error && (
-            <div className="bg-danger-soft text-danger rounded-md p-3 text-sm">{error}</div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="code">GO Code</Label>
-            <Input
-              id="code"
-              name="code"
-              placeholder="e.g. GO-1"
-              defaultValue={go?.code ?? ""}
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              name="description"
-              placeholder="Describe the graduate outcome..."
-              defaultValue={go?.description ?? ""}
-              rows={4}
-              required
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? "Saving..." : mode === "create" ? "Create GO" : "Save Changes"}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-export function ProgramHeadOutcomesPage({ gos, program }: ProgramHeadOutcomesPageProps) {
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
+  const [orderedGOs, setOrderedGOs] = useState<ProgramGOItem[]>(initialGOs);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingGO, setEditingGO] = useState<ProgramGOItem | null>(null);
   const [deletingGO, setDeletingGO] = useState<ProgramGOItem | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const reorderTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const totalGOs = gos.length;
-  const withMappings = gos.filter((go) => go._count.cilo_mappings > 0).length;
+  const totalGOs = orderedGOs.length;
+  const withMappings = orderedGOs.filter((go) => go._count.cilo_mappings > 0).length;
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id) return;
+
+      setOrderedGOs((prev) => {
+        const oldIndex = prev.findIndex((g) => g.id === active.id);
+        const newIndex = prev.findIndex((g) => g.id === over.id);
+        const reordered = arrayMove(prev, oldIndex, newIndex);
+
+        if (reorderTimerRef.current) clearTimeout(reorderTimerRef.current);
+        reorderTimerRef.current = setTimeout(() => {
+          reorderGOsAction(reordered.map((g) => g.id));
+        }, 600);
+
+        return reordered;
+      });
+    },
+    []
+  );
 
   function handleDelete(go: ProgramGOItem) {
     setDeleteError(null);
@@ -173,101 +180,93 @@ export function ProgramHeadOutcomesPage({ gos, program }: ProgramHeadOutcomesPag
   return (
     <div>
       {/* Header */}
-      <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-end md:justify-between">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-heading-lg font-heading text-text-primary mb-2 text-4xl font-bold tracking-tight lg:text-5xl">
+          <h1 className="font-heading text-text-primary text-3xl font-bold tracking-tight lg:text-4xl">
             Graduate Outcomes
           </h1>
-          <div className="flex items-center gap-3">
-            <span className="font-heading text-primary text-xl font-medium">{program.name}</span>
-            <span className="bg-border-strong h-1.5 w-1.5 rounded-full" />
-            <span className="text-body-md text-text-muted">Manage GOs for your program</span>
-          </div>
+          <p className="text-text-muted mt-1 text-sm">{program.name}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2">
           <Link href="/program-head/outcomes/mapping">
-            <Button variant="outline" className="inline-flex items-center gap-2">
-              <ExternalLink className="h-4 w-4" />
+            <Button variant="outline" size="sm" className="gap-2">
+              <ListChecks className="h-4 w-4" />
               CILO Mappings
             </Button>
           </Link>
-          <Button
-            onClick={() => setCreateDialogOpen(true)}
-            className="inline-flex items-center gap-2"
-          >
+          <Button size="sm" onClick={() => setCreateDialogOpen(true)} className="gap-2">
             <Plus className="h-4 w-4" />
             Add GO
           </Button>
         </div>
       </div>
 
-      {/* Summary Cards */}
-      <div className="mb-10 grid grid-cols-2 gap-4 md:grid-cols-3">
-        <StatCard label="Total GOs" value={totalGOs} />
-        <StatCard label="With CILO Mappings" value={withMappings} />
-        <StatCard label="Without Mappings" value={totalGOs - withMappings} muted />
-      </div>
+      {/* Inline Stats */}
+      {totalGOs > 0 && (
+        <div className="border-border bg-surface-alt mb-6 flex items-center gap-6 rounded-lg border px-5 py-3">
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-heading text-text-primary text-2xl font-bold">{totalGOs}</span>
+            <span className="text-text-muted text-sm">Total GOs</span>
+          </div>
+          <div className="bg-border h-5 w-px" />
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-heading text-success text-2xl font-bold">{withMappings}</span>
+            <span className="text-text-muted text-sm">Mapped to CILOs</span>
+          </div>
+          {totalGOs - withMappings > 0 && (
+            <>
+              <div className="bg-border h-5 w-px" />
+              <div className="flex items-baseline gap-1.5">
+                <span className="font-heading text-text-muted text-2xl font-bold">
+                  {totalGOs - withMappings}
+                </span>
+                <span className="text-text-muted text-sm">Unmapped</span>
+              </div>
+            </>
+          )}
+          <p className="text-text-muted ml-auto hidden text-xs sm:block">
+            Drag rows to reorder
+          </p>
+        </div>
+      )}
 
       {/* GO List */}
-      <div className="space-y-4">
-        {gos.length === 0 ? (
-          <Card>
-            <CardContent className="py-12 text-center">
-              <p className="text-body-md text-text-secondary">
-                No Graduate Outcomes defined yet. Click &quot;Add GO&quot; to get started.
-              </p>
-            </CardContent>
-          </Card>
-        ) : (
-          gos.map((go) => (
-            <Card key={go.id} className="group transition-shadow hover:shadow-md">
-              <CardContent className="flex items-start gap-4 p-5">
-                {/* Content */}
-                <div className="flex-1 space-y-2">
-                  <div className="flex items-center gap-3">
-                    <Badge variant="default" className="text-sm font-semibold">
-                      {go.code}
-                    </Badge>
-                    <Badge
-                      variant={go._count.cilo_mappings > 0 ? "secondary" : "outline"}
-                      className="text-xs"
-                    >
-                      {go._count.cilo_mappings} {go._count.cilo_mappings === 1 ? "CILO" : "CILOs"}{" "}
-                      mapped
-                    </Badge>
-                  </div>
-                  <p className="text-body-md text-text-secondary">{go.description}</p>
-                </div>
-
-                {/* Actions */}
-                <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    title="Edit"
-                    onClick={() => setEditingGO(go)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="text-danger h-8 w-8"
-                    title="Delete"
-                    onClick={() => {
-                      setDeleteError(null);
-                      setDeletingGO(go);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+      {orderedGOs.length === 0 ? (
+        <div className="border-border rounded-xl border border-dashed px-6 py-16 text-center">
+          <div className="bg-surface-alt mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full">
+            <ListChecks className="text-text-muted h-6 w-6" />
+          </div>
+          <p className="text-text-primary font-semibold">No Graduate Outcomes yet</p>
+          <p className="text-text-muted mt-1 text-sm">
+            Add your first GO to start tracking program outcomes.
+          </p>
+          <Button className="mt-4 gap-2" onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4" />
+            Add GO
+          </Button>
+        </div>
+      ) : (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+          <SortableContext
+            items={orderedGOs.map((g) => g.id)}
+            strategy={verticalListSortingStrategy}
+          >
+            <div className="space-y-2">
+              {orderedGOs.map((go) => (
+                <SortableGORow
+                  key={go.id}
+                  go={go}
+                  onEdit={setEditingGO}
+                  onDelete={(g) => {
+                    setDeleteError(null);
+                    setDeletingGO(g);
+                  }}
+                />
+              ))}
+            </div>
+          </SortableContext>
+        </DndContext>
+      )}
 
       {/* Create Dialog */}
       <GOFormDialog mode="create" open={createDialogOpen} onOpenChange={setCreateDialogOpen} />
@@ -297,9 +296,22 @@ export function ProgramHeadOutcomesPage({ gos, program }: ProgramHeadOutcomesPag
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Delete Graduate Outcome</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete <strong>{deletingGO?.code}</strong>? This action
-              cannot be undone.
+            <DialogDescription asChild>
+              <div>
+                <span>
+                  Are you sure you want to delete{" "}
+                  <strong className="text-text-primary">{deletingGO?.code}</strong>? This action
+                  cannot be undone.
+                </span>
+                {deletingGO && deletingGO._count.cilo_mappings > 0 && (
+                  <div className="bg-warning-soft text-text-primary mt-3 rounded-md p-3 text-sm">
+                    <strong>Cannot delete:</strong> this GO has{" "}
+                    {deletingGO._count.cilo_mappings}{" "}
+                    {deletingGO._count.cilo_mappings === 1 ? "CILO" : "CILOs"} mapped to it.
+                    Remove all CILO mappings first.
+                  </div>
+                )}
+              </div>
             </DialogDescription>
           </DialogHeader>
           {deleteError && (
@@ -317,7 +329,7 @@ export function ProgramHeadOutcomesPage({ gos, program }: ProgramHeadOutcomesPag
             </Button>
             <Button
               variant="destructive"
-              disabled={isPending}
+              disabled={isPending || (deletingGO?._count.cilo_mappings ?? 0) > 0}
               onClick={() => deletingGO && handleDelete(deletingGO)}
             >
               {isPending ? "Deleting..." : "Delete"}

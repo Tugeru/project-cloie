@@ -1314,12 +1314,22 @@ function QuestionCard({
               </Label>
               <Select
                 value={selectedCiloId || "none"}
-                onValueChange={(value) =>
-                  onCiloBindingChange(
-                    `${sectionKey}:${question.key}`,
-                    !value || value === "none" ? "" : value
-                  )
-                }
+                onValueChange={(value) => {
+                  const ciloId = !value || value === "none" ? "" : value;
+
+                  // Update CILO binding
+                  onCiloBindingChange(`${sectionKey}:${question.key}`, ciloId);
+
+                  // Auto-populate question title with CILO description
+                  if (ciloId) {
+                    const selectedCilo = ciloOptions.find((c) => c.id === ciloId);
+                    if (selectedCilo) {
+                      onUpdate(sectionKey, question.key, {
+                        prompt: selectedCilo.description,
+                      });
+                    }
+                  }
+                }}
               >
                 <SelectTrigger id={`cilo-binding-${question.key}`}>
                   <SelectValue placeholder="Select a CILO">

@@ -128,10 +128,9 @@ export function AdminToolsPage({ templates, basePath = "/admin/instruments", act
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0 space-y-1">
                     <CardTitle className="truncate text-base font-bold">{template.name}</CardTitle>
-                    <CardDescription className="text-xs">{template.code}</CardDescription>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
-                    <Badge variant={template.is_active ? "default" : "secondary"}>
+                    <Badge variant={template.is_active ? "default" : "outline"}>
                       {template.is_active ? "Active" : "Inactive"}
                     </Badge>
                     <DropdownMenu>
@@ -184,7 +183,7 @@ export function AdminToolsPage({ templates, basePath = "/admin/instruments", act
                     {template._count.versions !== 1 ? "s" : ""}
                   </span>
                 </div>
-                <Badge variant="secondary" className="w-fit text-xs">
+                <Badge variant="outline" className="w-fit text-xs">
                   {template.template_type === "COURSE_BOUND" ? "Course-bound" : "Program-wide"}
                 </Badge>
                 {template.is_faculty_accessible && (

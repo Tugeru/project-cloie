@@ -67,6 +67,20 @@ function formatStakeholder(stakeholder: string): string {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+/** Returns accessible Tailwind bg+text classes for each target stakeholder. */
+function getTargetStakeholderBadgeClass(stakeholder: string): string {
+  switch (stakeholder) {
+    case "STUDENT":
+      return "bg-emerald-100 text-emerald-700";
+    case "ALUMNI":
+      return "bg-amber-100 text-amber-800";
+    case "INDUSTRY_PARTNER":
+      return "bg-sky-100 text-sky-700";
+    default:
+      return "bg-slate-100 text-slate-700";
+  }
+}
+
 function formatSemester(semester: string): string {
   if (semester === "FIRST" || semester === "1ST") return "1st Sem";
   if (semester === "SECOND" || semester === "2ND") return "2nd Sem";
@@ -231,15 +245,15 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
           <span
             className={`font-label inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide ${
               template.is_active
-                ? "bg-primary-fixed text-on-primary-fixed"
-                : "bg-surface-container-highest text-on-surface-variant"
+                ? "bg-success/15 text-success"
+                : "border-border text-text-muted border bg-transparent"
             }`}
           >
             {template.is_active ? "Active" : "Inactive"}
           </span>
 
           <DropdownMenu>
-            <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-7 items-center justify-center rounded-md opacity-0 transition-opacity group-hover:opacity-100">
+            <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-7 items-center justify-center rounded-md transition-colors">
               <MoreVertical className="size-4" />
               <span className="sr-only">Actions</span>
             </DropdownMenuTrigger>
@@ -269,7 +283,7 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
           <span className="font-label text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase">
             Program-owned - {template._count.versions} version(s)
           </span>
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="outline" className="text-xs">
             {isProgramWide ? "Program-wide" : "Course-bound"}
           </Badge>
           {template.is_faculty_accessible && (
@@ -362,7 +376,7 @@ function BaselineCard({ baseline }: { baseline: InstitutionalBaselineItem }) {
             <h3 className="font-body text-on-surface truncate text-base font-semibold">
               {baseline.name}
             </h3>
-            <Badge variant="secondary" className="shrink-0">
+            <Badge variant="outline" className="shrink-0">
               Institutional
             </Badge>
           </div>
@@ -397,11 +411,14 @@ function BaselineCard({ baseline }: { baseline: InstitutionalBaselineItem }) {
 
 type DeploymentStatusFilter = "ALL" | "ACTIVE" | "SCHEDULED" | "CLOSED" | "ARCHIVED";
 
+const PAGE_SIZE = 10;
+
 function PublishedDeploymentsTable({ deployments }: { deployments: ProgramHeadDeploymentItem[] }) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [statusFilter, setStatusFilter] = useState<DeploymentStatusFilter>("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
   const [localDeployments, setLocalDeployments] = useState(deployments);
 
   // Update local deployments when props change
@@ -413,6 +430,35 @@ function PublishedDeploymentsTable({ deployments }: { deployments: ProgramHeadDe
     if (statusFilter === "ALL") return d.status !== "ARCHIVED";
     return d.status === statusFilter;
   });
+
+  // ---- Pagination -----------------------------------------------------------
+  const totalPages = Math.max(1, Math.ceil(filteredDeployments.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedDeployments = filteredDeployments.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE
+  );
+
+  function handleFilterChange(value: DeploymentStatusFilter) {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  }
+
+  function buildPageNumbers(): (number | "ellipsis")[] {
+    const pages: (number | "ellipsis")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (safePage > 3) pages.push("ellipsis");
+      const start = Math.max(2, safePage - 1);
+      const end = Math.min(totalPages - 1, safePage + 1);
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (safePage < totalPages - 2) pages.push("ellipsis");
+      pages.push(totalPages);
+    }
+    return pages;
+  }
 
   function toggleRow(id: string) {
     setExpandedRows((prev) => {
@@ -465,7 +511,7 @@ function PublishedDeploymentsTable({ deployments }: { deployments: ProgramHeadDe
             key={btn.value}
             variant={statusFilter === btn.value ? "default" : "outline"}
             size="sm"
-            onClick={() => setStatusFilter(btn.value)}
+            onClick={() => handleFilterChange(btn.value)}
           >
             {btn.label}
           </Button>
@@ -493,7 +539,7 @@ function PublishedDeploymentsTable({ deployments }: { deployments: ProgramHeadDe
             </p>
           </div>
         ) : (
-          filteredDeployments.map((deployment) => (
+          paginatedDeployments.map((deployment) => (
             <DeploymentAccordionRow
               key={deployment.id}
               deployment={deployment}
@@ -504,6 +550,51 @@ function PublishedDeploymentsTable({ deployments }: { deployments: ProgramHeadDe
           ))
         )}
       </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-1 pt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={safePage <= 1}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          >
+            ←
+          </Button>
+          {buildPageNumbers().map((page, idx) =>
+            page === "ellipsis" ? (
+              <span key={`ellipsis-${idx}`} className="text-muted-foreground px-2 text-sm">
+                …
+              </span>
+            ) : (
+              <Button
+                key={page}
+                variant={page === safePage ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </Button>
+            )
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={safePage >= totalPages}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+          >
+            →
+          </Button>
+        </div>
+      )}
+
+      {/* Result count */}
+      <p className="text-muted-foreground text-center text-xs pt-2">
+        Showing {(safePage - 1) * PAGE_SIZE + 1}–
+        {Math.min(safePage * PAGE_SIZE, filteredDeployments.length)} of {filteredDeployments.length} deployment
+        {filteredDeployments.length !== 1 ? "s" : ""}
+      </p>
     </div>
   );
 }
@@ -552,7 +643,7 @@ function DeploymentAccordionRow({
 
         {/* Target */}
         <div>
-          <Badge variant="secondary" className="text-xs">
+          <Badge className={`text-xs ${getTargetStakeholderBadgeClass(deployment.target_stakeholder)}`}>
             {formatStakeholder(deployment.target_stakeholder)}
           </Badge>
         </div>
@@ -568,11 +659,7 @@ function DeploymentAccordionRow({
             variant={
               deployment.status === "ACTIVE"
                 ? "default"
-                : deployment.status === "SCHEDULED"
-                  ? "secondary"
-                  : deployment.status === "CLOSED"
-                    ? "outline"
-                    : "secondary"
+                : "outline"
             }
             className="text-xs"
           >

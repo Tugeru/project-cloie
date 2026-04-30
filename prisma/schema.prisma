@@ -233,6 +233,7 @@ model GO {
   id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code        String
   description String
+  order       Int      @default(0)
   program_id  String   @db.Uuid
   is_active   Boolean  @default(true)
   created_at  DateTime @default(now())

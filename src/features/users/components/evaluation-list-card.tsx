@@ -33,7 +33,7 @@ export function EvaluationListCard({
         <div className="min-w-0 flex-1">
           <div className="mb-2 flex items-center gap-2">
             <Badge
-              variant="secondary"
+              variant={status === "DUE_SOON" ? "secondary" : "outline"}
               className={`text-[10px] uppercase ${
                 status === "DUE_SOON" ? "border-amber-200 bg-amber-100 text-amber-800" : ""
               }`}

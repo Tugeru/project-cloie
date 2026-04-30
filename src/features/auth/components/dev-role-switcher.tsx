@@ -104,7 +104,9 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { containerRef, position, isDragging, dragHandleProps } = useDraggable();
 
-  if (process.env.NODE_ENV !== "development") {
+  const isDemoMode =
+    process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+  if (!isDemoMode) {
     return null;
   }
 

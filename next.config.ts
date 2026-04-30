@@ -22,6 +22,11 @@ function resolveTailwindcssPackagePath(): string {
 }
 
 const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      allowedOrigins: ["127.0.0.1:*", "*.trycloudflare.com"],
+    },
+  },
   allowedDevOrigins: ["*.trycloudflare.com", "127.0.0.1"],
   turbopack: {
     resolveAlias: {
