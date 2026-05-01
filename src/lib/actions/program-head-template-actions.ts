@@ -127,7 +127,7 @@ export async function deleteTemplateAction(id: string): Promise<ActionResult> {
   return { success: true };
 }
 
-export async function toggleFacultyAccessibleAction(
+async function toggleFacultyAccessibleAction(
   id: string,
   is_faculty_accessible: boolean
 ): Promise<ActionResult> {

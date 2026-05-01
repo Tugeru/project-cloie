@@ -1,4 +1,6 @@
-import { AcademicSemester, AcademicTerm, CourseScope, DeploymentStatus } from "@prisma/client";
+import { AcademicSemester, AcademicTerm, CourseScope, DeploymentStatus, StudentSection, TargetStakeholder } from "@prisma/client";
+
+export type { StudentSection };
 
 export type FacultyCourseContext = {
   courseCode: string;
@@ -65,10 +67,14 @@ export type PublishCourseBoundEvaluationInput = {
   activationAt?: Date | null;
   deadlineAt?: Date | null;
   deploymentName: string;
+  respondentIds?: string[]; // Final list of respondent IDs after preview/exclude
+  section?: StudentSection | null;
   semester: AcademicSemester;
+  targetPrograms?: string[]; // Multi-select for GE courses; falls back to publication context's program
+  targetYearLevelId?: string; // Single year level; falls back to first item in yearLevelIds
   term: AcademicTerm;
   templateId: string;
-  yearLevelIds: string[];
+  yearLevelIds?: string[]; // Deprecated: kept for backward compatibility
 };
 
 export type PublishCourseBoundEvaluationResult =
@@ -82,6 +88,44 @@ export type PublishCourseBoundEvaluationResult =
       status: "ACTIVE" | "SCHEDULED";
       success: true;
       targetCount: number;
+    };
+
+// ============================================================================
+// Preview Respondents (Step 2 of publish flow)
+// ============================================================================
+
+export type PreviewRespondent = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  majorId: string | null;
+  majorName: string | null;
+  programCode: string;
+  programId: string;
+  programName: string;
+  section: StudentSection | null;
+  studentId: string | null;
+  userId: string;
+  yearLevelId: string;
+  yearLevelName: string;
+};
+
+export type PreviewCourseBoundRespondentsInput = {
+  academicYear: string;
+  section: StudentSection | null;
+  targetPrograms: string[];
+  targetYearLevelId: string;
+};
+
+export type PreviewCourseBoundRespondentsResult =
+  | {
+      error: string;
+      success: false;
+    }
+  | {
+      respondents: PreviewRespondent[];
+      success: true;
+      totalCount: number;
     };
 
 // ============================================================================
@@ -184,4 +228,40 @@ export type CloseFacultyEvaluationResult =
     }
   | {
       success: true;
+    };
+
+// ============================================================================
+// Preview Central Deployment Respondents (Program Head publish flow)
+// ============================================================================
+
+export type PreviewCentralDeploymentInput = {
+  academicYear: string;
+  majorId?: string;
+  programId: string;
+  targetStakeholder: TargetStakeholder;
+  yearLevelId?: string;
+};
+
+export type PreviewCentralDeploymentRespondent = {
+  email: string;
+  firstName: string;
+  lastName: string;
+  majorName: string | null;
+  programCode: string | null;
+  section: StudentSection | null;
+  stakeholderType: TargetStakeholder;
+  studentId: string | null;
+  userId: string;
+  yearLevelName: string | null;
+};
+
+export type PreviewCentralDeploymentResult =
+  | {
+      error: string;
+      success: false;
+    }
+  | {
+      respondents: PreviewCentralDeploymentRespondent[];
+      success: true;
+      totalCount: number;
     };

@@ -188,14 +188,12 @@ async function main() {
     where: { user_id: student.id },
     update: {
       academic_year: academicYear,
-      is_graduating: true,
       program_id: program.id,
       student_id_number: "OUTLINE-DEMO-001",
       year_level_id: yearLevel.id,
     },
     create: {
       academic_year: academicYear,
-      is_graduating: true,
       program_id: program.id,
       student_id_number: "OUTLINE-DEMO-001",
       user_id: student.id,

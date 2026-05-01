@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { TemplateBuilder } from "@/features/instruments/components/template-builder";
+import { AdminTemplateBuilder } from "@/features/instruments/components/admin-template-builder";
 import { updateAdminTemplateAction } from "@/lib/actions/admin-template-actions";
 import { getBaselineTemplate } from "@/features/instruments/services/manage-instruments";
 import type { TemplateStructure } from "@/features/instruments/types";
@@ -30,7 +30,7 @@ export default async function AdminEditTemplatePage({ params }: AdminEditTemplat
         Back to Tools
       </Link>
 
-      <TemplateBuilder
+      <AdminTemplateBuilder
         initialData={{
           id: template.id,
           name: template.name,

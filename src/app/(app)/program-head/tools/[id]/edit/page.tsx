@@ -1,7 +1,7 @@
 import { redirect, notFound } from "next/navigation";
 import Link from "next/link";
 import { getProgramHeadTemplate } from "@/features/instruments/services/manage-program-head-templates";
-import { TemplateBuilder } from "@/features/instruments/components/template-builder";
+import { ProgramHeadTemplateBuilder } from "@/features/instruments/components/program-head-template-builder";
 import { updateProgramHeadTemplateAction } from "@/lib/actions/program-head-template-actions";
 
 export const metadata = {
@@ -46,7 +46,7 @@ export default async function ProgramHeadEditToolPage({ params }: EditTemplatePa
         Back to Evaluation Tools
       </Link>
 
-      <TemplateBuilder
+      <ProgramHeadTemplateBuilder
         initialData={{
           id: template.id,
           name: template.name,
@@ -58,10 +58,7 @@ export default async function ProgramHeadEditToolPage({ params }: EditTemplatePa
         }}
         onSave={updateProgramHeadTemplateAction}
         programLabel={`${program.code} - ${program.name}`}
-        saveSuccessConfig={{
-          redirectTo: "/program-head/tools",
-          toastMessage: "Template saved successfully.",
-        }}
+        isInstitutionalBaseline={template.program_id === null}
       />
     </div>
   );

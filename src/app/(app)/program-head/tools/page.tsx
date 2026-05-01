@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { ROLES } from "@/lib/constants/roles";
 import { listProgramHeadTemplates } from "@/features/instruments/services/manage-program-head-templates";
+import { listInstitutionalBaselines } from "@/features/instruments/services/list-institutional-baselines";
 import { listProgramHeadDeployments } from "@/features/evaluations/services/list-program-head-deployments";
 import { ProgramHeadToolsPage } from "@/features/instruments/components/program-head-tools-page";
 
@@ -12,9 +13,10 @@ export default async function ProgramHeadToolsRoute() {
     redirect("/unauthorized");
   }
 
-  const [templatesResult, deploymentsResult] = await Promise.all([
+  const [templatesResult, deploymentsResult, baselines] = await Promise.all([
     listProgramHeadTemplates(),
     listProgramHeadDeployments(),
+    listInstitutionalBaselines(),
   ]);
 
   if (!templatesResult.success) {
@@ -40,6 +42,7 @@ export default async function ProgramHeadToolsRoute() {
     <ProgramHeadToolsPage
       templates={JSON.parse(JSON.stringify(templates))}
       deployments={JSON.parse(JSON.stringify(deployments))}
+      baselines={JSON.parse(JSON.stringify(baselines))}
       program={program}
     />
   );

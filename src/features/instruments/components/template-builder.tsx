@@ -4,6 +4,14 @@ import { useCallback, useEffect, useMemo, useState, useTransition } from "react"
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -47,7 +55,7 @@ type FacultyBuilderConfig = {
   validatePublishReadinessAction: (templateId: string) => Promise<ActionResult<{ id: string }>>;
 };
 
-interface TemplateBuilderProps {
+export interface TemplateBuilderProps {
   initialData?: {
     id?: string;
     name: string;
@@ -68,6 +76,15 @@ interface TemplateBuilderProps {
     toastMessage: string;
   };
   toolsHref?: string;
+  onSaveResult?: (
+    result: { success: true; id: string } | { success: false; error: string }
+  ) => void;
+  isInstitutionalBaseline?: boolean;
+  onSaveAsCopy?: (
+    baselineId: string,
+    customName: string,
+    structure: TemplateStructure
+  ) => Promise<ActionResult<{ id: string }>>;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -119,6 +136,14 @@ function formatCiloOptionLabel(cilo: { description: string }, index: number) {
   return `CILO ${index + 1}: ${cilo.description}`;
 }
 
+function formatTemplateTypeLabel(type: EvaluationTemplateType): string {
+  return type === "COURSE_BOUND" ? "Course-bound" : "Program-wide";
+}
+
+function formatQuestionTypeLabel(type: QuestionType): string {
+  return type === "likert" ? "Likert" : "Guided Open-Ended";
+}
+
 // ─── Component ───────────────────────────────────────────────────────────────
 
 export function TemplateBuilder({
@@ -128,6 +153,9 @@ export function TemplateBuilder({
   programLabel,
   saveSuccessConfig,
   toolsHref = "/program-head/tools",
+  onSaveResult,
+  isInstitutionalBaseline = false,
+  onSaveAsCopy,
 }: TemplateBuilderProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -163,7 +191,11 @@ export function TemplateBuilder({
   const [isLoadingCilos, setIsLoadingCilos] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Copy name dialog state for institutional baselines
+  const [copyNameDialogOpen, setCopyNameDialogOpen] = useState(false);
+  const [copyName, setCopyName] = useState(initialData?.name ?? "");
+  const [isCopyPending, setIsCopyPending] = useState(false);
 
   const facultyMode = Boolean(facultyConfig);
   const effectiveTemplateType: EvaluationTemplateType = facultyMode ? "COURSE_BOUND" : templateType;
@@ -488,7 +520,6 @@ export function TemplateBuilder({
 
       if (hasDuplicate) {
         setError("Predefined responses must be unique within a question.");
-        setSuccessMessage(null);
         return;
       }
 
@@ -570,40 +601,75 @@ export function TemplateBuilder({
 
   const saveDraft = useCallback(async () => {
     setError(null);
-    setSuccessMessage(null);
 
     const result = await onSave(buildFormData());
 
     if (!result.success) {
       setError(result.error);
       showToast(result.error, "error");
-      return null;
+      return { success: false as const, error: result.error };
     }
 
-    return result.data?.id ?? templateId ?? null;
+    const id = result.data?.id ?? templateId ?? null;
+    return { success: true as const, id };
   }, [buildFormData, onSave, templateId]);
 
-  const handleSave = useCallback(() => {
-    startTransition(async () => {
-      const savedId = await saveDraft();
+  const handleSaveAsCopy = useCallback(async () => {
+    if (!templateId || !onSaveAsCopy) return;
 
-      if (!savedId) {
+    setIsCopyPending(true);
+    const result = await onSaveAsCopy(templateId, copyName, sections);
+    setIsCopyPending(false);
+    setCopyNameDialogOpen(false);
+
+    if (!result.success) {
+      setError(result.error);
+      onSaveResult?.({ success: false, error: result.error });
+      return;
+    }
+
+    onSaveResult?.({ success: true, id: result.data!.id });
+    router.push(`${toolsHref}/${result.data!.id}/edit`);
+  }, [templateId, onSaveAsCopy, copyName, sections, toolsHref, router, onSaveResult]);
+
+  const handleSave = useCallback(() => {
+    // If editing an institutional baseline, show copy name dialog
+    if (isInstitutionalBaseline && templateId && onSaveAsCopy) {
+      setCopyName(name);
+      setCopyNameDialogOpen(true);
+      return;
+    }
+
+    startTransition(async () => {
+      const result = await saveDraft();
+
+      if (!result.success) {
+        onSaveResult?.({ success: false, error: result.error });
         return;
       }
+
+      onSaveResult?.({ success: true, id: result.id! });
 
       if (saveSuccessConfig) {
-        router.push(
-          `${saveSuccessConfig.redirectTo}?toast=${encodeURIComponent(saveSuccessConfig.toastMessage)}`
-        );
+        showToast(saveSuccessConfig.toastMessage, "success");
+        router.push(saveSuccessConfig.redirectTo);
         return;
       }
 
-      setSuccessMessage("Template saved successfully.");
-      if (!templateId) {
-        router.push(toolsHref);
-      }
+      showToast("Template saved successfully.", "success");
+      router.push(toolsHref);
     });
-  }, [router, saveDraft, saveSuccessConfig, templateId, toolsHref]);
+  }, [
+    isInstitutionalBaseline,
+    templateId,
+    onSaveAsCopy,
+    name,
+    router,
+    saveDraft,
+    saveSuccessConfig,
+    toolsHref,
+    onSaveResult,
+  ]);
 
   const handlePublish = useCallback(() => {
     if (!facultyConfig) {
@@ -611,13 +677,13 @@ export function TemplateBuilder({
     }
 
     startTransition(async () => {
-      const savedId = await saveDraft();
+      const saveResult = await saveDraft();
 
-      if (!savedId) {
+      if (!saveResult.success) {
         return;
       }
 
-      const result = await facultyConfig.validatePublishReadinessAction(savedId);
+      const result = await facultyConfig.validatePublishReadinessAction(saveResult.id!);
 
       if (!result.success) {
         showToast(result.error, "error");
@@ -625,7 +691,7 @@ export function TemplateBuilder({
         return;
       }
 
-      router.push(`/faculty/cilo-evaluations/new?templateId=${savedId}`);
+      router.push(`/faculty/cilo-evaluations/new?templateId=${saveResult.id}`);
     });
   }, [facultyConfig, router, saveDraft]);
 
@@ -647,11 +713,6 @@ export function TemplateBuilder({
       {error && (
         <div className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-700">
           {error}
-        </div>
-      )}
-      {successMessage && (
-        <div className="rounded-lg border border-green-200 bg-green-50 p-4 text-sm text-green-700">
-          {successMessage}
         </div>
       )}
 
@@ -703,7 +764,7 @@ export function TemplateBuilder({
               }}
             >
               <SelectTrigger id="template-type">
-                <SelectValue />
+                <SelectValue>{formatTemplateTypeLabel(effectiveTemplateType)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="COURSE_BOUND">Course-bound Evaluation Tool</SelectItem>
@@ -720,19 +781,21 @@ export function TemplateBuilder({
                 Active
               </Label>
             </div>
-            <div className="flex items-center gap-3">
-              <Switch
-                id="is-faculty-accessible"
-                checked={isFacultyAccessible}
-                disabled={templateType !== "COURSE_BOUND"}
-                onCheckedChange={setIsFacultyAccessible}
-              />
-              <Label htmlFor="is-faculty-accessible" className="cursor-pointer">
-                Faculty Access
-              </Label>
-            </div>
+            {!facultyMode && (
+              <div className="flex items-center gap-3">
+                <Switch
+                  id="is-faculty-accessible"
+                  checked={isFacultyAccessible}
+                  disabled={templateType !== "COURSE_BOUND"}
+                  onCheckedChange={setIsFacultyAccessible}
+                />
+                <Label htmlFor="is-faculty-accessible" className="cursor-pointer">
+                  Faculty Access
+                </Label>
+              </div>
+            )}
           </div>
-          {effectiveTemplateType !== "COURSE_BOUND" && (
+          {!facultyMode && effectiveTemplateType !== "COURSE_BOUND" && (
             <p className="text-text-secondary text-xs">
               Faculty access is available only for course-bound templates.
             </p>
@@ -750,7 +813,15 @@ export function TemplateBuilder({
                   }}
                 >
                   <SelectTrigger id="faculty-course-type">
-                    <SelectValue />
+                    <SelectValue>
+                      {courseType === "PROGRAM_SPECIFIC"
+                        ? "Program-Specific"
+                        : courseType === "GENERAL_EDUCATION"
+                          ? "General Education"
+                          : courseType === "MAJOR_SPECIFIC"
+                            ? "Major-Specific"
+                            : undefined}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="PROGRAM_SPECIFIC">Program-Specific</SelectItem>
@@ -803,7 +874,9 @@ export function TemplateBuilder({
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">All majors / shared courses</SelectItem>
+                      {courseType !== "MAJOR_SPECIFIC" && (
+                        <SelectItem value="none">All majors / shared courses</SelectItem>
+                      )}
                       {availableMajors.map((major) => (
                         <SelectItem key={major.id} value={major.id}>
                           {major.name}
@@ -817,6 +890,7 @@ export function TemplateBuilder({
                 <Label htmlFor="faculty-course-context">Course</Label>
                 <Select
                   value={boundCourseId}
+                  disabled={availableCourses.length === 0}
                   onValueChange={(value) => {
                     const context = facultyCourseContexts.find(
                       (candidate) => candidate.courseId === value
@@ -872,32 +946,47 @@ export function TemplateBuilder({
 
       {/* Section Cards */}
       {sections.map((section, sectionIndex) => (
-        <SectionCard
-          key={section.key}
-          section={section}
-          sectionIndex={sectionIndex}
-          onUpdateSection={updateSection}
-          onRemoveSection={removeSection}
-          onAddQuestion={addQuestion}
-          onRemoveQuestion={removeQuestion}
-          onUpdateQuestion={updateQuestion}
-          onChangeQuestionType={changeQuestionType}
-          onUpdateLikertDescriptor={updateLikertDescriptor}
-          onAddSuggestedResponse={addSuggestedResponse}
-          onRemoveSuggestedResponse={removeSuggestedResponse}
-          ciloOptions={loadedCilos}
-          ciloQuestionBindings={ciloQuestionBindings}
-          selectedCiloLabels={selectedCiloLabels}
-          facultyMode={facultyMode}
-          onCiloBindingChange={(questionKey, ciloId) =>
-            setCiloQuestionBindings((current) => ({
-              ...current,
-              [questionKey]: ciloId,
-            }))
-          }
-          selectedCiloIds={selectedCiloIds}
-          canRemove={sections.length > 1}
-        />
+        <div key={section.key} className="space-y-4">
+          <SectionCard
+            section={section}
+            sectionIndex={sectionIndex}
+            onUpdateSection={updateSection}
+            onRemoveSection={removeSection}
+            onAddQuestion={addQuestion}
+            onRemoveQuestion={removeQuestion}
+            onUpdateQuestion={updateQuestion}
+            onChangeQuestionType={changeQuestionType}
+            onUpdateLikertDescriptor={updateLikertDescriptor}
+            onAddSuggestedResponse={addSuggestedResponse}
+            onRemoveSuggestedResponse={removeSuggestedResponse}
+            ciloOptions={loadedCilos}
+            ciloQuestionBindings={ciloQuestionBindings}
+            selectedCiloLabels={selectedCiloLabels}
+            facultyMode={facultyMode}
+            onCiloBindingChange={(questionKey, ciloId) =>
+              setCiloQuestionBindings((current) => ({
+                ...current,
+                [questionKey]: ciloId,
+              }))
+            }
+            selectedCiloIds={selectedCiloIds}
+            canRemove={sections.length > 1}
+          />
+          {sectionIndex < sections.length - 1 && (
+            <div className="flex justify-center">
+              <button
+                type="button"
+                onClick={() => addSection(sectionIndex + 1)}
+                className="text-text-secondary hover:text-primary hover:bg-primary/5 inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-sm font-medium transition-colors"
+              >
+                <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z" />
+                </svg>
+                Insert Section
+              </button>
+            </div>
+          )}
+        </div>
       ))}
 
       {/* Add Section Button (bottom) */}
@@ -925,9 +1014,46 @@ export function TemplateBuilder({
           </Button>
         )}
         <Button onClick={handleSave} disabled={isPending}>
-          {isPending ? "Saving…" : "Save Template"}
+          {isPending
+            ? isInstitutionalBaseline
+              ? "Creating Copy…"
+              : "Saving…"
+            : isInstitutionalBaseline
+              ? "Save as Program Copy"
+              : "Save Template"}
         </Button>
       </div>
+
+      {/* Copy Name Dialog for Institutional Baselines */}
+      <Dialog open={copyNameDialogOpen} onOpenChange={setCopyNameDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Save as Program Copy</DialogTitle>
+            <DialogDescription>
+              You are editing an institutional baseline. Saving will create a program-owned copy.
+              Enter a name for your copy:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="copy-name">Template Name</Label>
+            <Input
+              id="copy-name"
+              value={copyName}
+              onChange={(e) => setCopyName(e.target.value)}
+              placeholder="Enter template name"
+              className="mt-2"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCopyNameDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveAsCopy} disabled={!copyName.trim() || isCopyPending}>
+              {isCopyPending ? "Creating…" : "Create Copy"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
@@ -1142,10 +1268,10 @@ function QuestionCard({
           onValueChange={(value) => onChangeType(sectionKey, question.key, value as QuestionType)}
         >
           <SelectTrigger className="w-48">
-            <SelectValue />
+            <SelectValue>{formatQuestionTypeLabel(question.type)}</SelectValue>
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="likert">Likert Scale</SelectItem>
+            <SelectItem value="likert">Likert</SelectItem>
             <SelectItem value="guided_open_ended">Guided Open-Ended</SelectItem>
           </SelectContent>
         </Select>
@@ -1177,12 +1303,22 @@ function QuestionCard({
               </Label>
               <Select
                 value={selectedCiloId || "none"}
-                onValueChange={(value) =>
-                  onCiloBindingChange(
-                    `${sectionKey}:${question.key}`,
-                    !value || value === "none" ? "" : value
-                  )
-                }
+                onValueChange={(value) => {
+                  const ciloId = !value || value === "none" ? "" : value;
+
+                  // Update CILO binding
+                  onCiloBindingChange(`${sectionKey}:${question.key}`, ciloId);
+
+                  // Auto-populate question title with CILO description
+                  if (ciloId) {
+                    const selectedCilo = ciloOptions.find((c) => c.id === ciloId);
+                    if (selectedCilo) {
+                      onUpdate(sectionKey, question.key, {
+                        prompt: selectedCilo.description,
+                      });
+                    }
+                  }
+                }}
               >
                 <SelectTrigger id={`cilo-binding-${question.key}`}>
                   <SelectValue placeholder="Select a CILO">
@@ -1341,7 +1477,9 @@ function LikertDescriptorsEditor({
                 {idx < descriptors.length - 1 && (
                   <div className="bg-border absolute top-1/2 left-full h-px w-full" />
                 )}
-                <div className="border-primary/40 bg-surface h-5 w-5 rounded-full border-2" />
+                <div className="border-primary/40 bg-surface flex h-6 w-6 items-center justify-center rounded-full border-2 text-xs font-semibold text-primary/60">
+                  {descriptor.value}
+                </div>
               </div>
             </div>
             {/* Editable label */}

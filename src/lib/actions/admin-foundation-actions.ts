@@ -265,7 +265,7 @@ export async function updateStudentAcademicContextAction(
     year_level_id: formData.get("year_level_id"),
     student_id_number: formData.get("student_id_number"),
     academic_year: formData.get("academic_year"),
-    is_graduating: formData.get("is_graduating"),
+    section: formData.get("section"),
   });
 
   if (!parsed.success) {

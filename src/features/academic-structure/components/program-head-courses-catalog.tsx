@@ -6,14 +6,12 @@ import { CourseScope } from "@prisma/client";
 import { Archive, Edit, Plus, Search } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -32,7 +30,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
   createProgramHeadCourseAction,
@@ -67,6 +64,13 @@ function getCourseTypeLabel(course: ProgramHeadCourseItem): string {
   }
 
   return course.major_id ? "Major-Specific" : "Program-Wide";
+}
+
+function getCourseTypeBadgeClass(course: ProgramHeadCourseItem): string {
+  if (course.course_scope === CourseScope.GENERAL_EDUCATION) {
+    return "bg-emerald-100 text-emerald-700";
+  }
+  return course.major_id ? "bg-indigo-100 text-indigo-700" : "bg-blue-100 text-blue-700";
 }
 
 function filterCourses(
@@ -370,48 +374,30 @@ export function ProgramHeadCoursesCatalog({
 
       {/* Content Container */}
       <div className="bg-surface-alt rounded-xl p-2">
-        {/* Tabs */}
-        <Tabs
-          value={activeTab}
-          onValueChange={(v) => {
-            setActiveTab(v);
-            setCurrentPage(1);
-          }}
-        >
-          <div className="border-border mb-4 border-b px-4 pt-2">
-            <TabsList className="h-auto bg-transparent p-0">
-              <TabsTrigger
-                value="all"
-                className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-1 pb-3 text-sm font-medium tracking-wide"
-              >
-                All Courses
-              </TabsTrigger>
-              <TabsTrigger
-                value="program-wide"
-                className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-1 pb-3 text-sm font-medium tracking-wide"
-              >
-                Program-Wide
-              </TabsTrigger>
-              <TabsTrigger
-                value="major-specific"
-                className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-1 pb-3 text-sm font-medium tracking-wide"
-              >
-                Major-Specific
-              </TabsTrigger>
-              <TabsTrigger
-                value="gen-ed"
-                className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-1 pb-3 text-sm font-medium tracking-wide"
-              >
-                Gen Ed
-              </TabsTrigger>
-              <TabsTrigger
-                value="archived"
-                className="data-[state=active]:border-primary data-[state=active]:text-primary rounded-none border-b-2 border-transparent px-1 pb-3 text-sm font-medium tracking-wide"
-              >
-                Archived
-              </TabsTrigger>
-            </TabsList>
-          </div>
+        {/* Tab pill selector */}
+        <div className="mb-4 flex flex-wrap gap-2 px-4 pt-3 pb-2">
+          {([
+            { value: "all", label: "All Courses" },
+            { value: "program-wide", label: "Program-Wide" },
+            { value: "major-specific", label: "Major-Specific" },
+            { value: "gen-ed", label: "Gen Ed" },
+            { value: "archived", label: "Archived" },
+          ] as const).map(({ value, label }) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => { setActiveTab(value); setCurrentPage(1); }}
+              className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+                activeTab === value
+                  ? "bg-primary text-white font-semibold"
+                  : "border-border text-text-secondary hover:border-primary hover:text-primary border bg-white"
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <div>
 
           {/* Filters */}
           <div className="flex flex-col items-start justify-between gap-4 px-4 pb-4 lg:flex-row lg:items-center">
@@ -494,17 +480,19 @@ export function ProgramHeadCoursesCatalog({
                     </TableRow>
                   ) : (
                     paginatedCourses.map((course) => (
-                      <TableRow key={course.id} className="group">
+                      <TableRow key={course.id}>
                         <TableCell className="font-heading text-text-primary text-sm font-semibold whitespace-nowrap">
                           {course.code}
                         </TableCell>
                         <TableCell className="text-text-primary text-sm">{course.title}</TableCell>
-                        <TableCell className="text-text-secondary text-sm whitespace-nowrap">
-                          {getCourseTypeLabel(course)}
+                        <TableCell className="whitespace-nowrap">
+                          <Badge className={`text-xs ${getCourseTypeBadgeClass(course)}`}>
+                            {getCourseTypeLabel(course)}
+                          </Badge>
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
                           {course.major ? (
-                            <Badge variant="secondary" className="text-xs">
+                            <Badge className="bg-violet-100 text-violet-700 text-xs">
                               {course.major.name}
                             </Badge>
                           ) : course.program ? (
@@ -528,7 +516,7 @@ export function ProgramHeadCoursesCatalog({
                         </TableCell>
                         <TableCell className="text-right whitespace-nowrap">
                           {!course.isReadOnly && (
-                            <div className="flex items-center justify-end gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                            <div className="flex items-center justify-end gap-1">
                               <Button
                                 variant="ghost"
                                 size="icon"
@@ -587,7 +575,7 @@ export function ProgramHeadCoursesCatalog({
               </Button>
             </div>
           )}
-        </Tabs>
+        </div>
       </div>
 
       {/* Create Dialog */}

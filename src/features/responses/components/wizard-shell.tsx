@@ -103,16 +103,20 @@ export function WizardShell({
     currentValue: string
   ) => {
     const trimmedSuggestion = suggestion.trim();
+    if (!trimmedSuggestion) return;
 
-    if (!trimmedSuggestion) {
-      return;
-    }
+    const tokens = currentValue
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean);
 
-    const nextValue = currentValue.trim()
-      ? `${currentValue.trim()}, ${trimmedSuggestion}`
-      : trimmedSuggestion;
+    const alreadySelected = tokens.includes(trimmedSuggestion);
 
-    handleValueChange(promptKey, nextValue);
+    const nextTokens = alreadySelected
+      ? tokens.filter((t) => t !== trimmedSuggestion)
+      : [...tokens, trimmedSuggestion];
+
+    handleValueChange(promptKey, nextTokens.join(", "));
   };
 
   const validateCurrentSection = () => {

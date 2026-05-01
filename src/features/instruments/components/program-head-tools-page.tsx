@@ -2,8 +2,19 @@
 
 import { useState, useTransition } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { Copy, Eye, MoreVertical, Pencil, Plus, Send, Trash2, XCircle } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  ChevronDown,
+  ChevronRight,
+  Copy,
+  Eye,
+  MoreVertical,
+  Pencil,
+  Plus,
+  Send,
+  Trash2,
+  XCircle,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -24,6 +35,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ProgramHeadDeploymentItem } from "@/features/evaluations/services/list-program-head-deployments";
 import type { ProgramHeadTemplateItem } from "@/features/instruments/services/manage-program-head-templates";
+import type { InstitutionalBaselineItem } from "@/features/instruments/services/list-institutional-baselines";
 import { closeCentralDeploymentAction } from "@/lib/actions/central-deployment-actions";
 import {
   deleteTemplateAction,
@@ -34,6 +46,7 @@ import {
 type ProgramHeadToolsPageProps = {
   templates: ProgramHeadTemplateItem[];
   deployments: ProgramHeadDeploymentItem[];
+  baselines: InstitutionalBaselineItem[];
   program: { id: string; code: string; name: string };
 };
 
@@ -54,6 +67,20 @@ function formatStakeholder(stakeholder: string): string {
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
 
+/** Returns accessible Tailwind bg+text classes for each target stakeholder. */
+function getTargetStakeholderBadgeClass(stakeholder: string): string {
+  switch (stakeholder) {
+    case "STUDENT":
+      return "bg-emerald-100 text-emerald-700";
+    case "ALUMNI":
+      return "bg-amber-100 text-amber-800";
+    case "INDUSTRY_PARTNER":
+      return "bg-sky-100 text-sky-700";
+    default:
+      return "bg-slate-100 text-slate-700";
+  }
+}
+
 function formatSemester(semester: string): string {
   if (semester === "FIRST" || semester === "1ST") return "1st Sem";
   if (semester === "SECOND" || semester === "2ND") return "2nd Sem";
@@ -61,28 +88,15 @@ function formatSemester(semester: string): string {
   return semester;
 }
 
-function getStatusColor(status: string): string {
-  switch (status) {
-    case "ACTIVE":
-      return "bg-primary-fixed text-on-primary-fixed";
-    case "SCHEDULED":
-      return "bg-tertiary-fixed text-on-tertiary-fixed";
-    case "CLOSED":
-      return "bg-surface-container-highest text-on-surface-variant";
-    case "ARCHIVED":
-      return "bg-surface-container-highest text-on-surface-variant opacity-60";
-    case "DRAFT":
-      return "bg-surface-container text-on-surface-variant";
-    default:
-      return "bg-surface-container-highest text-on-surface-variant";
-  }
-}
-
 export function ProgramHeadToolsPage({
   templates,
   deployments,
+  baselines,
   program,
 }: ProgramHeadToolsPageProps) {
+  const searchParams = useSearchParams();
+  const defaultTab = searchParams.get("tab") === "published" ? "published" : "templates";
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
@@ -95,7 +109,7 @@ export function ProgramHeadToolsPage({
         </div>
       </div>
 
-      <Tabs defaultValue="templates" className="w-full">
+      <Tabs defaultValue={defaultTab} className="w-full">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <TabsList variant="line" className="h-auto gap-4">
             <TabsTrigger value="templates" className="px-1 py-2.5 text-sm">
@@ -116,33 +130,65 @@ export function ProgramHeadToolsPage({
         </div>
 
         <TabsContent value="templates" className="pt-6">
-          <TemplatesGrid templates={templates} />
+          <TemplatesGrid templates={templates} baselines={baselines} />
         </TabsContent>
 
         <TabsContent value="published" className="pt-6">
-          <PublishedList deployments={deployments} />
+          <PublishedDeploymentsTable deployments={deployments} />
         </TabsContent>
       </Tabs>
     </div>
   );
 }
 
-function TemplatesGrid({ templates }: { templates: ProgramHeadTemplateItem[] }) {
-  if (templates.length === 0) {
+function TemplatesGrid({
+  templates,
+  baselines,
+}: {
+  templates: ProgramHeadTemplateItem[];
+  baselines: InstitutionalBaselineItem[];
+}) {
+  const hasContent = templates.length > 0 || baselines.length > 0;
+
+  if (!hasContent) {
     return (
       <div className="border-outline-variant rounded-xl border-2 border-dashed py-16 text-center">
         <p className="font-body text-on-surface-variant">
-          No templates found. Create your first template to get started.
+          No templates found. Create your first template or import from institutional baselines.
         </p>
       </div>
     );
   }
 
   return (
-    <div className="grid gap-4 md:grid-cols-2">
-      {templates.map((template) => (
-        <TemplateCard key={template.id} template={template} />
-      ))}
+    <div className="space-y-8">
+      {/* Program Templates */}
+      {templates.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="font-label text-text-secondary text-xs font-semibold tracking-[0.05em] uppercase">
+            Program Templates
+          </h3>
+          <div className="grid gap-4 md:grid-cols-2">
+            {templates.map((template) => (
+              <TemplateCard key={template.id} template={template} />
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Institutional Baselines */}
+      {baselines.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="font-label text-text-secondary text-xs font-semibold tracking-[0.05em] uppercase">
+            Institutional Baselines (Copy to Customize)
+          </h3>
+          <div className="grid gap-4 md:grid-cols-2">
+            {baselines.map((baseline) => (
+              <BaselineCard key={baseline.id} baseline={baseline} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -153,7 +199,6 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
   const [error, setError] = useState<string | null>(null);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
-  const isInstitutional = template.program_id === null;
   const isProgramWide = template.template_type === "PROGRAM_WIDE";
 
   function handleDuplicate() {
@@ -200,35 +245,33 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
           <span
             className={`font-label inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide ${
               template.is_active
-                ? "bg-primary-fixed text-on-primary-fixed"
-                : "bg-surface-container-highest text-on-surface-variant"
+                ? "bg-success/15 text-success"
+                : "border-border text-text-muted border bg-transparent"
             }`}
           >
             {template.is_active ? "Active" : "Inactive"}
           </span>
 
-          {!isInstitutional && (
-            <DropdownMenu>
-              <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-7 items-center justify-center rounded-md opacity-0 transition-opacity group-hover:opacity-100">
-                <MoreVertical className="size-4" />
-                <span className="sr-only">Actions</span>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" side="bottom">
-                <DropdownMenuItem disabled={isPending} onClick={handleToggleActive}>
-                  {template.is_active ? "Deactivate" : "Activate"}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  variant="destructive"
-                  disabled={isPending}
-                  onClick={() => setShowDeleteDialog(true)}
-                >
-                  <Trash2 className="size-4" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          )}
+          <DropdownMenu>
+            <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-7 items-center justify-center rounded-md transition-colors">
+              <MoreVertical className="size-4" />
+              <span className="sr-only">Actions</span>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" side="bottom">
+              <DropdownMenuItem disabled={isPending} onClick={handleToggleActive}>
+                {template.is_active ? "Deactivate" : "Activate"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                disabled={isPending}
+                onClick={() => setShowDeleteDialog(true)}
+              >
+                <Trash2 className="size-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         <h3 className="font-headline text-on-surface text-lg font-semibold">{template.name}</h3>
@@ -238,10 +281,9 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <span className="font-label text-on-surface-variant text-xs font-semibold tracking-[0.05em] uppercase">
-            {isInstitutional ? "Institutional baseline" : "Program-owned"} -{" "}
-            {template._count.versions} version(s)
+            Program-owned - {template._count.versions} version(s)
           </span>
-          <Badge variant="secondary" className="text-xs">
+          <Badge variant="outline" className="text-xs">
             {isProgramWide ? "Program-wide" : "Course-bound"}
           </Badge>
           {template.is_faculty_accessible && (
@@ -258,12 +300,8 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
             variant="outline"
             size="sm"
             className="flex-1"
-            disabled={isInstitutional || isPending}
-            render={
-              isInstitutional ? undefined : (
-                <Link href={`/program-head/tools/${template.id}/edit`} />
-              )
-            }
+            disabled={isPending}
+            render={<Link href={`/program-head/tools/${template.id}/edit`} />}
           >
             <Pencil className="size-3.5" data-icon="inline-start" />
             Edit
@@ -324,8 +362,139 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
   );
 }
 
-function PublishedList({ deployments }: { deployments: ProgramHeadDeploymentItem[] }) {
-  if (deployments.length === 0) {
+function BaselineCard({ baseline }: { baseline: InstitutionalBaselineItem }) {
+  const router = useRouter();
+
+  const isProgramWide = baseline.template_type === "PROGRAM_WIDE";
+
+  return (
+    <div className="bg-surface group border-outline-variant hover:border-outline relative flex flex-col overflow-hidden rounded-xl border transition-all">
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3 p-4">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <h3 className="font-body text-on-surface truncate text-base font-semibold">
+              {baseline.name}
+            </h3>
+            <Badge variant="outline" className="shrink-0">
+              Institutional
+            </Badge>
+          </div>
+          <p className="font-body text-on-surface-variant mt-1 line-clamp-2 text-sm">
+            {baseline.description || "No description"}
+          </p>
+        </div>
+      </div>
+
+      {/* Meta row */}
+      <div className="flex items-center gap-2 px-4 py-2">
+        <Badge variant={isProgramWide ? "default" : "outline"}>
+          {isProgramWide ? "Program-wide" : "Course-bound"}
+        </Badge>
+        {baseline.is_faculty_accessible && <Badge variant="outline">Faculty Accessible</Badge>}
+      </div>
+
+      {/* Actions */}
+      <div className="mt-auto flex items-center justify-end gap-2 border-t p-4">
+        <Button
+          variant="outline"
+          size="sm"
+          render={<Link href={`/program-head/tools/${baseline.id}/edit`} />}
+        >
+          <Pencil className="mr-1 size-3.5" />
+          Edit & Copy
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+type DeploymentStatusFilter = "ALL" | "ACTIVE" | "SCHEDULED" | "CLOSED" | "ARCHIVED";
+
+const PAGE_SIZE = 10;
+
+function PublishedDeploymentsTable({ deployments }: { deployments: ProgramHeadDeploymentItem[] }) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [statusFilter, setStatusFilter] = useState<DeploymentStatusFilter>("ALL");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [localDeployments, setLocalDeployments] = useState(deployments);
+
+  // Update local deployments when props change
+  if (JSON.stringify(deployments) !== JSON.stringify(localDeployments)) {
+    setLocalDeployments(deployments);
+  }
+
+  const filteredDeployments = localDeployments.filter((d) => {
+    if (statusFilter === "ALL") return d.status !== "ARCHIVED";
+    return d.status === statusFilter;
+  });
+
+  // ---- Pagination -----------------------------------------------------------
+  const totalPages = Math.max(1, Math.ceil(filteredDeployments.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedDeployments = filteredDeployments.slice(
+    (safePage - 1) * PAGE_SIZE,
+    safePage * PAGE_SIZE
+  );
+
+  function handleFilterChange(value: DeploymentStatusFilter) {
+    setStatusFilter(value);
+    setCurrentPage(1);
+  }
+
+  function buildPageNumbers(): (number | "ellipsis")[] {
+    const pages: (number | "ellipsis")[] = [];
+    if (totalPages <= 7) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
+    } else {
+      pages.push(1);
+      if (safePage > 3) pages.push("ellipsis");
+      const start = Math.max(2, safePage - 1);
+      const end = Math.min(totalPages - 1, safePage + 1);
+      for (let i = start; i <= end; i++) pages.push(i);
+      if (safePage < totalPages - 2) pages.push("ellipsis");
+      pages.push(totalPages);
+    }
+    return pages;
+  }
+
+  function toggleRow(id: string) {
+    setExpandedRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  }
+
+  function handleClose(deploymentId: string) {
+    startTransition(async () => {
+      const result = await closeCentralDeploymentAction(deploymentId);
+      if (!result.success) {
+        return;
+      }
+      // Optimistic update
+      setLocalDeployments((prev) =>
+        prev.map((d) => (d.id === deploymentId ? { ...d, status: "CLOSED" } : d))
+      );
+      router.refresh();
+    });
+  }
+
+  const filterButtons: { label: string; value: DeploymentStatusFilter }[] = [
+    { label: "All", value: "ALL" },
+    { label: "Active", value: "ACTIVE" },
+    { label: "Scheduled", value: "SCHEDULED" },
+    { label: "Closed", value: "CLOSED" },
+    { label: "Archived", value: "ARCHIVED" },
+  ];
+
+  if (localDeployments.length === 0) {
     return (
       <div className="border-outline-variant rounded-xl border-2 border-dashed py-16 text-center">
         <p className="font-body text-on-surface-variant">No published tools yet.</p>
@@ -334,102 +503,299 @@ function PublishedList({ deployments }: { deployments: ProgramHeadDeploymentItem
   }
 
   return (
-    <div className="space-y-1">
-      <div className="font-label text-on-surface-variant hidden rounded-lg px-4 py-2 text-xs font-semibold tracking-[0.05em] uppercase md:grid md:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto]">
+    <div className="space-y-4">
+      {/* Status Filters */}
+      <div className="flex flex-wrap gap-2">
+        {filterButtons.map((btn) => (
+          <Button
+            key={btn.value}
+            variant={statusFilter === btn.value ? "default" : "outline"}
+            size="sm"
+            onClick={() => handleFilterChange(btn.value)}
+          >
+            {btn.label}
+          </Button>
+        ))}
+      </div>
+
+      {/* Table Header */}
+      <div className="bg-muted text-muted-foreground hidden rounded-lg px-4 py-2 text-xs font-semibold tracking-wider uppercase md:grid md:grid-cols-[auto_2fr_1fr_1fr_1fr_1fr_1fr_auto]">
+        <span className="w-8" />
         <span>Published Form</span>
         <span>Target</span>
         <span>Academic Period</span>
-        <span>Published</span>
         <span>Status</span>
         <span>Responses</span>
+        <span>Published</span>
         <span className="w-8" />
       </div>
 
-      {deployments.map((deployment) => (
-        <DeploymentRow key={deployment.id} deployment={deployment} />
-      ))}
+      {/* Table Rows */}
+      <div className="space-y-2">
+        {filteredDeployments.length === 0 ? (
+          <div className="rounded-lg border border-dashed py-8 text-center">
+            <p className="text-muted-foreground text-sm">
+              No {statusFilter.toLowerCase()} deployments found.
+            </p>
+          </div>
+        ) : (
+          paginatedDeployments.map((deployment) => (
+            <DeploymentAccordionRow
+              key={deployment.id}
+              deployment={deployment}
+              isExpanded={expandedRows.has(deployment.id)}
+              onToggle={() => toggleRow(deployment.id)}
+              onClose={() => handleClose(deployment.id)}
+            />
+          ))
+        )}
+      </div>
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-1 pt-4">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={safePage <= 1}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          >
+            ←
+          </Button>
+          {buildPageNumbers().map((page, idx) =>
+            page === "ellipsis" ? (
+              <span key={`ellipsis-${idx}`} className="text-muted-foreground px-2 text-sm">
+                …
+              </span>
+            ) : (
+              <Button
+                key={page}
+                variant={page === safePage ? "default" : "outline"}
+                size="sm"
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </Button>
+            )
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={safePage >= totalPages}
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+          >
+            →
+          </Button>
+        </div>
+      )}
+
+      {/* Result count */}
+      <p className="text-muted-foreground text-center text-xs pt-2">
+        Showing {(safePage - 1) * PAGE_SIZE + 1}–
+        {Math.min(safePage * PAGE_SIZE, filteredDeployments.length)} of {filteredDeployments.length} deployment
+        {filteredDeployments.length !== 1 ? "s" : ""}
+      </p>
     </div>
   );
 }
 
-function DeploymentRow({ deployment }: { deployment: ProgramHeadDeploymentItem }) {
-  const router = useRouter();
+function DeploymentAccordionRow({
+  deployment,
+  isExpanded,
+  onToggle,
+  onClose,
+}: {
+  deployment: ProgramHeadDeploymentItem;
+  isExpanded: boolean;
+  onToggle: () => void;
+  onClose: () => void;
+}) {
   const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-
   const canClose = deployment.status === "ACTIVE" || deployment.status === "SCHEDULED";
 
-  function handleClose() {
-    setError(null);
-    startTransition(async () => {
-      const result = await closeCentralDeploymentAction(deployment.id);
-      if (!result.success) {
-        setError(result.error);
-        return;
-      }
-      router.refresh();
-    });
-  }
+  const responseRate =
+    deployment.assignmentCount > 0
+      ? (deployment.responseCount / deployment.assignmentCount) * 100
+      : 0;
 
   return (
-    <div
-      className={`group hover:bg-surface-container-low grid items-center gap-3 rounded-xl px-4 py-3 transition-colors md:grid-cols-[2fr_1fr_1fr_1fr_1fr_1fr_auto] ${
-        isPending ? "opacity-60" : ""
-      }`}
-    >
-      <div>
-        <p className="font-headline text-on-surface font-semibold">{deployment.templateName}</p>
-        {error && <p className="text-error mt-0.5 text-xs">{error}</p>}
+    <div className="bg-card rounded-lg border">
+      {/* Main Row */}
+      <div
+        className={`hover:bg-muted/50 grid cursor-pointer items-center gap-3 rounded-lg px-4 py-3 transition-colors md:grid-cols-[auto_2fr_1fr_1fr_1fr_1fr_1fr_auto] ${
+          isPending ? "opacity-60" : ""
+        }`}
+        onClick={onToggle}
+      >
+        {/* Expand Icon */}
+        <div className="flex w-8 items-center justify-center">
+          {isExpanded ? (
+            <ChevronDown className="text-muted-foreground size-4" />
+          ) : (
+            <ChevronRight className="text-muted-foreground size-4" />
+          )}
+        </div>
+
+        {/* Deployment Name */}
+        <div>
+          <p className="font-semibold">{deployment.templateName}</p>
+        </div>
+
+        {/* Target */}
+        <div>
+          <Badge className={`text-xs ${getTargetStakeholderBadgeClass(deployment.target_stakeholder)}`}>
+            {formatStakeholder(deployment.target_stakeholder)}
+          </Badge>
+        </div>
+
+        {/* Academic Period */}
+        <div className="text-muted-foreground text-sm">
+          {deployment.academic_year} - {formatSemester(deployment.semester)}
+        </div>
+
+        {/* Status */}
+        <div>
+          <Badge
+            variant={
+              deployment.status === "ACTIVE"
+                ? "default"
+                : "outline"
+            }
+            className="text-xs"
+          >
+            {deployment.status.charAt(0) + deployment.status.slice(1).toLowerCase()}
+          </Badge>
+        </div>
+
+        {/* Responses */}
+        <div className="text-muted-foreground text-sm">
+          {deployment.responseCount}/{deployment.assignmentCount}
+        </div>
+
+        {/* Published Date */}
+        <div className="text-muted-foreground text-sm">{formatDate(deployment.created_at)}</div>
+
+        {/* Actions */}
+        <div className="flex justify-end">
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              onClick={(e) => e.stopPropagation()}
+              render={
+                <button type="button" className="hover:bg-muted inline-flex size-8 cursor-pointer items-center justify-center rounded-md">
+                  <MoreVertical className="size-4" />
+                </button>
+              }
+            />
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => onToggle()}>
+                <Eye className="mr-2 size-4" />
+                View Details
+              </DropdownMenuItem>
+              {canClose && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    variant="destructive"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      startTransition(onClose);
+                    }}
+                  >
+                    <XCircle className="mr-2 size-4" />
+                    Close Deployment
+                  </DropdownMenuItem>
+                </>
+              )}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      <div>
-        <span className="bg-surface-container font-label text-on-surface-variant inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium">
-          {formatStakeholder(deployment.target_stakeholder)}
-        </span>
-      </div>
+      {/* Expanded Details */}
+      {isExpanded && (
+        <div className="border-t px-4 py-4">
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Column 1: Deployment Details */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold">Deployment Details</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Program</span>
+                  <span>
+                    {deployment.programCode} - {deployment.programName}
+                  </span>
+                </div>
+                {deployment.majorName && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Major</span>
+                    <span>{deployment.majorName}</span>
+                  </div>
+                )}
+                {deployment.yearLevelName && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Year Level</span>
+                    <span>{deployment.yearLevelName}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Target</span>
+                  <span>{formatStakeholder(deployment.target_stakeholder)}</span>
+                </div>
+              </div>
+            </div>
 
-      <div className="text-on-surface-variant text-sm">
-        {deployment.academic_year} - {formatSemester(deployment.semester)}
-      </div>
+            {/* Column 2: Response Summary */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold">Response Summary</h4>
+              <div className="space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total Assignments</span>
+                  <span className="font-medium">{deployment.assignmentCount}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Responses</span>
+                  <span className="font-medium">{deployment.responseCount}</span>
+                </div>
+                <div className="space-y-1">
+                  <div className="text-muted-foreground flex justify-between text-xs">
+                    <span>Response Rate</span>
+                    <span>{responseRate.toFixed(0)}%</span>
+                  </div>
+                  <div className="bg-muted h-2 overflow-hidden rounded-full">
+                    <div
+                      className="bg-primary h-full transition-all"
+                      style={{ width: `${responseRate}%` }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
 
-      <div className="text-on-surface-variant font-mono text-sm">
-        {formatDate(deployment.created_at)}
-      </div>
-
-      <div>
-        <span
-          className={`font-label inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(deployment.status)}`}
-        >
-          {deployment.status.charAt(0) + deployment.status.slice(1).toLowerCase()}
-        </span>
-      </div>
-
-      <div className="text-on-surface-variant text-sm">
-        {deployment.responseCount}/{deployment.assignmentCount}
-      </div>
-
-      <div className="flex justify-end">
-        <DropdownMenu>
-          <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-7 items-center justify-center rounded-md opacity-0 transition-opacity group-hover:opacity-100">
-            <MoreVertical className="size-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" side="bottom">
-            <DropdownMenuItem>
-              <Eye className="size-4" />
-              View
-            </DropdownMenuItem>
-            {canClose && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem variant="destructive" onClick={handleClose}>
-                  <XCircle className="size-4" />
-                  Close Deployment
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+            {/* Column 3: Timeline */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-semibold">Timeline</h4>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Published</span>
+                  <span>{formatDate(deployment.created_at)}</span>
+                </div>
+                {deployment.activation_at && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Activation</span>
+                    <span>{formatDate(deployment.activation_at)}</span>
+                  </div>
+                )}
+                {deployment.deadline_at && (
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Deadline</span>
+                    <span>{formatDate(deployment.deadline_at)}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

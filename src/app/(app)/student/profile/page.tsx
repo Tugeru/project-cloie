@@ -116,12 +116,19 @@ export default async function StudentProfilePage() {
               </div>
             </div>
 
-            <div className="space-y-1">
-              <label className="text-text-muted text-[10px] font-black tracking-widest uppercase">
-                Graduating Eligibility
-              </label>
-              <p>{profile?.is_graduating ? "Eligible" : "Not currently flagged"}</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-1">
+                <label className="text-text-muted text-[10px] font-black tracking-widest uppercase">
+                  Section
+                </label>
+                <p>
+                  {profile?.section
+                    ? profile.section.charAt(0) + profile.section.slice(1).toLowerCase()
+                    : "Not set"}
+                </p>
+              </div>
             </div>
+
           </CardContent>
         </Card>
 

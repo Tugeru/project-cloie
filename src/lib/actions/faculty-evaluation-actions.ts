@@ -10,7 +10,7 @@ import type {
   CloseFacultyEvaluationResult,
 } from "@/features/evaluations/types";
 
-export async function listFacultyPublishedEvaluationsAction(): Promise<ListFacultyPublishedEvaluationsResult> {
+async function listFacultyPublishedEvaluationsAction(): Promise<ListFacultyPublishedEvaluationsResult> {
   return listFacultyPublishedEvaluations();
 }
 

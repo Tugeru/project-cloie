@@ -49,7 +49,6 @@ const PH_SESSION = {
   roles: [ROLES.PROGRAM_HEAD],
   primaryRole: ROLES.PROGRAM_HEAD,
   studentProfileId: null,
-  isGraduating: false,
   profileGate: null,
 };
 

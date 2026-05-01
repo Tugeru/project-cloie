@@ -234,7 +234,9 @@ describe("publishCourseBoundEvaluation", () => {
     expect(studentAcademicProfileFindManyMock).toHaveBeenCalledWith({
       where: {
         academic_year: "2026-2027",
-        program_id: "program-1",
+        program_id: {
+          in: ["program-1"],
+        },
         year_level_id: {
           in: ["year-4", "year-3"],
         },
@@ -334,7 +336,7 @@ describe("publishCourseBoundEvaluation", () => {
     transactionMock.mockRejectedValue({
       code: "P2002",
       meta: {
-        target: ["course_id", "academic_year", "semester", "term"],
+        target: ["course_id", "faculty_id", "academic_year", "semester", "term", "section"],
       },
     });
 

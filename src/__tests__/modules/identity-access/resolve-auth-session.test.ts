@@ -56,7 +56,6 @@ describe("resolveAuthSession", () => {
       roles: [],
       primaryRole: null,
       studentProfileId: null,
-      isGraduating: false,
       profileGate: { status: "ROLE_SELECTION_REQUIRED" },
     });
   });
@@ -78,7 +77,6 @@ describe("resolveAuthSession", () => {
       roles: [ROLES.STUDENT],
       primaryRole: ROLES.STUDENT,
       studentProfileId: null,
-      isGraduating: false,
       profileGate: {
         status: "STUDENT_ONBOARDING_REQUIRED",
         intent: "student",
@@ -86,7 +84,7 @@ describe("resolveAuthSession", () => {
     });
   });
 
-  it("returns complete state for a student with a graduating profile", async () => {
+  it("returns complete state for a student with a profile", async () => {
     const { resolveAuthSession } = await import("@/features/auth/services/resolve-auth-session");
     getUserMock.mockResolvedValue({
       data: { user: { id: "user-3", email: "student@acd.edu.ph" } },
@@ -94,7 +92,7 @@ describe("resolveAuthSession", () => {
     });
     findUniqueMock.mockResolvedValue({
       roles: [{ role: ROLES.STUDENT }],
-      student_profile: { id: "profile-1", is_graduating: true },
+      student_profile: { id: "profile-1" },
     });
 
     await expect(resolveAuthSession()).resolves.toEqual({
@@ -103,7 +101,6 @@ describe("resolveAuthSession", () => {
       roles: [ROLES.STUDENT],
       primaryRole: ROLES.STUDENT,
       studentProfileId: "profile-1",
-      isGraduating: true,
       profileGate: { status: "COMPLETE" },
     });
   });
@@ -125,7 +122,6 @@ describe("resolveAuthSession", () => {
       roles: [ROLES.FACULTY, ROLES.STUDENT],
       primaryRole: ROLES.FACULTY,
       studentProfileId: null,
-      isGraduating: false,
       profileGate: {
         status: "STUDENT_ONBOARDING_REQUIRED",
         intent: "student",
@@ -150,7 +146,6 @@ describe("resolveAuthSession", () => {
       roles: [],
       primaryRole: null,
       studentProfileId: null,
-      isGraduating: false,
       profileGate: { status: "ROLE_SELECTION_REQUIRED" },
     });
   });

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Copy, Edit, FileText, Send } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { showToast } from "@/components/ui/toast";
 import { duplicateFacultyTemplateAction } from "@/lib/actions/faculty-template-actions";
 import type { FacultyTemplateItem } from "../services/list-faculty-templates";
@@ -57,11 +57,10 @@ export function TemplatesGrid({ templates }: TemplatesGridProps) {
           <Card key={template.id} className="relative">
             <CardHeader>
               <div className="flex items-start justify-between gap-2">
-                <div className="space-y-1">
-                  <CardTitle className="text-base font-bold">{template.name}</CardTitle>
-                  <CardDescription className="text-xs">{template.code}</CardDescription>
+                <div className="min-w-0 flex-1 space-y-1">
+                  <CardTitle className="truncate text-base font-bold">{template.name}</CardTitle>
                 </div>
-                <Badge variant={isOwned ? "secondary" : "default"} className="shrink-0">
+                <Badge variant={isOwned ? "outline" : "default"} className="shrink-0">
                   {isOwned ? "My Copy" : "Shared"}
                 </Badge>
               </div>

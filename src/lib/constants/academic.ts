@@ -11,10 +11,10 @@ export const TERM_OPTIONS = [
   { label: "2nd Term", value: AcademicTerm.SECOND_TERM },
 ] as const;
 
-export function getSemesterLabel(value: AcademicSemester | null | undefined) {
+function getSemesterLabel(value: AcademicSemester | null | undefined) {
   return SEMESTER_OPTIONS.find((option) => option.value === value)?.label ?? "Unknown Semester";
 }
 
-export function getTermLabel(value: AcademicTerm | null | undefined) {
+function getTermLabel(value: AcademicTerm | null | undefined) {
   return TERM_OPTIONS.find((option) => option.value === value)?.label ?? "Unknown Term";
 }

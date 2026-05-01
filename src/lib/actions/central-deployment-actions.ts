@@ -6,6 +6,8 @@ import {
   publishCentralDeployment,
   closeCentralDeployment,
 } from "@/features/evaluations/services/publish-central-deployment";
+import { previewCentralDeploymentRespondents } from "@/features/evaluations/services/preview-central-deployment-respondents";
+import type { PreviewCentralDeploymentInput } from "@/features/evaluations/types";
 
 type ActionResult =
   | { success: true; deploymentId: string; assignmentCount: number; status: string }
@@ -25,6 +27,15 @@ export async function publishCentralDeploymentAction(formData: FormData): Promis
   const majorId = formData.get("major_id");
   if (majorId && typeof majorId === "string" && majorId.length > 0) {
     raw.major_id = majorId;
+  }
+
+  const respondentIdsJson = formData.get("respondent_ids");
+  if (respondentIdsJson && typeof respondentIdsJson === "string") {
+    try {
+      raw.respondent_ids = JSON.parse(respondentIdsJson);
+    } catch {
+      // Ignore malformed JSON — fall back to auto-resolve
+    }
   }
 
   const yearLevelId = formData.get("year_level_id");
@@ -74,6 +85,12 @@ export async function publishCentralDeploymentAction(formData: FormData): Promis
     assignmentCount: result.data.assignmentCount,
     status: result.data.status,
   };
+}
+
+export async function previewCentralDeploymentRespondentsAction(
+  payload: PreviewCentralDeploymentInput
+) {
+  return await previewCentralDeploymentRespondents(payload);
 }
 
 export async function closeCentralDeploymentAction(

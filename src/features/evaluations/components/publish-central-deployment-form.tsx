@@ -1,10 +1,18 @@
 "use client";
 
 import { useState, useRef, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
+import { type TargetStakeholder } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { showToast } from "@/components/ui/toast";
 import { SEMESTER_OPTIONS } from "@/lib/constants/academic";
+import type {
+  PreviewCentralDeploymentInput,
+  PreviewCentralDeploymentRespondent,
+  PreviewCentralDeploymentResult,
+} from "@/features/evaluations/types";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -12,12 +20,16 @@ type ActionResult =
   | { success: true; deploymentId: string; assignmentCount: number; status: string }
   | { success: false; error: string };
 
+type Step = "configure" | "preview";
+
 interface PublishCentralDeploymentFormProps {
   templates: Array<{ id: string; name: string; code: string }>;
   yearLevels: Array<{ id: string; name: string }>;
   majors: Array<{ id: string; name: string }>;
+  programId: string;
   programLabel: string;
   preselectedTemplateId?: string;
+  previewAction: (payload: PreviewCentralDeploymentInput) => Promise<PreviewCentralDeploymentResult>;
   publishAction: (formData: FormData) => Promise<ActionResult>;
 }
 
@@ -35,26 +47,43 @@ export function PublishCentralDeploymentForm({
   templates,
   yearLevels,
   majors,
+  programId,
   programLabel,
   preselectedTemplateId,
+  previewAction,
   publishAction,
 }: PublishCentralDeploymentFormProps) {
+  const router = useRouter();
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState(preselectedTemplateId ?? "");
   const [targetStakeholder, setTargetStakeholder] = useState<string>("STUDENT");
+  const [step, setStep] = useState<Step>("configure");
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+
+  // Preview state
+  const [previewRespondents, setPreviewRespondents] = useState<PreviewCentralDeploymentRespondent[]>([]);
+  const [excludedRespondentIds, setExcludedRespondentIds] = useState<string[]>([]);
 
   const selectedTemplate = templates.find((t) => t.id === selectedTemplateId);
 
   const showYearLevel = targetStakeholder === "STUDENT";
   const showMajor = majors.length > 0;
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleExcludeRespondent = (userId: string, excluded: boolean) => {
+    setExcludedRespondentIds((previous) => {
+      if (excluded) {
+        if (previous.includes(userId)) return previous;
+        return [...previous, userId];
+      }
+      return previous.filter((id) => id !== userId);
+    });
+  };
+
+  const handlePreview = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
-    setSuccessMessage(null);
 
     if (!selectedTemplateId) {
       setError("Please select a template to deploy.");
@@ -62,22 +91,79 @@ export function PublishCentralDeploymentForm({
     }
 
     const formData = new FormData(event.currentTarget);
+    const academicYear = (formData.get("academic_year") as string)?.trim();
+    const yearLevelId = (formData.get("year_level_id") as string) || undefined;
+    const majorId = (formData.get("major_id") as string) || undefined;
 
+    if (!academicYear) {
+      setError("Please provide an academic year.");
+      return;
+    }
+
+    if (targetStakeholder === "STUDENT" && !yearLevelId) {
+      setError("Please select a target year level.");
+      return;
+    }
+
+    setIsLoadingPreview(true);
+
+    try {
+      const result = await previewAction({
+        academicYear,
+        majorId,
+        programId,
+        targetStakeholder: targetStakeholder as TargetStakeholder,
+        yearLevelId,
+      });
+
+      if (!result.success) {
+        setError(result.error);
+        showToast(result.error, "error");
+        return;
+      }
+
+      setPreviewRespondents(result.respondents);
+      setExcludedRespondentIds([]);
+      setStep("preview");
+    } catch {
+      setError("Unable to load respondent preview. Please try again.");
+      showToast("Unable to load respondent preview. Please try again.", "error");
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  };
+
+  const handlePublishFinal = async () => {
+    setError(null);
     setIsSubmitting(true);
+
+    if (!formRef.current) return;
+
+    const formData = new FormData(formRef.current);
+
+    // Attach the curated respondent list
+    const finalRespondentIds = previewRespondents
+      .filter((r) => !excludedRespondentIds.includes(r.userId))
+      .map((r) => r.userId);
+
+    formData.set("respondent_ids", JSON.stringify(finalRespondentIds));
 
     try {
       const result = await publishAction(formData);
 
       if (!result.success) {
         setError(result.error);
+        showToast(result.error, "error");
         return;
       }
 
-      setSuccessMessage(
-        `Deployment published successfully! ${result.assignmentCount} assignment(s) created. Status: ${result.status}.`
+      const toastMessage = `Deployment published successfully! ${result.assignmentCount} assignment(s) created. Status: ${result.status}.`;
+      router.push(
+        `/program-head/tools?tab=published&toast=${encodeURIComponent(toastMessage)}`
       );
     } catch {
       setError("Unable to publish deployment right now. Please try again.");
+      showToast("Unable to publish deployment right now. Please try again.", "error");
     } finally {
       setIsSubmitting(false);
     }
@@ -98,7 +184,7 @@ export function PublishCentralDeploymentForm({
       <form
         ref={formRef}
         className="border-border bg-surface space-y-6 rounded-2xl border p-6 shadow-sm"
-        onSubmit={handleSubmit}
+        onSubmit={handlePreview}
       >
         <div className="space-y-2">
           <Label htmlFor="deployment_name">Deployed Evaluation Name</Label>
@@ -300,49 +386,176 @@ export function PublishCentralDeploymentForm({
         </div>
 
         {/* Messages */}
-        {error && <p className="bg-danger/10 text-danger rounded-lg px-3 py-2 text-sm">{error}</p>}
-        {successMessage && (
-          <p className="bg-success/10 text-success rounded-lg px-3 py-2 text-sm">
-            {successMessage}
-          </p>
+        {error && step === "configure" && (
+          <p className="bg-danger/10 text-danger rounded-lg px-3 py-2 text-sm">{error}</p>
         )}
 
         {/* Actions */}
-        <div className="border-border flex items-center justify-end gap-3 border-t pt-4">
-          <a
-            href="/program-head/tools"
-            className="text-text-secondary hover:text-text-primary text-sm font-medium"
-          >
-            Cancel
-          </a>
-          <Button
-            type="submit"
-            disabled={isSubmitting || templates.length === 0}
-            className="bg-primary text-on-primary"
-          >
-            {isSubmitting ? (
-              "Publishing..."
-            ) : (
-              <span className="inline-flex items-center gap-1.5">
-                <svg
-                  className="h-4 w-4"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={2}
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
-                  />
-                </svg>
-                Confirm Publication
-              </span>
-            )}
-          </Button>
-        </div>
+        {step === "configure" && (
+          <div className="border-border flex items-center justify-end gap-3 border-t pt-4">
+            <a
+              href="/program-head/tools"
+              className="text-text-secondary hover:text-text-primary text-sm font-medium"
+            >
+              Cancel
+            </a>
+            <Button
+              type="submit"
+              disabled={isLoadingPreview || templates.length === 0}
+              className="bg-primary text-on-primary"
+            >
+              {isLoadingPreview ? "Loading preview..." : "Preview Respondents"}
+            </Button>
+          </div>
+        )}
       </form>
+
+      {/* Preview Step */}
+      {step === "preview" && (
+        <div className="border-border bg-surface space-y-6 rounded-2xl border p-6 shadow-sm">
+          <div className="space-y-1">
+            <h2 className="text-label-lg font-semibold tracking-wide uppercase">
+              Respondent Preview
+            </h2>
+            <p className="text-text-secondary text-sm">
+              {previewRespondents.length} respondent(s) found.
+              {excludedRespondentIds.length > 0 && (
+                <span className="text-warning ml-1 font-medium">
+                  {excludedRespondentIds.length} excluded.
+                </span>
+              )}
+            </p>
+          </div>
+
+          {previewRespondents.length === 0 ? (
+            <p className="text-text-muted py-8 text-center text-sm">
+              No respondents matched the targeting criteria.
+            </p>
+          ) : (
+            <div className="max-h-[400px] overflow-auto rounded-lg border">
+              <table className="w-full text-sm">
+                <thead className="bg-surface-container-low sticky top-0">
+                  <tr className="text-text-secondary text-left text-xs font-semibold uppercase">
+                    <th className="px-3 py-2">
+                      <input
+                        type="checkbox"
+                        checked={excludedRespondentIds.length === 0}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setExcludedRespondentIds([]);
+                          } else {
+                            setExcludedRespondentIds(
+                              previewRespondents.map((r) => r.userId)
+                            );
+                          }
+                        }}
+                      />
+                    </th>
+                    <th className="px-3 py-2">Name</th>
+                    <th className="px-3 py-2">Email</th>
+                    {targetStakeholder === "STUDENT" && (
+                      <>
+                        <th className="px-3 py-2">Program</th>
+                        <th className="px-3 py-2">Year Level</th>
+                        <th className="px-3 py-2">Section</th>
+                        <th className="px-3 py-2">Student ID</th>
+                      </>
+                    )}
+                    {targetStakeholder === "INDUSTRY_PARTNER" && (
+                      <th className="px-3 py-2">Program</th>
+                    )}
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {previewRespondents.map((respondent) => {
+                    const isExcluded = excludedRespondentIds.includes(respondent.userId);
+                    return (
+                      <tr
+                        key={respondent.userId}
+                        className={isExcluded ? "bg-danger-soft/20 opacity-60" : ""}
+                      >
+                        <td className="px-3 py-2">
+                          <input
+                            type="checkbox"
+                            checked={!isExcluded}
+                            onChange={(e) =>
+                              handleExcludeRespondent(respondent.userId, !e.target.checked)
+                            }
+                          />
+                        </td>
+                        <td className="px-3 py-2">
+                          {respondent.lastName}, {respondent.firstName}
+                        </td>
+                        <td className="px-3 py-2">{respondent.email}</td>
+                        {targetStakeholder === "STUDENT" && (
+                          <>
+                            <td className="px-3 py-2">{respondent.programCode ?? "—"}</td>
+                            <td className="px-3 py-2">{respondent.yearLevelName ?? "—"}</td>
+                            <td className="px-3 py-2">{respondent.section ?? "—"}</td>
+                            <td className="px-3 py-2">{respondent.studentId ?? "—"}</td>
+                          </>
+                        )}
+                        {targetStakeholder === "INDUSTRY_PARTNER" && (
+                          <td className="px-3 py-2">{respondent.programCode ?? "—"}</td>
+                        )}
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {error && step === "preview" && (
+            <p className="bg-danger/10 text-danger rounded-lg px-3 py-2 text-sm">{error}</p>
+          )}
+
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              onClick={handlePublishFinal}
+              disabled={
+                isSubmitting ||
+                previewRespondents.length === 0 ||
+                previewRespondents.length === excludedRespondentIds.length
+              }
+              className="bg-primary text-on-primary"
+            >
+              {isSubmitting ? (
+                "Publishing..."
+              ) : (
+                <span className="inline-flex items-center gap-1.5">
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={2}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"
+                    />
+                  </svg>
+                  Confirm and Publish
+                </span>
+              )}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setStep("configure");
+                setError(null);
+              }}
+              disabled={isSubmitting}
+            >
+              Back to Configuration
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

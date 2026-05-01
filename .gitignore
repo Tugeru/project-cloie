@@ -13,6 +13,7 @@
 # testing
 /coverage
 /.playwright-mcp
+/.fallow
 
 # next.js
 /.next/
@@ -20,6 +21,7 @@
 
 # production
 /build
+/docs
 
 # misc
 .DS_Store
@@ -31,7 +33,7 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files
+# env files 
 .env
 .env*.local
 
@@ -54,7 +56,6 @@ AGENTS.md
 /plans
 
 # project docs (kept in repo but ignored in some workflows)
-/docs
 
 # IDE
 .idea

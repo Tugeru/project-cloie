@@ -4,7 +4,9 @@ import { prisma } from "@/lib/db/prisma";
 import { DEV_AUTH_COOKIE_NAME } from "@/features/auth/services/dev-auth";
 
 export async function POST(request: Request) {
-  if (process.env.NODE_ENV !== "development") {
+  const isDemoAllowed =
+    process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+  if (!isDemoAllowed) {
     return NextResponse.json({ error: "Unavailable outside development." }, { status: 404 });
   }
 

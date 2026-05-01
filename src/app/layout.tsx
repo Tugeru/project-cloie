@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Suspense } from "react";
 import { Manrope, Inter } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
@@ -55,7 +56,9 @@ export default function RootLayout({
     >
       <body suppressHydrationWarning className="flex min-h-full flex-col antialiased">
         {children}
-        <ToastProvider />
+        <Suspense fallback={null}>
+          <ToastProvider />
+        </Suspense>
       </body>
     </html>
   );

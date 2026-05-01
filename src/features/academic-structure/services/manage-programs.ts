@@ -17,7 +17,7 @@ function isUniqueConstraintError(error: unknown): boolean {
   );
 }
 
-export async function listPrograms() {
+async function listPrograms() {
   return prisma.program.findMany({
     include: {
       majors: {

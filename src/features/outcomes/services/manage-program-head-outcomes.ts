@@ -40,6 +40,7 @@ export type ProgramGOItem = {
   id: string;
   code: string;
   description: string;
+  order: number;
   is_active: boolean;
   program_id: string;
   created_at: Date;
@@ -87,7 +88,7 @@ export async function listProgramGOs(): Promise<ServiceResult<ListProgramGOsResu
         select: { cilo_mappings: true },
       },
     },
-    orderBy: { code: "asc" },
+    orderBy: [{ order: "asc" }, { code: "asc" }],
   });
 
   return {
@@ -118,10 +119,17 @@ export async function createGO(input: CreateGOInput): Promise<ServiceResult<{ id
   const programId = programIds[0];
 
   try {
+    const maxOrderResult = await prisma.gO.aggregate({
+      where: { program_id: programId },
+      _max: { order: true },
+    });
+    const nextOrder = (maxOrderResult._max.order ?? -1) + 1;
+
     const go = await prisma.gO.create({
       data: {
         code: input.code,
         description: input.description,
+        order: nextOrder,
         program_id: programId,
       },
     });
@@ -290,6 +298,12 @@ export async function reorderGOs(orderedIds: string[]): Promise<ServiceResult> {
       error: "You do not have permission to reorder these Graduate Outcomes.",
     };
   }
+
+  await prisma.$transaction(
+    orderedIds.map((id, index) =>
+      prisma.gO.update({ where: { id }, data: { order: index } })
+    )
+  );
 
   return { success: true, data: undefined };
 }

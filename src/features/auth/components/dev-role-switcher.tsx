@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { GripVertical } from "lucide-react";
+import { GripVertical, Search } from "lucide-react";
 import { DEMO_USERS } from "@/lib/constants/demo-users";
 import { cn } from "@/lib/utils";
 
@@ -102,9 +102,12 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [isExpanded, setIsExpanded] = useState(false);
+  const [search, setSearch] = useState("");
   const { containerRef, position, isDragging, dragHandleProps } = useDraggable();
 
-  if (process.env.NODE_ENV !== "development") {
+  const isDemoMode =
+    process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+  if (!isDemoMode) {
     return null;
   }
 
@@ -187,7 +190,24 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
       >
         <div className="min-h-0">
           <div className="grid max-h-[60vh] gap-1.5 overflow-y-auto pr-1">
-            {DEMO_USERS.map((user) => {
+            <div className="relative mb-1">
+              <Search className="text-text-muted pointer-events-none absolute top-1/2 left-2 size-3 -translate-y-1/2" />
+              <input
+                type="text"
+                placeholder="Search roles..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="border-border bg-background text-text-primary placeholder:text-text-muted w-full rounded-md border py-1.5 pl-6 pr-2 text-[11px] outline-none focus:ring-1 focus:ring-blue-500"
+              />
+            </div>
+            {DEMO_USERS.filter((u) => {
+              const q = search.toLowerCase();
+              return (
+                u.label.toLowerCase().includes(q) ||
+                u.email.toLowerCase().includes(q) ||
+                u.role.toLowerCase().includes(q)
+              );
+            }).map((user) => {
               const isActive = user.email === activeEmail;
 
               return (

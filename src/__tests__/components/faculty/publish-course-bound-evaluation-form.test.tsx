@@ -27,7 +27,7 @@ describe("PublishCourseBoundEvaluationForm", () => {
     ],
     course: {
       code: "CS101",
-      courseType: "PROGRAM_SPECIFIC",
+      courseType: "PROGRAM_SPECIFIC" as const,
       id: "course-1",
       majorId: null,
       majorName: null,
@@ -42,6 +42,17 @@ describe("PublishCourseBoundEvaluationForm", () => {
     template: {
       id: "template-1",
       name: "Course-Bound CILO Evaluation",
+      structure: [
+        {
+          key: "outcomes",
+          title: "Learning Outcomes",
+          order: 0,
+          questions: [
+            { key: "q1", prompt: "Students can apply the core concepts taught in the course.", type: "likert" as const, order: 0, required: true },
+            { key: "q2", prompt: "Students can produce maintainable software artifacts.", type: "likert" as const, order: 1, required: true },
+          ],
+        },
+      ],
     },
   };
 
@@ -55,6 +66,7 @@ describe("PublishCourseBoundEvaluationForm", () => {
       <PublishCourseBoundEvaluationForm
         publicationContext={publicationContext}
         yearLevels={yearLevels}
+        previewAction={vi.fn()}
         publishAction={vi.fn()}
       />
     );
@@ -66,17 +78,40 @@ describe("PublishCourseBoundEvaluationForm", () => {
     expect(
       screen.getByText(/students can apply the core concepts taught in the course/i)
     ).toBeInTheDocument();
-    expect(screen.getByLabelText("1st Year")).toBeInTheDocument();
-    expect(screen.getByLabelText("2nd Year")).toBeInTheDocument();
+    // Year level is now a dropdown (single-select)
+    expect(screen.getByLabelText(/target year level/i)).toBeInTheDocument();
+    // Section selector exists
+    expect(screen.getByLabelText(/section/i)).toBeInTheDocument();
   });
 
-  it("submits the targeting payload using the saved template context", async () => {
+  it("loads preview when configuration is valid then publishes with confirmed respondents", async () => {
+    const previewAction = vi.fn().mockResolvedValue({
+      respondents: [
+        {
+          email: "alice@school.edu",
+          firstName: "Alice",
+          lastName: "Adams",
+          majorId: null,
+          majorName: null,
+          programCode: "BSCS",
+          programId: "program-1",
+          programName: "BS Computer Science",
+          section: "MORNING",
+          studentId: "S001",
+          userId: "user-1",
+          yearLevelId: "year-1",
+          yearLevelName: "1st Year",
+        },
+      ],
+      success: true,
+      totalCount: 1,
+    });
     const publishAction = vi.fn().mockResolvedValue({
-      assignmentCount: 40,
+      assignmentCount: 1,
       evaluationId: "eval-1",
       status: "ACTIVE",
       success: true,
-      targetCount: 2,
+      targetCount: 1,
     });
 
     render(
@@ -88,6 +123,7 @@ describe("PublishCourseBoundEvaluationForm", () => {
         }}
         publicationContext={publicationContext}
         yearLevels={yearLevels}
+        previewAction={previewAction}
         publishAction={publishAction}
       />
     );
@@ -95,30 +131,48 @@ describe("PublishCourseBoundEvaluationForm", () => {
     fireEvent.change(screen.getByLabelText(/deployed evaluation name/i), {
       target: { value: "CS101 Post-Term CILO Evaluation" },
     });
-    fireEvent.change(screen.getByLabelText(/activation schedule/i), {
-      target: { value: "2026-05-01T08:30" },
+    // Select year level (single)
+    fireEvent.change(screen.getByLabelText(/target year level/i), {
+      target: { value: "year-1" },
     });
-    fireEvent.change(screen.getByLabelText(/deadline/i), {
-      target: { value: "2026-05-31T23:59" },
+    // For PROGRAM_SPECIFIC courses the single program is pre-selected — verify, don't click
+    expect(screen.getByLabelText(/BSCS - BS Computer Science/i)).toBeChecked();
+    // Click Preview Respondents
+    fireEvent.click(screen.getByRole("button", { name: /preview respondents/i }));
+
+    await waitFor(() => {
+      expect(previewAction).toHaveBeenCalledTimes(1);
     });
-    fireEvent.click(screen.getByLabelText("1st Year"));
-    fireEvent.click(screen.getByLabelText("2nd Year"));
-    fireEvent.click(screen.getByRole("button", { name: /publish evaluation/i }));
+
+    expect(previewAction).toHaveBeenCalledWith({
+      academicYear: "2026-2027",
+      section: null,
+      targetPrograms: ["program-1"],
+      targetYearLevelId: "year-1",
+    });
+
+    // Confirm and publish
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /confirm and publish/i })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: /confirm and publish/i }));
 
     await waitFor(() => {
       expect(publishAction).toHaveBeenCalledTimes(1);
     });
 
-    expect(publishAction).toHaveBeenCalledWith({
-      academicYear: "2026-2027",
-      activationAt: new Date("2026-05-01T08:30"),
-      deadlineAt: new Date("2026-05-31T23:59"),
-      deploymentName: "CS101 Post-Term CILO Evaluation",
-      semester: AcademicSemester.FIRST,
-      templateId: "template-1",
-      term: AcademicTerm.FIRST_TERM,
-      yearLevelIds: ["year-1", "year-2"],
-    });
-    expect(screen.getByText(/evaluation published successfully\./i)).toBeInTheDocument();
+    expect(publishAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        academicYear: "2026-2027",
+        deploymentName: "CS101 Post-Term CILO Evaluation",
+        respondentIds: ["user-1"],
+        section: null,
+        semester: AcademicSemester.FIRST,
+        targetPrograms: ["program-1"],
+        targetYearLevelId: "year-1",
+        templateId: "template-1",
+        term: AcademicTerm.FIRST_TERM,
+      })
+    );
   });
 });

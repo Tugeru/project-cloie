@@ -11,6 +11,7 @@ const validInput = {
   major_id: "",
   year_level_id: VALID_UUID_2,
   student_id_number: "21-12345",
+  section: "MORNING" as const,
 };
 
 describe("studentProfileSchema", () => {
@@ -155,6 +156,39 @@ describe("studentProfileSchema", () => {
         ...validInput,
         major_id: "invalid-major",
       });
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe("section validation", () => {
+    it("accepts MORNING section", () => {
+      const result = studentProfileSchema.safeParse({ ...validInput, section: "MORNING" });
+      expect(result.success).toBe(true);
+    });
+
+    it("accepts AFTERNOON section", () => {
+      const result = studentProfileSchema.safeParse({ ...validInput, section: "AFTERNOON" });
+      expect(result.success).toBe(true);
+    });
+
+    it("accepts EVENING section", () => {
+      const result = studentProfileSchema.safeParse({ ...validInput, section: "EVENING" });
+      expect(result.success).toBe(true);
+    });
+
+    it("rejects empty string section", () => {
+      const result = studentProfileSchema.safeParse({ ...validInput, section: "" });
+      expect(result.success).toBe(false);
+    });
+
+    it("rejects missing section", () => {
+      const { section, ...withoutSection } = validInput;
+      const result = studentProfileSchema.safeParse(withoutSection);
+      expect(result.success).toBe(false);
+    });
+
+    it("rejects invalid section value", () => {
+      const result = studentProfileSchema.safeParse({ ...validInput, section: "NIGHT" });
       expect(result.success).toBe(false);
     });
   });

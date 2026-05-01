@@ -12,7 +12,7 @@ export default async function StudentDashboardPage() {
   const session = await resolveAuthSession();
   const { active, submitted } = await listStudentAssignedEvaluations();
   const inProgressCount = active.filter((item) => item.status === "IN_PROGRESS").length;
-  const resumeItem = active.find((item) => item.status === "IN_PROGRESS") ?? active[0] ?? null;
+  const resumeItem = active.find((item) => item.status === "IN_PROGRESS") ?? null;
 
   const profile = session
     ? await prisma.studentAcademicProfile.findUnique({
@@ -47,18 +47,6 @@ export default async function StudentDashboardPage() {
         inProgress={inProgressCount}
         completed={submitted.length}
       />
-
-      {session?.isGraduating && (
-        <Card className="border-primary/30 bg-primary-soft/40 mt-6">
-          <CardContent className="p-4">
-            <p className="text-primary font-semibold">Graduating Eligibility Active</p>
-            <p className="text-text-secondary text-sm">
-              Graduating-student tools appear here only when a real program-level deployment assigns
-              them to your account.
-            </p>
-          </CardContent>
-        </Card>
-      )}
 
       {resumeItem && (
         <section className="mt-8 space-y-4">
@@ -117,10 +105,13 @@ export default async function StudentDashboardPage() {
         </div>
 
         <div className="grid gap-4">
-          {active.slice(0, 3).map((evalItem) => (
-            <EvaluationListCard key={evalItem.assignmentId} {...evalItem} />
-          ))}
-          {active.length === 0 && (
+          {active
+            .filter((item) => item.status === "NOT_STARTED" || item.status === "DUE_SOON")
+            .slice(0, 3)
+            .map((evalItem) => (
+              <EvaluationListCard key={evalItem.assignmentId} {...evalItem} />
+            ))}
+          {active.filter((item) => item.status === "NOT_STARTED" || item.status === "DUE_SOON").length === 0 && (
             <div className="border-border rounded-xl border-2 border-dashed py-12 text-center">
               <p className="text-text-muted font-medium">No active evaluations found.</p>
             </div>

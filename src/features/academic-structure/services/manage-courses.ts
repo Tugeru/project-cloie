@@ -76,7 +76,7 @@ async function ensureCourseScopeContext(input: {
   };
 }
 
-export async function listCourses() {
+async function listCourses() {
   return prisma.course.findMany({
     include: {
       major: {

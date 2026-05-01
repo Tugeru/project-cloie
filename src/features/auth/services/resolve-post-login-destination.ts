@@ -33,7 +33,7 @@ export function resolvePostLoginDestination({
   const sanitizedRequestedPath = sanitizeRequestedPath(requestedPath);
 
   if (profileGate.status === "ROLE_SELECTION_REQUIRED") {
-    return intent === "student" ? "/onboarding?intent=student" : "/onboarding";
+    return "/onboarding?intent=student";
   }
 
   if (profileGate.status === "STUDENT_ONBOARDING_REQUIRED") {

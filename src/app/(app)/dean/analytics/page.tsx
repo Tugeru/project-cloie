@@ -12,9 +12,9 @@ export default function DeanAnalyticsPage() {
 
       <div className="grid gap-4 md:grid-cols-3">
         {[
-          { label: "Cross-Program Means", value: "Scaffolded" },
-          { label: "Comparison Views", value: "Planned" },
-          { label: "Qualitative Signals", value: "Ready" },
+          { label: "Cross-Program Means", value: "placeholder" },
+          { label: "Comparison Views", value: "Pplaceholder" },
+          { label: "Qualitative Signals", value: "placeholder" },
         ].map((stat) => (
           <Card key={stat.label}>
             <CardHeader className="pb-2">

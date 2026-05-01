@@ -8,7 +8,7 @@ type DevAuthCookiePayload = {
 };
 
 export async function readDevAuthCookie(): Promise<DevAuthCookiePayload | null> {
-  if (process.env.NODE_ENV !== "development") {
+  if (process.env.NODE_ENV !== "development" && process.env.NEXT_PUBLIC_DEMO_MODE !== "true") {
     return null;
   }
 

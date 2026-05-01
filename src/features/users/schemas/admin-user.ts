@@ -1,4 +1,4 @@
-import { InviteStatus, SystemRole } from "@prisma/client";
+import { InviteStatus, StudentSection, SystemRole } from "@prisma/client";
 import { z } from "zod";
 
 const optionalUuidField = z.preprocess(
@@ -24,11 +24,6 @@ const optionalLongTextField = z.preprocess((value) => {
   return trimmed.length > 0 ? trimmed : undefined;
 }, z.string().max(1000).optional());
 
-const checkboxBoolean = z.preprocess(
-  (value) => value === true || value === "true" || value === "on",
-  z.boolean()
-);
-
 export const assignRoleSchema = z.object({
   user_id: z.string().uuid(),
   role: z.nativeEnum(SystemRole),
@@ -45,7 +40,10 @@ export const updateStudentAcademicContextSchema = z.object({
     .trim()
     .min(4, "Academic year is required.")
     .max(20, "Academic year must be 20 characters or fewer."),
-  is_graduating: checkboxBoolean,
+  section: z.preprocess(
+    (value) => (value === "" || value == null ? undefined : value),
+    z.nativeEnum(StudentSection).optional()
+  ),
 });
 
 export const createFacultyAffiliationSchema = z.object({
@@ -83,7 +81,7 @@ export const createExternalInviteDraftSchema = z.object({
   note: optionalLongTextField,
 });
 
-export const updateExternalInviteStatusSchema = z.object({
+const updateExternalInviteStatusSchema = z.object({
   id: z.string().uuid(),
   status: z.nativeEnum(InviteStatus),
 });

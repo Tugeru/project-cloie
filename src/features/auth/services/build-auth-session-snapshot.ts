@@ -8,7 +8,6 @@ export type AuthSessionSnapshot = {
   roles: Role[];
   primaryRole: Role | null;
   studentProfileId: string | null;
-  isGraduating: boolean;
   profileGate: ReturnType<typeof resolveProfileGate>;
 };
 
@@ -17,7 +16,6 @@ export function buildAuthSessionSnapshot(input: {
   email: string | null;
   roles: Role[];
   studentProfileId: string | null;
-  isGraduating: boolean;
 }): AuthSessionSnapshot {
   const primaryRole = resolvePrimaryRole(input.roles);
 
@@ -27,7 +25,6 @@ export function buildAuthSessionSnapshot(input: {
     roles: input.roles,
     primaryRole,
     studentProfileId: input.studentProfileId,
-    isGraduating: input.isGraduating,
     profileGate: resolveProfileGate({
       roles: input.roles,
       primaryRole,

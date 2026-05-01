@@ -58,7 +58,7 @@ async function ensureProgramMajorRelation(programId: string, majorId?: string) {
   return { success: true as const };
 }
 
-export async function listAdminUsers() {
+async function listAdminUsers() {
   return prisma.user.findMany({
     include: {
       roles: {
@@ -101,7 +101,7 @@ export async function listAdminUsers() {
   });
 }
 
-export async function listExternalStakeholderInvites() {
+async function listExternalStakeholderInvites() {
   return prisma.externalStakeholderInvite.findMany({
     include: {
       program: true,
@@ -255,7 +255,7 @@ export async function upsertStudentAcademicContext(
       year_level_id: input.year_level_id,
       student_id_number: input.student_id_number ?? null,
       academic_year: input.academic_year,
-      is_graduating: input.is_graduating,
+      section: input.section ?? null,
     },
     create: {
       user_id: input.user_id,
@@ -264,7 +264,7 @@ export async function upsertStudentAcademicContext(
       year_level_id: input.year_level_id,
       student_id_number: input.student_id_number ?? null,
       academic_year: input.academic_year,
-      is_graduating: input.is_graduating,
+      section: input.section ?? null,
     },
   });
 

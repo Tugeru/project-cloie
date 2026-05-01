@@ -138,10 +138,7 @@ export async function listProgramHeadTemplates(): Promise<
 
   const rawTemplates = await prisma.instrumentTemplate.findMany({
     where: {
-      OR: [
-        { program_id: programId },
-        { program_id: null }, // Institutional baselines
-      ],
+      program_id: programId, // Only program-owned templates
     },
     include: {
       versions: {
@@ -175,7 +172,7 @@ export async function listProgramHeadTemplates(): Promise<
     updated_at: t.updated_at,
     _count: t._count,
     latestVersion: t.versions[0] ?? null,
-    isReadOnly: t.program_id === null, // Institutional baselines are read-only
+    isReadOnly: false, // All returned templates are program-owned and editable
   }));
 
   return { success: true, data: { templates, program } };

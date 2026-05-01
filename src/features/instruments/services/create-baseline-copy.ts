@@ -1,0 +1,150 @@
+"use server";
+
+import { EvaluationTemplateType, Prisma } from "@prisma/client";
+import { ROLES } from "@/lib/constants/roles";
+import { prisma } from "@/lib/db/prisma";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import type { TemplateStructure } from "../types";
+
+type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
+
+interface CreateBaselineCopyInput {
+  baselineId: string;
+  customName: string;
+  structure: TemplateStructure;
+}
+
+async function requirePHSession(): Promise<
+  ServiceResult<{ userId: string; programIds: string[] }>
+> {
+  const session = await resolveAuthSession();
+
+  if (!session || !session.roles.includes(ROLES.PROGRAM_HEAD)) {
+    return { success: false, error: "Unauthorized: Program Head access required." };
+  }
+
+  // Get active program assignments
+  const assignments = await prisma.programHeadAssignment.findMany({
+    where: { program_head_id: session.userId, is_active: true },
+    select: { program_id: true },
+  });
+
+  const programIds = [...new Set(assignments.map((a) => a.program_id))];
+
+  if (programIds.length === 0) {
+    return {
+      success: false,
+      error: "No active program assignment found for this Program Head.",
+    };
+  }
+
+  return { success: true, data: { userId: session.userId, programIds } };
+}
+
+function generateProgramTemplateCode(programCode: string, baseCode: string): string {
+  // Generate code like "BSIT-CILO-EVAL" from program code + original code
+  return `${programCode}-${baseCode}`;
+}
+
+export async function createBaselineCopy(
+  input: CreateBaselineCopyInput
+): Promise<ServiceResult<{ id: string }>> {
+  const authResult = await requirePHSession();
+
+  if (!authResult.success) {
+    return authResult;
+  }
+
+  const { programIds } = authResult.data;
+
+  // Use first assigned program (Program Heads typically have one program)
+  const programId = programIds[0];
+
+  // Fetch the baseline template
+  const baseline = await prisma.instrumentTemplate.findUnique({
+    where: { id: input.baselineId },
+    select: {
+      id: true,
+      code: true,
+      name: true,
+      description: true,
+      template_type: true,
+      is_faculty_accessible: true,
+      structure: true,
+      faculty_owner_id: true,
+      program_id: true,
+    },
+  });
+
+  if (!baseline) {
+    return { success: false, error: "Baseline template not found." };
+  }
+
+  // Verify this is an institutional baseline (admin-owned, program-unbound)
+  if (baseline.faculty_owner_id !== null || baseline.program_id !== null) {
+    return {
+      success: false,
+      error: "Only institutional baseline templates can be copied this way.",
+    };
+  }
+
+  // Get program details for code generation
+  const program = await prisma.program.findUnique({
+    where: { id: programId },
+    select: { code: true },
+  });
+
+  if (!program) {
+    return { success: false, error: "Assigned program not found." };
+  }
+
+  const code = generateProgramTemplateCode(program.code, baseline.code);
+
+  try {
+    const template = await prisma.$transaction(async (tx) => {
+      const createdTemplate = await tx.instrumentTemplate.create({
+        data: {
+          code,
+          name: input.customName,
+          description: baseline.description ?? null,
+          is_active: true,
+          is_faculty_accessible:
+            baseline.template_type === EvaluationTemplateType.COURSE_BOUND &&
+            baseline.is_faculty_accessible,
+          program_id: programId,
+          source_template_id: baseline.id,
+          structure: input.structure as unknown as Prisma.InputJsonValue,
+          template_type: baseline.template_type,
+        },
+      });
+
+      // Create initial version
+      await tx.instrumentVersion.create({
+        data: {
+          template_id: createdTemplate.id,
+          version_number: 1,
+          structure_snapshot: input.structure as unknown as Prisma.InputJsonValue,
+          is_active: true,
+        },
+      });
+
+      return createdTemplate;
+    });
+
+    return { success: true, data: { id: template.id } };
+  } catch (error) {
+    if (
+      error &&
+      typeof error === "object" &&
+      "code" in error &&
+      (error as { code?: string }).code === "P2002"
+    ) {
+      return {
+        success: false,
+        error: `A template with code "${code}" already exists. Try a different name.`,
+      };
+    }
+
+    throw error;
+  }
+}
