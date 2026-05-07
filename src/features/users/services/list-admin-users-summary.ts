@@ -1,4 +1,4 @@
-import { SystemRole } from "@prisma/client";
+import { SystemRole, YearLevel } from "@prisma/client";
 
 import { prisma } from "@/lib/db/prisma";
 import { ROLE_LEVELS } from "@/lib/constants/roles";
@@ -36,7 +36,7 @@ export type AdminUsersSummaryResult = {
     name: string;
     majors: Array<{ id: string; name: string }>;
   }>;
-  yearLevels: Array<{ id: string; name: string }>;
+  yearLevels: YearLevel[];
 };
 
 // ---------------------------------------------------------------------------
@@ -145,7 +145,7 @@ async function queryUsers() {
 // ---------------------------------------------------------------------------
 
 export async function listAdminUsersSummary(): Promise<AdminUsersSummaryResult> {
-  const [rawUsers, programs, yearLevels] = await Promise.all([
+  const [rawUsers, programs] = await Promise.all([
     queryUsers(),
     prisma.program.findMany({
       where: { is_active: true },
@@ -158,11 +158,9 @@ export async function listAdminUsersSummary(): Promise<AdminUsersSummaryResult> 
         },
       },
     }),
-    prisma.yearLevel.findMany({
-      orderBy: { order: "asc" },
-      select: { id: true, name: true },
-    }),
   ]);
+
+  const yearLevels = Object.values(YearLevel);
 
   // KPI accumulators
   let totalStudents = 0;
@@ -199,7 +197,7 @@ export async function listAdminUsersSummary(): Promise<AdminUsersSummaryResult> 
       totalAlumni,
       totalIndustryPartners,
     },
-    yearLevels,
+    yearLevels: yearLevels,
     programs: programs.map((p) => ({
       id: p.id,
       code: p.code,

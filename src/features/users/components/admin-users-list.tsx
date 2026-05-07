@@ -2,7 +2,8 @@
 
 import { useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { StudentSection, SystemRole } from "@prisma/client";
+import { StudentSection, SystemRole, YearLevel } from "@prisma/client";
+import { getYearLevelDisplay } from "@/lib/constants/year-levels";
 import {
   MoreVertical,
   Search,
@@ -130,7 +131,7 @@ type AdminUsersListProps = {
     name: string;
     majors: Array<{ id: string; name: string }>;
   }>;
-  yearLevels: Array<{ id: string; name: string }>;
+  yearLevels: YearLevel[];
 };
 
 // ---------------------------------------------------------------------------
@@ -241,12 +242,12 @@ function StudentContextDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
   programs: Array<{ id: string; code: string; name: string; majors: Array<{ id: string; name: string }> }>;
-  yearLevels: Array<{ id: string; name: string }>;
+  yearLevels: YearLevel[];
 }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [selectedProgramId, setSelectedProgramId] = useState<string>("");
-  const [selectedYearLevelId, setSelectedYearLevelId] = useState<string>("");
+  const [selectedYearLevel, setSelectedYearLevel] = useState<YearLevel | "">("");
   const [selectedMajorId, setSelectedMajorId] = useState<string>("");
   const [selectedSection, setSelectedSection] = useState<string>("");
 
@@ -315,22 +316,20 @@ function StudentContextDialog({
           <div className="space-y-2">
             <Label htmlFor="sc-year-level">Year Level</Label>
             <Select
-              name="year_level_id"
+              name="year_level"
               required
-              value={selectedYearLevelId}
-              onValueChange={(v) => setSelectedYearLevelId(v ?? "")}
+              value={selectedYearLevel}
+              onValueChange={(v) => setSelectedYearLevel(v as YearLevel)}
             >
               <SelectTrigger id="sc-year-level" className="w-full">
                 <SelectValue placeholder="Select year level">
-                  {selectedYearLevelId
-                    ? yearLevels.find((yl) => yl.id === selectedYearLevelId)?.name
-                    : null}
+                  {selectedYearLevel ? getYearLevelDisplay(selectedYearLevel) : null}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {yearLevels.map((yl) => (
-                  <SelectItem key={yl.id} value={yl.id}>
-                    {yl.name}
+                  <SelectItem key={yl} value={yl}>
+                    {getYearLevelDisplay(yl)}
                   </SelectItem>
                 ))}
               </SelectContent>
