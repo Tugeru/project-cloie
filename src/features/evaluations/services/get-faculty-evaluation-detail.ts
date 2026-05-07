@@ -47,12 +47,6 @@ export async function getFacultyEvaluationDetail(
               code: true,
             },
           },
-          year_level: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
         },
       },
       cilo_question_bindings: {
@@ -133,8 +127,7 @@ export async function getFacultyEvaluationDetail(
     targets: evaluation.targets.map((target) => ({
       programCode: target.program.code,
       programId: target.program.id,
-      yearLevelId: target.year_level?.id ?? null,
-      yearLevelName: target.year_level?.name ?? null,
+      yearLevel: target.year_level,
     })),
     templateBindings: evaluation.cilo_question_bindings.map((binding) => ({
       ciloDescriptionSnapshot: binding.cilo_description_snapshot,

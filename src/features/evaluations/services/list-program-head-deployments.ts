@@ -1,4 +1,5 @@
 import { ROLES } from "@/lib/constants/roles";
+import { getYearLevelDisplay } from "@/lib/constants/year-levels";
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import type { DeploymentStatus, TargetStakeholder, AcademicSemester } from "@prisma/client";
@@ -95,9 +96,6 @@ export async function listProgramHeadDeployments(): Promise<
       major: {
         select: { name: true },
       },
-      year_level: {
-        select: { name: true },
-      },
       assignments: {
         select: {
           id: true,
@@ -120,7 +118,7 @@ export async function listProgramHeadDeployments(): Promise<
     programName: d.program?.name ?? null,
     programCode: d.program?.code ?? null,
     majorName: d.major?.name ?? null,
-    yearLevelName: d.year_level?.name ?? null,
+    yearLevelName: d.year_level ? getYearLevelDisplay(d.year_level) : null,
     target_stakeholder: d.target_stakeholder,
     status: d.status,
     academic_year: d.academic_year,

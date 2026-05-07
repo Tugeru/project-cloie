@@ -61,15 +61,7 @@ export async function listFacultyPublishedEvaluations(): Promise<ListFacultyPubl
           name: true,
         },
       },
-      targets: {
-        include: {
-          year_level: {
-            select: {
-              name: true,
-            },
-          },
-        },
-      },
+      targets: true,
       _count: {
         select: {
           assignments: true,
@@ -121,8 +113,8 @@ export async function listFacultyPublishedEvaluations(): Promise<ListFacultyPubl
       semester: evalItem.semester,
       status: evalItem.status,
       targetYearLevels: evalItem.targets
-        .map((t) => t.year_level?.name ?? null)
-        .filter((name): name is string => name !== null),
+        .map((t) => t.year_level)
+        .filter((yl): yl is NonNullable<typeof yl> => yl !== null),
       term: evalItem.term,
       totalAssignments: evalItem._count.assignments,
     };
