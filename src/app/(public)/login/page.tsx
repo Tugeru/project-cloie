@@ -27,15 +27,15 @@ export default async function LoginPage({
           <Image
             src="/logos/cloie-logo.png"
             alt="CLOIE Logo"
-            width={64}
-            height={64}
-            className="rounded-2xl shadow-lg"
+            width={56}
+            height={56}
+            className="shrink-0 object-contain"
             priority
           />
         </div>
-        <h1 className="text-display-md font-bold tracking-tight text-[#2563eb]">CLOIE</h1>
+        <h1 className="text-display-md font-bold tracking-tight text-[#2563eb]">System CLOIE</h1>
         <p className="mt-2 text-center text-[#64748b]">
-          Comprehensive Learning Outcomes
+          System for Comprehensive Learning Outcomes
           <br />
           and Instructional Evaluation
         </p>
@@ -79,7 +79,7 @@ export default async function LoginPage({
         <CardHeader className="space-y-3 pt-8 pb-6 text-center">
           <CardTitle className="text-heading-lg font-bold text-[#0f172a]">Welcome Back!</CardTitle>
           <CardDescription className="text-body-md mx-auto max-w-[280px] text-[#64748b]">
-            Sign in with your institutional Google account to access your dashboard.
+            Sign in with your ACD Google account to access your dashboard.
           </CardDescription>
         </CardHeader>
 
