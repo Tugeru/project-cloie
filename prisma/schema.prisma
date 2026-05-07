@@ -36,6 +36,15 @@ enum AcademicTerm {
   @@map("academic_term")
 }
 
+enum YearLevel {
+  FIRST_YEAR
+  SECOND_YEAR
+  THIRD_YEAR
+  FOURTH_YEAR
+
+  @@map("year_level")
+}
+
 enum InviteStatus {
   DRAFT
   SENT
@@ -193,24 +202,12 @@ model Course {
   @@map("courses")
 }
 
-model YearLevel {
-  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name        String   @unique // 1st Year, 2nd Year, etc.
-  order       Int
-
-  student_profiles StudentAcademicProfile[]
-  course_bound_targets CourseBoundEvaluationTarget[]
-  central_deployments CentralDeployment[]
-
-  @@map("year_levels")
-}
-
 model StudentAcademicProfile {
   id                String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   user_id           String         @unique @db.Uuid
   program_id        String         @db.Uuid
   major_id          String?        @db.Uuid
-  year_level_id     String         @db.Uuid
+  year_level        YearLevel
   student_id_number String?
   academic_year     String
   section           StudentSection?
@@ -220,7 +217,6 @@ model StudentAcademicProfile {
   user              User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
   program           Program    @relation(fields: [program_id], references: [id], onDelete: Restrict)
   major             Major?     @relation(fields: [major_id], references: [id], onDelete: SetNull)
-  year_level        YearLevel  @relation(fields: [year_level_id], references: [id], onDelete: Restrict)
 
   @@map("student_academic_profiles")
 }
@@ -436,41 +432,39 @@ model ProgramHeadAssignment {
 }
 
 model CourseBoundEvaluationTarget {
-  id                         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  course_bound_evaluation_id String   @db.Uuid
-  program_id                 String   @db.Uuid
-  year_level_id              String?  @db.Uuid
-  created_at                 DateTime @default(now())
-  updated_at                 DateTime @updatedAt
+  id                         String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  course_bound_evaluation_id String     @db.Uuid
+  program_id                 String     @db.Uuid
+  year_level                 YearLevel?
+  created_at                 DateTime   @default(now())
+  updated_at                 DateTime   @updatedAt
 
   course_bound_evaluation    CourseBoundEvaluation @relation(fields: [course_bound_evaluation_id], references: [id], onDelete: Cascade)
   program                    Program               @relation(fields: [program_id], references: [id], onDelete: Cascade)
-  year_level                 YearLevel?            @relation(fields: [year_level_id], references: [id], onDelete: SetNull)
 
-  @@unique([course_bound_evaluation_id, program_id, year_level_id])
+  @@unique([course_bound_evaluation_id, program_id, year_level])
   @@map("course_bound_evaluation_targets")
 }
 
 model CentralDeployment {
-  id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  instrument_version_id String   @db.Uuid
+  id                    String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  instrument_version_id String            @db.Uuid
   deployment_name       String
-  program_id            String?  @db.Uuid
-  major_id              String?  @db.Uuid
-  year_level_id         String?  @db.Uuid
+  program_id            String?           @db.Uuid
+  major_id              String?           @db.Uuid
+  year_level            YearLevel?
   target_stakeholder    TargetStakeholder
   academic_year         String
   semester              AcademicSemester
   activation_at         DateTime?
   deadline_at           DateTime?
   status                DeploymentStatus
-  created_at            DateTime @default(now())
-  updated_at            DateTime @updatedAt
+  created_at            DateTime          @default(now())
+  updated_at            DateTime          @updatedAt
 
   instrument            InstrumentVersion @relation(fields: [instrument_version_id], references: [id], onDelete: Restrict)
   program               Program?          @relation(fields: [program_id], references: [id], onDelete: SetNull)
   major                 Major?            @relation(fields: [major_id], references: [id], onDelete: SetNull)
-  year_level            YearLevel?        @relation(fields: [year_level_id], references: [id], onDelete: SetNull)
   assignments           EvaluationAssignment[] @relation("CentralDeployments")
 
   @@map("central_deployments")
