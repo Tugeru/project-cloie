@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
-import { AcademicSemester, AcademicTerm, CourseScope } from "@prisma/client";
+import { AcademicSemester, AcademicTerm, CourseScope, YearLevel } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,12 +18,6 @@ import type {
   StudentSection,
 } from "@/features/evaluations/types";
 import type { TemplateStructure } from "@/features/instruments/types";
-
-type YearLevelOption = {
-  id: string;
-  name: string;
-  order: number;
-};
 
 type ProgramOption = {
   id: string;
@@ -86,7 +80,7 @@ interface PublishCourseBoundEvaluationFormProps {
   publishAction: (
     payload: PublishCourseBoundEvaluationInput
   ) => Promise<PublishCourseBoundEvaluationResult>;
-  yearLevels: YearLevelOption[];
+  yearLevels: YearLevel[];
 }
 
 export function PublishCourseBoundEvaluationForm({
@@ -120,7 +114,7 @@ export function PublishCourseBoundEvaluationForm({
 
   // Targeting - changed from multi-year-level to single year level + multi-program.
   // For non-GE courses the program is fixed, so pre-select it to avoid blocking the form.
-  const [selectedYearLevelId, setSelectedYearLevelId] = useState<string>("");
+  const [selectedYearLevel, setSelectedYearLevel] = useState<YearLevel | "">("");
   const [selectedProgramIds, setSelectedProgramIds] = useState<string[]>(
     isGeneralEducation ? [] : effectiveAvailablePrograms.map((p) => p.id)
   );
@@ -199,7 +193,7 @@ export function PublishCourseBoundEvaluationForm({
       return false;
     }
 
-    if (!selectedYearLevelId) {
+    if (!selectedYearLevel) {
       const message = "Please select a target year level.";
       setError(message);
       showToast(message, "error");
@@ -229,7 +223,7 @@ export function PublishCourseBoundEvaluationForm({
         academicYear: academicYear.trim(),
         section,
         targetPrograms: selectedProgramIds,
-        targetYearLevelId: selectedYearLevelId,
+        targetYearLevel: selectedYearLevel as YearLevel,
       });
 
       if (!result.success) {
@@ -267,7 +261,7 @@ export function PublishCourseBoundEvaluationForm({
       section,
       semester,
       targetPrograms: selectedProgramIds,
-      targetYearLevelId: selectedYearLevelId,
+      targetYearLevel: selectedYearLevel as YearLevel,
       templateId: publicationContext.template.id,
       term,
     };
@@ -501,13 +495,13 @@ export function PublishCourseBoundEvaluationForm({
             <select
               id="year-level"
               className="border-input h-9 w-full rounded-lg border bg-transparent px-2.5 text-sm"
-              value={selectedYearLevelId}
-              onChange={(event) => setSelectedYearLevelId(event.target.value)}
+              value={selectedYearLevel}
+              onChange={(event) => setSelectedYearLevel(event.target.value as YearLevel)}
             >
               <option value="">Select a year level...</option>
               {yearLevels.map((yearLevel) => (
-                <option key={yearLevel.id} value={yearLevel.id}>
-                  {yearLevel.name}
+                <option key={yearLevel} value={yearLevel}>
+                  {yearLevel.replace("_", " ").replace(/\\d/, (m) => m + "th")}
                 </option>
               ))}
             </select>
@@ -610,7 +604,7 @@ export function PublishCourseBoundEvaluationForm({
                           </td>
                           <td className="px-3 py-2">{respondent.email}</td>
                           <td className="px-3 py-2">{respondent.programCode}</td>
-                          <td className="px-3 py-2">{respondent.yearLevelName}</td>
+                          <td className="px-3 py-2">{respondent.yearLevel}</td>
                           <td className="px-3 py-2">{respondent.section ?? "—"}</td>
                           <td className="px-3 py-2">{respondent.studentId ?? "—"}</td>
                         </tr>

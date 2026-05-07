@@ -2,6 +2,7 @@
 
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { getYearLevelDisplay } from "@/lib/constants/year-levels";
 import type { FacultyEvaluationDetail } from "../types";
 
 interface EvaluationDetailDialogProps {
@@ -183,7 +184,7 @@ export function EvaluationDetailDialog({
               ) : (
                 detail.targets.map((target, index) => (
                   <Badge key={index} variant="outline">
-                    {target.yearLevelName ?? "All Year Levels"}
+                    {target.yearLevel ? getYearLevelDisplay(target.yearLevel) : "All Year Levels"}
                   </Badge>
                 ))
               )}

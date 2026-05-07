@@ -38,9 +38,9 @@ export async function publishCentralDeploymentAction(formData: FormData): Promis
     }
   }
 
-  const yearLevelId = formData.get("year_level_id");
-  if (yearLevelId && typeof yearLevelId === "string" && yearLevelId.length > 0) {
-    raw.year_level_id = yearLevelId;
+  const yearLevel = formData.get("year_level");
+  if (yearLevel && typeof yearLevel === "string" && yearLevel.length > 0) {
+    raw.year_level = yearLevel;
   }
 
   const activationDate = formData.get("activation_date") as string | null;
