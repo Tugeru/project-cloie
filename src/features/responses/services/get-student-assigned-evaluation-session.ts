@@ -1,3 +1,4 @@
+import { getYearLevelDisplay } from "@/lib/constants/year-levels";
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import type {
@@ -78,7 +79,6 @@ export async function getStudentAssignedEvaluationSession(
           },
           major: true,
           program: true,
-          year_level: true,
         },
       },
       course_bound: {
@@ -171,7 +171,7 @@ export async function getStudentAssignedEvaluationSession(
         majorName: deployment.major?.name ?? null,
         programCode: deployment.program?.code ?? null,
         programName: deployment.program?.name ?? null,
-        yearLevelName: deployment.year_level?.name ?? null,
+        yearLevelName: deployment.year_level ? getYearLevelDisplay(deployment.year_level) : null,
       }),
       savedAnswers,
       sections,
