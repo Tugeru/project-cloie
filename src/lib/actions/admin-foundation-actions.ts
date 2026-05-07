@@ -8,20 +8,11 @@ import {
   updateCourseSchema,
 } from "@/features/academic-structure/schemas/course";
 import {
-  createYearLevelSchema,
-  updateYearLevelSchema,
-} from "@/features/academic-structure/schemas/year-level";
-import {
   createCourse,
   deleteCourse,
   toggleCourseActive,
   updateCourse,
 } from "@/features/academic-structure/services/manage-courses";
-import {
-  createYearLevel,
-  deleteYearLevel,
-  updateYearLevel,
-} from "@/features/academic-structure/services/manage-year-levels";
 import {
   assignRoleSchema,
   createExternalInviteDraftSchema,
@@ -76,7 +67,6 @@ function parseWithSchema<T>(
 function revalidateAdminFoundation() {
   revalidatePath("/admin/dashboard");
   revalidatePath("/admin/courses");
-  revalidatePath("/admin/year-levels");
   revalidatePath("/admin/users");
   revalidatePath("/admin/instruments");
 }
@@ -155,58 +145,6 @@ export async function deleteCourseAction(id: string): Promise<ActionResult> {
   return { success: true };
 }
 
-export async function createYearLevelAction(formData: FormData): Promise<ActionResult> {
-  const parsed = parseWithSchema(createYearLevelSchema, {
-    name: formData.get("name"),
-    order: formData.get("order"),
-  });
-
-  if (!parsed.success) {
-    return parsed;
-  }
-
-  const result = await createYearLevel(parsed.data);
-
-  if (!result.success) {
-    return { success: false, error: result.error };
-  }
-
-  revalidateAdminFoundation();
-  return { success: true };
-}
-
-export async function updateYearLevelAction(formData: FormData): Promise<ActionResult> {
-  const parsed = parseWithSchema(updateYearLevelSchema, {
-    id: formData.get("id"),
-    name: formData.get("name"),
-    order: formData.get("order"),
-  });
-
-  if (!parsed.success) {
-    return parsed;
-  }
-
-  const result = await updateYearLevel(parsed.data);
-
-  if (!result.success) {
-    return { success: false, error: result.error };
-  }
-
-  revalidateAdminFoundation();
-  return { success: true };
-}
-
-export async function deleteYearLevelAction(id: string): Promise<ActionResult> {
-  const result = await deleteYearLevel(id);
-
-  if (!result.success) {
-    return { success: false, error: result.error };
-  }
-
-  revalidateAdminFoundation();
-  return { success: true };
-}
-
 export async function toggleUserActiveAction(
   id: string,
   is_active: boolean
@@ -262,7 +200,7 @@ export async function updateStudentAcademicContextAction(
     user_id: formData.get("user_id"),
     program_id: formData.get("program_id"),
     major_id: formData.get("major_id"),
-    year_level_id: formData.get("year_level_id"),
+    year_level: formData.get("year_level"),
     student_id_number: formData.get("student_id_number"),
     academic_year: formData.get("academic_year"),
     section: formData.get("section"),
