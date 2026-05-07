@@ -2,7 +2,7 @@
 
 import { useState, useRef, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { type TargetStakeholder } from "@prisma/client";
+import { type TargetStakeholder, YearLevel } from "@prisma/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +24,7 @@ type Step = "configure" | "preview";
 
 interface PublishCentralDeploymentFormProps {
   templates: Array<{ id: string; name: string; code: string }>;
-  yearLevels: Array<{ id: string; name: string }>;
+  yearLevels: YearLevel[];
   majors: Array<{ id: string; name: string }>;
   programId: string;
   programLabel: string;
@@ -92,7 +92,10 @@ export function PublishCentralDeploymentForm({
 
     const formData = new FormData(event.currentTarget);
     const academicYear = (formData.get("academic_year") as string)?.trim();
-    const yearLevelId = (formData.get("year_level_id") as string) || undefined;
+    const yearLevelValue = formData.get("year_level");
+    const yearLevel = yearLevelValue && typeof yearLevelValue === "string" && yearLevelValue.length > 0
+      ? (yearLevelValue as YearLevel)
+      : undefined;
     const majorId = (formData.get("major_id") as string) || undefined;
 
     if (!academicYear) {
@@ -100,7 +103,7 @@ export function PublishCentralDeploymentForm({
       return;
     }
 
-    if (targetStakeholder === "STUDENT" && !yearLevelId) {
+    if (targetStakeholder === "STUDENT" && !yearLevel) {
       setError("Please select a target year level.");
       return;
     }
@@ -113,7 +116,7 @@ export function PublishCentralDeploymentForm({
         majorId,
         programId,
         targetStakeholder: targetStakeholder as TargetStakeholder,
-        yearLevelId,
+        yearLevel,
       });
 
       if (!result.success) {
@@ -347,17 +350,17 @@ export function PublishCentralDeploymentForm({
             {/* Year Level is required for student-targeted deployments. */}
             {showYearLevel && yearLevels.length > 0 && (
               <div className="space-y-2">
-                <Label htmlFor="year_level_id">Year Level</Label>
+                <Label htmlFor="year_level">Year Level</Label>
                 <select
-                  id="year_level_id"
-                  name="year_level_id"
+                  id="year_level"
+                  name="year_level"
                   required={showYearLevel}
                   className="border-input h-9 w-full rounded-lg border bg-transparent px-2.5 text-sm"
                 >
                   <option value="">Select year level</option>
                   {yearLevels.map((yl) => (
-                    <option key={yl.id} value={yl.id}>
-                      {yl.name}
+                    <option key={yl} value={yl}>
+                      {yl.replace("_", " ")}
                     </option>
                   ))}
                 </select>
@@ -490,7 +493,7 @@ export function PublishCentralDeploymentForm({
                         {targetStakeholder === "STUDENT" && (
                           <>
                             <td className="px-3 py-2">{respondent.programCode ?? "—"}</td>
-                            <td className="px-3 py-2">{respondent.yearLevelName ?? "—"}</td>
+                            <td className="px-3 py-2">{respondent.yearLevel ?? "—"}</td>
                             <td className="px-3 py-2">{respondent.section ?? "—"}</td>
                             <td className="px-3 py-2">{respondent.studentId ?? "—"}</td>
                           </>

@@ -1,3 +1,4 @@
+import { getYearLevelDisplay } from "@/lib/constants/year-levels";
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { buildStudentEvaluationAnswerKey } from "@/features/responses/answer-keys";
@@ -69,7 +70,6 @@ export async function getCentralDeploymentSubmittedReview(
               },
               major: true,
               program: true,
-              year_level: true,
             },
           },
         },
@@ -105,7 +105,7 @@ export async function getCentralDeploymentSubmittedReview(
       majorName: deployment.major?.name ?? null,
       programCode: deployment.program?.code ?? null,
       programName: deployment.program?.name ?? null,
-      yearLevelName: deployment.year_level?.name ?? null,
+      yearLevelName: deployment.year_level ? getYearLevelDisplay(deployment.year_level) : null,
     }),
     submittedAt: response.submitted_at,
     sections: buildSubmittedResponseSections({

@@ -54,6 +54,7 @@ prisma/*.db-journal
 .roo
 AGENTS.md
 /plans
+/.windsurf
 
 # project docs (kept in repo but ignored in some workflows)
 

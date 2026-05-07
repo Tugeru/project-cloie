@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { CourseScope } from "@prisma/client";
+import { CourseScope, YearLevel } from "@prisma/client";
 import { ensureRoleAccess } from "@/features/auth/policies/ensure-role-access";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { PublishCourseBoundEvaluationForm } from "@/features/evaluations/components/publish-course-bound-evaluation-form";
@@ -52,14 +52,7 @@ export default async function NewFacultyCiloEvaluationPage({
 
   const resolvedAcademicYear = params.academicYear ?? deriveCurrentAcademicYear();
 
-  const yearLevels = await prisma.yearLevel.findMany({
-    orderBy: { order: "asc" },
-    select: {
-      id: true,
-      name: true,
-      order: true,
-    },
-  });
+  const yearLevels = Object.values(YearLevel);
 
   if (!params.templateId) {
     redirect("/faculty/tools");

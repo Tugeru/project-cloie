@@ -1,4 +1,4 @@
-import { InviteStatus, StudentSection, SystemRole } from "@prisma/client";
+import { InviteStatus, StudentSection, SystemRole, YearLevel } from "@prisma/client";
 import { z } from "zod";
 
 const optionalUuidField = z.preprocess(
@@ -33,7 +33,7 @@ export const updateStudentAcademicContextSchema = z.object({
   user_id: z.string().uuid(),
   program_id: z.string().uuid(),
   major_id: optionalUuidField,
-  year_level_id: z.string().uuid(),
+  year_level: z.nativeEnum(YearLevel),
   student_id_number: optionalTextField,
   academic_year: z
     .string()

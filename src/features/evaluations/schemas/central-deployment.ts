@@ -1,4 +1,4 @@
-import { AcademicSemester } from "@prisma/client";
+import { AcademicSemester, YearLevel } from "@prisma/client";
 import { z } from "zod";
 
 export const publishCentralDeploymentSchema = z
@@ -9,17 +9,17 @@ export const publishCentralDeploymentSchema = z
     academic_year: z.string().min(1, "Academic year is required."),
     semester: z.nativeEnum(AcademicSemester),
     major_id: z.string().uuid().optional(),
-    year_level_id: z.string().uuid().optional(),
+    year_level: z.nativeEnum(YearLevel).optional(),
     activation_at: z.coerce.date().optional(),
     deadline_at: z.coerce.date().optional(),
     respondent_ids: z.array(z.string().uuid()).optional(),
   })
   .superRefine((value, ctx) => {
-    if (value.target_stakeholder === "STUDENT" && !value.year_level_id) {
+    if (value.target_stakeholder === "STUDENT" && !value.year_level) {
       ctx.addIssue({
         code: "custom",
         message: "Year level is required when publishing to students.",
-        path: ["year_level_id"],
+        path: ["year_level"],
       });
     }
   });

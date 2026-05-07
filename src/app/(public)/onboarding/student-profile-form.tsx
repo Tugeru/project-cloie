@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useForm, Controller, type Resolver } from "react-hook-form";
-import { StudentSection } from "@prisma/client";
+import { useForm, Controller, type Resolver, type SubmitHandler } from "react-hook-form";
+import { StudentSection, YearLevel } from "@prisma/client";
 import { customZodResolver } from "@/lib/forms/zod-resolver";
 import {
   studentProfileSchema,
@@ -40,18 +40,14 @@ type Program = {
   majors: { id: string; name: string }[];
 };
 
-type YearLevel = {
-  id: string;
-  name: string;
-  order: number;
-};
+type YearLevelType = YearLevel;
 
 type StudentProfileFormProps = {
   email: string;
   initialFirstName: string;
   initialLastName: string;
   programs: Program[];
-  yearLevels: YearLevel[];
+  yearLevels: YearLevelType[];
 };
 
 export function StudentProfileForm({
@@ -77,7 +73,7 @@ export function StudentProfileForm({
       last_name: initialLastName,
       program_id: "",
       major_id: "",
-      year_level_id: "",
+      year_level: "",
       student_id_number: "",
       section: "",
     },
@@ -98,9 +94,14 @@ export function StudentProfileForm({
     return m ? m.name : "";
   };
 
-  const getYearLevelLabel = (id: string) => {
-    const yl = yearLevels.find((y) => y.id === id);
-    return yl ? yl.name : "";
+  const getYearLevelLabel = (value: YearLevel) => {
+    const labels: Record<YearLevel, string> = {
+      [YearLevel.FIRST_YEAR]: "1st Year",
+      [YearLevel.SECOND_YEAR]: "2nd Year",
+      [YearLevel.THIRD_YEAR]: "3rd Year",
+      [YearLevel.FOURTH_YEAR]: "4th Year",
+    };
+    return labels[value] ?? value;
   };
 
   const getSectionLabel = (value: StudentSection | "") => {
@@ -108,7 +109,7 @@ export function StudentProfileForm({
     return option ? option.label : "";
   };
 
-  const onSubmit = async (data: StudentProfileFormValues) => {
+  const onSubmit: SubmitHandler<StudentProfileFormValues> = async (data) => {
     setGlobalError(null);
     const result = await registerStudentProfile(data as StudentProfileInput);
 
@@ -331,31 +332,31 @@ export function StudentProfileForm({
                   Year Level
                 </Label>
                 <Controller
-                  name="year_level_id"
+                  name="year_level"
                   control={control}
                   render={({ field }) => (
                     <Select onValueChange={field.onChange} value={field.value}>
                       <SelectTrigger
-                        className={`w-full ${errors.year_level_id ? "border-danger" : ""}`}
+                        className={`w-full ${errors.year_level ? "border-danger" : ""}`}
                       >
                         <SelectValue placeholder="Select year">
-                          {field.value ? getYearLevelLabel(field.value) : null}
+                          {field.value ? getYearLevelLabel(field.value as YearLevel) : null}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         {yearLevels.map((yl) => (
-                          <SelectItem key={yl.id} value={yl.id}>
-                            {yl.name}
+                          <SelectItem key={yl} value={yl}>
+                            {getYearLevelLabel(yl)}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   )}
                 />
-                {errors.year_level_id && (
+                {errors.year_level && (
                   <p className="text-danger flex items-center gap-1 text-xs">
                     <AlertCircle className="size-3" />
-                    {errors.year_level_id.message}
+                    {errors.year_level.message}
                   </p>
                 )}
               </div>

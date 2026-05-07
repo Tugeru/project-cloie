@@ -10,7 +10,7 @@ export async function previewCourseBoundRespondents({
   academicYear,
   section,
   targetPrograms,
-  targetYearLevelId,
+  targetYearLevel,
 }: PreviewCourseBoundRespondentsInput): Promise<PreviewCourseBoundRespondentsResult> {
   const authSession = await resolveAuthSession();
 
@@ -28,7 +28,7 @@ export async function previewCourseBoundRespondents({
     };
   }
 
-  if (!targetYearLevelId) {
+  if (!targetYearLevel) {
     return {
       error: "A year level must be selected.",
       success: false,
@@ -49,7 +49,7 @@ export async function previewCourseBoundRespondents({
         program_id: {
           in: targetPrograms,
         },
-        year_level_id: targetYearLevelId,
+        year_level: targetYearLevel,
         ...(section ? { section } : {}),
       },
       include: {
@@ -69,12 +69,6 @@ export async function previewCourseBoundRespondents({
           },
         },
         major: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        year_level: {
           select: {
             id: true,
             name: true,
@@ -100,8 +94,7 @@ export async function previewCourseBoundRespondents({
       section: profile.section,
       studentId: profile.student_id_number,
       userId: profile.user.id,
-      yearLevelId: profile.year_level.id,
-      yearLevelName: profile.year_level.name,
+      yearLevel: profile.year_level,
     }));
 
     return {

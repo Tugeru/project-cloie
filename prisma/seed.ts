@@ -14,6 +14,7 @@ import {
   ResponseStatus,
   SystemRole,
   TargetStakeholder,
+  YearLevel,
 } from "@prisma/client";
 import { prisma } from "../src/lib/db/prisma";
 
@@ -817,20 +818,6 @@ async function ensureAssignment(opts: {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 async function seedFoundation() {
-  console.log("  → Year levels...");
-  for (const yl of [
-    { name: "1st Year", order: 1 },
-    { name: "2nd Year", order: 2 },
-    { name: "3rd Year", order: 3 },
-    { name: "4th Year", order: 4 },
-  ]) {
-    await prisma.yearLevel.upsert({
-      where: { name: yl.name },
-      update: { order: yl.order },
-      create: yl,
-    });
-  }
-
   console.log("  → Programs...");
   const pDefs = [
     { code: "BEED", name: "Bachelor of Elementary Education" },
@@ -1153,9 +1140,10 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
     });
   }
 
-  const y2 = await prisma.yearLevel.findUniqueOrThrow({ where: { name: "2nd Year" } });
-  const y3 = await prisma.yearLevel.findUniqueOrThrow({ where: { name: "3rd Year" } });
-  const y4 = await prisma.yearLevel.findUniqueOrThrow({ where: { name: "4th Year" } });
+  // YearLevel is now an enum, not a database table
+  const y2 = YearLevel.SECOND_YEAR;
+  const y3 = YearLevel.THIRD_YEAR;
+  const y4 = YearLevel.FOURTH_YEAR;
 
   const bsit = pMap.get("BSIT")!;
   const bsed = pMap.get("BSED")!;
@@ -1170,16 +1158,16 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
       uid: U.STU_BSIT,
       pid: bsit.id,
       mid: null as string | null,
-      ylid: y4.id,
+      ylid: y4,
       sn: "2026-0001",
       sec: "MORNING" as const,
     },
-    { uid: U.GRAD_BSIT, pid: bsit.id, mid: null, ylid: y4.id, sn: "2026-0002", sec: "AFTERNOON" as const },
+    { uid: U.GRAD_BSIT, pid: bsit.id, mid: null, ylid: y4, sn: "2026-0002", sec: "AFTERNOON" as const },
     {
       uid: U.STU_BSED,
       pid: bsed.id,
       mid: mMap.get("BSED:English")?.id ?? null,
-      ylid: y3.id,
+      ylid: y3,
       sn: "2026-0003",
       sec: "MORNING" as const,
     },
@@ -1187,7 +1175,7 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
       uid: U.STU_BSBA,
       pid: bsba.id,
       mid: mMap.get("BSBA:Marketing Management")?.id ?? null,
-      ylid: y4.id,
+      ylid: y4,
       sn: "2026-0004",
       sec: "MORNING" as const,
     },
@@ -1195,13 +1183,13 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
       uid: U.STU_BSBA_G,
       pid: bsba.id,
       mid: mMap.get("BSBA:Financial Management")?.id ?? null,
-      ylid: y4.id,
+      ylid: y4,
       sn: "2026-0005",
       sec: "AFTERNOON" as const,
     },
-    { uid: U.STU_BEED, pid: beed.id, mid: null, ylid: y2.id, sn: "2026-0006", sec: "MORNING" as const },
-    { uid: U.STU_BSHM, pid: bshm.id, mid: null, ylid: y4.id, sn: "2026-0007", sec: "EVENING" as const },
-    { uid: U.STU_BSHM_G, pid: bshm.id, mid: null, ylid: y4.id, sn: "2026-0008", sec: "AFTERNOON" as const },
+    { uid: U.STU_BEED, pid: beed.id, mid: null, ylid: y2, sn: "2026-0006", sec: "MORNING" as const },
+    { uid: U.STU_BSHM, pid: bshm.id, mid: null, ylid: y4, sn: "2026-0007", sec: "EVENING" as const },
+    { uid: U.STU_BSHM_G, pid: bshm.id, mid: null, ylid: y4, sn: "2026-0008", sec: "AFTERNOON" as const },
   ];
   for (const s of students) {
     await prisma.studentAcademicProfile.upsert({
@@ -1209,7 +1197,7 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
       update: {
         program_id: s.pid,
         major_id: s.mid,
-        year_level_id: s.ylid,
+        year_level: s.ylid,
         student_id_number: s.sn,
         academic_year: "2026-2027",
         section: s.sec,
@@ -1218,7 +1206,7 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
         user_id: s.uid,
         program_id: s.pid,
         major_id: s.mid,
-        year_level_id: s.ylid,
+        year_level: s.ylid,
         student_id_number: s.sn,
         academic_year: "2026-2027",
         section: s.sec,
@@ -1711,8 +1699,9 @@ async function seedEvaluations(
   const indVer = await prisma.instrumentVersion.findFirstOrThrow({
     where: { template: { code: "INDUSTRY_EVAL" }, version_number: 1 },
   });
-  const y3 = await prisma.yearLevel.findUniqueOrThrow({ where: { name: "3rd Year" } });
-  const y4 = await prisma.yearLevel.findUniqueOrThrow({ where: { name: "4th Year" } });
+  // YearLevel is now an enum, not a database table
+  const y3 = YearLevel.THIRD_YEAR;
+  const y4 = YearLevel.FOURTH_YEAR;
 
   const bsit = pMap.get("BSIT")!;
   const bsba = pMap.get("BSBA")!;
@@ -1776,14 +1765,14 @@ async function seedEvaluations(
 
   await prisma.courseBoundEvaluationTarget.upsert({
     where: {
-      course_bound_evaluation_id_program_id_year_level_id: {
+      course_bound_evaluation_id_program_id_year_level: {
         course_bound_evaluation_id: cbEval1.id,
         program_id: bsit.id,
-        year_level_id: y4.id,
+        year_level: y4,
       },
     },
     update: {},
-    create: { course_bound_evaluation_id: cbEval1.id, program_id: bsit.id, year_level_id: y4.id },
+    create: { course_bound_evaluation_id: cbEval1.id, program_id: bsit.id, year_level: y4 },
   });
 
   await prisma.courseBoundCiloQuestionBinding.createMany({
@@ -1864,14 +1853,14 @@ async function seedEvaluations(
 
   await prisma.courseBoundEvaluationTarget.upsert({
     where: {
-      course_bound_evaluation_id_program_id_year_level_id: {
+      course_bound_evaluation_id_program_id_year_level: {
         course_bound_evaluation_id: cbEval2.id,
         program_id: bsba.id,
-        year_level_id: y4.id,
+        year_level: y4,
       },
     },
     update: {},
-    create: { course_bound_evaluation_id: cbEval2.id, program_id: bsba.id, year_level_id: y4.id },
+    create: { course_bound_evaluation_id: cbEval2.id, program_id: bsba.id, year_level: y4 },
   });
 
   await prisma.courseBoundCiloQuestionBinding.createMany({
@@ -1907,7 +1896,7 @@ async function seedEvaluations(
       progName: "Bachelor of Science in Information Technology",
       majorId: null as string | null,
       facultyId: U.FAC_BSIT,
-      ylId: y4.id,
+      ylId: y4,
       respondents: [U.STU_BSIT, U.GRAD_BSIT],
     },
     {
@@ -1919,7 +1908,7 @@ async function seedEvaluations(
       progName: "Bachelor of Science in Business Administration",
       majorId: (await prisma.major.findFirst({ where: { name: "Financial Management" } }))?.id ?? null,
       facultyId: U.FAC_BSBA,
-      ylId: y4.id,
+      ylId: y4,
       respondents: [U.STU_BSBA_G, U.STU_BSBA],
     },
     {
@@ -1931,7 +1920,7 @@ async function seedEvaluations(
       progName: "Bachelor of Secondary Education",
       majorId: null,
       facultyId: U.FAC_BSED,
-      ylId: y3.id,
+      ylId: y3,
       respondents: [U.STU_BSED],
     },
     {
@@ -1943,7 +1932,7 @@ async function seedEvaluations(
       progName: "Bachelor of Science in Hospitality Management",
       majorId: null,
       facultyId: U.FAC_BSHM,
-      ylId: y4.id,
+      ylId: y4,
       respondents: [U.STU_BSHM_G, U.STU_BSHM],
     },
     {
@@ -1955,7 +1944,7 @@ async function seedEvaluations(
       progName: "Bachelor of Elementary Education",
       majorId: null,
       facultyId: U.FAC_BSED,
-      ylId: y4.id,
+      ylId: y4,
       respondents: [U.STU_BEED],
     },
     {
@@ -1967,7 +1956,7 @@ async function seedEvaluations(
       progName: "Bachelor of Science in Social Work",
       majorId: null,
       facultyId: U.FAC_BSED,
-      ylId: y4.id,
+      ylId: y4,
       respondents: [] as string[],
     },
   ];
@@ -2026,14 +2015,14 @@ async function seedEvaluations(
 
     await prisma.courseBoundEvaluationTarget.upsert({
       where: {
-        course_bound_evaluation_id_program_id_year_level_id: {
+        course_bound_evaluation_id_program_id_year_level: {
           course_bound_evaluation_id: cb.id,
           program_id: def.progId,
-          year_level_id: def.ylId,
+          year_level: def.ylId,
         },
       },
       update: {},
-      create: { course_bound_evaluation_id: cb.id, program_id: def.progId, year_level_id: def.ylId },
+      create: { course_bound_evaluation_id: cb.id, program_id: def.progId, year_level: def.ylId },
     });
 
     if (courseCilos.length > 0) {
@@ -2069,7 +2058,7 @@ async function seedEvaluations(
       verId: exitVer.id,
       pid: bsit.id,
       target: TargetStakeholder.STUDENT,
-      ylId: y4.id,
+      ylId: y4,
     },
     {
       id: D.BSIT_ALUMNI,
@@ -2077,7 +2066,7 @@ async function seedEvaluations(
       verId: alumVer.id,
       pid: bsit.id,
       target: TargetStakeholder.ALUMNI,
-      ylId: null as string | null,
+      ylId: null as YearLevel | null,
     },
     {
       id: D.BSIT_IND,
@@ -2093,7 +2082,7 @@ async function seedEvaluations(
       verId: exitVer.id,
       pid: bshm.id,
       target: TargetStakeholder.STUDENT,
-      ylId: y4.id,
+      ylId: y4,
     },
     {
       id: D.BSHM_IND,
@@ -2119,7 +2108,7 @@ async function seedEvaluations(
         activation_at: new Date("2026-04-15T08:00:00Z"),
         deadline_at: new Date("2026-06-01T23:59:00Z"),
         status: DeploymentStatus.ACTIVE,
-        year_level_id: cd.ylId,
+        year_level: cd.ylId,
       },
       create: {
         id: cd.id,
@@ -2133,7 +2122,7 @@ async function seedEvaluations(
         activation_at: new Date("2026-04-15T08:00:00Z"),
         deadline_at: new Date("2026-06-01T23:59:00Z"),
         status: DeploymentStatus.ACTIVE,
-        year_level_id: cd.ylId,
+        year_level: cd.ylId,
       },
     });
   }

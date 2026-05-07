@@ -1,4 +1,4 @@
-import { DeploymentStatus, EvaluationTemplateType } from "@prisma/client";
+import { DeploymentStatus, EvaluationTemplateType, YearLevel } from "@prisma/client";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { getFacultyTemplatePublicationContext } from "@/features/instruments/services/manage-faculty-templates";
 import { ROLES } from "@/lib/constants/roles";
@@ -65,10 +65,10 @@ export async function publishCourseBoundEvaluation({
   section,
   semester,
   targetPrograms,
-  targetYearLevelId,
+  targetYearLevel,
   templateId,
   term,
-  yearLevelIds, // Deprecated fallback
+  yearLevels, // Deprecated fallback
 }: PublishCourseBoundEvaluationInput): Promise<PublishCourseBoundEvaluationResult> {
   const authSession = await resolveAuthSession();
 
@@ -89,27 +89,14 @@ export async function publishCourseBoundEvaluation({
     return publicationContext;
   }
 
-  // Support new targetYearLevelId, fallback to deprecated yearLevelIds
-  const effectiveYearLevelIds = targetYearLevelId
-    ? [targetYearLevelId]
-    : toUniqueValues(yearLevelIds ?? []);
+  // Support new targetYearLevel, fallback to deprecated yearLevels
+  const effectiveYearLevels: YearLevel[] = targetYearLevel
+    ? [targetYearLevel]
+    : (yearLevels ?? []);
 
-  if (effectiveYearLevelIds.length === 0) {
+  if (effectiveYearLevels.length === 0) {
     return {
       error: "A year level must be selected.",
-      success: false,
-    };
-  }
-
-  // Validate all year levels exist
-  const yearLevelsFound = await prisma.yearLevel.findMany({
-    where: { id: { in: effectiveYearLevelIds } },
-    select: { id: true },
-  });
-
-  if (yearLevelsFound.length !== effectiveYearLevelIds.length) {
-    return {
-      error: "One or more selected year levels are invalid.",
       success: false,
     };
   }
@@ -203,10 +190,10 @@ export async function publishCourseBoundEvaluation({
 
       // Create target rows: one per (program, year_level) combination
       const targetRows = normalizedTargetPrograms.flatMap((programId) =>
-        effectiveYearLevelIds.map((yearLevelId) => ({
+        effectiveYearLevels.map((yearLevel) => ({
           course_bound_evaluation_id: evaluation.id,
           program_id: programId,
-          year_level_id: yearLevelId,
+          year_level: yearLevel,
         }))
       );
 
@@ -228,9 +215,7 @@ export async function publishCourseBoundEvaluation({
             program_id: {
               in: normalizedTargetPrograms,
             },
-            year_level_id: {
-              in: effectiveYearLevelIds,
-            },
+            year_level: { in: effectiveYearLevels },
             // For major-specific courses, enforce major match
             ...(publicationContext.data.majorId ? { major_id: publicationContext.data.majorId } : {}),
             // For section-specific publications, enforce section match

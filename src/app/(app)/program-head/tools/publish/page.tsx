@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { YearLevel } from "@prisma/client";
 import { listProgramHeadTemplates } from "@/features/instruments/services/manage-program-head-templates";
 import { PublishCentralDeploymentForm } from "@/features/evaluations/components/publish-central-deployment-form";
 import {
@@ -34,10 +35,7 @@ export default async function ProgramHeadPublishToolPage({ searchParams }: PageP
     .map((t) => ({ id: t.id, name: t.name, code: t.code }));
 
   // 2. Load year levels
-  const yearLevels = await prisma.yearLevel.findMany({
-    orderBy: { order: "asc" },
-    select: { id: true, name: true },
-  });
+  const yearLevels = Object.values(YearLevel);
 
   // 3. Load majors for PH's program
   const majors = await prisma.major.findMany({

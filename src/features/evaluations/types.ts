@@ -1,4 +1,4 @@
-import { AcademicSemester, AcademicTerm, CourseScope, DeploymentStatus, StudentSection, TargetStakeholder } from "@prisma/client";
+import { AcademicSemester, AcademicTerm, CourseScope, DeploymentStatus, StudentSection, TargetStakeholder, YearLevel } from "@prisma/client";
 
 export type { StudentSection };
 
@@ -71,10 +71,10 @@ export type PublishCourseBoundEvaluationInput = {
   section?: StudentSection | null;
   semester: AcademicSemester;
   targetPrograms?: string[]; // Multi-select for GE courses; falls back to publication context's program
-  targetYearLevelId?: string; // Single year level; falls back to first item in yearLevelIds
+  targetYearLevel?: YearLevel; // Single year level; falls back to first item in yearLevelIds
   term: AcademicTerm;
   templateId: string;
-  yearLevelIds?: string[]; // Deprecated: kept for backward compatibility
+  yearLevels?: YearLevel[]; // Deprecated: kept for backward compatibility
 };
 
 export type PublishCourseBoundEvaluationResult =
@@ -106,15 +106,14 @@ export type PreviewRespondent = {
   section: StudentSection | null;
   studentId: string | null;
   userId: string;
-  yearLevelId: string;
-  yearLevelName: string;
+  yearLevel: YearLevel;
 };
 
 export type PreviewCourseBoundRespondentsInput = {
   academicYear: string;
   section: StudentSection | null;
   targetPrograms: string[];
-  targetYearLevelId: string;
+  targetYearLevel: YearLevel;
 };
 
 export type PreviewCourseBoundRespondentsResult =
@@ -151,7 +150,7 @@ export type FacultyPublishedEvaluationItem = {
   responseCount: number;
   semester: AcademicSemester;
   status: DeploymentStatus;
-  targetYearLevels: string[];
+  targetYearLevels: YearLevel[];
   term: AcademicTerm;
   totalAssignments: number;
 };
@@ -167,8 +166,7 @@ export type FacultyPublishedEvaluationCiloBinding = {
 export type FacultyPublishedEvaluationTarget = {
   programCode: string;
   programId: string;
-  yearLevelId: string | null;
-  yearLevelName: string | null;
+  yearLevel: YearLevel | null;
 };
 
 export type FacultyEvaluationDetail = {
@@ -239,7 +237,7 @@ export type PreviewCentralDeploymentInput = {
   majorId?: string;
   programId: string;
   targetStakeholder: TargetStakeholder;
-  yearLevelId?: string;
+  yearLevel?: YearLevel;
 };
 
 export type PreviewCentralDeploymentRespondent = {
@@ -252,7 +250,7 @@ export type PreviewCentralDeploymentRespondent = {
   stakeholderType: TargetStakeholder;
   studentId: string | null;
   userId: string;
-  yearLevelName: string | null;
+  yearLevel: YearLevel | null;
 };
 
 export type PreviewCentralDeploymentResult =

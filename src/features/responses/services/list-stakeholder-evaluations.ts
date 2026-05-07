@@ -1,4 +1,5 @@
 import { TargetStakeholder } from "@prisma/client";
+import { getYearLevelDisplay } from "@/lib/constants/year-levels";
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import type {
@@ -79,7 +80,6 @@ export async function listStakeholderEvaluations(
           },
           major: true,
           program: true,
-          year_level: true,
         },
       },
       response: {
@@ -150,7 +150,7 @@ export async function listStakeholderEvaluations(
             majorName: deployment.major?.name ?? null,
             programCode: deployment.program?.code ?? null,
             programName: deployment.program?.name ?? null,
-            yearLevelName: deployment.year_level?.name ?? null,
+            yearLevelName: deployment.year_level ? getYearLevelDisplay(deployment.year_level) : null,
           }),
           section,
           session,

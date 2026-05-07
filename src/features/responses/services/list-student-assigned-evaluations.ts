@@ -1,3 +1,5 @@
+import { YearLevel } from "@prisma/client";
+import { getYearLevelDisplay } from "@/lib/constants/year-levels";
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import type {
@@ -130,12 +132,12 @@ function buildCentralProgramLabel(input: {
   majorName: string | null;
   programCode: string | null;
   programName: string | null;
-  yearLevelName: string | null;
+  yearLevel: YearLevel | null;
 }) {
   return [
     input.programCode ?? input.programName ?? "Program-wide",
     input.majorName,
-    input.yearLevelName,
+    input.yearLevel ? getYearLevelDisplay(input.yearLevel) : null,
   ]
     .filter((value): value is string => Boolean(value))
     .join(" • ");
@@ -175,7 +177,6 @@ export async function listStudentAssignedEvaluations(): Promise<{
           },
           major: true,
           program: true,
-          year_level: true,
         },
       },
       course_bound: {
@@ -304,7 +305,7 @@ export async function listStudentAssignedEvaluations(): Promise<{
             majorName: deployment.major?.name ?? null,
             programCode: deployment.program?.code ?? null,
             programName: deployment.program?.name ?? null,
-            yearLevelName: deployment.year_level?.name ?? null,
+            yearLevel: deployment.year_level ?? null,
           }),
           section,
           session,

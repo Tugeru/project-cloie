@@ -71,8 +71,8 @@ async function previewStudents(
     program_id: input.programId,
   };
 
-  if (input.yearLevelId) {
-    whereClause.year_level_id = input.yearLevelId;
+  if (input.yearLevel) {
+    whereClause.year_level = input.yearLevel;
   }
 
   if (input.majorId) {
@@ -87,7 +87,6 @@ async function previewStudents(
       },
       program: { select: { code: true } },
       major: { select: { name: true } },
-      year_level: { select: { name: true } },
     },
     orderBy: { user: { last_name: "asc" } },
   });
@@ -102,7 +101,7 @@ async function previewStudents(
     stakeholderType: TargetStakeholder.STUDENT,
     studentId: p.student_id_number,
     userId: p.user.id,
-    yearLevelName: p.year_level.name,
+    yearLevel: p.year_level,
   }));
 }
 
@@ -141,7 +140,7 @@ async function previewAlumni(
     stakeholderType: TargetStakeholder.ALUMNI,
     studentId: null,
     userId: u.id,
-    yearLevelName: null,
+    yearLevel: null,
   }));
 }
 
@@ -171,6 +170,6 @@ async function previewIndustryPartners(
     stakeholderType: TargetStakeholder.INDUSTRY_PARTNER,
     studentId: null,
     userId: p.user.id,
-    yearLevelName: null,
+    yearLevel: null,
   }));
 }

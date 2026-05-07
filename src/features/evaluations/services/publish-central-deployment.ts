@@ -60,7 +60,7 @@ export async function publishCentralDeployment(
     };
   }
 
-  if (input.target_stakeholder === "STUDENT" && !input.year_level_id) {
+  if (input.target_stakeholder === "STUDENT" && !input.year_level) {
     return {
       success: false,
       error: "Year level is required when publishing to students.",
@@ -141,7 +141,7 @@ export async function publishCentralDeployment(
       target_stakeholder: input.target_stakeholder as TargetStakeholder,
       academic_year: input.academic_year,
       semester: input.semester as AcademicSemester,
-      year_level_id: input.year_level_id ?? null,
+      year_level: input.year_level ?? null,
     },
     select: { id: true },
   });
@@ -164,7 +164,7 @@ export async function publishCentralDeployment(
           deployment_name: input.deployment_name,
           program_id: programId,
           major_id: input.major_id ?? null,
-          year_level_id: input.year_level_id ?? null,
+          year_level: input.year_level ?? null,
           target_stakeholder: input.target_stakeholder as TargetStakeholder,
           academic_year: input.academic_year,
           semester: input.semester as AcademicSemester,
@@ -183,7 +183,7 @@ export async function publishCentralDeployment(
       } else if (input.target_stakeholder === "STUDENT") {
         const whereClause: Record<string, unknown> = {
           program_id: programId,
-          year_level_id: input.year_level_id,
+          year_level: input.year_level,
         };
 
         if (input.major_id) {

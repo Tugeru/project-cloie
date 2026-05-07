@@ -68,7 +68,6 @@ async function listAdminUsers() {
         include: {
           major: true,
           program: true,
-          year_level: true,
         },
       },
       faculty_program_affiliations: {
@@ -252,7 +251,7 @@ export async function upsertStudentAcademicContext(
     update: {
       program_id: input.program_id,
       major_id: input.major_id ?? null,
-      year_level_id: input.year_level_id,
+      year_level: input.year_level,
       student_id_number: input.student_id_number ?? null,
       academic_year: input.academic_year,
       section: input.section ?? null,
@@ -261,7 +260,7 @@ export async function upsertStudentAcademicContext(
       user_id: input.user_id,
       program_id: input.program_id,
       major_id: input.major_id ?? null,
-      year_level_id: input.year_level_id,
+      year_level: input.year_level,
       student_id_number: input.student_id_number ?? null,
       academic_year: input.academic_year,
       section: input.section ?? null,
