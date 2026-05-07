@@ -59,7 +59,7 @@ export async function registerStudentProfile(data: StudentProfileInput) {
         update: {
           program_id: validatedData.program_id,
           major_id: validatedData.major_id || null,
-          year_level_id: validatedData.year_level_id,
+          year_level: validatedData.year_level,
           student_id_number: validatedData.student_id_number,
           academic_year: academicYear,
           section: validatedData.section,
@@ -68,7 +68,7 @@ export async function registerStudentProfile(data: StudentProfileInput) {
           user_id: user.id,
           program_id: validatedData.program_id,
           major_id: validatedData.major_id || null,
-          year_level_id: validatedData.year_level_id,
+          year_level: validatedData.year_level,
           student_id_number: validatedData.student_id_number,
           academic_year: academicYear,
           section: validatedData.section,

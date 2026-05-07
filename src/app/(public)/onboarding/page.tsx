@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { UserPlus, ArrowRight, ArrowLeft, CheckCircle } from "lucide-react";
+import { YearLevel } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -56,9 +57,7 @@ export default async function OnboardingPage({
     const programs = await prisma.program.findMany({
       include: { majors: true },
     });
-    const yearLevels = await prisma.yearLevel.findMany({
-      orderBy: { order: "asc" },
-    });
+    const yearLevels = Object.values(YearLevel);
 
     return (
       <div className="mx-auto w-full max-w-2xl py-8">
