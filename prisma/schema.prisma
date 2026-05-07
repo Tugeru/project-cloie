@@ -104,7 +104,6 @@ model User {
   email                String                  @unique
   first_name           String
   last_name            String
-  avatar_url           String?
   is_active            Boolean                 @default(true)
   created_at           DateTime                @default(now())
   updated_at           DateTime                @updatedAt
