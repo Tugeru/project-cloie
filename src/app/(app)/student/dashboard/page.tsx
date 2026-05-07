@@ -6,6 +6,7 @@ import { listStudentAssignedEvaluations } from "@/features/responses/services/li
 import { EvaluationListCard } from "@/features/users/components/evaluation-list-card";
 import { HeroCard } from "@/features/users/components/hero-card";
 import { StatCards } from "@/features/users/components/stat-cards";
+import { getYearLevelDisplay } from "@/lib/constants/year-levels";
 import { prisma } from "@/lib/db/prisma";
 
 export default async function StudentDashboardPage() {
@@ -20,8 +21,7 @@ export default async function StudentDashboardPage() {
         include: {
           major: true,
           program: true,
-          user: true,
-          year_level: true,
+          user: { select: { first_name: true } },
         },
       })
     : null;
@@ -30,7 +30,7 @@ export default async function StudentDashboardPage() {
     ? [
         profile.program.code,
         profile.major?.name ?? null,
-        profile.year_level.name,
+        getYearLevelDisplay(profile.year_level),
         profile.academic_year,
       ]
         .filter(Boolean)

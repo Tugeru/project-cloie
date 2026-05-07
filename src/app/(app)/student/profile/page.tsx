@@ -2,6 +2,7 @@ import { Book, GraduationCap, Mail, ShieldCheck, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { getYearLevelDisplay } from "@/lib/constants/year-levels";
 import { prisma } from "@/lib/db/prisma";
 
 export default async function StudentProfilePage() {
@@ -13,8 +14,7 @@ export default async function StudentProfilePage() {
         include: {
           major: true,
           program: true,
-          user: true,
-          year_level: true,
+          user: { select: { first_name: true, last_name: true, email: true } },
         },
       })
     : null;
@@ -87,7 +87,7 @@ export default async function StudentProfilePage() {
                 <label className="text-text-muted text-[10px] font-black tracking-widest uppercase">
                   Year Level
                 </label>
-                <p>{profile?.year_level.name ?? "Not set"}</p>
+                <p>{profile ? getYearLevelDisplay(profile.year_level) : "Not set"}</p>
               </div>
             </div>
 

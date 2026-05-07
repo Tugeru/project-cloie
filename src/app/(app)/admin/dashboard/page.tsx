@@ -3,21 +3,18 @@ import { prisma } from "@/lib/db/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function AdminDashboardPage() {
-  const [userCount, programCount, courseCount, templateCount, yearLevelCount, inviteCount] =
-    await Promise.all([
-      prisma.user.count(),
-      prisma.program.count({ where: { is_active: true } }),
-      prisma.course.count({ where: { is_active: true } }),
-      prisma.instrumentTemplate.count({ where: { is_active: true } }),
-      prisma.yearLevel.count(),
-      prisma.externalStakeholderInvite.count(),
-    ]);
+  const [userCount, programCount, courseCount, templateCount, inviteCount] = await Promise.all([
+    prisma.user.count(),
+    prisma.program.count({ where: { is_active: true } }),
+    prisma.course.count({ where: { is_active: true } }),
+    prisma.instrumentTemplate.count({ where: { is_active: true } }),
+    prisma.externalStakeholderInvite.count(),
+  ]);
 
   const quickLinks = [
     { href: "/admin/users", label: "Users, roles, and invites" },
     { href: "/admin/programs", label: "Programs and majors" },
     { href: "/admin/courses", label: "Course catalog" },
-    { href: "/admin/year-levels", label: "Year levels" },
     { href: "/admin/instruments", label: "Baseline instruments" },
   ];
 
@@ -37,7 +34,6 @@ export default async function AdminDashboardPage() {
           { label: "Programs", value: programCount },
           { label: "Courses", value: courseCount },
           { label: "Templates", value: templateCount },
-          { label: "Year Levels", value: yearLevelCount },
           { label: "Invite Drafts", value: inviteCount },
         ].map((stat) => (
           <Card key={stat.label}>
