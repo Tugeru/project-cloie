@@ -44,7 +44,7 @@ describe("WizardShell", () => {
     render(<WizardShell assignmentId="test" title="Test Eval" sections={mockSections} />);
 
     expect(screen.getByText("Test Eval")).toBeDefined();
-    expect(screen.getByText("Section 1 Name")).toBeDefined();
+    expect(screen.getByRole("heading", { name: "Section 1 Name" })).toBeDefined();
     expect(screen.getByText("Question 1")).toBeDefined();
   });
 
@@ -217,6 +217,68 @@ describe("WizardShell", () => {
     });
 
     expect(screen.getByRole("textbox")).toHaveValue("It is educational and practical.");
+  });
+
+  test("blocks sidebar navigation to a completed section when current section has unanswered required questions", async () => {
+    const threeSections = [
+      mockSections[0],
+      {
+        id: "section-2",
+        name: "Section 2 Name",
+        description: "Second part",
+        items: [
+          {
+            kind: "quantitative" as const,
+            itemKey: "q2",
+            prompt: "Question 2",
+            scale: [1, 2, 3, 4, 5],
+          },
+        ],
+      },
+      {
+        id: "section-3",
+        name: "Section 3 Name",
+        description: "Third part",
+        items: [
+          {
+            kind: "quantitative" as const,
+            itemKey: "q3",
+            prompt: "Question 3",
+            scale: [1, 2, 3, 4, 5],
+          },
+        ],
+      },
+    ];
+
+    render(<WizardShell assignmentId="test" title="Test Eval" sections={threeSections} />);
+
+    fireEvent.click(screen.getByRole("radio", { name: /4/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Next Section/i }));
+
+    await screen.findByText("Question 2");
+
+    const section1Button = screen.getByRole("button", { name: /Section 1 Name/i });
+    fireEvent.click(section1Button);
+
+    expect(screen.getByText("Question 2")).toBeDefined();
+    expect(screen.getByText(/Please answer all questions/i)).toBeDefined();
+  });
+
+  test("allows sidebar navigation to a completed section when current section is answered", async () => {
+    render(<WizardShell assignmentId="test" title="Test Eval" sections={mockSections} />);
+
+    fireEvent.click(screen.getByRole("radio", { name: /4/i }));
+    fireEvent.click(screen.getByRole("button", { name: /Next Section/i }));
+
+    await screen.findByText("Question 2");
+
+    fireEvent.click(screen.getByRole("radio", { name: /3/i }));
+
+    const section1Button = screen.getByRole("button", { name: /Section 1 Name/i });
+    fireEvent.click(section1Button);
+
+    await screen.findByText("Question 1");
+    expect(screen.queryByText(/Please answer all questions/i)).toBeNull();
   });
 
   test("deduplicates repeated suggested responses and avoids duplicate-key warnings", () => {
