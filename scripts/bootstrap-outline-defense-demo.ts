@@ -1,5 +1,5 @@
 import { loadEnvConfig } from "@next/env";
-import { AcademicSemester, AcademicTerm, DeploymentStatus } from "@prisma/client";
+import { AcademicSemester, AcademicTerm, DeploymentStatus, YearLevel } from "@prisma/client";
 import { pathToFileURL } from "node:url";
 
 import { prisma } from "../src/lib/db/prisma";
@@ -100,9 +100,11 @@ async function main() {
   const semester = AcademicSemester.SECOND;
   const term = AcademicTerm.SECOND_TERM;
 
-  const [program, yearLevel, course, instrumentVersion] = await Promise.all([
+  const yearLevel = YearLevel.FOURTH_YEAR;
+  const yearLevelName = "4th Year";
+
+  const [program, course, instrumentVersion] = await Promise.all([
     prisma.program.findUnique({ where: { code: "BSIT" } }),
-    prisma.yearLevel.findUnique({ where: { name: "4th Year" } }),
     prisma.course.findUnique({ where: { code: "IT-OD-401" } }),
     prisma.instrumentVersion.findFirst({
       where: {
@@ -116,7 +118,7 @@ async function main() {
     }),
   ]);
 
-  if (!program || !yearLevel || !course || !instrumentVersion) {
+  if (!program || !course || !instrumentVersion) {
     throw new Error(
       "Seed prerequisites are missing. Run `pnpm db:seed` before bootstrapping the outline defense demo."
     );
@@ -190,14 +192,14 @@ async function main() {
       academic_year: academicYear,
       program_id: program.id,
       student_id_number: "OUTLINE-DEMO-001",
-      year_level_id: yearLevel.id,
+      year_level: yearLevel,
     },
     create: {
       academic_year: academicYear,
       program_id: program.id,
       student_id_number: "OUTLINE-DEMO-001",
       user_id: student.id,
-      year_level_id: yearLevel.id,
+      year_level: yearLevel,
     },
   });
 
@@ -239,17 +241,17 @@ async function main() {
 
   await prisma.courseBoundEvaluationTarget.upsert({
     where: {
-      course_bound_evaluation_id_program_id_year_level_id: {
+      course_bound_evaluation_id_program_id_year_level: {
         course_bound_evaluation_id: evaluation.id,
         program_id: program.id,
-        year_level_id: yearLevel.id,
+        year_level: yearLevel,
       },
     },
     update: {},
     create: {
       course_bound_evaluation_id: evaluation.id,
       program_id: program.id,
-      year_level_id: yearLevel.id,
+      year_level: yearLevel,
     },
   });
 
@@ -278,7 +280,7 @@ async function main() {
         faculty: faculty.email,
         program: program.code,
         programHead: programHead.email,
-        yearLevel: yearLevel.name,
+        yearLevel: yearLevelName,
         student: student.email,
       },
       null,
