@@ -28,22 +28,6 @@ export default function AlumniDashboardLoading() {
         ))}
       </div>
 
-      {/* Continue Section Skeleton */}
-      <section className="mt-8 space-y-4">
-        <Skeleton className="h-6 w-32" />
-        <Skeleton className="h-4 w-48" />
-        <Card className="border-border">
-          <CardContent className="flex flex-col gap-6 p-6 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-2">
-              <Skeleton className="h-3 w-24" />
-              <Skeleton className="h-5 w-48" />
-              <Skeleton className="h-4 w-32" />
-            </div>
-            <Skeleton className="h-10 w-28" />
-          </CardContent>
-        </Card>
-      </section>
-
       {/* Pending Evaluations Skeleton */}
       <section className="mt-8 space-y-4">
         <div className="flex items-center justify-between">
