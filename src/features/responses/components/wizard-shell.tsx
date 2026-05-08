@@ -6,7 +6,7 @@ import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Save, CheckCircle, CheckCircle2, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { ReviewModal } from "./review-modal";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { cn } from "@/lib/utils";
 import { buildStudentEvaluationAnswerKey } from "@/features/responses/answer-keys";
 import type { StudentEvaluationSection } from "@/features/responses/types";
@@ -17,6 +17,7 @@ interface WizardShellProps {
   courseTitle?: string;
   sections: StudentEvaluationSection[];
   initialAnswers?: Record<string, number | string>;
+  returnRoute?: string;
   onSaveDraft?: (input: {
     assignmentId: string;
     sectionKey: string;
@@ -28,12 +29,13 @@ interface WizardShellProps {
   }) => Promise<{ success: boolean; responseId?: string; error?: string }>;
 }
 
-export function WizardShell({
+function WizardShell({
   assignmentId,
   title,
   courseTitle,
   sections,
   initialAnswers = {},
+  returnRoute = "/student/dashboard",
   onSaveDraft,
   onSubmitResponse,
 }: WizardShellProps) {
@@ -217,7 +219,7 @@ export function WizardShell({
 
   if (isSubmitted) {
     return (
-      <div className="animate-in fade-in zoom-in flex min-h-[60vh] flex-col items-center justify-center text-center duration-500">
+      <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in flex min-h-[60vh] flex-col items-center justify-center text-center motion-safe:duration-500">
         <div className="bg-success/10 mb-6 flex size-20 items-center justify-center rounded-full">
           <CheckCircle2 className="text-success size-10" />
         </div>
@@ -226,7 +228,7 @@ export function WizardShell({
           Thank you for completing the {title}. Your feedback has been recorded and will help us
           improve our quality of service.
         </p>
-        <Button onClick={() => router.push("/student/dashboard")} className="px-8 font-bold">
+        <Button onClick={() => router.push(returnRoute)} className="px-8 font-bold">
           Return to Dashboard
         </Button>
       </div>
@@ -236,19 +238,19 @@ export function WizardShell({
   return (
     <div className="relative flex min-h-[calc(100vh-8rem)] flex-col">
       {/* Sticky Wizard Header */}
-      <div className="bg-background/95 supports-[backdrop-filter]:bg-background/60 border-border sticky top-0 z-20 mb-6 border-b pb-4 backdrop-blur">
+      <div className="bg-background border-border sticky top-0 z-20 mb-6 border-b pb-4">
         <div className="mb-4 flex items-center justify-between">
           <Button variant="ghost" size="sm" onClick={() => router.back()} className="-ml-2">
             <ArrowLeft className="mr-2 size-4" /> Back to Dashboard
           </Button>
-          <div className="text-text-muted flex items-center gap-2 text-xs font-bold tracking-wider uppercase">
-            <Save className="size-3" /> {isSaving ? "Saving..." : savedTimeText}
+          <div className="text-text-muted flex items-center gap-2 text-label-sm font-bold tracking-wider uppercase">
+            <Save className="size-4" /> {isSaving ? "Saving..." : savedTimeText}
           </div>
         </div>
-        <h1 className="font-heading mb-3 text-xl font-black">{title}</h1>
-        {courseTitle && <p className="text-text-secondary mb-3 text-sm">{courseTitle}</p>}
+        <h1 className="font-heading text-heading-md mb-3 font-black">{title}</h1>
+        {courseTitle && <p className="text-text-secondary mb-3 text-body-md">{courseTitle}</p>}
         <div className="space-y-1.5">
-          <div className="text-text-muted flex justify-between text-[10px] font-bold uppercase">
+          <div className="text-text-muted flex justify-between text-label-sm font-bold uppercase">
             <span>
               Section {currentStep + 1} of {totalSteps}
             </span>
@@ -258,17 +260,57 @@ export function WizardShell({
         </div>
       </div>
 
-      {/* Section Content */}
-      <div className="flex-1 pb-32">
+      {/* Main Content with Section Navigation */}
+      <div className="flex-1 lg:grid lg:grid-cols-[240px_1fr] lg:gap-8">
+        {/* Section Navigation Sidebar */}
+        <nav className="border-border bg-surface mb-6 hidden rounded-lg border p-4 lg:sticky lg:top-0 lg:mb-0 lg:block lg:h-fit lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto">
+          <h3 className="text-label-sm text-text-muted mb-3 font-bold tracking-wider uppercase">
+            Sections
+          </h3>
+          <ul className="space-y-1">
+            {sections.map((section, index) => {
+              const isCompleted = index < currentStep;
+              const isCurrent = index === currentStep;
+              const isPending = index > currentStep;
+
+              return (
+                <li key={section.id}>
+                  <button
+                    onClick={() => setCurrentStep(index)}
+                    disabled={isPending}
+                    className={cn(
+                      "w-full rounded-md px-3 py-2 text-left text-sm transition-all",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
+                      isCurrent && "bg-primary text-on-primary font-medium",
+                      isCompleted && "bg-success-soft text-success hover:bg-success/20",
+                      isPending && "text-text-muted cursor-not-allowed"
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold">
+                        {isCompleted ? "✓" : index + 1}
+                      </span>
+                      <span className="truncate">{section.name}</span>
+                    </div>
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        {/* Section Content */}
+        <div className="pb-32">
         {validationError && (
-          <Alert variant="destructive" className="animate-in slide-in-from-top-2 mb-6">
+          <Alert variant="destructive" className="motion-safe:animate-in motion-safe:slide-in-from-top-2 mb-6">
             <AlertCircle className="size-4" />
+            <AlertTitle className="sr-only">Validation Error</AlertTitle>
             <AlertDescription className="font-medium">{validationError}</AlertDescription>
           </Alert>
         )}
 
-        <h2 className="mb-4 text-lg font-bold">{currentSection.name}</h2>
-        <p className="text-text-secondary mb-8 text-sm">{currentSection.description}</p>
+        <h2 className="text-title-lg mb-4 font-bold">{currentSection.name}</h2>
+        <p className="text-text-secondary mb-8 text-body-sm">{currentSection.description}</p>
 
         <div className="space-y-8">
           {currentSection.items.map((item) => {
@@ -311,11 +353,11 @@ export function WizardShell({
                             onChange={() => handleValueChange(item.itemKey, v)}
                             className="peer sr-only"
                           />
-                          <div className="border-border peer-checked:bg-primary peer-checked:border-primary hover:bg-primary-soft hover:border-primary flex size-12 items-center justify-center rounded-full border-2 text-lg font-bold transition-all peer-checked:text-white active:scale-90">
+                          <div className="border-border peer-checked:bg-primary peer-checked:border-primary hover:bg-primary-soft hover:border-primary flex size-12 items-center justify-center rounded-full border-2 text-lg font-bold transition-all peer-checked:text-on-primary active:scale-90">
                             {v}
                           </div>
                           {descriptorLabel && (
-                            <span className="text-text-muted mt-0.5 max-w-[80px] text-center text-[10px] leading-tight">
+                            <span className="text-text-muted mt-0.5 max-w-[80px] text-center text-caption leading-tight">
                               {descriptorLabel}
                             </span>
                           )}
@@ -352,8 +394,9 @@ export function WizardShell({
                               handleSuggestedResponseClick(item.promptKey, suggestion, currentValue)
                             }
                             className={cn(
-                              "rounded-full border px-3 py-1.5 text-xs font-medium transition-all",
+                              "rounded-full border px-3 py-1.5 text-label-sm font-medium transition-all",
                               "hover:bg-primary-soft hover:border-primary hover:text-primary",
+                              "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                               "active:scale-95",
                               currentValue
                                 .split(",")
@@ -374,7 +417,7 @@ export function WizardShell({
                     value={currentValue}
                     onChange={(e) => handleValueChange(item.promptKey, e.target.value)}
                     placeholder="Enter your response..."
-                    className="border-border bg-background focus:ring-primary min-h-[100px] w-full rounded-lg border p-3 text-sm focus:ring-2 focus:outline-none"
+                    className="border-border bg-background focus-visible:ring-primary min-h-[100px] w-full rounded-lg border p-3 text-body-sm focus-visible:ring-2 focus-visible:outline-none"
                   />
                 </fieldset>
               );
@@ -382,9 +425,10 @@ export function WizardShell({
           })}
         </div>
       </div>
+    </div>
 
-      {/* Sticky Wizard Footer */}
-      <div className="bg-surface/80 border-border fixed inset-x-0 bottom-0 z-[60] border-t p-4 backdrop-blur-md lg:left-64">
+    {/* Sticky Wizard Footer */}
+      <div className="bg-surface border-border fixed inset-x-0 bottom-0 z-40 border-t p-4 lg:left-64">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between">
           <Button
             variant="outline"
@@ -420,3 +464,6 @@ export function WizardShell({
     </div>
   );
 }
+
+const MemoizedWizardShell = React.memo(WizardShell);
+export { MemoizedWizardShell as WizardShell };

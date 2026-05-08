@@ -63,18 +63,6 @@ export default function Home() {
       <main className="relative">
         <section className="mx-auto grid min-h-[calc(100vh-4.5rem)] max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[minmax(0,1.1fr)_minmax(320px,0.9fr)] lg:px-8 lg:py-24">
           <div className="relative max-w-2xl">
-            <div
-              aria-hidden="true"
-              className="pointer-events-none absolute top-10 left-0 hidden opacity-[0.08] blur-[2px] sm:block"
-            >
-              <Image
-                src="/logos/cloie-logo.png"
-                alt=""
-                width={280}
-                height={280}
-                className="h-auto w-[220px]"
-              />
-            </div>
 
             <div className="relative mt-8 space-y-6">
               <div className="space-y-4">
@@ -93,13 +81,13 @@ export default function Home() {
                 <Button
                   render={<Link href="/login" />}
                   size="lg"
-                  className="text-label-lg h-12 px-6 text-white shadow-sm"
+                  className="text-label-lg h-12 px-6 text-white"
                 >
                   Sign In to CLOIE
                 </Button>
               </div>
 
-              <div className="border-border bg-surface flex items-center gap-4 rounded-2xl border px-5 py-4 shadow-sm sm:max-w-md">
+              <div className="border-border bg-surface flex items-center gap-4 rounded-2xl border px-5 py-4 sm:max-w-md">
                 <Image
                   src="/logos/acd-logo.png"
                   alt="Assumption College of Davao Logo"
@@ -121,7 +109,7 @@ export default function Home() {
           </div>
 
           <div className="relative">
-            <div className="border-border bg-surface rounded-3xl border p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] sm:p-8">
+            <div className="border-border bg-surface rounded-3xl border p-6 shadow-lg sm:p-8">
               <div className="border-border flex items-center justify-between gap-4 border-b pb-5">
                 <div>
                   <p className="text-label-md text-primary">Platform snapshot</p>

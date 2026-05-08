@@ -35,7 +35,7 @@ export function EvaluationListCard({
             <Badge
               variant={status === "DUE_SOON" ? "secondary" : "outline"}
               className={`text-[10px] uppercase ${
-                status === "DUE_SOON" ? "border-amber-200 bg-amber-100 text-amber-800" : ""
+                status === "DUE_SOON" ? "border-warning bg-warning-soft text-warning" : ""
               }`}
             >
               {status === "DUE_SOON" ? "Closing Soon" : `Deadline: ${deadline}`}

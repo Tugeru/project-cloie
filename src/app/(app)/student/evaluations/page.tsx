@@ -11,8 +11,8 @@ export default async function StudentEvaluationsPage() {
   const inProgress = active.filter((item) => item.status === "IN_PROGRESS");
 
   return (
-    <div className="animate-in fade-in space-y-8 duration-500">
-      <section className="bg-surface-container-low rounded-xl p-8">
+    <div className="motion-safe:animate-in motion-safe:fade-in space-y-8 motion-safe:duration-500">
+      <section className="bg-surface rounded-xl p-8">
         <h1 className="font-heading text-text-primary text-4xl font-bold tracking-tight">
           My Evaluations
         </h1>
@@ -27,19 +27,19 @@ export default async function StudentEvaluationsPage() {
           <TabsList className="h-auto flex-wrap gap-2 bg-transparent p-0">
             <TabsTrigger
               value="pending"
-              className="bg-surface text-text-secondary data-[state=active]:bg-primary rounded-full px-5 py-2 text-sm font-medium data-[state=active]:text-white"
+              className="bg-surface text-text-secondary data-[state=active]:bg-primary rounded-full px-5 py-2 text-sm font-medium data-[state=active]:text-on-primary"
             >
               Pending
             </TabsTrigger>
             <TabsTrigger
               value="in-progress"
-              className="bg-surface text-text-secondary data-[state=active]:bg-primary rounded-full px-5 py-2 text-sm font-medium data-[state=active]:text-white"
+              className="bg-surface text-text-secondary data-[state=active]:bg-primary rounded-full px-5 py-2 text-sm font-medium data-[state=active]:text-on-primary"
             >
               In Progress
             </TabsTrigger>
             <TabsTrigger
               value="submitted"
-              className="bg-surface text-text-secondary data-[state=active]:bg-primary rounded-full px-5 py-2 text-sm font-medium data-[state=active]:text-white"
+              className="bg-surface text-text-secondary data-[state=active]:bg-primary rounded-full px-5 py-2 text-sm font-medium data-[state=active]:text-on-primary"
             >
               Submitted
             </TabsTrigger>
