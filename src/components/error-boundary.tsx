@@ -1,0 +1,70 @@
+"use client";
+
+import * as React from "react";
+import { AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+
+interface ErrorBoundaryProps {
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+  onReset?: () => void;
+}
+
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+  }
+
+  handleReset = () => {
+    this.props.onReset?.();
+    this.setState({ hasError: false, error: null });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      if (this.props.fallback) {
+        return this.props.fallback;
+      }
+
+      return (
+        <div className="bg-danger-soft border-danger/20 flex min-h-[40vh] flex-col items-center justify-center rounded-lg border p-8 text-center">
+          <AlertCircle className="text-danger mb-4 size-12" />
+          <h2 className="text-heading-md text-danger mb-2">Something went wrong</h2>
+          <p className="text-body-md text-text-secondary mb-6 max-w-md">
+            An error occurred while loading this content. Your progress has been saved.
+          </p>
+          <div className="flex gap-3">
+            <Button onClick={this.handleReset} variant="outline">
+              Try Again
+            </Button>
+            <Button onClick={() => window.location.href = "/student/dashboard"}>
+              Return to Dashboard
+            </Button>
+          </div>
+          {process.env.NODE_ENV === "development" && this.state.error && (
+            <pre className="bg-background mt-6 max-w-2xl overflow-auto rounded p-4 text-left text-sm">
+              {this.state.error.message}
+              {this.state.error.stack}
+            </pre>
+          )}
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
