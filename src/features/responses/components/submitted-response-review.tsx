@@ -26,7 +26,7 @@ export function SubmittedResponseReview({
   };
 
   return (
-    <div className="animate-in fade-in space-y-8 duration-500">
+    <div className="motion-safe:animate-in motion-safe:fade-in space-y-8 motion-safe:duration-500">
       <div>
         <h1 className="font-heading text-2xl font-black">{evaluationTitle}</h1>
         <p className="text-text-secondary text-sm">

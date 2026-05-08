@@ -24,7 +24,7 @@ export default async function EvaluationPage({ params }: { params: Promise<{ id:
   }
 
   return (
-    <ErrorBoundary>
+    <ErrorBoundary returnHref="/student/dashboard">
       <WizardShell
         assignmentId={session.assignmentId}
         title={session.evaluationTitle}

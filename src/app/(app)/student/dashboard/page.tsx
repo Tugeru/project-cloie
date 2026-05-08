@@ -40,7 +40,7 @@ export default async function StudentDashboardPage() {
   const displayName = profile?.user.first_name ?? "Student";
 
   return (
-    <div className="animate-in fade-in duration-500">
+    <div className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-500">
       <HeroCard name={displayName} contextLabel={contextLabel} />
       <StatCards
         pending={active.length}
@@ -120,7 +120,7 @@ export default async function StudentDashboardPage() {
               </div>
               <h4 className="text-title-sm text-text-primary mb-2 font-semibold">No pending evaluations</h4>
               <p className="text-body-sm text-text-secondary mx-auto max-w-sm">
-                You don't have any active evaluations at the moment. Check back later or view your history.
+                You don&apos;t have any active evaluations at the moment. Check back later or view your history.
               </p>
             </div>
           )}

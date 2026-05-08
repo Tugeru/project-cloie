@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { ErrorBoundary } from "@/components/error-boundary";
 import { getCentralDeploymentEvaluationSession } from "@/features/responses/services/get-central-deployment-evaluation-session";
 import { WizardShell } from "@/features/responses/components/wizard-shell";
 import {
@@ -31,13 +32,16 @@ export default async function AlumniEvaluationPage({
   }
 
   return (
-    <WizardShell
-      assignmentId={evalSession.assignmentId}
-      title={evalSession.evaluationTitle}
-      sections={evalSession.sections}
-      initialAnswers={evalSession.savedAnswers}
-      onSaveDraft={saveCentralDeploymentDraftAction}
-      onSubmitResponse={submitCentralDeploymentResponseAction}
-    />
+    <ErrorBoundary returnHref="/alumni/dashboard">
+      <WizardShell
+        assignmentId={evalSession.assignmentId}
+        title={evalSession.evaluationTitle}
+        sections={evalSession.sections}
+        initialAnswers={evalSession.savedAnswers}
+        returnRoute="/alumni/dashboard"
+        onSaveDraft={saveCentralDeploymentDraftAction}
+        onSubmitResponse={submitCentralDeploymentResponseAction}
+      />
+    </ErrorBoundary>
   );
 }
