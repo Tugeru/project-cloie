@@ -29,13 +29,13 @@ interface WizardShellProps {
   }) => Promise<{ success: boolean; responseId?: string; error?: string }>;
 }
 
-function WizardShell({
+export function WizardShell({
   assignmentId,
   title,
   courseTitle,
   sections,
   initialAnswers = {},
-  returnRoute = "/student/dashboard",
+  returnRoute = "/",
   onSaveDraft,
   onSubmitResponse,
 }: WizardShellProps) {
@@ -121,7 +121,7 @@ function WizardShell({
     handleValueChange(promptKey, nextTokens.join(", "));
   };
 
-  const validateCurrentSection = () => {
+  const validateCurrentSection = React.useCallback(() => {
     const requiredItems = currentSection.items.filter((item) => item.kind === "quantitative");
     const unanswered = requiredItems.filter((item) => {
       const answerKey = buildStudentEvaluationAnswerKey(
@@ -140,7 +140,7 @@ function WizardShell({
     }
     setValidationError(null);
     return true;
-  };
+  }, [currentSection, answers]);
 
   const handleSaveDraft = React.useCallback(async () => {
     if (!onSaveDraft) return;
@@ -182,6 +182,20 @@ function WizardShell({
       scrollToTop();
     }
   };
+
+  const jumpToStep = React.useCallback(
+    (index: number) => {
+      if (!validateCurrentSection()) {
+        scrollToTop();
+        return;
+      }
+      void handleSaveDraft();
+      setCurrentStep(index);
+      setValidationError(null);
+      scrollToTop();
+    },
+    [handleSaveDraft, validateCurrentSection]
+  );
 
   const handlePrevious = () => {
     void handleSaveDraft();
@@ -276,7 +290,7 @@ function WizardShell({
               return (
                 <li key={section.id}>
                   <button
-                    onClick={() => setCurrentStep(index)}
+                    onClick={() => jumpToStep(index)}
                     disabled={isPending}
                     className={cn(
                       "w-full rounded-md px-3 py-2 text-left text-sm transition-all",
@@ -465,5 +479,3 @@ function WizardShell({
   );
 }
 
-const MemoizedWizardShell = React.memo(WizardShell);
-export { MemoizedWizardShell as WizardShell };
