@@ -8,6 +8,8 @@ interface ErrorBoundaryProps {
   children: React.ReactNode;
   fallback?: React.ReactNode;
   onReset?: () => void;
+  returnHref: string;
+  returnLabel?: string;
 }
 
 interface ErrorBoundaryState {
@@ -45,14 +47,14 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
           <AlertCircle className="text-danger mb-4 size-12" />
           <h2 className="text-heading-md text-danger mb-2">Something went wrong</h2>
           <p className="text-body-md text-text-secondary mb-6 max-w-md">
-            An error occurred while loading this content. Your progress has been saved.
+            An error occurred while loading this content. You can try again or return to a safe page.
           </p>
           <div className="flex gap-3">
             <Button onClick={this.handleReset} variant="outline">
               Try Again
             </Button>
-            <Button onClick={() => window.location.href = "/student/dashboard"}>
-              Return to Dashboard
+            <Button onClick={() => { window.location.href = this.props.returnHref; }}>
+              {this.props.returnLabel ?? "Return to Dashboard"}
             </Button>
           </div>
           {process.env.NODE_ENV === "development" && this.state.error && (
