@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
-import { HeroCard } from "@/features/users/components/hero-card";
+import { HeroCard } from "@/features/portals/components/hero-card";
 
 describe("HeroCard", () => {
   test("renders student information correctly", () => {
