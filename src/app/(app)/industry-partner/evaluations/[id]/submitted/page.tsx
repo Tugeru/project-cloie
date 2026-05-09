@@ -35,7 +35,7 @@ export default async function IndustryPartnerSubmittedPage({
   }
 
   return (
-    <div className="animate-in fade-in space-y-6 duration-500">
+    <div className="motion-safe:animate-in motion-safe:fade-in space-y-6 motion-safe:duration-500">
       <Button asChild variant="ghost" size="sm" className="-ml-2">
         <Link href="/industry-partner/evaluations">
           <ArrowLeft className="mr-2 size-4" /> Back to Evaluations

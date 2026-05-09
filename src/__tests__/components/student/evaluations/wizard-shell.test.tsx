@@ -44,7 +44,7 @@ describe("WizardShell", () => {
     render(<WizardShell assignmentId="test" title="Test Eval" sections={mockSections} />);
 
     expect(screen.getByText("Test Eval")).toBeDefined();
-    expect(screen.getByText("Section 1 Name")).toBeDefined();
+    expect(screen.getByRole("heading", { name: "Section 1 Name" })).toBeDefined();
     expect(screen.getByText("Question 1")).toBeDefined();
   });
 

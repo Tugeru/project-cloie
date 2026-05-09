@@ -22,7 +22,7 @@ export default async function StudentProfilePage() {
   const fullName = profile ? `${profile.user.first_name} ${profile.user.last_name}` : "Student";
 
   return (
-    <div className="animate-in fade-in max-w-4xl space-y-8 duration-500">
+    <div className="motion-safe:animate-in motion-safe:fade-in max-w-4xl space-y-8 motion-safe:duration-500">
       <div>
         <h1 className="font-heading text-text-primary text-2xl font-black">Profile</h1>
         <p className="text-text-muted text-sm">

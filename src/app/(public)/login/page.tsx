@@ -13,7 +13,7 @@ export default async function LoginPage({
   const error = resolvedSearchParams?.error;
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 zoom-in-95 relative z-10 mx-auto w-full max-w-md duration-500">
+    <div className="relative z-10 mx-auto w-full max-w-md">
       {/* Header Section */}
       <div className="mb-8 flex flex-col items-center">
         <div className="mb-5 flex items-center gap-4">
@@ -33,25 +33,25 @@ export default async function LoginPage({
             priority
           />
         </div>
-        <h1 className="text-display-md font-bold tracking-tight text-[#2563eb]">System CLOIE</h1>
-        <p className="mt-2 text-center text-[#64748b]">
+        <h1 className="text-display-md font-bold tracking-tight text-primary">System CLOIE</h1>
+        <p className="mt-2 text-center text-text-secondary">
           System for Comprehensive Learning Outcomes
           <br />
           and Instructional Evaluation
         </p>
-        <p className="mt-1 text-sm font-medium text-[#2563eb]">Assumption College of Davao</p>
+        <p className="mt-1 text-label-md text-primary">Assumption College of Davao</p>
       </div>
 
       {/* Error Alerts */}
       {error === "invalid_domain" && (
         <Alert
           variant="destructive"
-          className="animate-in slide-in-from-top-2 mb-6 border-red-500/20 bg-red-50/80 backdrop-blur-sm duration-300"
+          className="mb-6 border-danger/20 bg-danger-soft"
         >
-          <AlertCircle className="size-5 shrink-0 text-red-500" />
+          <AlertCircle className="size-5 shrink-0 text-danger" />
           <div className="ml-3">
-            <AlertTitle className="text-red-700">Access Restricted</AlertTitle>
-            <AlertDescription className="text-red-600/90">
+            <AlertTitle className="text-danger">Access Restricted</AlertTitle>
+            <AlertDescription className="text-danger/90">
               Please use your official <span className="font-semibold">@acd.edu.ph</span> or{" "}
               <span className="font-semibold">@acdeducation.com</span> email.
             </AlertDescription>
@@ -62,12 +62,12 @@ export default async function LoginPage({
       {error === "auth-failure" && (
         <Alert
           variant="destructive"
-          className="animate-in slide-in-from-top-2 mb-6 border-red-500/20 bg-red-50/80 backdrop-blur-sm duration-300"
+          className="mb-6 border-danger/20 bg-danger-soft"
         >
-          <AlertCircle className="size-5 shrink-0 text-red-500" />
+          <AlertCircle className="size-5 shrink-0 text-danger" />
           <div className="ml-3">
-            <AlertTitle className="text-red-700">Authentication Failed</AlertTitle>
-            <AlertDescription className="text-red-600/90">
+            <AlertTitle className="text-danger">Authentication Failed</AlertTitle>
+            <AlertDescription className="text-danger/90">
               There was a problem signing you in. Please try again.
             </AlertDescription>
           </div>
@@ -75,10 +75,10 @@ export default async function LoginPage({
       )}
 
       {/* Main Card */}
-      <Card className="overflow-hidden border border-[#e2e8f0]/60 bg-white/95 shadow-xl backdrop-blur-sm transition-shadow duration-300 hover:shadow-2xl">
+      <Card className="border-border bg-surface shadow-lg">
         <CardHeader className="space-y-3 pt-8 pb-6 text-center">
-          <CardTitle className="text-heading-lg font-bold text-[#0f172a]">Welcome Back!</CardTitle>
-          <CardDescription className="text-body-md mx-auto max-w-[280px] text-[#64748b]">
+          <CardTitle className="text-heading-lg font-bold text-text-primary">Welcome Back!</CardTitle>
+          <CardDescription className="text-body-md mx-auto max-w-[280px] text-text-secondary">
             Sign in with your ACD Google account to access your dashboard.
           </CardDescription>
         </CardHeader>
@@ -86,9 +86,9 @@ export default async function LoginPage({
         <CardContent className="space-y-6 pb-8">
           {/* Faculty/Staff Option */}
           <div className="space-y-2">
-            <div className="flex items-center justify-center gap-2 text-sm font-medium text-[#334155]">
-              <Users className="size-4 text-[#2563eb]" />
-              <span></span>
+            <div className="flex items-center justify-center gap-2 text-sm font-medium text-text-secondary">
+              <Users className="size-4 text-primary" />
+              <span>Faculty & Staff</span>
             </div>
             <GoogleSignInButton />
           </div>
@@ -96,10 +96,10 @@ export default async function LoginPage({
           {/* Divider */}
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-[#e2e8f0]" />
+              <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-white px-4 text-xs font-medium tracking-wider text-[#94a3b8] uppercase">
+              <span className="bg-surface px-4 text-label-sm font-medium tracking-wider text-text-muted uppercase">
                 or
               </span>
             </div>
@@ -107,8 +107,8 @@ export default async function LoginPage({
 
           {/* Student Option */}
           <div className="space-y-2">
-            <div className="flex items-center justify-center gap-2 text-sm font-medium text-[#334155]">
-              <GraduationCap className="size-4 text-[#d49900]" />
+            <div className="flex items-center justify-center gap-2 text-sm font-medium text-text-secondary">
+              <GraduationCap className="size-4 text-secondary" />
               <span>New Students</span>
             </div>
             <GoogleSignInButton intent="student" />
@@ -116,18 +116,18 @@ export default async function LoginPage({
 
           {/* Footer Links */}
           <div className="pt-4 text-center">
-            <p className="text-caption text-[#94a3b8]">
+            <p className="text-caption text-text-muted">
               By signing in, you agree to our{" "}
               <a
                 href="#"
-                className="underline-offset-2 transition-colors hover:text-[#2563eb] hover:underline"
+                className="underline-offset-2 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
               >
                 Terms
               </a>{" "}
               and{" "}
               <a
                 href="#"
-                className="underline-offset-2 transition-colors hover:text-[#2563eb] hover:underline"
+                className="underline-offset-2 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
               >
                 Privacy Policy
               </a>
@@ -137,11 +137,11 @@ export default async function LoginPage({
       </Card>
 
       {/* Help Link */}
-      <p className="mt-6 text-center text-sm text-[#64748b]">
+      <p className="mt-6 text-center text-body-sm text-text-secondary">
         Need help?{" "}
         <a
           href="mailto:support@acdeducation.com"
-          className="font-medium text-[#2563eb] underline-offset-2 transition-colors hover:text-[#1d4ed8] hover:underline"
+          className="font-medium text-primary underline-offset-2 transition-colors hover:text-primary-hover hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
         >
           Contact IT Support
         </a>

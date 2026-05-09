@@ -13,14 +13,14 @@ export function HeroCard({
   evaluationsHref = "/student/evaluations",
 }: HeroCardProps) {
   return (
-    <section className="border-primary/10 from-primary to-primary-active text-on-primary mb-8 rounded-2xl border bg-gradient-to-br p-6 shadow-md lg:p-8">
+    <section className="bg-primary border-primary-active/20 text-on-primary mb-8 rounded-2xl border p-6 shadow-md lg:p-8">
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-center">
         <div>
           <h2 className="font-heading text-heading-lg lg:text-heading-xl mb-1 font-extrabold">
             Welcome, {name}
           </h2>
-          <p className="text-primary-muted font-medium">{contextLabel}</p>
-          <p className="border-primary-border/20 bg-primary-active/30 text-body-sm mt-4 inline-block rounded-full border px-3 py-1.5">
+          <p className="text-white/80 font-medium">{contextLabel}</p>
+          <p className="bg-white/10 text-body-sm mt-4 inline-block rounded-full border border-white/20 px-3 py-1.5">
             Complete your assigned evaluations before their deadlines.
           </p>
         </div>
@@ -28,7 +28,7 @@ export function HeroCard({
           <Button
             render={<Link href={evaluationsHref} />}
             variant="outline"
-            className="border-white/20 bg-white text-primary hover:bg-white/90 font-semibold"
+            className="border-on-primary bg-on-primary text-primary hover:bg-white font-semibold"
           >
             My Evaluations
           </Button>
