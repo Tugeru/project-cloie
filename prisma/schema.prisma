@@ -137,6 +137,7 @@ model AcademicTermInstance {
 
   school_year SchoolYear @relation(fields: [school_year_id], references: [id], onDelete: Cascade)
   student_enrollments StudentEnrollment[]
+  course_assignments CourseAssignment[]
 
   // Prisma cannot express NULLS NOT DISTINCT; the actual unique constraint is managed via Supabase migration
   @@index([school_year_id, semester, term])
@@ -170,6 +171,34 @@ model StudentEnrollment {
   @@map("student_enrollments")
 }
 
+model CourseAssignment {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  term_instance_id  String   @db.Uuid
+  faculty_id        String   @db.Uuid
+  course_id         String   @db.Uuid
+  program_id        String   @db.Uuid
+  year_level        YearLevel
+  section           StudentSection?
+  assigned_by       String?  @db.Uuid
+  is_active         Boolean  @default(true)
+  created_at        DateTime @default(now())
+  updated_at        DateTime @updatedAt
+
+  term_instance AcademicTermInstance @relation(fields: [term_instance_id], references: [id], onDelete: Cascade)
+  faculty       User                 @relation(fields: [faculty_id], references: [id], onDelete: Cascade)
+  course        Course               @relation(fields: [course_id], references: [id], onDelete: Cascade)
+  program       Program              @relation(fields: [program_id], references: [id], onDelete: Restrict)
+  assigner      User?                @relation("AssignmentAssigner", fields: [assigned_by], references: [id], onDelete: SetNull)
+
+  // Unique constraint: one assignment per faculty/course/program/year/section per term
+  // NULLS NOT DISTINCT enforced in SQL migration; mirrored here as index
+  @@index([term_instance_id, course_id, faculty_id, program_id, year_level, section])
+  @@index([term_instance_id, faculty_id])
+  @@index([term_instance_id, course_id])
+  @@index([is_active])
+  @@map("course_assignments")
+}
+
 // ============================================================================
 // Core Academic Entities
 // ============================================================================
@@ -197,6 +226,8 @@ model User {
   archived_school_years SchoolYear[] @relation("ArchivedSchoolYears")
   enrollments            StudentEnrollment[]
   created_enrollments    StudentEnrollment[] @relation("EnrollmentCreator")
+  course_assignments     CourseAssignment[] @relation("faculty")
+  created_assignments    CourseAssignment[] @relation("AssignmentAssigner")
 
   @@map("users")
 }
@@ -236,6 +267,7 @@ model Program {
   bound_instrument_templates InstrumentTemplate[] @relation("BoundInstrumentTemplateProgram")
   industry_partner_profiles IndustryPartnerProfile[]
   student_enrollments    StudentEnrollment[]
+  course_assignments     CourseAssignment[]
 
   @@map("programs")
 }
@@ -269,14 +301,25 @@ model Course {
   major_id     String?     @db.Uuid
   course_scope CourseScope @default(PROGRAM_SPECIFIC)
   is_active    Boolean     @default(true)
+
+model Course {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code         String      @unique
+  title        String
+  description  String?
+  program_id   String?     @db.Uuid
+  major_id     String?     @db.Uuid
+  course_scope CourseScope @default(PROGRAM_SPECIFIC)
+  is_active    Boolean     @default(true)
   created_at   DateTime    @default(now())
-  updated_at   DateTime    @updatedAt
+  updated_at   DateTime   @updatedAt
 
   program      Program?    @relation(fields: [program_id], references: [id], onDelete: SetNull)
   major        Major?      @relation(fields: [major_id], references: [id], onDelete: SetNull)
   cilos        CILO[]
   evaluations  CourseBoundEvaluation[]
   bound_instrument_templates InstrumentTemplate[] @relation("BoundInstrumentTemplateCourse")
+  course_assignments CourseAssignment[]
 
   @@map("courses")
 }
