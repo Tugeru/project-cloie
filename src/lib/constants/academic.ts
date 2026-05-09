@@ -1,5 +1,17 @@
 import { AcademicSemester, AcademicTerm } from "@prisma/client";
 
+// Re-export from centralized academic-period module for backward compatibility
+export {
+  ALLOWED_SEMESTER_TERM_PAIRS,
+  formatSchoolYearCode,
+  parseSchoolYearCode,
+  assertValidSemesterTerm,
+  isValidSemesterTerm,
+  getSemesterTermLabel,
+  getSemesterShortLabel,
+  getTermShortLabel,
+} from "./academic-period";
+
 export const SEMESTER_OPTIONS = [
   { label: "1st Semester", value: AcademicSemester.FIRST },
   { label: "2nd Semester", value: AcademicSemester.SECOND },
@@ -11,10 +23,10 @@ export const TERM_OPTIONS = [
   { label: "2nd Term", value: AcademicTerm.SECOND_TERM },
 ] as const;
 
-function getSemesterLabel(value: AcademicSemester | null | undefined) {
+export function getSemesterLabel(value: AcademicSemester | null | undefined) {
   return SEMESTER_OPTIONS.find((option) => option.value === value)?.label ?? "Unknown Semester";
 }
 
-function getTermLabel(value: AcademicTerm | null | undefined) {
+export function getTermLabel(value: AcademicTerm | null | undefined) {
   return TERM_OPTIONS.find((option) => option.value === value)?.label ?? "Unknown Term";
 }
