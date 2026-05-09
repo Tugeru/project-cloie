@@ -10,6 +10,7 @@ import {
   Layers3,
   BarChart3,
   Users2,
+  Calendar,
   type LucideIcon,
 } from "lucide-react";
 import { ROLES, type Role } from "@/lib/constants/roles";
@@ -46,6 +47,7 @@ const FACULTY_NAV: NavItem[] = [
 const ADMIN_NAV: NavItem[] = [
   { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
   { name: "Users", href: "/admin/users", icon: Users2 },
+  { name: "School Years", href: "/admin/school-years", icon: Calendar },
   { name: "Programs", href: "/admin/programs", icon: Building2 },
   { name: "Courses", href: "/admin/courses", icon: BookOpen },
   { name: "Tools", href: "/admin/instruments", icon: ClipboardList },
