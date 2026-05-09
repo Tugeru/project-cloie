@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { TermInstancePicker } from "@/features/academic-calendar/components/term-instance-picker";
 import { YEAR_LEVEL_OPTIONS, STUDENT_SECTION_OPTIONS } from "@/lib/constants/academic";
 import { X } from "lucide-react";
+import type { TermInstanceItem } from "@/features/academic-calendar/types";
 
 export interface AssignmentFiltersState {
   termInstanceId: string | null;
@@ -25,6 +26,7 @@ interface AssignmentFiltersProps {
   availableCourses: Array<{ id: string; code: string; title: string }>;
   availablePrograms: Array<{ id: string; code: string; name: string }>;
   availableFaculty: Array<{ id: string; firstName: string; lastName: string; email: string }>;
+  termInstances: TermInstanceItem[];
 }
 
 export function AssignmentFilters({
@@ -33,6 +35,7 @@ export function AssignmentFilters({
   availableCourses,
   availablePrograms,
   availableFaculty,
+  termInstances,
 }: AssignmentFiltersProps) {
   const hasActiveFilters =
     filters.termInstanceId ||
@@ -66,6 +69,7 @@ export function AssignmentFilters({
     <div className="flex flex-wrap gap-3 items-end">
       <div className="min-w-[200px]">
         <TermInstancePicker
+          termInstances={termInstances}
           value={filters.termInstanceId ?? undefined}
           onChange={(value) => updateFilter("termInstanceId", value)}
           placeholder="Select term..."
