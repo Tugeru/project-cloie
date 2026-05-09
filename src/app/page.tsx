@@ -66,14 +66,11 @@ export default function Home() {
 
             <div className="relative mt-8 space-y-6">
               <div className="space-y-4">
-                <h1 className="text-display-md text-text-primary sm:text-display-lg max-w-xl">
+                <h1 className="text-display-md text-primary sm:text-display-lg max-w-xl">
                   System CLOIE
                 </h1>
-                <p className="text-label-md text-primary tracking-[0.12em] uppercase">
+                <p className="text-label-md text-primary/60 tracking-[0.12em] uppercase">
                   System for Comprehensive Learning Outcomes and Instructional Evaluation
-                </p>
-                <p className="text-body-lg text-text-secondary max-w-xl">
-                  A structured home for academic evaluation across ACD.
                 </p>
               </div>
 
