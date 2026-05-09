@@ -10,6 +10,7 @@ import {
   Layers3,
   BarChart3,
   Users2,
+  UsersRound,
   Calendar,
   type LucideIcon,
 } from "lucide-react";
@@ -56,6 +57,7 @@ const ADMIN_NAV: NavItem[] = [
 const PROGRAM_HEAD_NAV: NavItem[] = [
   { name: "Dashboard", href: "/program-head/dashboard", icon: LayoutDashboard },
   { name: "Courses", href: "/program-head/courses", icon: BookOpen },
+  { name: "Course Assignments", href: "/program-head/course-assignments", icon: UsersRound },
   { name: "CILO Reviews", href: "/program-head/cilo-reviews", icon: ClipboardList },
   { name: "Outcomes", href: "/program-head/outcomes", icon: Layers3 },
   { name: "Tools", href: "/program-head/tools", icon: FileText },
