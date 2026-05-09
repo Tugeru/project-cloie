@@ -2,9 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Eye, Plus, Search, Trash2 } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
+import { TermInstancePicker } from "@/features/academic-calendar/components/term-instance-picker";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -31,6 +33,7 @@ import {
 } from "@/components/ui/table";
 
 import type { FacultyCourseWithCiloCount } from "@/features/evaluations/services/list-faculty-courses-with-cilos";
+import type { TermInstanceItem } from "@/features/academic-calendar/types";
 
 // ---------------------------------------------------------------------------
 // Types for the CILO modal
@@ -69,6 +72,8 @@ const PAGE_SIZE = 15;
 
 type FacultyCilosCourseListProps = {
   courses: FacultyCourseWithCiloCount[];
+  termInstances: TermInstanceItem[];
+  selectedTermId?: string;
   loadCilosAction: ViewEditCilosModalProps["loadCilosAction"];
   saveCilosAction: ViewEditCilosModalProps["saveCilosAction"];
 };
@@ -282,13 +287,27 @@ function ViewEditCilosModal({
 
 export function FacultyCilosCourseList({
   courses,
+  termInstances,
+  selectedTermId,
   loadCilosAction,
   saveCilosAction,
 }: FacultyCilosCourseListProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const [typeFilter, setTypeFilter] = useState<string>("__all__");
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [modalCourse, setModalCourse] = useState<FacultyCourseWithCiloCount | null>(null);
+
+  const handleTermChange = (termId: string | null) => {
+    const params = new URLSearchParams(searchParams);
+    if (termId) {
+      params.set("term", termId);
+    } else {
+      params.delete("term");
+    }
+    router.push(`?${params.toString()}`);
+  };
 
   // ---- Filtered courses ----------------------------------------------------
   const filteredCourses = useMemo(() => {
@@ -345,6 +364,15 @@ export function FacultyCilosCourseList({
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-3">
+        <div className="w-64">
+          <TermInstancePicker
+            termInstances={termInstances}
+            value={selectedTermId}
+            onChange={handleTermChange}
+            placeholder="All Terms"
+          />
+        </div>
+
         <Select value={typeFilter} onValueChange={handleTypeChange}>
           <SelectTrigger className="w-[200px]">
             <SelectValue>

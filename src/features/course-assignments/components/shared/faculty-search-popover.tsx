@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useCallback } from "react";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -72,12 +78,11 @@ export function FacultySearchPopover({
   };
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger>
         <Button
           variant="outline"
           role="combobox"
-          aria-expanded={open}
           className="w-full justify-between"
           disabled={disabled}
         >
@@ -90,8 +95,11 @@ export function FacultySearchPopover({
             <span className="text-muted-foreground">Search faculty...</span>
           )}
         </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0" align="start">
+      </DialogTrigger>
+      <DialogContent className="w-[400px] p-0">
+        <DialogHeader>
+          <DialogTitle>Search Faculty</DialogTitle>
+        </DialogHeader>
         <div className="p-2">
           <Input
             placeholder="Search by name or email..."
@@ -168,7 +176,7 @@ export function FacultySearchPopover({
             </div>
           )}
         </div>
-      </PopoverContent>
-    </Popover>
+      </DialogContent>
+    </Dialog>
   );
 }

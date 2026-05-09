@@ -18,6 +18,7 @@ import { ClassIdentityFields } from "../shared/class-identity-fields";
 import { FacultySearchPopover } from "../shared/faculty-search-popover";
 import { bulkCreateCourseAssignmentsAction } from "@/lib/actions/course-assignment-actions";
 import type { FacultySearchResult } from "@/features/course-assignments/types";
+import type { TermInstanceItem } from "@/features/academic-calendar/types";
 
 interface Course {
   id: string;
@@ -43,6 +44,7 @@ interface AddClassesForFacultyDialogProps {
   onOpenChange: (open: boolean) => void;
   availableCourses: Course[];
   availablePrograms: Program[];
+  termInstances: TermInstanceItem[];
   defaultCourseId?: string;
   onSuccess?: () => void;
 }
@@ -52,6 +54,7 @@ export function AddClassesForFacultyDialog({
   onOpenChange,
   availableCourses,
   availablePrograms,
+  termInstances,
   defaultCourseId,
   onSuccess,
 }: AddClassesForFacultyDialogProps) {
@@ -94,11 +97,7 @@ export function AddClassesForFacultyDialog({
 
   const handleSubmit = async () => {
     if (!termInstanceId || !courseId || !selectedFaculty || classConfigs.length === 0) {
-      showToast({
-        title: "Error",
-        description: "Please fill in all required fields.",
-        variant: "error",
-      });
+      showToast("Please fill in all required fields.", "error");
       return;
     }
 
@@ -118,27 +117,15 @@ export function AddClassesForFacultyDialog({
     setIsSubmitting(false);
 
     if (result.success) {
-      showToast({
-        title: "Success",
-        description: `Created ${result.created} class assignments successfully.`,
-        variant: "success",
-      });
+      showToast(`Created ${result.created} class assignments successfully.`, "success");
       if (result.errors.length > 0) {
-        showToast({
-          title: "Warning",
-          description: `${result.errors.length} assignments failed to create.`,
-          variant: "warning",
-        });
+        showToast(`${result.errors.length} assignments failed to create.`, "error");
       }
       resetForm();
       onOpenChange(false);
       onSuccess?.();
     } else {
-      showToast({
-        title: "Error",
-        description: "Failed to create class assignments.",
-        variant: "error",
-      });
+      showToast("Failed to create class assignments.", "error");
     }
   };
 
@@ -181,6 +168,7 @@ export function AddClassesForFacultyDialog({
             <div className="space-y-2">
               <Label>Academic Term</Label>
               <TermInstancePicker
+                termInstances={termInstances}
                 value={termInstanceId ?? undefined}
                 onChange={setTermInstanceId}
               />

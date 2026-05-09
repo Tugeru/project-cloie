@@ -20,6 +20,7 @@ import { FacultySearchPopover } from "./shared/faculty-search-popover";
 import { createCourseAssignmentAction } from "@/lib/actions/course-assignment-actions";
 import { searchFacultyPoolAction } from "@/lib/actions/course-assignment-actions";
 import type { FacultySearchResult } from "@/features/course-assignments/types";
+import type { TermInstanceItem } from "@/features/academic-calendar/types";
 
 interface Course {
   id: string;
@@ -38,6 +39,7 @@ interface CourseAssignmentFormDialogProps {
   onOpenChange: (open: boolean) => void;
   availableCourses: Course[];
   availablePrograms: Program[];
+  termInstances: TermInstanceItem[];
   defaultTermInstanceId?: string | null;
   defaultCourseId?: string | null;
   onSuccess?: () => void;
@@ -50,6 +52,7 @@ export function CourseAssignmentFormDialog({
   onOpenChange,
   availableCourses,
   availablePrograms,
+  termInstances,
   defaultTermInstanceId,
   defaultCourseId,
   onSuccess,
@@ -100,11 +103,7 @@ export function CourseAssignmentFormDialog({
 
   const handleSubmit = async () => {
     if (!termInstanceId || !courseId || !programId || !selectedFaculty) {
-      showToast({
-        title: "Error",
-        description: "Please fill in all required fields.",
-        variant: "error",
-      });
+      showToast("Please fill in all required fields.", "error");
       return;
     }
 
@@ -122,20 +121,12 @@ export function CourseAssignmentFormDialog({
     setIsSubmitting(false);
 
     if (result.success) {
-      showToast({
-        title: "Success",
-        description: "Course assignment created successfully.",
-        variant: "success",
-      });
+      showToast("Course assignment created successfully.", "success");
       resetForm();
       onOpenChange(false);
       onSuccess?.();
     } else {
-      showToast({
-        title: "Error",
-        description: result.error || "Failed to create assignment.",
-        variant: "error",
-      });
+      showToast(result.error || "Failed to create assignment.", "error");
     }
   };
 
@@ -187,6 +178,7 @@ export function CourseAssignmentFormDialog({
             <div className="space-y-2">
               <Label>Academic Term</Label>
               <TermInstancePicker
+                termInstances={termInstances}
                 value={termInstanceId ?? undefined}
                 onChange={setTermInstanceId}
               />

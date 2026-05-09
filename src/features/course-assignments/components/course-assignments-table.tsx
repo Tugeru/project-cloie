@@ -22,7 +22,7 @@ import { ChevronLeft, ChevronRight, MoreHorizontal, Edit, Trash2 } from "lucide-
 import { showToast } from "@/components/ui/toast";
 import { deactivateCourseAssignmentAction } from "@/lib/actions/course-assignment-actions";
 import type { CourseAssignmentItem } from "@/features/course-assignments/types";
-import { DEFAULT_PAGE_SIZE } from "@/lib/constants/page-sizes";
+import { DEFAULT_TABLE_PAGE_SIZE } from "@/lib/constants/page-sizes";
 
 interface CourseAssignmentsTableProps {
   assignments: CourseAssignmentItem[];
@@ -39,7 +39,7 @@ export function CourseAssignmentsTable({
   assignments,
   total,
   page,
-  pageSize = DEFAULT_PAGE_SIZE,
+  pageSize = DEFAULT_TABLE_PAGE_SIZE,
   loading = false,
   onPageChange,
   onAssignmentUpdated,
@@ -55,18 +55,10 @@ export function CourseAssignmentsTable({
     setDeletingId(null);
 
     if (result.success) {
-      showToast({
-        title: "Success",
-        description: "Assignment deactivated successfully.",
-        variant: "success",
-      });
+      showToast("Assignment deactivated successfully.", "success");
       onAssignmentUpdated?.();
     } else {
-      showToast({
-        title: "Error",
-        description: result.error || "Failed to deactivate assignment.",
-        variant: "error",
-      });
+      showToast(result.error || "Failed to deactivate assignment.", "error");
     }
   };
 
@@ -130,7 +122,7 @@ export function CourseAssignmentsTable({
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
+                    <DropdownMenuTrigger>
                       <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                         <MoreHorizontal className="h-4 w-4" />
                       </Button>
