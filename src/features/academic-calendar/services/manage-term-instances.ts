@@ -1,0 +1,263 @@
+"use server";
+
+import { prisma } from "@/lib/db/prisma";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { ROLES } from "@/lib/constants/roles";
+import { isValidSemesterTerm } from "@/lib/constants/academic-period";
+import { canSetActiveTerm, canDeleteTermInstance } from "../policies";
+import type {
+  CreateTermInstanceInput,
+  UpdateTermInstanceInput,
+} from "../schemas/term-instance";
+
+export type ServiceResult<T = void> =
+  | { success: true; data: T }
+  | { success: false; error: string };
+
+/**
+ * Verify admin authentication.
+ */
+async function verifyAdminAccess(): Promise<ServiceResult<{ userId: string }>> {
+  const session = await resolveAuthSession();
+
+  if (!session || !session.roles.includes(ROLES.ADMIN)) {
+    return { success: false, error: "Admin access required" };
+  }
+
+  return { success: true, data: { userId: session.userId } };
+}
+
+/**
+ * Add a new Term Instance to a School Year.
+ */
+export async function addTermInstance(
+  input: CreateTermInstanceInput
+): Promise<ServiceResult<{ id: string }>> {
+  const auth = await verifyAdminAccess();
+  if (!auth.success) return auth;
+
+  // Validate semester-term combination
+  if (!isValidSemesterTerm(input.semester, input.term ?? null)) {
+    return {
+      success: false,
+      error:
+        input.semester === "SUMMER"
+          ? "Summer semester cannot have a term"
+          : "First and Second semesters must have a term",
+    };
+  }
+
+  // Verify school year exists and is not archived
+  const schoolYear = await prisma.schoolYear.findUnique({
+    where: { id: input.schoolYearId },
+    select: { id: true, is_archived: true },
+  });
+
+  if (!schoolYear) {
+    return { success: false, error: "School year not found" };
+  }
+
+  if (schoolYear.is_archived) {
+    return { success: false, error: "Cannot add terms to an archived school year" };
+  }
+
+  try {
+    const termInstance = await prisma.academicTermInstance.create({
+      data: {
+        school_year_id: input.schoolYearId,
+        semester: input.semester,
+        term: input.term ?? null,
+        start_date: input.startDate ?? null,
+        end_date: input.endDate ?? null,
+        is_active: false,
+      },
+    });
+
+    return { success: true, data: { id: termInstance.id } };
+  } catch (error) {
+    if (isUniqueConstraintError(error)) {
+      return {
+        success: false,
+        error: "A term instance with this semester and term already exists for this school year",
+      };
+    }
+    throw error;
+  }
+}
+
+/**
+ * Update an existing Term Instance.
+ */
+export async function updateTermInstance(
+  input: UpdateTermInstanceInput
+): Promise<ServiceResult<{ id: string }>> {
+  const auth = await verifyAdminAccess();
+  if (!auth.success) return auth;
+
+  const existing = await prisma.academicTermInstance.findUnique({
+    where: { id: input.id },
+    include: {
+      school_year: {
+        select: { is_archived: true },
+      },
+    },
+  });
+
+  if (!existing) {
+    return { success: false, error: "Term instance not found" };
+  }
+
+  if (existing.school_year.is_archived) {
+    return { success: false, error: "Cannot modify terms of an archived school year" };
+  }
+
+  const updated = await prisma.academicTermInstance.update({
+    where: { id: input.id },
+    data: {
+      start_date: input.startDate ?? null,
+      end_date: input.endDate ?? null,
+    },
+  });
+
+  return { success: true, data: { id: updated.id } };
+}
+
+/**
+ * Delete a Term Instance.
+ */
+export async function deleteTermInstance(id: string): Promise<ServiceResult> {
+  const auth = await verifyAdminAccess();
+  if (!auth.success) return auth;
+
+  const existing = await prisma.academicTermInstance.findUnique({
+    where: { id },
+    include: {
+      school_year: {
+        select: { is_archived: true },
+      },
+    },
+  });
+
+  if (!existing) {
+    return { success: false, error: "Term instance not found" };
+  }
+
+  if (existing.school_year.is_archived) {
+    return { success: false, error: "Cannot delete terms of an archived school year" };
+  }
+
+  // Check if this is the active term
+  const activeTerm = await prisma.academicTermInstance.findFirst({
+    where: { is_active: true },
+    select: { id: true },
+  });
+
+  // Check for dependent records (simplified - in production check enrollments/deployments)
+  const hasDependents = await checkHasDependentRecords(id);
+
+  const check = canDeleteTermInstance(id, activeTerm?.id ?? null, hasDependents);
+
+  if (!check.allowed) {
+    return { success: false, error: check.reason };
+  }
+
+  await prisma.academicTermInstance.delete({
+    where: { id },
+  });
+
+  return { success: true, data: undefined };
+}
+
+/**
+ * Set a Term Instance as the active term.
+ * This transactionally clears any existing active term first.
+ */
+export async function setActiveTermInstance(
+  termInstanceId: string
+): Promise<ServiceResult<{ id: string; previousActiveId: string | null }>> {
+  const auth = await verifyAdminAccess();
+  if (!auth.success) return auth;
+
+  const termInstance = await prisma.academicTermInstance.findUnique({
+    where: { id: termInstanceId },
+    include: {
+      school_year: {
+        select: { is_archived: true, code: true },
+      },
+    },
+  });
+
+  if (!termInstance) {
+    return { success: false, error: "Term instance not found" };
+  }
+
+  if (termInstance.school_year.is_archived) {
+    return { success: false, error: "Cannot activate a term in an archived school year" };
+  }
+
+  // Get current active term
+  const currentActive = await prisma.academicTermInstance.findFirst({
+    where: { is_active: true },
+    select: { id: true },
+  });
+
+  const check = canSetActiveTerm(
+    termInstanceId,
+    currentActive?.id ?? null,
+    termInstance.semester,
+    termInstance.term
+  );
+
+  if (!check.allowed) {
+    return { success: false, error: check.reason };
+  }
+
+  // Transaction: clear existing active, set new active
+  const result = await prisma.$transaction(async (tx) => {
+    // Clear existing active
+    if (currentActive) {
+      await tx.academicTermInstance.update({
+        where: { id: currentActive.id },
+        data: { is_active: false },
+      });
+    }
+
+    // Set new active
+    const updated = await tx.academicTermInstance.update({
+      where: { id: termInstanceId },
+      data: { is_active: true },
+    });
+
+    return {
+      id: updated.id,
+      previousActiveId: currentActive?.id ?? null,
+    };
+  });
+
+  return {
+    success: true,
+    data: result,
+  };
+}
+
+/**
+ * Check if a term instance has dependent records.
+ * In production, this would check student_enrollments, course_assignments, etc.
+ */
+async function checkHasDependentRecords(_termInstanceId: string): Promise<boolean> {
+  // Phase 1: No dependent tables exist yet (enrollments, assignments come in later phases)
+  // Return false for now; update in Phase 2+
+  return false;
+}
+
+/**
+ * Check if an error is a unique constraint violation.
+ */
+function isUniqueConstraintError(error: unknown): boolean {
+  return (
+    error !== null &&
+    typeof error === "object" &&
+    "code" in error &&
+    (error as { code?: string }).code === "P2002"
+  );
+}
