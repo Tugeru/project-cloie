@@ -1,0 +1,103 @@
+import { describe, expect, it, vi } from "vitest";
+import { YearLevel } from "@prisma/client";
+import { listStudentsForClass } from "@/features/enrollments/services/list-students-for-class";
+import * as authModule from "@/features/auth/services/resolve-auth-session";
+
+vi.mock("@/features/auth/services/resolve-auth-session");
+vi.mock("@/lib/db/prisma", () => ({
+  prisma: {
+    studentEnrollment: {
+      findMany: vi.fn(),
+    },
+  },
+}));
+
+describe("list-students-for-class", () => {
+  const mockFacultySession = {
+    userId: "faculty-1",
+    email: "faculty@test.com",
+    roles: ["FACULTY"],
+  };
+
+  const mockStudentSession = {
+    userId: "student-1",
+    email: "student@test.com",
+    roles: ["STUDENT"],
+  };
+
+  it("should return error when student tries to access", async () => {
+    vi.mocked(authModule.resolveAuthSession).mockResolvedValue(mockStudentSession);
+
+    const result = await listStudentsForClass({
+      termInstanceId: "term-1",
+      programId: "program-1",
+      yearLevel: YearLevel.FIRST_YEAR,
+    });
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain("Access denied");
+    }
+  });
+
+  it("should return students for faculty", async () => {
+    vi.mocked(authModule.resolveAuthSession).mockResolvedValue(mockFacultySession);
+
+    const { prisma } = await import("@/lib/db/prisma");
+    vi.mocked(prisma.studentEnrollment.findMany).mockResolvedValue([
+      {
+        student_user_id: "student-1",
+        id: "enrollment-1",
+        major_id: "major-1",
+        student: {
+          id: "student-1",
+          email: "student1@test.com",
+          first_name: "John",
+          last_name: "Doe",
+          student_profile: {
+            student_id_number: "S001",
+          },
+        },
+        major: {
+          id: "major-1",
+          name: "Computer Science",
+        },
+      },
+    ] as never);
+
+    const result = await listStudentsForClass({
+      termInstanceId: "term-1",
+      programId: "program-1",
+      yearLevel: YearLevel.FIRST_YEAR,
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toHaveLength(1);
+      expect(result.data[0].firstName).toBe("John");
+      expect(result.data[0].lastName).toBe("Doe");
+    }
+  });
+
+  it("should filter by section when provided", async () => {
+    vi.mocked(authModule.resolveAuthSession).mockResolvedValue(mockFacultySession);
+
+    const { prisma } = await import("@/lib/db/prisma");
+    vi.mocked(prisma.studentEnrollment.findMany).mockResolvedValue([] as never);
+
+    await listStudentsForClass({
+      termInstanceId: "term-1",
+      programId: "program-1",
+      yearLevel: YearLevel.FIRST_YEAR,
+      section: "MORNING",
+    });
+
+    expect(prisma.studentEnrollment.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({
+          section: "MORNING",
+        }),
+      })
+    );
+  });
+});

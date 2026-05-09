@@ -95,6 +95,14 @@ enum StudentSection {
   @@map("student_section")
 }
 
+enum EnrollmentSource {
+  ONBOARDING
+  ROLLOVER
+  ADMIN
+
+  @@map("enrollment_source")
+}
+
 // ============================================================================
 // Academic Calendar Entities
 // ============================================================================
@@ -128,11 +136,38 @@ model AcademicTermInstance {
   updated_at      DateTime         @updatedAt
 
   school_year SchoolYear @relation(fields: [school_year_id], references: [id], onDelete: Cascade)
+  student_enrollments StudentEnrollment[]
 
   // Prisma cannot express NULLS NOT DISTINCT; the actual unique constraint is managed via Supabase migration
   @@index([school_year_id, semester, term])
   @@index([is_active])
   @@map("academic_term_instances")
+}
+
+model StudentEnrollment {
+  id                String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  student_user_id   String           @db.Uuid
+  term_instance_id  String           @db.Uuid
+  program_id        String           @db.Uuid
+  major_id          String?          @db.Uuid
+  year_level        YearLevel
+  section           StudentSection?
+  source            EnrollmentSource
+  is_active         Boolean          @default(true)
+  created_by        String?          @db.Uuid
+  created_at        DateTime         @default(now())
+  updated_at        DateTime         @updatedAt
+
+  student      User                @relation(fields: [student_user_id], references: [id], onDelete: Cascade)
+  term         AcademicTermInstance @relation(fields: [term_instance_id], references: [id], onDelete: Cascade)
+  program      Program             @relation(fields: [program_id], references: [id], onDelete: Restrict)
+  major        Major?              @relation(fields: [major_id], references: [id], onDelete: SetNull)
+  creator      User?               @relation("EnrollmentCreator", fields: [created_by], references: [id], onDelete: SetNull)
+
+  @@unique([student_user_id, term_instance_id])
+  @@index([term_instance_id, program_id, year_level, section])
+  @@index([is_active])
+  @@map("student_enrollments")
 }
 
 // ============================================================================
@@ -160,6 +195,8 @@ model User {
   industry_partner_profile IndustryPartnerProfile?
   faculty_owned_templates InstrumentTemplate[] @relation("FacultyOwnedInstrumentTemplates")
   archived_school_years SchoolYear[] @relation("ArchivedSchoolYears")
+  enrollments            StudentEnrollment[]
+  created_enrollments    StudentEnrollment[] @relation("EnrollmentCreator")
 
   @@map("users")
 }
@@ -198,6 +235,7 @@ model Program {
   instrument_templates InstrumentTemplate[]
   bound_instrument_templates InstrumentTemplate[] @relation("BoundInstrumentTemplateProgram")
   industry_partner_profiles IndustryPartnerProfile[]
+  student_enrollments    StudentEnrollment[]
 
   @@map("programs")
 }
@@ -216,6 +254,7 @@ model Major {
   course_evaluations   CourseBoundEvaluation[]
   central_deployments  CentralDeployment[]
   bound_instrument_templates InstrumentTemplate[] @relation("BoundInstrumentTemplateMajor")
+  student_enrollments    StudentEnrollment[]
 
   @@unique([program_id, name])
   @@map("majors")

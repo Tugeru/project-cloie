@@ -1,9 +1,12 @@
 "use server";
 
+import { EnrollmentSource } from "@prisma/client";
 import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { studentProfileSchema, type StudentProfileInput } from "@/lib/schemas/student-profile";
+import { getActiveTermId } from "@/features/academic-calendar/services/resolve-active-term";
+import { upsertEnrollmentForActiveTerm } from "@/features/enrollments/services/manage-student-enrollments";
 
 export async function registerStudentProfile(data: StudentProfileInput) {
   try {
@@ -19,12 +22,18 @@ export async function registerStudentProfile(data: StudentProfileInput) {
 
     const validatedData = studentProfileSchema.parse(data);
 
-    // Determine current Academic Year
-    // TODO: Tech Debt - This naive calendar-year logic fails for overlapping semesters
-    // (e.g., enrolling in Jan 2027 for the 2nd semester of AY 2026-2027 yields "2027-2028").
-    // Must be replaced with a central "Active Academic Term" global setting query.
-    const currentYear = new Date().getFullYear();
-    const academicYear = `${currentYear}-${currentYear + 1}`;
+    // Resolve active term for enrollment
+    const activeTermId = await getActiveTermId();
+    if (!activeTermId) {
+      return { error: "No active academic term is configured. Please contact an administrator." };
+    }
+
+    // Get school year code from active term
+    const activeTerm = await prisma.academicTermInstance.findUnique({
+      where: { id: activeTermId },
+      include: { school_year: true },
+    });
+    const academicYear = activeTerm?.school_year?.code ?? `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
 
     // Execute atomic transaction
     await prisma.$transaction(async (tx) => {
@@ -74,7 +83,25 @@ export async function registerStudentProfile(data: StudentProfileInput) {
           section: validatedData.section,
         },
       });
+
+      // 4. Create enrollment for active term (outside transaction since it uses its own transaction)
     });
+
+    // Create enrollment for active term (separate transaction)
+    const enrollmentResult = await upsertEnrollmentForActiveTerm({
+      studentUserId: user.id,
+      termInstanceId: activeTermId,
+      programId: validatedData.program_id,
+      majorId: validatedData.major_id || null,
+      yearLevel: validatedData.year_level,
+      section: validatedData.section || null,
+      source: EnrollmentSource.ONBOARDING,
+    });
+
+    if (!enrollmentResult.success) {
+      console.error("Failed to create enrollment:", enrollmentResult.error);
+      // Don't fail the entire registration, but log the error
+    }
 
     return { success: true };
   } catch (error: unknown) {

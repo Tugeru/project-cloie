@@ -1,4 +1,4 @@
-import { AcademicSemester, AcademicTerm } from "@prisma/client";
+import { AcademicSemester, AcademicTerm, StudentSection } from "@prisma/client";
 
 // Re-export from centralized academic-period module for backward compatibility
 export {
@@ -22,6 +22,15 @@ export const TERM_OPTIONS = [
   { label: "1st Term", value: AcademicTerm.FIRST_TERM },
   { label: "2nd Term", value: AcademicTerm.SECOND_TERM },
 ] as const;
+
+export const STUDENT_SECTION_OPTIONS = [
+  { label: "Morning", value: StudentSection.MORNING },
+  { label: "Afternoon", value: StudentSection.AFTERNOON },
+  { label: "Evening", value: StudentSection.EVENING },
+] as const;
+
+// Re-export year level constants for convenience
+export { YEAR_LEVEL_OPTIONS, getYearLevelDisplay } from "./year-levels";
 
 export function getSemesterLabel(value: AcademicSemester | null | undefined) {
   return SEMESTER_OPTIONS.find((option) => option.value === value)?.label ?? "Unknown Semester";
