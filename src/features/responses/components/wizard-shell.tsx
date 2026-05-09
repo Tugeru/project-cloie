@@ -183,20 +183,6 @@ export function WizardShell({
     }
   };
 
-  const jumpToStep = React.useCallback(
-    (index: number) => {
-      if (!validateCurrentSection()) {
-        scrollToTop();
-        return;
-      }
-      void handleSaveDraft();
-      setCurrentStep(index);
-      setValidationError(null);
-      scrollToTop();
-    },
-    [handleSaveDraft, validateCurrentSection]
-  );
-
   const handlePrevious = () => {
     void handleSaveDraft();
     setCurrentStep((prev) => Math.max(0, prev - 1));
@@ -274,45 +260,8 @@ export function WizardShell({
         </div>
       </div>
 
-      {/* Main Content with Section Navigation */}
-      <div className="flex-1 lg:grid lg:grid-cols-[240px_1fr] lg:gap-8">
-        {/* Section Navigation Sidebar */}
-        <nav className="border-border bg-surface mb-6 hidden rounded-lg border p-4 lg:sticky lg:top-0 lg:mb-0 lg:block lg:h-fit lg:max-h-[calc(100vh-12rem)] lg:overflow-y-auto">
-          <h3 className="text-label-sm text-text-muted mb-3 font-bold tracking-wider uppercase">
-            Sections
-          </h3>
-          <ul className="space-y-1">
-            {sections.map((section, index) => {
-              const isCompleted = index < currentStep;
-              const isCurrent = index === currentStep;
-              const isPending = index > currentStep;
-
-              return (
-                <li key={section.id}>
-                  <button
-                    onClick={() => jumpToStep(index)}
-                    disabled={isPending}
-                    className={cn(
-                      "w-full rounded-md px-3 py-2 text-left text-sm transition-all",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
-                      isCurrent && "bg-primary text-on-primary font-medium",
-                      isCompleted && "bg-success-soft text-success hover:bg-success/20",
-                      isPending && "text-text-muted cursor-not-allowed"
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-bold">
-                        {isCompleted ? "✓" : index + 1}
-                      </span>
-                      <span className="truncate">{section.name}</span>
-                    </div>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-
+      {/* Main Content */}
+      <div className="flex-1">
         {/* Section Content */}
         <div className="pb-32">
         {validationError && (
