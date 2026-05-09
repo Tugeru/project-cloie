@@ -3,8 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ROLES } from "@/lib/constants/roles";
 import { listFacultyCourseContexts } from "@/features/evaluations/services/list-faculty-course-contexts";
 
-const { affiliationFindManyMock, courseFindManyMock, resolveAuthSessionMock } = vi.hoisted(() => ({
+const { affiliationFindManyMock, courseAssignmentFindManyMock, courseFindManyMock, resolveAuthSessionMock } = vi.hoisted(() => ({
   affiliationFindManyMock: vi.fn(),
+  courseAssignmentFindManyMock: vi.fn(),
   courseFindManyMock: vi.fn(),
   resolveAuthSessionMock: vi.fn(),
 }));
@@ -13,6 +14,9 @@ vi.mock("@/lib/db/prisma", () => ({
   prisma: {
     facultyProgramAffiliation: {
       findMany: affiliationFindManyMock,
+    },
+    courseAssignment: {
+      findMany: courseAssignmentFindManyMock,
     },
     course: {
       findMany: courseFindManyMock,
@@ -152,5 +156,113 @@ describe("listFacultyCourseContexts", () => {
       },
       orderBy: [{ course_scope: "asc" }, { code: "asc" }],
     });
+  });
+
+  it("lists course contexts from course assignments when termInstanceId is provided", async () => {
+    resolveAuthSessionMock.mockResolvedValue({
+      primaryRole: ROLES.FACULTY,
+      roles: [ROLES.FACULTY],
+      userId: "faculty-1",
+    });
+
+    courseAssignmentFindManyMock.mockResolvedValue([
+      { course_id: "course-1" },
+      { course_id: "course-2" },
+    ]);
+
+    courseFindManyMock.mockResolvedValue([
+      {
+        code: "CS-101",
+        course_scope: "PROGRAM_SPECIFIC",
+        id: "course-1",
+        major: null,
+        major_id: null,
+        program: {
+          code: "BSCS",
+          id: "program-1",
+          name: "Computer Science",
+        },
+        program_id: "program-1",
+        title: "Intro to CS",
+      },
+      {
+        code: "CS-201",
+        course_scope: "PROGRAM_SPECIFIC",
+        id: "course-2",
+        major: null,
+        major_id: null,
+        program: {
+          code: "BSCS",
+          id: "program-1",
+          name: "Computer Science",
+        },
+        program_id: "program-1",
+        title: "Data Structures",
+      },
+    ]);
+
+    await expect(listFacultyCourseContexts("term-instance-1")).resolves.toEqual([
+      {
+        courseCode: "CS-101",
+        courseId: "course-1",
+        courseTitle: "Intro to CS",
+        courseType: "PROGRAM_SPECIFIC",
+        majorId: null,
+        majorName: null,
+        programCode: "BSCS",
+        programId: "program-1",
+        programName: "Computer Science",
+        scopeLabel: "BSCS - Shared Program Course",
+      },
+      {
+        courseCode: "CS-201",
+        courseId: "course-2",
+        courseTitle: "Data Structures",
+        courseType: "PROGRAM_SPECIFIC",
+        majorId: null,
+        majorName: null,
+        programCode: "BSCS",
+        programId: "program-1",
+        programName: "Computer Science",
+        scopeLabel: "BSCS - Shared Program Course",
+      },
+    ]);
+
+    // Should call courseAssignment, not facultyProgramAffiliation
+    expect(courseAssignmentFindManyMock).toHaveBeenCalledWith({
+      where: {
+        faculty_id: "faculty-1",
+        term_instance_id: "term-instance-1",
+        is_active: true,
+      },
+      select: { course_id: true },
+    });
+    expect(affiliationFindManyMock).not.toHaveBeenCalled();
+
+    expect(courseFindManyMock).toHaveBeenCalledWith({
+      where: {
+        id: { in: ["course-1", "course-2"] },
+        is_active: true,
+      },
+      include: {
+        major: true,
+        program: true,
+      },
+      orderBy: [{ course_scope: "asc" }, { code: "asc" }],
+    });
+  });
+
+  it("returns empty array when no course assignments found for term", async () => {
+    resolveAuthSessionMock.mockResolvedValue({
+      primaryRole: ROLES.FACULTY,
+      roles: [ROLES.FACULTY],
+      userId: "faculty-1",
+    });
+
+    courseAssignmentFindManyMock.mockResolvedValue([]);
+
+    await expect(listFacultyCourseContexts("term-with-no-assignments")).resolves.toEqual([]);
+    expect(courseAssignmentFindManyMock).toHaveBeenCalled();
+    expect(courseFindManyMock).not.toHaveBeenCalled();
   });
 });
