@@ -216,7 +216,7 @@ export async function deleteTermInstanceAction(
 
 export async function setActiveTermInstanceAction(
   formData: FormData
-): Promise<ServiceResult<{ id: string; previousActiveId: string | null }>> {
+): Promise<ServiceResult<{ id: string; previousActiveId: string | null; rolloverSuggested: string | null }>> {
   const auth = await verifyAdmin();
   if (!auth.success) return auth;
 

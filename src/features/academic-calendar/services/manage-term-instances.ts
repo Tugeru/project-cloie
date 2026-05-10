@@ -171,10 +171,11 @@ export async function deleteTermInstance(id: string): Promise<ServiceResult> {
 /**
  * Set a Term Instance as the active term.
  * This transactionally clears any existing active term first.
+ * Returns rolloverSuggested to prompt admin for term rollover (Phase 8).
  */
 export async function setActiveTermInstance(
   termInstanceId: string
-): Promise<ServiceResult<{ id: string; previousActiveId: string | null }>> {
+): Promise<ServiceResult<{ id: string; previousActiveId: string | null; rolloverSuggested: string | null }>> {
   const auth = await verifyAdminAccess();
   if (!auth.success) return auth;
 
@@ -182,7 +183,7 @@ export async function setActiveTermInstance(
     where: { id: termInstanceId },
     include: {
       school_year: {
-        select: { is_archived: true, code: true },
+        select: { is_archived: true, code: true, id: true },
       },
     },
   });
@@ -234,9 +235,38 @@ export async function setActiveTermInstance(
     };
   });
 
+  // Phase 8: Find next term in same school year for rollover suggestion
+  // Fetch all inactive terms in the same school year and find the next one
+  const allTerms = await prisma.academicTermInstance.findMany({
+    where: {
+      school_year_id: termInstance.school_year.id,
+      is_active: false,
+      id: { not: termInstanceId },
+    },
+    orderBy: [{ semester: "asc" }, { term: "asc" }],
+    select: { id: true, semester: true, term: true },
+  });
+
+  // Find the first term that comes after the activated term
+  const nextTerm = allTerms.find((t) => {
+    const semesterOrder = ["FIRST", "SECOND"];
+    const currentSemesterIdx = semesterOrder.indexOf(termInstance.semester);
+    const termSemesterIdx = semesterOrder.indexOf(t.semester);
+
+    if (termSemesterIdx > currentSemesterIdx) return true;
+    if (termSemesterIdx === currentSemesterIdx && termInstance.term && t.term) {
+      const termOrder = ["FIRST", "SECOND"];
+      return termOrder.indexOf(t.term) > termOrder.indexOf(termInstance.term);
+    }
+    return false;
+  });
+
   return {
     success: true,
-    data: result,
+    data: {
+      ...result,
+      rolloverSuggested: nextTerm?.id ?? null,
+    },
   };
 }
 
