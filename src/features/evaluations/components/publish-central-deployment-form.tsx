@@ -13,6 +13,7 @@ import type {
   PreviewCentralDeploymentResult,
 } from "@/features/evaluations/types";
 import type { TermInstanceItem } from "@/features/academic-calendar/types";
+import { getSemesterLabel, getTermLabel } from "@/lib/constants/academic";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -308,7 +309,7 @@ export function PublishCentralDeploymentForm({
 
             {/* Academic Context - Phase 7: Term Instance Picker */}
             <div className="space-y-2">
-              <Label htmlFor="term_instance">Academic Term</Label>
+              <Label htmlFor="term_instance_id">Academic Term</Label>
               <select
                 id="term_instance_id"
                 name="term_instance_id"
@@ -320,8 +321,8 @@ export function PublishCentralDeploymentForm({
                 <option value="">Select a term...</option>
                 {termInstances.map((ti) => (
                   <option key={ti.id} value={ti.id}>
-                    {ti.schoolYearCode} — {ti.semester}
-                    {ti.term ? ` — ${ti.term}` : ""}
+                    {ti.schoolYearCode} — {getSemesterLabel(ti.semester)}
+                    {ti.term ? ` — ${getTermLabel(ti.term)}` : ""}
                     {ti.isActive ? " (Active)" : ""}
                   </option>
                 ))}
