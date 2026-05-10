@@ -63,24 +63,19 @@ export async function registerStudentProfile(data: StudentProfileInput) {
       });
 
       // 3. Construct Academic Profile parameters (Idempotent)
+      // Phase 9: Profile only holds static cohort fields - enrollment data is in StudentEnrollment
       await tx.studentAcademicProfile.upsert({
         where: { user_id: user.id },
         update: {
           program_id: validatedData.program_id,
           major_id: validatedData.major_id || null,
-          year_level: validatedData.year_level,
           student_id_number: validatedData.student_id_number,
-          academic_year: academicYear,
-          section: validatedData.section,
         },
         create: {
           user_id: user.id,
           program_id: validatedData.program_id,
           major_id: validatedData.major_id || null,
-          year_level: validatedData.year_level,
           student_id_number: validatedData.student_id_number,
-          academic_year: academicYear,
-          section: validatedData.section,
         },
       });
 

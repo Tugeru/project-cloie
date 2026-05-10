@@ -246,24 +246,19 @@ export async function upsertStudentAcademicContext(
     return programMajorCheck;
   }
 
+  // Phase 9: Only update static cohort fields - enrollment data is in StudentEnrollment
   await prisma.studentAcademicProfile.upsert({
     where: { user_id: input.user_id },
     update: {
       program_id: input.program_id,
       major_id: input.major_id ?? null,
-      year_level: input.year_level,
       student_id_number: input.student_id_number ?? null,
-      academic_year: input.academic_year,
-      section: input.section ?? null,
     },
     create: {
       user_id: input.user_id,
       program_id: input.program_id,
       major_id: input.major_id ?? null,
-      year_level: input.year_level,
       student_id_number: input.student_id_number ?? null,
-      academic_year: input.academic_year,
-      section: input.section ?? null,
     },
   });
 
