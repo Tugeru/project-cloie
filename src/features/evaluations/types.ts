@@ -259,8 +259,28 @@ export type CloseFacultyEvaluationResult =
 // Preview Central Deployment Respondents (Program Head publish flow)
 // ============================================================================
 
-export type PreviewCentralDeploymentInput = {
+/**
+ * @deprecated Use PreviewCentralDeploymentInput with termInstanceId instead.
+ * Legacy input kept for backward compatibility during Phase 7 transition.
+ */
+export type PreviewCentralDeploymentInputLegacy = {
   academicYear: string;
+  majorId?: string;
+  programId: string;
+  targetStakeholder: TargetStakeholder;
+  yearLevel?: YearLevel;
+};
+
+/**
+ * Phase 7: Preview input supporting term instance ID for enrollment-based lookup.
+ * Either termInstanceId OR academicYear should be provided.
+ */
+export type PreviewCentralDeploymentInput = {
+  // Phase 7: term instance is the preferred way
+  termInstanceId?: string;
+  // Legacy fields (optional during transition)
+  academicYear?: string;
+  semester?: AcademicSemester;
   majorId?: string;
   programId: string;
   targetStakeholder: TargetStakeholder;
