@@ -139,6 +139,7 @@ model AcademicTermInstance {
   student_enrollments StudentEnrollment[]
   course_assignments CourseAssignment[]
   course_bound_evaluations CourseBoundEvaluation[]
+  central_deployments CentralDeployment[]
 
   // Prisma cannot express NULLS NOT DISTINCT; the actual unique constraint is managed via Supabase migration
   @@index([school_year_id, semester, term])
@@ -580,17 +581,23 @@ model CentralDeployment {
   target_stakeholder    TargetStakeholder
   academic_year         String
   semester              AcademicSemester
+  term                  AcademicTerm?
   activation_at         DateTime?
   deadline_at           DateTime?
   status                DeploymentStatus
   created_at            DateTime          @default(now())
   updated_at            DateTime          @updatedAt
 
+  // Phase 7: Link to term instance (nullable during transition)
+  term_instance_id      String?           @db.Uuid
+  term_instance         AcademicTermInstance? @relation(fields: [term_instance_id], references: [id], onDelete: SetNull)
+
   instrument            InstrumentVersion @relation(fields: [instrument_version_id], references: [id], onDelete: Restrict)
   program               Program?          @relation(fields: [program_id], references: [id], onDelete: SetNull)
   major                 Major?            @relation(fields: [major_id], references: [id], onDelete: SetNull)
   assignments           EvaluationAssignment[] @relation("CentralDeployments")
 
+  @@index([term_instance_id])
   @@map("central_deployments")
 }
 
