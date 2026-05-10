@@ -63,29 +63,10 @@ export type CourseBoundCiloQuestionBindingInput = {
 };
 
 /**
- * @deprecated Use PublishCourseBoundEvaluationInputV2 with assignmentId instead.
- * Legacy input kept for backward compatibility during Phase 6 transition.
- */
-export type PublishCourseBoundEvaluationInput = {
-  academicYear: string;
-  activationAt?: Date | null;
-  deadlineAt?: Date | null;
-  deploymentName: string;
-  respondentIds?: string[]; // Final list of respondent IDs after preview/exclude
-  section?: StudentSection | null;
-  semester: AcademicSemester;
-  targetPrograms?: string[]; // Multi-select for GE courses; falls back to publication context's program
-  targetYearLevel?: YearLevel; // Single year level; falls back to first item in yearLevelIds
-  term: AcademicTerm;
-  templateId: string;
-  yearLevels?: YearLevel[]; // Deprecated: kept for backward compatibility
-};
-
-/**
- * Phase 6: Simplified input using course assignment ID.
+ * Phase 9: Simplified input using course assignment ID.
  * All class identity (term, program, year level, section) is resolved from the assignment.
  */
-export type PublishCourseBoundEvaluationInputV2 = {
+export type PublishCourseBoundEvaluationInput = {
   assignmentId: string;
   activationAt?: Date | null;
   deadlineAt?: Date | null;
@@ -127,19 +108,9 @@ export type PreviewRespondent = {
 };
 
 /**
- * @deprecated Use PreviewCourseBoundRespondentsInputV2 with assignmentId instead.
+ * Phase 9: Simplified preview input using course assignment ID.
  */
 export type PreviewCourseBoundRespondentsInput = {
-  academicYear: string;
-  section: StudentSection | null;
-  targetPrograms: string[];
-  targetYearLevel: YearLevel;
-};
-
-/**
- * Phase 6: Simplified preview input using course assignment ID.
- */
-export type PreviewCourseBoundRespondentsInputV2 = {
   assignmentId: string;
 };
 

@@ -5,8 +5,8 @@ import { resolveAuthSession } from "@/features/auth/services/resolve-auth-sessio
 import { PublishCourseBoundEvaluationFormV2 } from "@/features/evaluations/components/publish-course-bound-evaluation-form-v2";
 import { getFacultyTemplatePublicationContext } from "@/features/instruments/services/manage-faculty-templates";
 import {
-  previewCourseBoundRespondentsV2Action,
-  publishCourseBoundEvaluationV2Action,
+  previewCourseBoundRespondentsAction,
+  publishCourseBoundEvaluationAction,
 } from "@/lib/actions/course-bound-evaluation-actions";
 import { listCourseAssignmentsForFaculty } from "@/features/course-assignments/services/list-course-assignments-for-faculty";
 import { ROLES } from "@/lib/constants/roles";
@@ -166,9 +166,9 @@ export default async function NewFacultyCiloEvaluationPage({
     <PublishCourseBoundEvaluationFormV2
       assignments={assignmentOptions}
       termInstances={termInstances}
-      previewAction={previewCourseBoundRespondentsV2Action}
+      previewAction={previewCourseBoundRespondentsAction}
       publicationContext={formPublicationContext}
-      publishAction={publishCourseBoundEvaluationV2Action}
+      publishAction={publishCourseBoundEvaluationAction}
       yearLevels={yearLevels}
     />
   );

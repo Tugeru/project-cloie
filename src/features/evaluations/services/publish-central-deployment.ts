@@ -136,19 +136,21 @@ export async function publishCentralDeployment(
 
   // 7. Check for duplicate deployment
   // Phase 7: If term_instance_id provided, use it for duplicate check
-  const duplicateWhereClause: Record<string, unknown> = {
+  // Phase 9: term_instance_id is now required for duplicate checking
+  if (!input.term_instance_id) {
+    return {
+      success: false,
+      error: "term_instance_id is required.",
+    };
+  }
+
+  const duplicateWhereClause = {
     instrument_version_id: latestVersion.id,
     program_id: programId,
     target_stakeholder: input.target_stakeholder as TargetStakeholder,
     year_level: input.year_level ?? null,
+    term_instance_id: input.term_instance_id,
   };
-
-  if (input.term_instance_id) {
-    duplicateWhereClause.term_instance_id = input.term_instance_id;
-  } else {
-    duplicateWhereClause.academic_year = input.academic_year;
-    duplicateWhereClause.semester = input.semester as AcademicSemester;
-  }
 
   const existingDeployment = await prisma.centralDeployment.findFirst({
     where: duplicateWhereClause,
@@ -163,33 +165,24 @@ export async function publishCentralDeployment(
     };
   }
 
-  // Phase 7: Resolve term instance details if provided
-  let termInstanceDetails: {
-    academicYear: string;
-    semester: AcademicSemester;
-    term: import("@prisma/client").AcademicTerm | null;
-  } | null = null;
+  // Phase 9: Resolve term details for display
+  const termInstance = await prisma.academicTermInstance.findUnique({
+    where: { id: input.term_instance_id! },
+    include: { school_year: true },
+  });
 
-  if (input.term_instance_id) {
-    const termInstance = await prisma.academicTermInstance.findUnique({
-      where: { id: input.term_instance_id },
-      include: { school_year: true },
-    });
-
-    if (termInstance) {
-      termInstanceDetails = {
-        academicYear: termInstance.school_year.code,
-        semester: termInstance.semester,
-        term: termInstance.term,
-      };
-    }
+  if (!termInstance) {
+    return {
+      success: false,
+      error: "Term instance not found.",
+    };
   }
 
   // 8. Transaction: create deployment + assignments
   try {
     const result = await prisma.$transaction(async (tx) => {
       // 8a. Create the CentralDeployment record
-      // Phase 7: Use term_instance details if available, otherwise fall back to input
+      // Phase 9: term_instance_id is now the source of truth
       const deployment = await tx.centralDeployment.create({
         data: {
           instrument_version_id: latestVersion.id,
@@ -198,11 +191,8 @@ export async function publishCentralDeployment(
           major_id: input.major_id ?? null,
           year_level: input.year_level ?? null,
           target_stakeholder: input.target_stakeholder as TargetStakeholder,
-          // Phase 7: Populate both FK and legacy fields
-          term_instance_id: input.term_instance_id ?? null,
-          academic_year: termInstanceDetails?.academicYear ?? input.academic_year ?? "",
-          semester: termInstanceDetails?.semester ?? (input.semester as AcademicSemester),
-          term: termInstanceDetails?.term ?? input.term ?? null,
+          term_instance_id: input.term_instance_id!,
+          term: termInstance.term,
           activation_at: input.activation_at ?? null,
           deadline_at: input.deadline_at ?? null,
           status,
