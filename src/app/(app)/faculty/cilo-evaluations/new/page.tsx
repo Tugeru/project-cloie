@@ -1,22 +1,22 @@
 import { redirect } from "next/navigation";
-import { CourseScope, YearLevel } from "@prisma/client";
+import { YearLevel } from "@prisma/client";
 import { ensureRoleAccess } from "@/features/auth/policies/ensure-role-access";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
-import { PublishCourseBoundEvaluationForm } from "@/features/evaluations/components/publish-course-bound-evaluation-form";
+import { PublishCourseBoundEvaluationFormV2 } from "@/features/evaluations/components/publish-course-bound-evaluation-form-v2";
 import { getFacultyTemplatePublicationContext } from "@/features/instruments/services/manage-faculty-templates";
 import {
-  previewCourseBoundRespondentsAction,
-  publishCourseBoundEvaluationAction,
+  previewCourseBoundRespondentsV2Action,
+  publishCourseBoundEvaluationV2Action,
 } from "@/lib/actions/course-bound-evaluation-actions";
+import { listCourseAssignmentsForFaculty } from "@/features/course-assignments/services/list-course-assignments-for-faculty";
 import { ROLES } from "@/lib/constants/roles";
-import { SEMESTER_OPTIONS, TERM_OPTIONS } from "@/lib/constants/academic";
 import { prisma } from "@/lib/db/prisma";
+import { formatTermInstanceLabel } from "@/lib/utils/date-format";
+import type { AssignmentOption } from "@/features/evaluations/components/assignment-picker";
+import type { TermInstanceItem } from "@/features/academic-calendar/types";
 
 type SearchParams = {
-  academicYear?: string;
-  semester?: string;
   templateId?: string;
-  term?: string;
 };
 
 export default async function NewFacultyCiloEvaluationPage({
@@ -42,18 +42,6 @@ export default async function NewFacultyCiloEvaluationPage({
 
   const params = await searchParams;
 
-  function deriveCurrentAcademicYear(): string {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = now.getMonth() + 1;
-    const startYear = month >= 8 ? year : year - 1;
-    return `${startYear}-${startYear + 1}`;
-  }
-
-  const resolvedAcademicYear = params.academicYear ?? deriveCurrentAcademicYear();
-
-  const yearLevels = Object.values(YearLevel);
-
   if (!params.templateId) {
     redirect("/faculty/tools");
   }
@@ -64,52 +52,123 @@ export default async function NewFacultyCiloEvaluationPage({
     redirect("/faculty/tools");
   }
 
-  // For GE courses, fetch all programs for multi-select targeting
-  const isGeneralEducation =
-    publicationContext.data.course.courseType === CourseScope.GENERAL_EDUCATION;
+  // Fetch faculty's course assignments
+  const assignmentsResult = await listCourseAssignmentsForFaculty();
+  
+  if (!assignmentsResult.success) {
+    redirect("/faculty/tools");
+  }
 
-  const availablePrograms = isGeneralEducation
-    ? await prisma.program.findMany({
-        orderBy: { code: "asc" },
-        select: {
-          id: true,
-          code: true,
-          name: true,
-        },
-      })
-    : [];
+  // Flatten grouped assignments into AssignmentOption array
+  // Only include assignments for the template's course
+  const templateCourseId = publicationContext.data.course.id;
+  const assignmentOptions: AssignmentOption[] = [];
+  
+  for (const group of assignmentsResult.data) {
+    if (group.courseId !== templateCourseId) continue;
+    
+    for (const assignment of group.assignments) {
+      assignmentOptions.push({
+        id: assignment.id,
+        courseId: group.courseId,
+        courseCode: group.courseCode,
+        courseTitle: group.courseTitle,
+        programId: "", // Will be fetched below
+        programCode: assignment.programCode,
+        yearLevel: assignment.yearLevel as YearLevel,
+        section: assignment.section as import("@prisma/client").StudentSection | null,
+        termInstanceId: "", // Will be fetched below
+        termInstanceLabel: assignment.termLabel,
+        isActive: true,
+      });
+    }
+  }
 
-  // Cast publicationContext to satisfy the form's PublicationContext type
-  // (the form expects courseType as CourseScope, which it is at runtime)
+  // Fetch full assignment details to get term_instance_id and program_id
+  if (assignmentOptions.length > 0) {
+    const assignmentIds = assignmentOptions.map(a => a.id);
+    const fullAssignments = await prisma.courseAssignment.findMany({
+      where: { id: { in: assignmentIds } },
+      select: {
+        id: true,
+        term_instance_id: true,
+        program_id: true,
+      },
+    });
+    
+    const assignmentMap = new Map(fullAssignments.map(a => [a.id, a]));
+    
+    for (const option of assignmentOptions) {
+      const full = assignmentMap.get(option.id);
+      if (full) {
+        option.termInstanceId = full.term_instance_id;
+        option.programId = full.program_id;
+      }
+    }
+  }
+
+  // Fetch term instances for the picker
+  const termInstancesData = await prisma.academicTermInstance.findMany({
+    include: {
+      school_year: true,
+    },
+    orderBy: [
+      { school_year: { start_date: "desc" } },
+      { semester: "asc" },
+    ],
+  });
+
+  const termInstances: TermInstanceItem[] = termInstancesData.map(ti => ({
+    id: ti.id,
+    schoolYearId: ti.school_year_id,
+    schoolYearCode: ti.school_year.code,
+    semester: ti.semester,
+    term: ti.term ?? null,
+    startDate: ti.start_date ?? null,
+    endDate: ti.end_date ?? null,
+    isActive: ti.is_active,
+    createdAt: ti.created_at,
+    updatedAt: ti.updated_at,
+  }));
+
+  // Add term instance labels to assignment options
+  const termMap = new Map(termInstances.map(t => [t.id, t]));
+  for (const option of assignmentOptions) {
+    const term = termMap.get(option.termInstanceId);
+    if (term) {
+      option.termInstanceLabel = formatTermInstanceLabel(
+        term.schoolYearCode,
+        term.semester,
+        term.term ?? null
+      );
+    }
+  }
+
+  const yearLevels = Object.values(YearLevel);
+
+  // Simplified publication context for V2 form
   const formPublicationContext = {
-    ...publicationContext.data,
+    bindings: publicationContext.data.bindings,
+    cilos: publicationContext.data.cilos,
     course: {
-      ...publicationContext.data.course,
-      courseType: publicationContext.data.course.courseType as CourseScope,
+      code: publicationContext.data.course.code,
+      id: publicationContext.data.course.id,
+      title: publicationContext.data.course.title,
+    },
+    template: {
+      id: publicationContext.data.template.id,
+      name: publicationContext.data.template.name,
+      structure: publicationContext.data.template.structure,
     },
   };
 
   return (
-    <PublishCourseBoundEvaluationForm
-      availablePrograms={availablePrograms}
-      initialSelection={{
-        academicYear: resolvedAcademicYear,
-        semester:
-          params.semester === "SECOND" || params.semester === "SUMMER"
-            ? params.semester
-            : params.semester === "FIRST"
-              ? "FIRST"
-              : SEMESTER_OPTIONS[0].value,
-        term:
-          params.term === "SECOND_TERM"
-            ? "SECOND_TERM"
-            : params.term === "FIRST_TERM"
-              ? "FIRST_TERM"
-              : TERM_OPTIONS[0].value,
-      }}
-      previewAction={previewCourseBoundRespondentsAction}
+    <PublishCourseBoundEvaluationFormV2
+      assignments={assignmentOptions}
+      termInstances={termInstances}
+      previewAction={previewCourseBoundRespondentsV2Action}
       publicationContext={formPublicationContext}
-      publishAction={publishCourseBoundEvaluationAction}
+      publishAction={publishCourseBoundEvaluationV2Action}
       yearLevels={yearLevels}
     />
   );
