@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { showToast } from "@/components/ui/toast";
-import { SEMESTER_OPTIONS } from "@/lib/constants/academic";
 import type {
   PreviewCentralDeploymentInput,
   PreviewCentralDeploymentRespondent,
   PreviewCentralDeploymentResult,
 } from "@/features/evaluations/types";
+import type { TermInstanceItem } from "@/features/academic-calendar/types";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -29,6 +29,8 @@ interface PublishCentralDeploymentFormProps {
   programId: string;
   programLabel: string;
   preselectedTemplateId?: string;
+  termInstances: TermInstanceItem[];
+  activeTermId?: string;
   previewAction: (payload: PreviewCentralDeploymentInput) => Promise<PreviewCentralDeploymentResult>;
   publishAction: (formData: FormData) => Promise<ActionResult>;
 }
@@ -50,6 +52,8 @@ export function PublishCentralDeploymentForm({
   programId,
   programLabel,
   preselectedTemplateId,
+  termInstances,
+  activeTermId,
   previewAction,
   publishAction,
 }: PublishCentralDeploymentFormProps) {
@@ -57,6 +61,7 @@ export function PublishCentralDeploymentForm({
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState(preselectedTemplateId ?? "");
   const [targetStakeholder, setTargetStakeholder] = useState<string>("STUDENT");
+  const [selectedTermInstanceId, setSelectedTermInstanceId] = useState<string>(activeTermId ?? "");
   const [step, setStep] = useState<Step>("configure");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -91,15 +96,15 @@ export function PublishCentralDeploymentForm({
     }
 
     const formData = new FormData(event.currentTarget);
-    const academicYear = (formData.get("academic_year") as string)?.trim();
     const yearLevelValue = formData.get("year_level");
     const yearLevel = yearLevelValue && typeof yearLevelValue === "string" && yearLevelValue.length > 0
       ? (yearLevelValue as YearLevel)
       : undefined;
     const majorId = (formData.get("major_id") as string) || undefined;
 
-    if (!academicYear) {
-      setError("Please provide an academic year.");
+    // Phase 7: Validate term instance selection
+    if (!selectedTermInstanceId) {
+      setError("Please select an academic term.");
       return;
     }
 
@@ -112,7 +117,7 @@ export function PublishCentralDeploymentForm({
 
     try {
       const result = await previewAction({
-        academicYear,
+        termInstanceId: selectedTermInstanceId,
         majorId,
         programId,
         targetStakeholder: targetStakeholder as TargetStakeholder,
@@ -301,31 +306,29 @@ export function PublishCentralDeploymentForm({
               </h2>
             </div>
 
-            {/* Academic Context */}
+            {/* Academic Context - Phase 7: Term Instance Picker */}
             <div className="space-y-2">
-              <Label htmlFor="academic_year">Academic Year</Label>
-              <Input
-                id="academic_year"
-                name="academic_year"
-                placeholder="e.g. 2025-2026"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="semester">Semester</Label>
+              <Label htmlFor="term_instance">Academic Term</Label>
               <select
-                id="semester"
-                name="semester"
+                id="term_instance_id"
+                name="term_instance_id"
                 className="border-input h-9 w-full rounded-lg border bg-transparent px-2.5 text-sm"
+                value={selectedTermInstanceId}
+                onChange={(e) => setSelectedTermInstanceId(e.target.value)}
                 required
               >
-                {SEMESTER_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                <option value="">Select a term...</option>
+                {termInstances.map((ti) => (
+                  <option key={ti.id} value={ti.id}>
+                    {ti.schoolYearCode} — {ti.semester}
+                    {ti.term ? ` — ${ti.term}` : ""}
+                    {ti.isActive ? " (Active)" : ""}
                   </option>
                 ))}
               </select>
+              <p className="text-text-muted text-xs">
+                Select the academic term for this deployment.
+              </p>
             </div>
 
             {/* Target Stakeholder */}
