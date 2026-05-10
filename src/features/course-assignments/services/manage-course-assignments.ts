@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { ROLES } from "@/lib/constants/roles";
+import type { SystemRole } from "@prisma/client";
 import { canManageCourseAssignment } from "../policies";
 import type {
   CreateCourseAssignmentInput,
@@ -141,7 +142,8 @@ export async function bulkCreateCourseAssignments(
 ): Promise<BulkCreateResult> {
   const authSession = await resolveAuthSession();
 
-  if (!authSession?.roles?.some((r) => [ROLES.ADMIN, ROLES.DEAN, ROLES.PROGRAM_HEAD].includes(r))) {
+  const allowedRoles: SystemRole[] = [ROLES.ADMIN, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+  if (!authSession?.roles?.some((r) => allowedRoles.includes(r))) {
     return { success: false, created: 0, errors: [{ index: -1, error: "Insufficient permissions." }] };
   }
 

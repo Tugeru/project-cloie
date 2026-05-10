@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { ROLES } from "@/lib/constants/roles";
+import type { SystemRole } from "@prisma/client";
 import { MAX_TABLE_PAGE_SIZE } from "@/lib/constants/page-sizes";
 import type { FacultySearchResult, CourseAssignmentResult } from "../types";
 
@@ -16,7 +17,7 @@ export async function searchFacultyPool(
   const authSession = await resolveAuthSession();
 
   // Only PH, Admin, Dean can search faculty pool
-  const allowedRoles = [ROLES.ADMIN, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+  const allowedRoles: SystemRole[] = [ROLES.ADMIN, ROLES.DEAN, ROLES.PROGRAM_HEAD];
   if (!authSession?.roles?.some((r) => allowedRoles.includes(r))) {
     return { success: false, error: "Access denied." };
   }

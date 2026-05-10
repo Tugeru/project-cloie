@@ -540,6 +540,7 @@ export function ProgramHeadCoursesCatalog({
                                 courseCode={course.code}
                                 courseTitle={course.title}
                                 termInstanceId={selectedTermId}
+                                termInstances={termInstances}
                                 availablePrograms={programs}
                                 availableCourses={courses.map((c) => ({
                                   id: c.id,

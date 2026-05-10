@@ -37,6 +37,11 @@ export type UpsertEnrollmentInput = {
 };
 
 /**
+ * Input for admin creating/updating an enrollment (same as UpsertEnrollmentInput).
+ */
+export type AdminUpsertEnrollmentInput = UpsertEnrollmentInput;
+
+/**
  * Result of an enrollment operation.
  */
 export type EnrollmentResult<T = void> =

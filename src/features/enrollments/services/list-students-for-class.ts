@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { ROLES } from "@/lib/constants/roles";
+import type { SystemRole } from "@prisma/client";
 import type {
   StudentRecord,
   ListStudentsForClassFilter,
@@ -17,7 +18,7 @@ export async function listStudentsForClass(
   const authSession = await resolveAuthSession();
 
   // PH and Faculty can view class rosters
-  const allowedRoles = [ROLES.ADMIN, ROLES.DEAN, ROLES.PROGRAM_HEAD, ROLES.FACULTY];
+  const allowedRoles: SystemRole[] = [ROLES.ADMIN, ROLES.DEAN, ROLES.PROGRAM_HEAD, ROLES.FACULTY];
   if (!authSession?.roles?.some((r) => allowedRoles.includes(r))) {
     return { success: false, error: "Access denied." };
   }

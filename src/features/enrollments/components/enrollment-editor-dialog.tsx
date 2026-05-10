@@ -20,6 +20,7 @@ import { TermInstancePicker } from "@/features/academic-calendar/components/term
 import { YEAR_LEVEL_OPTIONS, STUDENT_SECTION_OPTIONS } from "@/lib/constants/academic";
 import { adminUpsertEnrollmentAction } from "@/lib/actions/enrollment-actions";
 import type { EnrollmentItem } from "@/features/enrollments/types";
+import type { TermInstanceItem } from "@/features/academic-calendar/types";
 
 const enrollmentFormSchema = z.object({
   termInstanceId: z.string().uuid(),
@@ -37,6 +38,7 @@ interface EnrollmentEditorDialogProps {
   userId: string;
   existingEnrollment?: EnrollmentItem;
   availablePrograms: { id: string; code: string; name: string }[];
+  termInstances: TermInstanceItem[];
   onSuccess?: () => void;
 }
 
@@ -46,6 +48,7 @@ export function EnrollmentEditorDialog({
   userId,
   existingEnrollment,
   availablePrograms,
+  termInstances,
   onSuccess,
 }: EnrollmentEditorDialogProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -82,21 +85,11 @@ export function EnrollmentEditorDialog({
     setIsSubmitting(false);
 
     if (result.success) {
-      showToast({
-        title: existingEnrollment ? "Enrollment updated" : "Enrollment created",
-        description: existingEnrollment
-          ? "The enrollment has been successfully updated."
-          : "The student has been enrolled for the selected term.",
-        variant: "success",
-      });
+      showToast(existingEnrollment ? "The enrollment has been successfully updated." : "The enrollment has been successfully created.", "success");
       onOpenChange(false);
       onSuccess?.();
     } else {
-      showToast({
-        title: "Error",
-        description: result.error || "Failed to save enrollment.",
-        variant: "error",
-      });
+      showToast(result.error || "Failed to save enrollment.", "error");
     }
   };
 
@@ -116,8 +109,9 @@ export function EnrollmentEditorDialog({
           <div className="space-y-2">
             <Label>Academic Term</Label>
             <TermInstancePicker
+              termInstances={termInstances}
               value={watch("termInstanceId")}
-              onChange={(value) => setValue("termInstanceId", value, { shouldValidate: true })}
+              onChange={(value) => value && setValue("termInstanceId", value, { shouldValidate: true })}
             />
             {errors.termInstanceId && (
               <p className="text-sm text-red-500">Please select a term</p>
@@ -129,8 +123,10 @@ export function EnrollmentEditorDialog({
             <Select
               value={watch("programId")}
               onValueChange={(value) => {
-                setValue("programId", value, { shouldValidate: true });
-                setSelectedProgramId(value);
+                if (value) {
+                  setValue("programId", value, { shouldValidate: true });
+                  setSelectedProgramId(value);
+                }
               }}
             >
               <SelectTrigger>

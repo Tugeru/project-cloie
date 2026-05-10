@@ -1,5 +1,6 @@
 import { ROLES } from "@/lib/constants/roles";
-import type { ResolvedAuthSession } from "@/features/auth/services/resolve-auth-session";
+import type { SystemRole } from "@prisma/client";
+import type { AuthSessionSnapshot } from "@/features/auth/services/build-auth-session-snapshot";
 
 /**
  * Check if user can manage course assignments.
@@ -8,7 +9,7 @@ import type { ResolvedAuthSession } from "@/features/auth/services/resolve-auth-
  * Faculty cannot manage assignments (they are assigned by PH/Admin).
  */
 export function canManageCourseAssignment(
-  session: ResolvedAuthSession | null,
+  session: AuthSessionSnapshot | null,
   courseProgramId: string | null,
   phProgramScope: string[] = []
 ): { allowed: true } | { allowed: false; reason: string } {
@@ -56,13 +57,13 @@ export function canAssignFaculty(
  * Check if user can view course assignments.
  */
 export function canViewCourseAssignments(
-  session: ResolvedAuthSession | null
+  session: AuthSessionSnapshot | null
 ): { allowed: true } | { allowed: false; reason: string } {
   if (!session) {
     return { allowed: false, reason: "Authentication required." };
   }
 
-  const allowedRoles = [
+  const allowedRoles: SystemRole[] = [
     ROLES.ADMIN,
     ROLES.DEAN,
     ROLES.PROGRAM_HEAD,

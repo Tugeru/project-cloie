@@ -185,7 +185,7 @@ model CourseAssignment {
   updated_at        DateTime @updatedAt
 
   term_instance AcademicTermInstance @relation(fields: [term_instance_id], references: [id], onDelete: Cascade)
-  faculty       User                 @relation(fields: [faculty_id], references: [id], onDelete: Cascade)
+  faculty       User                 @relation("faculty", fields: [faculty_id], references: [id], onDelete: Cascade)
   course        Course               @relation(fields: [course_id], references: [id], onDelete: Cascade)
   program       Program              @relation(fields: [program_id], references: [id], onDelete: Restrict)
   assigner      User?                @relation("AssignmentAssigner", fields: [assigned_by], references: [id], onDelete: SetNull)
@@ -291,16 +291,6 @@ model Major {
   @@unique([program_id, name])
   @@map("majors")
 }
-
-model Course {
-  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code         String      @unique
-  title        String
-  description  String?
-  program_id   String?     @db.Uuid
-  major_id     String?     @db.Uuid
-  course_scope CourseScope @default(PROGRAM_SPECIFIC)
-  is_active    Boolean     @default(true)
 
 model Course {
   id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
@@ -527,6 +517,7 @@ model FacultyProgramAffiliation {
   id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   faculty_id String   @db.Uuid
   program_id String   @db.Uuid
+  is_primary Boolean  @default(false)
   is_active  Boolean  @default(true)
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt

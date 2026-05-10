@@ -49,6 +49,20 @@ export type UpdateCourseAssignmentInput = {
 };
 
 /**
+ * Input for deactivating a course assignment.
+ */
+export type DeactivateCourseAssignmentInput = {
+  assignmentId: string;
+};
+
+/**
+ * Input for bulk creating course assignments.
+ */
+export type BulkCreateCourseAssignmentsInput = {
+  assignments: CreateCourseAssignmentInput[];
+};
+
+/**
  * Result of a course assignment operation.
  */
 export type CourseAssignmentResult<T = void> =

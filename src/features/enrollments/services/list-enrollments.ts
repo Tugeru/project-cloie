@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { ROLES } from "@/lib/constants/roles";
-import { DEFAULT_PAGE_SIZE } from "@/lib/constants/page-sizes";
+import { DEFAULT_TABLE_PAGE_SIZE } from "@/lib/constants/page-sizes";
 import type {
   EnrollmentItem,
   ListEnrollmentsFilter,
@@ -27,7 +27,7 @@ export async function listEnrollments(
   }
 
   const page = options?.page ?? 0;
-  const pageSize = options?.pageSize ?? DEFAULT_PAGE_SIZE;
+  const pageSize = options?.pageSize ?? DEFAULT_TABLE_PAGE_SIZE;
 
   const where = {
     ...(filter.studentUserId && { student_user_id: filter.studentUserId }),

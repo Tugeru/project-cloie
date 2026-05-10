@@ -30,7 +30,7 @@ export function ClassIdentityFields({
     <div className="grid grid-cols-3 gap-4">
       <div className="space-y-2">
         <Label htmlFor="program">Program</Label>
-        <Select value={programId} onValueChange={onProgramChange} disabled={disabled}>
+        <Select value={programId} onValueChange={(value) => value && onProgramChange(value)} disabled={disabled}>
           <SelectTrigger id="program">
             <SelectValue placeholder="Select program" />
           </SelectTrigger>

@@ -16,12 +16,14 @@ import { Plus } from "lucide-react";
 import { listCourseAssignmentsForProgramHeadAction } from "@/lib/actions/course-assignment-actions";
 import { CourseAssignmentFormDialog } from "./course-assignment-form-dialog";
 import type { CourseAssignmentItem } from "@/features/course-assignments/types";
+import type { TermInstanceItem } from "@/features/academic-calendar/types";
 
 interface CourseRowAssignmentsSheetProps {
   courseId: string;
   courseCode: string;
   courseTitle: string;
   termInstanceId: string | null;
+  termInstances: TermInstanceItem[];
   availablePrograms: Array<{ id: string; code: string; name: string }>;
   availableCourses: Array<{ id: string; code: string; title: string }>;
   children: React.ReactNode;
@@ -32,6 +34,7 @@ export function CourseRowAssignmentsSheet({
   courseCode,
   courseTitle,
   termInstanceId,
+  termInstances,
   availablePrograms,
   availableCourses,
   children,
@@ -65,7 +68,7 @@ export function CourseRowAssignmentsSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger asChild>{children}</SheetTrigger>
+        <SheetTrigger>{children}</SheetTrigger>
         <SheetContent className="sm:max-w-[500px]">
           <SheetHeader>
             <SheetTitle>
@@ -138,6 +141,7 @@ export function CourseRowAssignmentsSheet({
         onOpenChange={setDialogOpen}
         availableCourses={availableCourses}
         availablePrograms={availablePrograms}
+        termInstances={termInstances}
         defaultTermInstanceId={termInstanceId}
         defaultCourseId={courseId}
         onSuccess={() => {
