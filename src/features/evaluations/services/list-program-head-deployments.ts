@@ -20,6 +20,8 @@ export type ProgramHeadDeploymentItem = {
   status: DeploymentStatus;
   academic_year: string;
   semester: AcademicSemester;
+  // Phase 7: Term instance info
+  termInstanceLabel: string | null;
   activation_at: Date | null;
   deadline_at: Date | null;
   created_at: Date;
@@ -96,6 +98,12 @@ export async function listProgramHeadDeployments(): Promise<
       major: {
         select: { name: true },
       },
+      // Phase 7: Include term instance for label
+      term_instance: {
+        include: {
+          school_year: true,
+        },
+      },
       assignments: {
         select: {
           id: true,
@@ -111,24 +119,38 @@ export async function listProgramHeadDeployments(): Promise<
   });
 
   // 5. Map to typed result with counts
-  const deployments: ProgramHeadDeploymentItem[] = rawDeployments.map((d) => ({
-    id: d.id,
-    templateName: d.deployment_name ?? d.instrument.template.name,
-    templateId: d.instrument.template.id,
-    programName: d.program?.name ?? null,
-    programCode: d.program?.code ?? null,
-    majorName: d.major?.name ?? null,
-    yearLevelName: d.year_level ? getYearLevelDisplay(d.year_level) : null,
-    target_stakeholder: d.target_stakeholder,
-    status: d.status,
-    academic_year: d.academic_year,
-    semester: d.semester,
-    activation_at: d.activation_at,
-    deadline_at: d.deadline_at,
-    created_at: d.created_at,
-    assignmentCount: d.assignments.length,
-    responseCount: d.assignments.filter((a) => a.response?.status === "SUBMITTED").length,
-  }));
+  const deployments: ProgramHeadDeploymentItem[] = rawDeployments.map((d) => {
+    // Phase 7: Build term instance label if available
+    let termInstanceLabel: string | null = null;
+    if (d.term_instance) {
+      const syCode = d.term_instance.school_year.code;
+      const semester = d.term_instance.semester;
+      const term = d.term_instance.term;
+      termInstanceLabel = term
+        ? `${syCode} — ${semester} — ${term}`
+        : `${syCode} — ${semester}`;
+    }
+
+    return {
+      id: d.id,
+      templateName: d.deployment_name ?? d.instrument.template.name,
+      templateId: d.instrument.template.id,
+      programName: d.program?.name ?? null,
+      programCode: d.program?.code ?? null,
+      majorName: d.major?.name ?? null,
+      yearLevelName: d.year_level ? getYearLevelDisplay(d.year_level) : null,
+      target_stakeholder: d.target_stakeholder,
+      status: d.status,
+      academic_year: d.academic_year,
+      semester: d.semester,
+      termInstanceLabel,
+      activation_at: d.activation_at,
+      deadline_at: d.deadline_at,
+      created_at: d.created_at,
+      assignmentCount: d.assignments.length,
+      responseCount: d.assignments.filter((a) => a.response?.status === "SUBMITTED").length,
+    };
+  });
 
   return { success: true, data: { deployments, program } };
 }

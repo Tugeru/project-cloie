@@ -2,6 +2,7 @@ import { TargetStakeholder } from "@prisma/client";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
+import { listStudentsForClass } from "@/features/enrollments/services/list-students-for-class";
 import type {
   PreviewCentralDeploymentInput,
   PreviewCentralDeploymentRespondent,
@@ -67,6 +68,40 @@ export async function previewCentralDeploymentRespondents(
 async function previewStudents(
   input: PreviewCentralDeploymentInput
 ): Promise<PreviewCentralDeploymentRespondent[]> {
+  // Phase 7: Use enrollment-based lookup when termInstanceId is provided
+  if (input.termInstanceId && input.yearLevel) {
+    const studentsResult = await listStudentsForClass({
+      termInstanceId: input.termInstanceId,
+      programId: input.programId,
+      yearLevel: input.yearLevel,
+      majorId: input.majorId,
+    });
+
+    if (!studentsResult.success) {
+      return [];
+    }
+
+    // Get program code for mapping
+    const program = await prisma.program.findUnique({
+      where: { id: input.programId },
+      select: { code: true },
+    });
+
+    return studentsResult.data.map((student) => ({
+      email: student.email,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      majorName: student.majorName,
+      programCode: program?.code ?? null,
+      section: null, // Section is not stored in enrollment for central deployment
+      stakeholderType: TargetStakeholder.STUDENT,
+      studentId: student.studentIdNumber,
+      userId: student.userId,
+      yearLevel: input.yearLevel ?? null,
+    }));
+  }
+
+  // Legacy: Fall back to profile-based lookup
   const whereClause: Record<string, unknown> = {
     program_id: input.programId,
   };
