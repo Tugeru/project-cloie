@@ -1,0 +1,391 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+import { ROLES } from "@/lib/constants/roles";
+import {
+  runTermRollover,
+  previewTermRollover,
+} from "@/features/academic-calendar/services/run-term-rollover";
+
+const {
+  resolveAuthSessionMock,
+  termInstanceFindManyMock,
+  termInstanceFindUniqueMock,
+  studentEnrollmentFindManyMock,
+  studentEnrollmentCreateManyMock,
+  schoolYearFindUniqueMock,
+  transactionMock,
+} = vi.hoisted(() => ({
+  resolveAuthSessionMock: vi.fn(),
+  termInstanceFindManyMock: vi.fn(),
+  termInstanceFindUniqueMock: vi.fn(),
+  studentEnrollmentFindManyMock: vi.fn(),
+  studentEnrollmentCreateManyMock: vi.fn(),
+  schoolYearFindUniqueMock: vi.fn(),
+  transactionMock: vi.fn(),
+}));
+
+vi.mock("@/lib/db/prisma", () => ({
+  prisma: {
+    academicTermInstance: {
+      findMany: termInstanceFindManyMock,
+      findUnique: termInstanceFindUniqueMock,
+    },
+    studentEnrollment: {
+      findMany: studentEnrollmentFindManyMock,
+      createMany: studentEnrollmentCreateManyMock,
+    },
+    schoolYear: {
+      findUnique: schoolYearFindUniqueMock,
+    },
+    $transaction: transactionMock,
+  },
+}));
+
+vi.mock("@/features/auth/services/resolve-auth-session", () => ({
+  resolveAuthSession: resolveAuthSessionMock,
+}));
+
+// ─── Test Helpers ────────────────────────────────────────────────────────────
+
+function mockAuthenticatedAdmin() {
+  resolveAuthSessionMock.mockResolvedValue({
+    primaryRole: ROLES.ADMIN,
+    roles: [ROLES.ADMIN],
+    userId: "admin-1",
+  });
+}
+
+function mockNonAdmin() {
+  resolveAuthSessionMock.mockResolvedValue({
+    primaryRole: ROLES.STUDENT,
+    roles: [ROLES.STUDENT],
+    userId: "student-1",
+  });
+}
+
+// ─── Tests ───────────────────────────────────────────────────────────────────
+
+describe("runTermRollover", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("rejects non-admin users", async () => {
+    mockNonAdmin();
+
+    const result = await runTermRollover({
+      sourceTermInstanceId: "term-1",
+      targetTermInstanceId: "term-2",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Admin access required.",
+    });
+  });
+
+  it("returns error when source term not found", async () => {
+    mockAuthenticatedAdmin();
+    termInstanceFindUniqueMock.mockResolvedValueOnce(null);
+
+    const result = await runTermRollover({
+      sourceTermInstanceId: "term-1",
+      targetTermInstanceId: "term-2",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Source term instance not found.",
+    });
+  });
+
+  it("returns error when target term not found", async () => {
+    mockAuthenticatedAdmin();
+    termInstanceFindUniqueMock
+      .mockResolvedValueOnce({
+        id: "term-1",
+        school_year: { is_archived: false, code: "2025-2026", id: "sy-1" },
+      })
+      .mockResolvedValueOnce(null);
+
+    const result = await runTermRollover({
+      sourceTermInstanceId: "term-1",
+      targetTermInstanceId: "term-2",
+    });
+
+    expect(result).toEqual({
+      success: false,
+      error: "Target term instance not found.",
+    });
+  });
+
+  it("promotes 1st year to 2nd year", async () => {
+    mockAuthenticatedAdmin();
+
+    // Mock term instances
+    termInstanceFindUniqueMock
+      .mockResolvedValueOnce({
+        id: "term-1",
+        school_year: { is_archived: false, code: "2025-2026", id: "sy-1" },
+      })
+      .mockResolvedValueOnce({
+        id: "term-2",
+        school_year: { is_archived: false, code: "2025-2026", id: "sy-1" },
+      });
+
+    // Mock source enrollments - 1st year student
+    studentEnrollmentFindManyMock.mockResolvedValueOnce([
+      {
+        student_user_id: "student-1",
+        program_id: "program-1",
+        major_id: "major-1",
+        year_level: "FIRST_YEAR",
+        section: null,
+        is_active: true,
+        student: {
+          id: "student-1",
+          email: "student1@test.com",
+          first_name: "John",
+          last_name: "Doe",
+        },
+      },
+    ]);
+
+    // Mock no existing enrollments in target term
+    studentEnrollmentFindManyMock.mockResolvedValueOnce([]);
+
+    // Mock createMany result
+    studentEnrollmentCreateManyMock.mockResolvedValue({ count: 1 });
+
+    // Mock transaction
+    transactionMock.mockImplementation(async (callback) => {
+      return await callback({
+        studentEnrollment: {
+          createMany: studentEnrollmentCreateManyMock,
+        },
+      });
+    });
+
+    const result = await runTermRollover({
+      sourceTermInstanceId: "term-1",
+      targetTermInstanceId: "term-2",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.processedCount).toBe(1);
+      expect(result.data.createdCount).toBe(1);
+      expect(result.data.exceptions).toHaveLength(0);
+    }
+  });
+
+  it("flags 4th year students as graduating exception", async () => {
+    mockAuthenticatedAdmin();
+
+    termInstanceFindUniqueMock
+      .mockResolvedValueOnce({
+        id: "term-1",
+        school_year: { is_archived: false, code: "2025-2026", id: "sy-1" },
+      })
+      .mockResolvedValueOnce({
+        id: "term-2",
+        school_year: { is_archived: false, code: "2025-2026", id: "sy-1" },
+      });
+
+    // 4th year student (graduating)
+    studentEnrollmentFindManyMock.mockResolvedValueOnce([
+      {
+        student_user_id: "student-4",
+        program_id: "program-1",
+        major_id: "major-1",
+        year_level: "FOURTH_YEAR",
+        section: null,
+        is_active: true,
+        student: {
+          id: "student-4",
+          email: "senior@test.com",
+          first_name: "Jane",
+          last_name: "Smith",
+        },
+      },
+    ]);
+
+    studentEnrollmentFindManyMock.mockResolvedValueOnce([]);
+
+    const result = await runTermRollover({
+      sourceTermInstanceId: "term-1",
+      targetTermInstanceId: "term-2",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.processedCount).toBe(1);
+      expect(result.data.createdCount).toBe(0); // No enrollment created
+      expect(result.data.exceptions).toHaveLength(1);
+      expect(result.data.exceptions[0].exceptionType).toBe("GRADUATING");
+      expect(result.data.exceptions[0].currentYearLevel).toBe("FOURTH_YEAR");
+    }
+  });
+
+  it("skips students already enrolled in target term (idempotency)", async () => {
+    mockAuthenticatedAdmin();
+
+    termInstanceFindUniqueMock
+      .mockResolvedValueOnce({
+        id: "term-1",
+        school_year: { is_archived: false, code: "2025-2026", id: "sy-1" },
+      })
+      .mockResolvedValueOnce({
+        id: "term-2",
+        school_year: { is_archived: false, code: "2025-2026", id: "sy-1" },
+      });
+
+    studentEnrollmentFindManyMock.mockResolvedValueOnce([
+      {
+        student_user_id: "student-1",
+        program_id: "program-1",
+        major_id: "major-1",
+        year_level: "SECOND_YEAR",
+        section: null,
+        is_active: true,
+        student: {
+          id: "student-1",
+          email: "student1@test.com",
+          first_name: "John",
+          last_name: "Doe",
+        },
+      },
+    ]);
+
+    // Student already enrolled in target term
+    studentEnrollmentFindManyMock.mockResolvedValueOnce([
+      { student_user_id: "student-1" },
+    ]);
+
+    const result = await runTermRollover({
+      sourceTermInstanceId: "term-1",
+      targetTermInstanceId: "term-2",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.processedCount).toBe(1);
+      expect(result.data.createdCount).toBe(0); // Skipped
+      expect(result.data.skippedCount).toBe(1);
+    }
+  });
+
+  it("flags students with missing program as exception", async () => {
+    mockAuthenticatedAdmin();
+
+    termInstanceFindUniqueMock
+      .mockResolvedValueOnce({
+        id: "term-1",
+        school_year: { is_archived: false, code: "2025-2026", id: "sy-1" },
+      })
+      .mockResolvedValueOnce({
+        id: "term-2",
+        school_year: { is_archived: false, code: "2025-2026", id: "sy-1" },
+      });
+
+    // Student without program_id
+    studentEnrollmentFindManyMock.mockResolvedValueOnce([
+      {
+        student_user_id: "student-orphan",
+        program_id: null,
+        major_id: null,
+        year_level: "SECOND_YEAR",
+        section: null,
+        is_active: true,
+        student: {
+          id: "student-orphan",
+          email: "orphan@test.com",
+          first_name: "Orphan",
+          last_name: "Student",
+        },
+      },
+    ]);
+
+    studentEnrollmentFindManyMock.mockResolvedValueOnce([]);
+
+    const result = await runTermRollover({
+      sourceTermInstanceId: "term-1",
+      targetTermInstanceId: "term-2",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.exceptions).toHaveLength(1);
+      expect(result.data.exceptions[0].exceptionType).toBe("MISSING_DATA");
+    }
+  });
+});
+
+describe("previewTermRollover", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("returns preview without creating enrollments", async () => {
+    mockAuthenticatedAdmin();
+
+    termInstanceFindUniqueMock
+      .mockResolvedValueOnce({
+        id: "term-1",
+        school_year: { is_archived: false, code: "2025-2026", id: "sy-1" },
+      })
+      .mockResolvedValueOnce({
+        id: "term-2",
+        school_year: { is_archived: false, code: "2025-2026", id: "sy-1" },
+      });
+
+    studentEnrollmentFindManyMock.mockResolvedValueOnce([
+      {
+        student_user_id: "student-1",
+        program_id: "program-1",
+        major_id: "major-1",
+        year_level: "FIRST_YEAR",
+        section: null,
+        is_active: true,
+        student: {
+          id: "student-1",
+          email: "student1@test.com",
+          first_name: "John",
+          last_name: "Doe",
+        },
+      },
+      {
+        student_user_id: "student-4",
+        program_id: "program-1",
+        major_id: "major-1",
+        year_level: "FOURTH_YEAR",
+        section: null,
+        is_active: true,
+        student: {
+          id: "student-4",
+          email: "senior@test.com",
+          first_name: "Jane",
+          last_name: "Smith",
+        },
+      },
+    ]);
+
+    studentEnrollmentFindManyMock.mockResolvedValueOnce([]);
+
+    const result = await previewTermRollover({
+      sourceTermInstanceId: "term-1",
+      targetTermInstanceId: "term-2",
+    });
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.wouldProcessCount).toBe(2);
+      expect(result.data.wouldCreateCount).toBe(1); // Only 1st year promoted
+      expect(result.data.exceptions).toHaveLength(1); // 4th year graduating
+    }
+
+    // Verify no database writes occurred
+    expect(studentEnrollmentCreateManyMock).not.toHaveBeenCalled();
+    expect(transactionMock).not.toHaveBeenCalled();
+  });
+});
