@@ -322,12 +322,12 @@ model StudentAcademicProfile {
   user_id           String         @unique @db.Uuid
   program_id        String         @db.Uuid
   major_id          String?        @db.Uuid
-  year_level        YearLevel
   student_id_number String?
-  academic_year     String
-  section           StudentSection?
   created_at        DateTime       @default(now())
   updated_at        DateTime       @updatedAt
+
+  // Phase 9: academic_year, year_level, section removed - now in StudentEnrollment ledger
+  // Keeping program_id, major_id, student_id_number as static cohort identifiers
 
   user              User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
   program           Program    @relation(fields: [program_id], references: [id], onDelete: Restrict)
@@ -445,9 +445,6 @@ model CourseBoundEvaluation {
   course_id             String   @db.Uuid
   program_id            String   @db.Uuid
   major_id              String?  @db.Uuid
-  semester              AcademicSemester
-  term                  AcademicTerm
-  academic_year         String
   faculty_id            String   @db.Uuid
   section               StudentSection?
   cilos_snapshot        Json     // Snapshot of CILOs at time of publishing
@@ -459,8 +456,8 @@ model CourseBoundEvaluation {
   created_at            DateTime @default(now())
   updated_at            DateTime @updatedAt
 
-  // Phase 6: Link to term instance and course assignment (nullable during migration)
-  term_instance_id      String?  @db.Uuid
+  // Phase 9: term_instance_id is now the source of truth
+  term_instance_id      String   @db.Uuid
   course_assignment_id  String?  @db.Uuid
 
   instrument            InstrumentVersion @relation(fields: [instrument_version_id], references: [id], onDelete: Restrict)
@@ -468,20 +465,15 @@ model CourseBoundEvaluation {
   program               Program           @relation(fields: [program_id], references: [id], onDelete: Restrict)
   major                 Major?            @relation(fields: [major_id], references: [id], onDelete: SetNull)
   faculty               User              @relation(fields: [faculty_id], references: [id], onDelete: Restrict)
-  term_instance         AcademicTermInstance? @relation(fields: [term_instance_id], references: [id], onDelete: SetNull)
-  course_assignment     CourseAssignment?     @relation(fields: [course_assignment_id], references: [id], onDelete: SetNull)
+  term_instance         AcademicTermInstance @relation(fields: [term_instance_id], references: [id], onDelete: Restrict)
+  course_assignment     CourseAssignment?    @relation(fields: [course_assignment_id], references: [id], onDelete: SetNull)
   assignments           EvaluationAssignment[] @relation("CourseBoundAssignments")
   targets               CourseBoundEvaluationTarget[]
   cilo_question_bindings CourseBoundCiloQuestionBinding[]
 
-  // NOTE: The actual unique constraint uses NULLS NOT DISTINCT (Postgres 15+) so that
-  // two evaluations with section = NULL are treated as duplicates. Prisma does not support
-  // NULLS NOT DISTINCT in @@unique, so the index is managed via Supabase migration
-  // (20260429170000_add_section_and_nulls_not_distinct.sql). The @@index below keeps
-  // Prisma's query planner aware of the index without re-creating it as a standard unique.
-  @@index([course_id, faculty_id, academic_year, semester, term, section])
-  // Phase 6: New indexes for term instance and course assignment lookups
-  @@index([term_instance_id])
+  // Phase 9: Unique constraint on term_instance + course + faculty + section (NULLS NOT DISTINCT in SQL)
+  // The actual constraint is managed via Supabase migration.
+  @@index([term_instance_id, course_id, faculty_id, section])
   @@index([course_assignment_id])
   @@map("course_bound_evaluations")
 }
@@ -579,8 +571,6 @@ model CentralDeployment {
   major_id              String?           @db.Uuid
   year_level            YearLevel?
   target_stakeholder    TargetStakeholder
-  academic_year         String
-  semester              AcademicSemester
   term                  AcademicTerm?
   activation_at         DateTime?
   deadline_at           DateTime?
@@ -588,9 +578,9 @@ model CentralDeployment {
   created_at            DateTime          @default(now())
   updated_at            DateTime          @updatedAt
 
-  // Phase 7: Link to term instance (nullable during transition)
-  term_instance_id      String?           @db.Uuid
-  term_instance         AcademicTermInstance? @relation(fields: [term_instance_id], references: [id], onDelete: SetNull)
+  // Phase 9: term_instance_id is now required (source of truth)
+  term_instance_id      String            @db.Uuid
+  term_instance         AcademicTermInstance @relation(fields: [term_instance_id], references: [id], onDelete: Restrict)
 
   instrument            InstrumentVersion @relation(fields: [instrument_version_id], references: [id], onDelete: Restrict)
   program               Program?          @relation(fields: [program_id], references: [id], onDelete: SetNull)
