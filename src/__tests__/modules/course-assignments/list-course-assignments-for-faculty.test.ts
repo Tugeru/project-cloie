@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { listCourseAssignmentsForFaculty } from "@/features/course-assignments/services/list-course-assignments-for-faculty";
 import * as authModule from "@/features/auth/services/resolve-auth-session";
+import { SystemRole } from "@prisma/client";
 
 vi.mock("@/features/auth/services/resolve-auth-session");
 vi.mock("@/lib/db/prisma", () => ({
@@ -15,13 +16,19 @@ describe("list-course-assignments-for-faculty", () => {
   const mockFacultySession = {
     userId: "faculty-1",
     email: "faculty@test.com",
-    roles: ["FACULTY"],
+    roles: [SystemRole.FACULTY],
+    primaryRole: SystemRole.FACULTY,
+    studentProfileId: null,
+    profileGate: { status: "COMPLETE" } as const,
   };
 
   const mockStudentSession = {
     userId: "student-1",
     email: "student@test.com",
-    roles: ["STUDENT"],
+    roles: [SystemRole.STUDENT],
+    primaryRole: SystemRole.STUDENT,
+    studentProfileId: null,
+    profileGate: { status: "COMPLETE" } as const,
   };
 
   it("should return assignments grouped by course", async () => {
@@ -81,7 +88,7 @@ describe("list-course-assignments-for-faculty", () => {
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toContain("Authentication required");
+      expect(result.error).toContain("Access denied");
     }
   });
 

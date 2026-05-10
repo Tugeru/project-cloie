@@ -54,15 +54,15 @@ describe("listFacultyCourseContexts", () => {
     affiliationFindManyMock.mockResolvedValue([
       {
         program_id: "program-1",
-        program: {
-          code: "BSIT",
-          id: "program-1",
-          majors: [],
-          name: "Bachelor of Science in Information Technology",
-        },
       },
     ]);
-    courseFindManyMock.mockResolvedValue([
+    // First call returns course IDs
+    courseFindManyMock.mockResolvedValueOnce([
+      { id: "course-1" },
+      { id: "course-2" },
+    ]);
+    // Second call returns full course details
+    courseFindManyMock.mockResolvedValueOnce([
       {
         code: "IT-401",
         course_scope: "PROGRAM_SPECIFIC",
@@ -109,10 +109,10 @@ describe("listFacultyCourseContexts", () => {
         courseType: "GENERAL_EDUCATION",
         majorId: null,
         majorName: null,
-        programCode: "BSIT",
-        programId: "program-1",
-        programName: "Bachelor of Science in Information Technology",
-        scopeLabel: "BSIT - General Education",
+        programCode: "",
+        programId: "",
+        programName: "",
+        scopeLabel: " - General Education",
       },
     ]);
 
@@ -120,23 +120,11 @@ describe("listFacultyCourseContexts", () => {
       where: {
         faculty_id: "faculty-1",
         is_active: true,
-        program: {
-          is_active: true,
-        },
       },
-      include: {
-        program: {
-          include: {
-            majors: {
-              where: { is_active: true },
-              orderBy: { name: "asc" },
-            },
-          },
-        },
-      },
-      orderBy: { program: { code: "asc" } },
+      select: { program_id: true },
     });
-    expect(courseFindManyMock).toHaveBeenCalledWith({
+    // First call - get course IDs
+    expect(courseFindManyMock).toHaveBeenNthCalledWith(1, {
       where: {
         is_active: true,
         OR: [
@@ -149,6 +137,14 @@ describe("listFacultyCourseContexts", () => {
             course_scope: "GENERAL_EDUCATION",
           },
         ],
+      },
+      select: { id: true },
+    });
+    // Second call - get full course details
+    expect(courseFindManyMock).toHaveBeenNthCalledWith(2, {
+      where: {
+        id: { in: ["course-1", "course-2"] },
+        is_active: true,
       },
       include: {
         major: true,

@@ -301,8 +301,10 @@ export function TemplateBuilder({
     }
 
     if (!boundCourseId || !boundProgramId) {
-      setLoadedCilos((current) => (current.length === 0 ? current : []));
-      setIsLoadingCilos(false);
+      queueMicrotask(() => {
+        setLoadedCilos((current) => (current.length === 0 ? current : []));
+        setIsLoadingCilos(false);
+      });
       return;
     }
 
@@ -314,8 +316,10 @@ export function TemplateBuilder({
     );
 
     if (!context) {
-      setLoadedCilos((current) => (current.length === 0 ? current : []));
-      setIsLoadingCilos(false);
+      queueMicrotask(() => {
+        setLoadedCilos((current) => (current.length === 0 ? current : []));
+        setIsLoadingCilos(false);
+      });
       return;
     }
 
@@ -324,7 +328,7 @@ export function TemplateBuilder({
     }
 
     let isStale = false;
-    setIsLoadingCilos(true);
+    queueMicrotask(() => setIsLoadingCilos(true));
 
     loadManagedCilosAction({
       courseId: context.courseId,

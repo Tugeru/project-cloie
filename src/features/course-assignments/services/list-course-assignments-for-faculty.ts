@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { ROLES } from "@/lib/constants/roles";
+import type { SystemRole } from "@prisma/client";
 import type { CourseAssignmentResult, CourseAssignmentItem } from "../types";
 
 /**
@@ -31,14 +33,21 @@ export async function listCourseAssignmentsForFaculty(
     return { success: false, error: "Authentication required." };
   }
 
+  // Check if user has faculty or admin roles
+  const allowedRoles: SystemRole[] = [ROLES.FACULTY, ROLES.ADMIN, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+  const hasAllowedRole = authSession.roles.some((r) => allowedRoles.includes(r));
+  if (!hasAllowedRole) {
+    return { success: false, error: "Access denied." };
+  }
+
   // If no facultyId provided, use current user's ID
   const targetFacultyId = facultyId ?? authSession.userId;
 
   // Check if user can view this faculty's assignments
   if (targetFacultyId !== authSession.userId) {
     // Only admin, dean, or program head can view other faculty's assignments
-    const allowedRoles = ["ADMIN", "DEAN", "PROGRAM_HEAD"];
-    const hasAccess = authSession.roles.some((r) => allowedRoles.includes(r));
+    const adminRoles: SystemRole[] = [ROLES.ADMIN, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+    const hasAccess = authSession.roles.some((r) => adminRoles.includes(r));
     if (!hasAccess) {
       return { success: false, error: "Access denied." };
     }

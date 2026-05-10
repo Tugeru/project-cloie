@@ -119,7 +119,7 @@ export function SchoolYearList({ schoolYears, onRefresh }: SchoolYearListProps) 
                         colSpan={5}
                         className="text-muted-foreground text-center py-8"
                       >
-                        No term instances yet. Click "Add Term" to create one.
+                        No term instances yet. Click &quot;Add Term&quot; to create one.
                       </TableCell>
                     </TableRow>
                   ) : (

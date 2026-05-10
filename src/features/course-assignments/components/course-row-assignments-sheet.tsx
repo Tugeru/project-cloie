@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Sheet,
   SheetContent,
@@ -44,13 +44,7 @@ export function CourseRowAssignmentsSheet({
   const [loading, setLoading] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  useEffect(() => {
-    if (open && termInstanceId) {
-      loadAssignments();
-    }
-  }, [open, termInstanceId]);
-
-  const loadAssignments = async () => {
+  const loadAssignments = useCallback(async () => {
     if (!termInstanceId) return;
     
     setLoading(true);
@@ -63,7 +57,13 @@ export function CourseRowAssignmentsSheet({
       setAssignments(result.data.items);
     }
     setLoading(false);
-  };
+  }, [termInstanceId, courseId]);
+
+  useEffect(() => {
+    if (open && termInstanceId) {
+      queueMicrotask(() => loadAssignments());
+    }
+  }, [open, termInstanceId, loadAssignments]);
 
   return (
     <>

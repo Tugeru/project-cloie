@@ -14,10 +14,10 @@ import {
 import { TemplateBuilder } from "./template-builder";
 import type { TemplateBuilderProps } from "./template-builder";
 
-interface AdminTemplateBuilderProps extends Omit<
+type AdminTemplateBuilderProps = Omit<
   TemplateBuilderProps,
   "onSaveResult" | "saveSuccessConfig" | "toolsHref"
-> {}
+>;
 
 export function AdminTemplateBuilder(props: AdminTemplateBuilderProps) {
   const router = useRouter();
