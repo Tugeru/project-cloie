@@ -20,9 +20,23 @@ export async function publishCentralDeploymentAction(formData: FormData): Promis
     deployment_name: formData.get("deployment_name"),
     template_id: formData.get("template_id"),
     target_stakeholder: formData.get("target_stakeholder"),
+    // Phase 7: Support term_instance_id (preferred) or legacy academic_year/semester
+    term_instance_id: formData.get("term_instance_id"),
     academic_year: formData.get("academic_year"),
     semester: formData.get("semester"),
+    term: formData.get("term"),
   };
+
+  // Only include academic_year/semester if term_instance_id is not provided
+  const termInstanceId = formData.get("term_instance_id");
+  if (termInstanceId && typeof termInstanceId === "string" && termInstanceId.length > 0) {
+    // Phase 7: term_instance_id takes precedence
+    raw.term_instance_id = termInstanceId;
+    // Clear legacy fields when term_instance_id is provided
+    delete raw.academic_year;
+    delete raw.semester;
+    delete raw.term;
+  }
 
   const majorId = formData.get("major_id");
   if (majorId && typeof majorId === "string" && majorId.length > 0) {
