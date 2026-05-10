@@ -115,7 +115,7 @@ const baseInput = {
   target_stakeholder: "STUDENT" as const,
   academic_year: "2025-2026",
   semester: "FIRST" as const,
-  year_level_id: "year-4",
+  year_level: "FOURTH_YEAR" as const,
 };
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
@@ -270,7 +270,7 @@ describe("publishCentralDeployment", () => {
     const result = await publishCentralDeployment({
       ...baseInput,
       target_stakeholder: "STUDENT",
-      year_level_id: "year-4",
+      year_level: "FOURTH_YEAR",
     });
 
     expect(result).toEqual({
@@ -291,7 +291,7 @@ describe("publishCentralDeployment", () => {
         target_stakeholder: "STUDENT",
         academic_year: "2025-2026",
         semester: "FIRST",
-        year_level_id: "year-4",
+        year_level: "FOURTH_YEAR",
         status: "ACTIVE",
       }),
     });
@@ -300,7 +300,7 @@ describe("publishCentralDeployment", () => {
     expect(studentAcademicProfileFindManyMock).toHaveBeenCalledWith({
       where: {
         program_id: "program-1",
-        year_level_id: "year-4",
+        year_level: "FOURTH_YEAR",
       },
       select: { user_id: true },
     });
@@ -331,7 +331,7 @@ describe("publishCentralDeployment", () => {
       ...baseInput,
       target_stakeholder: "STUDENT",
       major_id: "major-1",
-      year_level_id: "year-4",
+      year_level: "FOURTH_YEAR",
     });
 
     expect(result).toEqual({
@@ -347,7 +347,7 @@ describe("publishCentralDeployment", () => {
       where: {
         program_id: "program-1",
         major_id: "major-1",
-        year_level_id: "year-4",
+        year_level: "FOURTH_YEAR",
       },
       select: { user_id: true },
     });
@@ -370,7 +370,7 @@ describe("publishCentralDeployment", () => {
     const result = await publishCentralDeployment({
       ...baseInput,
       target_stakeholder: "ALUMNI",
-      year_level_id: undefined,
+      year_level: undefined,
     });
 
     expect(result).toEqual({
@@ -417,7 +417,7 @@ describe("publishCentralDeployment", () => {
     const result = await publishCentralDeployment({
       ...baseInput,
       target_stakeholder: "INDUSTRY_PARTNER",
-      year_level_id: undefined,
+      year_level: undefined,
     });
 
     expect(result).toEqual({
