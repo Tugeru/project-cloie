@@ -62,6 +62,10 @@ export type CourseBoundCiloQuestionBindingInput = {
   sectionKey: string;
 };
 
+/**
+ * @deprecated Use PublishCourseBoundEvaluationInputV2 with assignmentId instead.
+ * Legacy input kept for backward compatibility during Phase 6 transition.
+ */
 export type PublishCourseBoundEvaluationInput = {
   academicYear: string;
   activationAt?: Date | null;
@@ -75,6 +79,19 @@ export type PublishCourseBoundEvaluationInput = {
   term: AcademicTerm;
   templateId: string;
   yearLevels?: YearLevel[]; // Deprecated: kept for backward compatibility
+};
+
+/**
+ * Phase 6: Simplified input using course assignment ID.
+ * All class identity (term, program, year level, section) is resolved from the assignment.
+ */
+export type PublishCourseBoundEvaluationInputV2 = {
+  assignmentId: string;
+  activationAt?: Date | null;
+  deadlineAt?: Date | null;
+  deploymentName: string;
+  respondentIds?: string[]; // Final list of respondent IDs after preview/exclude
+  templateId: string;
 };
 
 export type PublishCourseBoundEvaluationResult =
@@ -109,11 +126,21 @@ export type PreviewRespondent = {
   yearLevel: YearLevel;
 };
 
+/**
+ * @deprecated Use PreviewCourseBoundRespondentsInputV2 with assignmentId instead.
+ */
 export type PreviewCourseBoundRespondentsInput = {
   academicYear: string;
   section: StudentSection | null;
   targetPrograms: string[];
   targetYearLevel: YearLevel;
+};
+
+/**
+ * Phase 6: Simplified preview input using course assignment ID.
+ */
+export type PreviewCourseBoundRespondentsInputV2 = {
+  assignmentId: string;
 };
 
 export type PreviewCourseBoundRespondentsResult =
