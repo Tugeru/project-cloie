@@ -57,22 +57,14 @@ export async function publishCentralDeploymentAction(formData: FormData): Promis
     raw.year_level = yearLevel;
   }
 
-  const activationDate = formData.get("activation_date") as string | null;
-  const activationTime = formData.get("activation_time") as string | null;
-  if (activationDate) {
-    const dateTimeStr = activationTime
-      ? `${activationDate}T${activationTime}`
-      : `${activationDate}T00:00:00`;
-    raw.activation_at = dateTimeStr;
+  const activationAt = formData.get("activation_at") as string | null;
+  if (activationAt) {
+    raw.activation_at = activationAt;
   }
 
-  const deadlineDate = formData.get("deadline_date") as string | null;
-  const deadlineTime = formData.get("deadline_time") as string | null;
-  if (deadlineDate) {
-    const dateTimeStr = deadlineTime
-      ? `${deadlineDate}T${deadlineTime}`
-      : `${deadlineDate}T23:59:59`;
-    raw.deadline_at = dateTimeStr;
+  const deadlineAt = formData.get("deadline_at") as string | null;
+  if (deadlineAt) {
+    raw.deadline_at = deadlineAt;
   }
 
   const parsed = publishCentralDeploymentSchema.safeParse(raw);

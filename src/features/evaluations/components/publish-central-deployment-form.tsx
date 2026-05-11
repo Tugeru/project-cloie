@@ -3,10 +3,13 @@
 import { useState, useRef, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { type TargetStakeholder, YearLevel } from "@prisma/client";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { showToast } from "@/components/ui/toast";
+import { getYearLevelDisplay } from "@/lib/constants/year-levels";
+import { getSectionLabel } from "@/lib/constants/academic";
 import type {
   PreviewCentralDeploymentInput,
   PreviewCentralDeploymentRespondent,
@@ -212,11 +215,12 @@ export function PublishCentralDeploymentForm({
           <Label htmlFor="template_id">Evaluation Template</Label>
           {preselectedTemplateId && selectedTemplate ? (
             <>
-              <Input
-                readOnly
-                value={selectedTemplate.name}
-                className="bg-surface-container-low"
-              />
+              <div className="border-input bg-surface-container-low flex items-center gap-3 rounded-lg border px-3 py-2">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{selectedTemplate.name}</p>
+                </div>
+                <Badge variant="outline" className="shrink-0 text-xs">Pre-selected</Badge>
+              </div>
               <input type="hidden" name="template_id" value={selectedTemplateId} />
             </>
           ) : (
@@ -261,25 +265,19 @@ export function PublishCentralDeploymentForm({
               </h2>
             </div>
 
-            {/* Activation Date + Time */}
+            {/* Activation Date & Time */}
             <div className="space-y-2">
-              <Label>Activation Date & Time</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Input type="date" name="activation_date" placeholder="Date" />
-                <Input type="time" name="activation_time" placeholder="Time" />
-              </div>
+              <Label htmlFor="activation_at">Activation Date & Time</Label>
+              <Input type="datetime-local" id="activation_at" name="activation_at" />
               <p className="text-text-secondary text-xs">
                 Leave empty to activate immediately upon publication.
               </p>
             </div>
 
-            {/* Deadline Date + Time */}
+            {/* Deadline Date & Time */}
             <div className="space-y-2">
-              <Label>Deadline Date & Time</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Input type="date" name="deadline_date" placeholder="Date" />
-                <Input type="time" name="deadline_time" placeholder="Time" />
-              </div>
+              <Label htmlFor="deadline_at">Deadline Date & Time</Label>
+              <Input type="datetime-local" id="deadline_at" name="deadline_at" />
               <p className="text-text-secondary text-xs">
                 Optional. Respondents cannot submit after this deadline.
               </p>
@@ -364,7 +362,7 @@ export function PublishCentralDeploymentForm({
                   <option value="">Select year level</option>
                   {yearLevels.map((yl) => (
                     <option key={yl} value={yl}>
-                      {yl.replace("_", " ")}
+                      {getYearLevelDisplay(yl)}
                     </option>
                   ))}
                 </select>
@@ -497,8 +495,8 @@ export function PublishCentralDeploymentForm({
                         {targetStakeholder === "STUDENT" && (
                           <>
                             <td className="px-3 py-2">{respondent.programCode ?? "—"}</td>
-                            <td className="px-3 py-2">{respondent.yearLevel ?? "—"}</td>
-                            <td className="px-3 py-2">{respondent.section ?? "—"}</td>
+                            <td className="px-3 py-2">{respondent.yearLevel ? getYearLevelDisplay(respondent.yearLevel as YearLevel) : "—"}</td>
+                            <td className="px-3 py-2">{respondent.section ? getSectionLabel(respondent.section) : "—"}</td>
                             <td className="px-3 py-2">{respondent.studentId ?? "—"}</td>
                           </>
                         )}

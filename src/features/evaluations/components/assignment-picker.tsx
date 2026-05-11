@@ -104,7 +104,7 @@ export function AssignmentPicker({
         onValueChange={(val) => onChange(val || null)}
         disabled={disabled || sortedAssignments.length === 0}
       >
-        <SelectTrigger>
+        <SelectTrigger className="w-full">
           <SelectValue placeholder={placeholder}>
             {value
               ? (() => {
@@ -198,7 +198,7 @@ export function GroupedAssignmentPicker({
           onValueChange={(val) => onTermChange?.(val || null)}
           disabled={sortedTerms.length === 0}
         >
-          <SelectTrigger>
+          <SelectTrigger className="w-full">
             <SelectValue placeholder="All Terms">
               {selectedTermId
                 ? (() => {

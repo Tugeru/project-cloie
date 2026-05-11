@@ -85,6 +85,7 @@ export interface TemplateBuilderProps {
     customName: string,
     structure: TemplateStructure
   ) => Promise<ActionResult<{ id: string }>>;
+  onPublish?: () => void;
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -152,6 +153,7 @@ export function TemplateBuilder({
   onSaveResult,
   isInstitutionalBaseline = false,
   onSaveAsCopy,
+  onPublish,
 }: TemplateBuilderProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -856,8 +858,12 @@ export function TemplateBuilder({
         <Button variant="outline" onClick={() => router.push(toolsHref)} disabled={isPending}>
           Cancel
         </Button>
-        {facultyMode && (
-          <Button variant="secondary" onClick={handlePublish} disabled={isPending}>
+        {(facultyMode || onPublish) && (
+          <Button
+            variant="cta-success"
+            onClick={facultyMode ? handlePublish : onPublish}
+            disabled={isPending}
+          >
             Publish
           </Button>
         )}

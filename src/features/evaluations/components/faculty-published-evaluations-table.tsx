@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/table";
 import { showToast } from "@/components/ui/toast";
 import type { FacultyPublishedEvaluationItem } from "../types";
+import { getYearLevelDisplay } from "@/lib/constants/year-levels";
+import { YearLevel } from "@prisma/client";
 import { EvaluationDetailDialog } from "./evaluation-detail-dialog";
 import { CloseEvaluationDialog } from "./close-evaluation-dialog";
 import {
@@ -344,7 +346,7 @@ export function FacultyPublishedEvaluationsTable({
                                 ) : (
                                   evalItem.targetYearLevels.map((level, idx) => (
                                     <Badge key={idx} variant="outline" className="text-xs">
-                                      {level}
+                                      {getYearLevelDisplay(level as YearLevel)}
                                     </Badge>
                                   ))
                                 )}

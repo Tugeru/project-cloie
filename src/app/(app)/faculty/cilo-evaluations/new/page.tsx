@@ -144,8 +144,6 @@ export default async function NewFacultyCiloEvaluationPage({
     }
   }
 
-  const yearLevels = Object.values(YearLevel);
-
   // Simplified publication context for V2 form
   const formPublicationContext = {
     bindings: publicationContext.data.bindings,
@@ -165,11 +163,9 @@ export default async function NewFacultyCiloEvaluationPage({
   return (
     <PublishCourseBoundEvaluationFormV2
       assignments={assignmentOptions}
-      termInstances={termInstances}
       previewAction={previewCourseBoundRespondentsAction}
       publicationContext={formPublicationContext}
       publishAction={publishCourseBoundEvaluationAction}
-      yearLevels={yearLevels}
     />
   );
 }

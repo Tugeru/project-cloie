@@ -11,6 +11,13 @@ interface EvaluationDetailDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+function getScopeLabel(scope: string): string {
+  return scope
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 function formatDate(date: Date | string | null): string {
   if (!date) return "--";
   const d = typeof date === "string" ? new Date(date) : date;
@@ -94,7 +101,7 @@ export function EvaluationDetailDialog({
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Scope:</span>
-                <span className="font-medium capitalize">{detail.courseInfo.courseScope}</span>
+                <span className="font-medium">{getScopeLabel(detail.courseInfo.courseScope)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Program:</span>

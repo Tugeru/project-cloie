@@ -8,17 +8,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { showToast } from "@/components/ui/toast";
-import { YearLevel } from "@prisma/client";
 import type {
-  PreviewCourseBoundRespondentsInputV2,
+  PreviewCourseBoundRespondentsInput,
   PreviewCourseBoundRespondentsResult,
   PreviewRespondent,
-  PublishCourseBoundEvaluationInputV2,
+  PublishCourseBoundEvaluationInput,
   PublishCourseBoundEvaluationResult,
 } from "@/features/evaluations/types";
 import type { TemplateStructure } from "@/features/instruments/types";
-import type { TermInstanceItem } from "@/features/academic-calendar/types";
-import { GroupedAssignmentPicker, type AssignmentOption } from "./assignment-picker";
+import { AssignmentPicker, type AssignmentOption } from "./assignment-picker";
 
 type PublicationContext = {
   bindings: Array<{
@@ -45,15 +43,13 @@ type Step = "configure" | "preview";
 
 interface PublishCourseBoundEvaluationFormV2Props {
   assignments: AssignmentOption[];
-  termInstances: TermInstanceItem[];
   previewAction: (
-    payload: PreviewCourseBoundRespondentsInputV2
+    payload: PreviewCourseBoundRespondentsInput
   ) => Promise<PreviewCourseBoundRespondentsResult>;
   publicationContext: PublicationContext;
   publishAction: (
-    payload: PublishCourseBoundEvaluationInputV2
+    payload: PublishCourseBoundEvaluationInput
   ) => Promise<PublishCourseBoundEvaluationResult>;
-  yearLevels: YearLevel[];
 }
 
 /**
@@ -62,7 +58,6 @@ interface PublishCourseBoundEvaluationFormV2Props {
  */
 export function PublishCourseBoundEvaluationFormV2({
   assignments,
-  termInstances,
   previewAction,
   publicationContext,
   publishAction,
@@ -73,7 +68,6 @@ export function PublishCourseBoundEvaluationFormV2({
   // Form fields
   const [deploymentName, setDeploymentName] = useState("");
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
-  const [selectedTermId, setSelectedTermId] = useState<string | null>(null);
   const [activationSchedule, setActivationSchedule] = useState("");
   const [deadline, setDeadline] = useState("");
 
@@ -179,7 +173,7 @@ export function PublishCourseBoundEvaluationFormV2({
       .filter((r) => !excludedRespondentIds.includes(r.userId))
       .map((r) => r.userId);
 
-    const payload: PublishCourseBoundEvaluationInputV2 = {
+    const payload: PublishCourseBoundEvaluationInput = {
       assignmentId: selectedAssignmentId!,
       activationAt: activationSchedule ? new Date(activationSchedule) : null,
       deadlineAt: deadline ? new Date(deadline) : null,
@@ -310,13 +304,10 @@ export function PublishCourseBoundEvaluationFormV2({
               />
             </div>
 
-            <GroupedAssignmentPicker
+            <AssignmentPicker
               assignments={assignments}
-              termInstances={termInstances}
               value={selectedAssignmentId}
               onChange={setSelectedAssignmentId}
-              selectedTermId={selectedTermId}
-              onTermChange={setSelectedTermId}
               label="Class Assignment"
               placeholder="Select a class..."
             />
@@ -339,7 +330,7 @@ export function PublishCourseBoundEvaluationFormV2({
               </Card>
             )}
 
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex flex-col gap-4">
               <div className="space-y-2">
                 <Label htmlFor="activation">Activation (optional)</Label>
                 <Input
@@ -361,6 +352,9 @@ export function PublishCourseBoundEvaluationFormV2({
                   value={deadline}
                   onChange={(event) => setDeadline(event.target.value)}
                 />
+                <p className="text-text-muted text-xs">
+                  Optional. Respondents cannot submit after this deadline.
+                </p>
               </div>
             </div>
 

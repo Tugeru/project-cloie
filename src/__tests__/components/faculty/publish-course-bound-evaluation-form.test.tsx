@@ -1,9 +1,8 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { AcademicSemester, AcademicTerm, YearLevel } from "@prisma/client";
+import { YearLevel } from "@prisma/client";
 import { PublishCourseBoundEvaluationFormV2 } from "@/features/evaluations/components/publish-course-bound-evaluation-form-v2";
 import type { AssignmentOption } from "@/features/evaluations/components/assignment-picker";
-import type { TermInstanceItem } from "@/features/academic-calendar/types";
 
 describe("PublishCourseBoundEvaluationFormV2", () => {
   const publicationContext = {
@@ -49,21 +48,6 @@ describe("PublishCourseBoundEvaluationFormV2", () => {
     },
   };
 
-  const termInstances: TermInstanceItem[] = [
-    {
-      id: "term-1",
-      schoolYearId: "sy-1",
-      schoolYearCode: "2025-2026",
-      semester: AcademicSemester.FIRST,
-      term: AcademicTerm.FIRST_TERM,
-      startDate: null,
-      endDate: null,
-      isActive: true,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    },
-  ];
-
   const assignments: AssignmentOption[] = [
     {
       id: "assignment-1",
@@ -80,15 +64,11 @@ describe("PublishCourseBoundEvaluationFormV2", () => {
     },
   ];
 
-  const yearLevels = Object.values(YearLevel);
-
   it("renders the saved template context and bound cilos", () => {
     render(
       <PublishCourseBoundEvaluationFormV2
         assignments={assignments}
-        termInstances={termInstances}
         publicationContext={publicationContext}
-        yearLevels={yearLevels}
         previewAction={vi.fn()}
         publishAction={vi.fn()}
       />
@@ -137,9 +117,7 @@ describe("PublishCourseBoundEvaluationFormV2", () => {
     render(
       <PublishCourseBoundEvaluationFormV2
         assignments={assignments}
-        termInstances={termInstances}
         publicationContext={publicationContext}
-        yearLevels={yearLevels}
         previewAction={previewAction}
         publishAction={publishAction}
       />
@@ -193,9 +171,7 @@ describe("PublishCourseBoundEvaluationFormV2", () => {
     render(
       <PublishCourseBoundEvaluationFormV2
         assignments={[]}
-        termInstances={termInstances}
         publicationContext={publicationContext}
-        yearLevels={yearLevels}
         previewAction={vi.fn()}
         publishAction={vi.fn()}
       />
@@ -205,34 +181,7 @@ describe("PublishCourseBoundEvaluationFormV2", () => {
     expect(screen.getByRole("button", { name: /preview respondents/i })).toBeDisabled();
   });
 
-  it("filters assignments by selected term", async () => {
-    const multiTermInstances: TermInstanceItem[] = [
-      {
-        id: "term-1",
-        schoolYearId: "sy-1",
-        schoolYearCode: "2025-2026",
-        semester: AcademicSemester.FIRST,
-        term: AcademicTerm.FIRST_TERM,
-        startDate: null,
-        endDate: null,
-        isActive: true,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-      {
-        id: "term-2",
-        schoolYearId: "sy-1",
-        schoolYearCode: "2025-2026",
-        semester: AcademicSemester.SECOND,
-        term: AcademicTerm.FIRST_TERM,
-        startDate: null,
-        endDate: null,
-        isActive: false,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },
-    ];
-
+  it("shows all assignments without a term filter", () => {
     const multiAssignments: AssignmentOption[] = [
       {
         id: "assignment-1",
@@ -265,27 +214,15 @@ describe("PublishCourseBoundEvaluationFormV2", () => {
     render(
       <PublishCourseBoundEvaluationFormV2
         assignments={multiAssignments}
-        termInstances={multiTermInstances}
         publicationContext={publicationContext}
-        yearLevels={yearLevels}
         previewAction={vi.fn()}
         publishAction={vi.fn()}
       />
     );
 
-    // Select a term from the dropdown
-    fireEvent.click(screen.getByText(/all terms/i));
-    await waitFor(() => {
-      expect(screen.getByText(/2025-2026 — 1st Semester — 1st Term/i)).toBeInTheDocument();
-    });
-    fireEvent.click(screen.getByText(/2025-2026 — 1st Semester — 1st Term/i));
-
-    // Now only assignments for that term should be shown
-    // The assignment picker should update to show filtered results
-    fireEvent.click(screen.getByText(/select a class/i));
-    await waitFor(() => {
-      // Should only see 1st year assignment (from term-1)
-      expect(screen.getByText(/1st Year/i)).toBeInTheDocument();
-    });
+    // No Academic Term filter should be present
+    expect(screen.queryByText(/all terms/i)).not.toBeInTheDocument();
+    // Class Assignment picker should still be visible
+    expect(screen.getByText(/class assignment/i)).toBeInTheDocument();
   });
 });
