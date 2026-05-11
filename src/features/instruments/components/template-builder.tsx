@@ -699,9 +699,9 @@ export function TemplateBuilder({
                 <SelectValue>{formatTemplateTypeLabel(effectiveTemplateType)}</SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="COURSE_BOUND">Course-bound Evaluation Tool</SelectItem>
+                <SelectItem value="COURSE_BOUND">Course-bound</SelectItem>
                 {!facultyMode && (
-                  <SelectItem value="PROGRAM_WIDE">Program-wide Evaluation Tool</SelectItem>
+                  <SelectItem value="PROGRAM_WIDE">Program-wide</SelectItem>
                 )}
               </SelectContent>
             </Select>
