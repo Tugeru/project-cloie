@@ -271,13 +271,18 @@ export async function setActiveTermInstance(
 }
 
 /**
- * Check if a term instance has dependent records.
- * In production, this would check student_enrollments, course_assignments, etc.
+ * Check if a term instance has dependent records across all related tables.
+ * Returns true if any enrollments, assignments, evaluations, or deployments reference this term.
  */
-async function checkHasDependentRecords(_termInstanceId: string): Promise<boolean> {
-  // Phase 1: No dependent tables exist yet (enrollments, assignments come in later phases)
-  // Return false for now; update in Phase 2+
-  return false;
+async function checkHasDependentRecords(termInstanceId: string): Promise<boolean> {
+  const [enrollments, assignments, evaluations, deployments] = await Promise.all([
+    prisma.studentEnrollment.count({ where: { term_instance_id: termInstanceId }, take: 1 }),
+    prisma.courseAssignment.count({ where: { term_instance_id: termInstanceId }, take: 1 }),
+    prisma.courseBoundEvaluation.count({ where: { term_instance_id: termInstanceId }, take: 1 }),
+    prisma.centralDeployment.count({ where: { term_instance_id: termInstanceId }, take: 1 }),
+  ]);
+
+  return enrollments + assignments + evaluations + deployments > 0;
 }
 
 /**

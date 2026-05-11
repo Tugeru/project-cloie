@@ -41,14 +41,27 @@ export async function listCourseAssignmentsForProgramHead(
     phProgramIds = [...new Set(phAssignments.map((a) => a.program_id))];
   }
 
-  // Build a strongly-typed where clause.
-  // PHs are always scoped to their assigned programs; other roles (Admin/Dean) see all.
+  // Build program_id condition: PH scope must never be overridden by the filter.
+  let programIdCondition: Prisma.CourseAssignmentWhereInput["program_id"];
+  if (phProgramIds !== undefined) {
+    if (filter.programId) {
+      // Intersect: only allow filtering within PH scope
+      programIdCondition = phProgramIds.includes(filter.programId)
+        ? filter.programId
+        : { in: [] }; // out-of-scope → match nothing
+    } else {
+      programIdCondition = { in: phProgramIds };
+    }
+  } else if (filter.programId) {
+    // Admin/Dean: allow free filtering
+    programIdCondition = filter.programId;
+  }
+
   const where: Prisma.CourseAssignmentWhereInput = {
-    ...(phProgramIds !== undefined && { program_id: { in: phProgramIds } }),
+    ...(programIdCondition !== undefined && { program_id: programIdCondition }),
     ...(filter.termInstanceId && { term_instance_id: filter.termInstanceId }),
     ...(filter.courseId && { course_id: filter.courseId }),
     ...(filter.facultyId && { faculty_id: filter.facultyId }),
-    ...(filter.programId && { program_id: filter.programId }),
     ...(filter.yearLevel && { year_level: filter.yearLevel }),
     ...(filter.section && { section: filter.section }),
     ...(filter.isActive !== undefined && { is_active: filter.isActive }),

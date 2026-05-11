@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "CLOIE — Assumption College of Davao",
+    name: "System CLOIE",
     short_name: "CLOIE",
     description: "Comprehensive Learning Outcomes and Instructional Evaluation",
     start_url: "/",
