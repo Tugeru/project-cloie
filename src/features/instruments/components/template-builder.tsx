@@ -122,10 +122,6 @@ function hasDuplicateSuggestedResponse(existingResponses: string[] | undefined, 
   );
 }
 
-function formatProgramContextLabel(program: { code: string; name: string }) {
-  return `${program.code} - ${program.name}`;
-}
-
 function formatCourseContextLabel(
   context: Pick<FacultyCourseContext, "courseCode" | "courseTitle" | "scopeLabel">
 ) {
@@ -201,77 +197,8 @@ export function TemplateBuilder({
   const effectiveTemplateType: EvaluationTemplateType = facultyMode ? "COURSE_BOUND" : templateType;
   const facultyCourseContexts = facultyConfig?.courseContexts ?? EMPTY_FACULTY_COURSE_CONTEXTS;
   const loadManagedCilosAction = facultyConfig?.loadManagedCilosAction;
-  const availablePrograms = useMemo(
-    () => [
-      ...new Map(
-        facultyCourseContexts.map((context) => [
-          context.programId,
-          {
-            code: context.programCode,
-            id: context.programId,
-            name: context.programName,
-          },
-        ])
-      ).values(),
-    ],
-    [facultyCourseContexts]
-  );
-  const availableMajors = useMemo(
-    () => [
-      ...new Map(
-        facultyCourseContexts
-          .filter((context) => context.programId === boundProgramId && context.majorId)
-          .map((context) => [
-            context.majorId,
-            { id: context.majorId!, name: context.majorName ?? "Unnamed Major" },
-          ])
-      ).values(),
-    ],
-    [boundProgramId, facultyCourseContexts]
-  );
   const selectedCourseContext =
     facultyCourseContexts.find((context) => context.courseId === boundCourseId) ?? null;
-  const selectedCourseType =
-    selectedCourseContext?.courseType ??
-    facultyCourseContexts.find((context) => context.programId === boundProgramId)?.courseType ??
-    "PROGRAM_SPECIFIC";
-  const [courseType, setCourseType] =
-    useState<FacultyCourseContext["courseType"]>(selectedCourseType);
-  const availableCourses = useMemo(
-    () =>
-      facultyCourseContexts.filter((context) => {
-        if (context.courseType !== courseType) {
-          return false;
-        }
-
-        if (boundProgramId && context.programId !== boundProgramId) {
-          return false;
-        }
-
-        if (courseType === "MAJOR_SPECIFIC") {
-          return Boolean(boundMajorId) && context.majorId === boundMajorId;
-        }
-
-        if (boundMajorId) {
-          return context.majorId === null || context.majorId === boundMajorId;
-        }
-
-        return true;
-      }),
-    [boundMajorId, boundProgramId, courseType, facultyCourseContexts]
-  );
-  const selectedProgram = useMemo(
-    () => availablePrograms.find((program) => program.id === boundProgramId) ?? null,
-    [availablePrograms, boundProgramId]
-  );
-  const selectedMajor = useMemo(
-    () => availableMajors.find((major) => major.id === boundMajorId) ?? null,
-    [availableMajors, boundMajorId]
-  );
-  const selectedCourse = useMemo(
-    () => availableCourses.find((context) => context.courseId === boundCourseId) ?? null,
-    [availableCourses, boundCourseId]
-  );
   const selectedCiloLabels = useMemo(() => {
     const labels = new Map<string, string>();
 
@@ -627,13 +554,14 @@ export function TemplateBuilder({
     setCopyNameDialogOpen(false);
 
     if (!result.success) {
-      setError(result.error);
+      showToast(result.error, "error");
       onSaveResult?.({ success: false, error: result.error });
       return;
     }
 
+    showToast("Template saved as program copy successfully.", "success");
     onSaveResult?.({ success: true, id: result.data!.id });
-    router.push(`${toolsHref}/${result.data!.id}/edit`);
+    router.push(toolsHref ?? "/");
   }, [templateId, onSaveAsCopy, copyName, sections, toolsHref, router, onSaveResult]);
 
   const handleSave = useCallback(() => {
@@ -805,130 +733,46 @@ export function TemplateBuilder({
             </p>
           )}
           {facultyMode && (
-            <div className="border-border grid gap-4 rounded-lg border p-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="faculty-course-type">Course Type</Label>
-                <Select
-                  value={courseType}
-                  onValueChange={(value) => {
-                    setCourseType(value as FacultyCourseContext["courseType"]);
-                    setBoundCourseId("");
-                    setCiloQuestionBindings({});
-                  }}
-                >
-                  <SelectTrigger id="faculty-course-type">
-                    <SelectValue>
-                      {courseType === "PROGRAM_SPECIFIC"
-                        ? "Program-Specific"
-                        : courseType === "GENERAL_EDUCATION"
-                          ? "General Education"
-                          : courseType === "MAJOR_SPECIFIC"
-                            ? "Major-Specific"
-                            : undefined}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PROGRAM_SPECIFIC">Program-Specific</SelectItem>
-                    <SelectItem value="GENERAL_EDUCATION">General Education</SelectItem>
-                    {availableMajors.length > 0 && (
-                      <SelectItem value="MAJOR_SPECIFIC">Major-Specific</SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="faculty-program-context">Program Context</Label>
-                <Select
-                  value={boundProgramId}
-                  onValueChange={(value) => {
-                    setBoundProgramId(value ?? "");
-                    setBoundMajorId("");
-                    setBoundCourseId("");
-                    setCiloQuestionBindings({});
-                  }}
-                >
-                  <SelectTrigger id="faculty-program-context">
-                    <SelectValue placeholder="Select a program">
-                      {selectedProgram ? formatProgramContextLabel(selectedProgram) : undefined}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availablePrograms.map((program) => (
-                      <SelectItem key={program.id} value={program.id}>
-                        {formatProgramContextLabel(program)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {availableMajors.length > 0 && (
-                <div className="space-y-2">
-                  <Label htmlFor="faculty-major-context">Major Context</Label>
-                  <Select
-                    value={boundMajorId || "none"}
-                    onValueChange={(value) => {
-                      setBoundMajorId(!value || value === "none" ? "" : value);
-                      setBoundCourseId("");
-                      setCiloQuestionBindings({});
-                    }}
-                  >
-                    <SelectTrigger id="faculty-major-context">
-                      <SelectValue>
-                        {selectedMajor?.name ?? "All majors / shared courses"}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {courseType !== "MAJOR_SPECIFIC" && (
-                        <SelectItem value="none">All majors / shared courses</SelectItem>
-                      )}
-                      {availableMajors.map((major) => (
-                        <SelectItem key={major.id} value={major.id}>
-                          {major.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-              <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="faculty-course-context">Course</Label>
-                <Select
-                  value={boundCourseId}
-                  disabled={availableCourses.length === 0}
-                  onValueChange={(value) => {
-                    const context = facultyCourseContexts.find(
-                      (candidate) => candidate.courseId === value
-                    );
-                    setBoundCourseId(value ?? "");
-                    setBoundProgramId(context?.programId ?? boundProgramId);
-                    setBoundMajorId(context?.majorId ?? "");
-                    setCiloQuestionBindings({});
-                  }}
-                >
-                  <SelectTrigger id="faculty-course-context">
-                    <SelectValue placeholder="Select a course">
-                      {selectedCourse ? formatCourseContextLabel(selectedCourse) : undefined}
-                    </SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableCourses.map((context) => (
-                      <SelectItem
-                        key={`${context.programId}-${context.courseId}-${context.majorId ?? "shared"}`}
-                        value={context.courseId}
-                      >
-                        {formatCourseContextLabel(context)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-text-secondary text-xs">
-                  {isLoadingCilos
-                    ? "Loading saved CILOs..."
-                    : loadedCilos.length > 0
-                      ? `${loadedCilos.length} saved CILO(s) available for binding.`
-                      : "Select a course with saved CILOs before publishing."}
-                </p>
-              </div>
+            <div className="border-border rounded-lg border p-4 space-y-2">
+              <Label htmlFor="faculty-course-context">Course</Label>
+              <Select
+                value={boundCourseId}
+                disabled={facultyCourseContexts.length === 0}
+                onValueChange={(value) => {
+                  const context = facultyCourseContexts.find(
+                    (candidate) => candidate.courseId === value
+                  );
+                  setBoundCourseId(value ?? "");
+                  setBoundProgramId(context?.programId ?? "");
+                  setBoundMajorId(context?.majorId ?? "");
+                  setCiloQuestionBindings({});
+                }}
+              >
+                <SelectTrigger id="faculty-course-context">
+                  <SelectValue placeholder="Select a course">
+                    {selectedCourseContext
+                      ? formatCourseContextLabel(selectedCourseContext)
+                      : undefined}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {facultyCourseContexts.map((context) => (
+                    <SelectItem
+                      key={`${context.programId}-${context.courseId}-${context.majorId ?? "shared"}`}
+                      value={context.courseId}
+                    >
+                      {formatCourseContextLabel(context)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-text-secondary text-xs">
+                {isLoadingCilos
+                  ? "Loading saved CILOs..."
+                  : loadedCilos.length > 0
+                    ? `${loadedCilos.length} saved CILO(s) available for binding.`
+                    : "Select a course with saved CILOs before publishing."}
+              </p>
             </div>
           )}
         </CardContent>
