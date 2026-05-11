@@ -12,6 +12,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { formatTermInstanceLabel } from "@/lib/utils/date-format";
 import { ALLOWED_SEMESTER_TERM_PAIRS } from "@/lib/constants/academic-period";
+import { SEMESTER_OPTIONS, TERM_OPTIONS } from "@/lib/constants/academic";
 import type { TermInstanceItem } from "../types";
 
 interface TermInstancePickerProps {
@@ -71,7 +72,20 @@ export function TermInstancePicker({
         disabled={disabled}
       >
         <SelectTrigger>
-          <SelectValue placeholder={placeholder} />
+          <SelectValue placeholder={placeholder}>
+            {value
+              ? (() => {
+                  const selected = sortedInstances.find((i) => i.id === value);
+                  return selected
+                    ? formatTermInstanceLabel(
+                        selected.schoolYearCode,
+                        selected.semester,
+                        selected.term
+                      )
+                    : null;
+                })()
+              : null}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {allowClear && (
@@ -134,7 +148,11 @@ export function SemesterTermPicker({
           disabled={disabled}
         >
           <SelectTrigger id="semester">
-            <SelectValue placeholder="Select semester" />
+            <SelectValue placeholder="Select semester">
+              {semester
+                ? (SEMESTER_OPTIONS.find((o) => o.value === semester)?.label ?? null)
+                : null}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={AcademicSemester.FIRST}>1st Semester</SelectItem>
@@ -147,16 +165,18 @@ export function SemesterTermPicker({
       <div className="space-y-2">
         <Label htmlFor="term">Term</Label>
         <Select
-          value={term}
+          value={term ?? ""}
           onValueChange={(value) =>
             onTermChange(value ? (value as AcademicTerm) : undefined)
           }
           disabled={disabled || isSummer}
         >
           <SelectTrigger id="term">
-            <SelectValue
-              placeholder={isSummer ? "N/A" : "Select term"}
-            />
+            <SelectValue placeholder={isSummer ? "N/A" : "Select term"}>
+              {term
+                ? (TERM_OPTIONS.find((o) => o.value === term)?.label ?? null)
+                : null}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {!isSummer && (

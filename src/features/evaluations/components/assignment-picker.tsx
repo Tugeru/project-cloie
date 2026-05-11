@@ -31,6 +31,7 @@ export type AssignmentOption = {
 
 interface AssignmentPickerProps {
   assignments: AssignmentOption[];
+  allAssignments?: AssignmentOption[];
   value?: string | null;
   onChange: (value: string | null) => void;
   label?: string;
@@ -70,6 +71,7 @@ function formatYearLevel(level: YearLevel): string {
  */
 export function AssignmentPicker({
   assignments,
+  allAssignments,
   value,
   onChange,
   label = "Class Assignment",
@@ -77,6 +79,7 @@ export function AssignmentPicker({
   disabled = false,
   allowClear = false,
 }: AssignmentPickerProps) {
+  const labelSource = allAssignments ?? assignments;
   // Sort by course code, then year level
   const sortedAssignments = [...assignments]
     .filter((a) => a.isActive)
@@ -102,7 +105,22 @@ export function AssignmentPicker({
         disabled={disabled || sortedAssignments.length === 0}
       >
         <SelectTrigger>
-          <SelectValue placeholder={placeholder} />
+          <SelectValue placeholder={placeholder}>
+            {value
+              ? (() => {
+                  const a = labelSource.find((a) => a.id === value);
+                  return a
+                    ? formatClassIdentityLabel(
+                        a.courseCode,
+                        a.courseTitle,
+                        a.yearLevel,
+                        a.section,
+                        a.programCode
+                      )
+                    : null;
+                })()
+              : null}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           {allowClear && (
@@ -181,7 +199,16 @@ export function GroupedAssignmentPicker({
           disabled={sortedTerms.length === 0}
         >
           <SelectTrigger>
-            <SelectValue placeholder="All Terms" />
+            <SelectValue placeholder="All Terms">
+              {selectedTermId
+                ? (() => {
+                    const t = sortedTerms.find((t) => t.id === selectedTermId);
+                    return t
+                      ? formatTermInstanceLabel(t.schoolYearCode, t.semester, t.term)
+                      : null;
+                  })()
+                : null}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="">All Terms</SelectItem>
@@ -206,6 +233,7 @@ export function GroupedAssignmentPicker({
       <AssignmentPicker
         {...pickerProps}
         assignments={filteredAssignments}
+        allAssignments={assignments}
         placeholder={
           filteredAssignments.length === 0
             ? "No assignments for selected term"

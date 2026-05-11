@@ -299,7 +299,8 @@ export function FacultyCilosCourseList({
   const [currentPage, setCurrentPage] = useState(1);
   const [modalCourse, setModalCourse] = useState<FacultyCourseWithCiloCount | null>(null);
 
-  const handleTermChange = (termId: string | null) => {
+  const handleTermChange = (value: string) => {
+    const termId = value || null;
     const params = new URLSearchParams(searchParams);
     if (termId) {
       params.set("term", termId);
@@ -364,17 +365,19 @@ export function FacultyCilosCourseList({
 
       {/* Filter bar */}
       <div className="flex flex-wrap items-center gap-3">
-        <div className="w-64">
+        <div className="w-72 shrink-0">
           <TermInstancePicker
             termInstances={termInstances}
-            value={selectedTermId}
+            value={selectedTermId ?? ""}
             onChange={handleTermChange}
             placeholder="All Terms"
+            label=""
           />
         </div>
 
+        <div className="w-48 shrink-0">
         <Select value={typeFilter} onValueChange={handleTypeChange}>
-          <SelectTrigger className="w-[200px]">
+          <SelectTrigger className="w-full">
             <SelectValue>
               {typeFilter === "__all__"
                 ? "All Course Types"
@@ -392,6 +395,7 @@ export function FacultyCilosCourseList({
             <SelectItem value="major_specific">Major-Specific</SelectItem>
           </SelectContent>
         </Select>
+        </div>
 
         <div className="relative ml-auto w-full max-w-xs">
           <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
