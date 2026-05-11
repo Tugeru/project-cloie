@@ -135,15 +135,9 @@ export function UsersDataTable({
                 </TableCell>
                 <TableCell>
                   <DropdownMenu>
-                    <DropdownMenuTrigger>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-9 w-9"
-                        aria-label="User actions"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
+                    <DropdownMenuTrigger className="hover:bg-muted text-muted-foreground hover:text-foreground inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors">
+                      <MoreVertical className="h-4 w-4" />
+                      <span className="sr-only">User actions</span>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem onClick={() => onViewUser(user)}>
@@ -199,15 +193,9 @@ export function UsersDataTable({
                   </div>
                 </div>
                 <DropdownMenu>
-                  <DropdownMenuTrigger>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-9 w-9 -mr-2"
-                      aria-label="User actions"
-                    >
-                      <MoreVertical className="h-4 w-4" />
-                    </Button>
+                  <DropdownMenuTrigger className="hover:bg-muted text-muted-foreground hover:text-foreground -mr-2 inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors">
+                    <MoreVertical className="h-4 w-4" />
+                    <span className="sr-only">User actions</span>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuItem onClick={() => onViewUser(user)}>

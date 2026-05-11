@@ -78,7 +78,9 @@ export function UsersFilterBar({
       {/* Role filter */}
       <Select value={roleFilter} onValueChange={(v) => onRoleChange(v)}>
         <SelectTrigger className="w-full md:w-[180px]">
-          <SelectValue placeholder="All Roles" />
+          <SelectValue>
+            {roleFilter === "__all__" ? "All Roles" : formatRole(roleFilter as SystemRole)}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="__all__">All Roles</SelectItem>
@@ -93,7 +95,11 @@ export function UsersFilterBar({
       {/* Program filter */}
       <Select value={programFilter} onValueChange={(v) => onProgramChange(v)}>
         <SelectTrigger className="w-full md:w-[220px]">
-          <SelectValue placeholder="All Programs" />
+          <SelectValue>
+            {programFilter === "__all__"
+              ? "All Programs"
+              : programs.find((p) => p.code === programFilter)?.code ?? programFilter}
+          </SelectValue>
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="__all__">All Programs</SelectItem>
@@ -109,7 +115,11 @@ export function UsersFilterBar({
       {selectedProgramMajors.length > 0 && (
         <Select value={majorFilter} onValueChange={(v) => onMajorChange(v)}>
           <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder="All Majors" />
+            <SelectValue>
+              {majorFilter === "__all__"
+                ? "All Majors"
+                : selectedProgramMajors.find((m) => m.name === majorFilter)?.name ?? majorFilter}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="__all__">All Majors</SelectItem>
