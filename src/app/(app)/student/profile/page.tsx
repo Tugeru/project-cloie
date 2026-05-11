@@ -8,16 +8,27 @@ import { prisma } from "@/lib/db/prisma";
 export default async function StudentProfilePage() {
   const session = await resolveAuthSession();
 
-  const profile = session
-    ? await prisma.studentAcademicProfile.findUnique({
-        where: { user_id: session.userId },
-        include: {
-          major: true,
-          program: true,
-          user: { select: { first_name: true, last_name: true, email: true } },
-        },
-      })
-    : null;
+  const [profile, enrollment] = await Promise.all([
+    session
+      ? prisma.studentAcademicProfile.findUnique({
+          where: { user_id: session.userId },
+          include: {
+            major: true,
+            program: true,
+            user: { select: { first_name: true, last_name: true, email: true } },
+          },
+        })
+      : Promise.resolve(null),
+    session
+      ? prisma.studentEnrollment.findFirst({
+          where: { student_user_id: session.userId, is_active: true },
+          orderBy: { created_at: "desc" },
+          include: {
+            term: { include: { school_year: true } },
+          },
+        })
+      : Promise.resolve(null),
+  ]);
 
   const fullName = profile ? `${profile.user.first_name} ${profile.user.last_name}` : "Student";
 
@@ -87,7 +98,7 @@ export default async function StudentProfilePage() {
                 <label className="text-text-muted text-[10px] font-black tracking-widest uppercase">
                   Year Level
                 </label>
-                <p>{profile ? getYearLevelDisplay(profile.year_level) : "Not set"}</p>
+                <p>{getYearLevelDisplay(enrollment?.year_level)}</p>
               </div>
             </div>
 
@@ -112,7 +123,7 @@ export default async function StudentProfilePage() {
                 <label className="text-text-muted text-[10px] font-black tracking-widest uppercase">
                   Academic Year
                 </label>
-                <p>{profile?.academic_year ?? "Not set"}</p>
+                <p>{enrollment?.term.school_year.code ?? "Not set"}</p>
               </div>
             </div>
 
@@ -122,8 +133,8 @@ export default async function StudentProfilePage() {
                   Section
                 </label>
                 <p>
-                  {profile?.section
-                    ? profile.section.charAt(0) + profile.section.slice(1).toLowerCase()
+                  {enrollment?.section
+                    ? enrollment.section.charAt(0) + enrollment.section.slice(1).toLowerCase()
                     : "Not set"}
                 </p>
               </div>

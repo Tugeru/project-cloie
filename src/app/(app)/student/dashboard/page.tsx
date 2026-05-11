@@ -7,6 +7,7 @@ import { EvaluationListCard } from "@/features/users/components/evaluation-list-
 import { HeroCard } from "@/features/portals/components/hero-card";
 import { StatCards } from "@/features/users/components/stat-cards";
 import { getYearLevelDisplay } from "@/lib/constants/year-levels";
+import { formatTermInstanceLabel } from "@/lib/utils/date-format";
 import { prisma } from "@/lib/db/prisma";
 
 export default async function StudentDashboardPage() {
@@ -15,23 +16,42 @@ export default async function StudentDashboardPage() {
   const inProgressCount = active.filter((item) => item.status === "IN_PROGRESS").length;
   const resumeItem = active.find((item) => item.status === "IN_PROGRESS") ?? null;
 
-  const profile = session
-    ? await prisma.studentAcademicProfile.findUnique({
-        where: { user_id: session.userId },
-        include: {
-          major: true,
-          program: true,
-          user: { select: { first_name: true } },
-        },
-      })
+  const [profile, enrollment] = await Promise.all([
+    session
+      ? prisma.studentAcademicProfile.findUnique({
+          where: { user_id: session.userId },
+          include: {
+            major: true,
+            program: true,
+            user: { select: { first_name: true } },
+          },
+        })
+      : Promise.resolve(null),
+    session
+      ? prisma.studentEnrollment.findFirst({
+          where: { student_user_id: session.userId, is_active: true },
+          orderBy: { created_at: "desc" },
+          include: {
+            term: { include: { school_year: true } },
+          },
+        })
+      : Promise.resolve(null),
+  ]);
+
+  const termLabel = enrollment
+    ? formatTermInstanceLabel(
+        enrollment.term.school_year.code,
+        enrollment.term.semester,
+        enrollment.term.term
+      )
     : null;
 
   const contextLabel = profile
     ? [
         profile.program.code,
         profile.major?.name ?? null,
-        getYearLevelDisplay(profile.year_level),
-        profile.academic_year,
+        getYearLevelDisplay(enrollment?.year_level),
+        termLabel,
       ]
         .filter(Boolean)
         .join(" • ")
