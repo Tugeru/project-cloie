@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,7 +17,7 @@ import { listCourseAssignmentsForProgramHeadAction } from "@/lib/actions/course-
 import { CourseAssignmentFormDialog } from "./course-assignment-form-dialog";
 import type { CourseAssignmentItem } from "@/features/course-assignments/types";
 import type { TermInstanceItem } from "@/features/academic-calendar/types";
-import { getYearLevelDisplay } from "@/lib/constants/academic";
+import { getYearLevelDisplay, getSectionLabel } from "@/lib/constants/academic";
 
 interface CourseRowAssignmentsSheetProps {
   courseId: string;
@@ -68,17 +68,17 @@ export function CourseRowAssignmentsSheet({
 
   return (
     <>
-      <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger render={triggerRender} />
-        <SheetContent className="sm:max-w-[500px]">
-          <SheetHeader>
-            <SheetTitle>
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogTrigger render={triggerRender} />
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>
               {courseCode} — {courseTitle}
-            </SheetTitle>
-            <SheetDescription>
+            </DialogTitle>
+            <DialogDescription>
               Faculty assignments for this course in the selected term.
-            </SheetDescription>
-          </SheetHeader>
+            </DialogDescription>
+          </DialogHeader>
 
           <div className="mt-6 space-y-4">
             {!termInstanceId ? (
@@ -111,7 +111,7 @@ export function CourseRowAssignmentsSheet({
                         </Badge>
                         <span className="text-xs text-muted-foreground">
                           {getYearLevelDisplay(assignment.yearLevel)}
-                          {assignment.section ? ` • ${assignment.section}` : ""}
+                          {assignment.section ? ` • ${getSectionLabel(assignment.section)}` : ""}
                         </span>
                       </div>
                     </div>
@@ -134,8 +134,8 @@ export function CourseRowAssignmentsSheet({
               </Button>
             )}
           </div>
-        </SheetContent>
-      </Sheet>
+        </DialogContent>
+      </Dialog>
 
       <CourseAssignmentFormDialog
         open={dialogOpen}

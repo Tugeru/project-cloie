@@ -35,7 +35,7 @@ import {
 } from "@/lib/actions/course-assignment-actions";
 import type { CourseAssignmentItem } from "@/features/course-assignments/types";
 import { DEFAULT_TABLE_PAGE_SIZE } from "@/lib/constants/page-sizes";
-import { getYearLevelDisplay } from "@/lib/constants/academic";
+import { getYearLevelDisplay, getSectionLabel } from "@/lib/constants/academic";
 
 interface CourseAssignmentsTableProps {
   assignments: CourseAssignmentItem[];
@@ -186,10 +186,10 @@ export function CourseAssignmentsTable({
                   <Badge variant="outline">{assignment.programCode}</Badge>
                 </TableCell>
                 <TableCell>{getYearLevelDisplay(assignment.yearLevel)}</TableCell>
-                <TableCell>{assignment.section ?? "—"}</TableCell>
+                <TableCell>{getSectionLabel(assignment.section)}</TableCell>
                 <TableCell>{assignment.termLabel}</TableCell>
                 <TableCell>
-                  <Badge variant={assignment.isActive ? "default" : "secondary"}>
+                  <Badge variant={assignment.isActive ? "default" : "outline"}>
                     {assignment.isActive ? "Active" : "Inactive"}
                   </Badge>
                 </TableCell>

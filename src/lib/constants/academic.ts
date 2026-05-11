@@ -32,6 +32,11 @@ export const STUDENT_SECTION_OPTIONS = [
 // Re-export year level constants for convenience
 export { YEAR_LEVEL_OPTIONS, getYearLevelDisplay } from "./year-levels";
 
+export function getSectionLabel(section: StudentSection | null | undefined): string {
+  if (!section) return "—";
+  return STUDENT_SECTION_OPTIONS.find((o) => o.value === section)?.label ?? section;
+}
+
 export function getSemesterLabel(value: AcademicSemester | null | undefined) {
   return SEMESTER_OPTIONS.find((option) => option.value === value)?.label ?? "Unknown Semester";
 }

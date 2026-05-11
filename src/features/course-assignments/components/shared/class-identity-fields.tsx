@@ -77,21 +77,20 @@ export function ClassIdentityFields({
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="section">Section (Optional)</Label>
+          <Label htmlFor="section">Section</Label>
           <Select
-            value={section ?? "none"}
-            onValueChange={(value) => onSectionChange(value === "none" ? null : (value as StudentSection))}
+            value={section ?? ""}
+            onValueChange={(value) => onSectionChange(value as StudentSection)}
             disabled={disabled}
           >
             <SelectTrigger id="section">
               <SelectValue placeholder="Select section">
                 {section
                   ? (STUDENT_SECTION_OPTIONS.find((o) => o.value === section)?.label ?? null)
-                  : "—"}
+                  : null}
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="none">—</SelectItem>
               {STUDENT_SECTION_OPTIONS.map((option) => (
                 <SelectItem key={option.value} value={option.value}>
                   {option.label}

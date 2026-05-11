@@ -67,7 +67,7 @@ export function CourseAssignmentFormDialog({
   const [courseId, setCourseId] = useState<string | null>(defaultCourseId ?? null);
   const [programId, setProgramId] = useState<string>(availablePrograms[0]?.id ?? "");
   const [yearLevel, setYearLevel] = useState<YearLevel>(YearLevel.FIRST_YEAR);
-  const [section, setSection] = useState<StudentSection | null>(null);
+  const [section, setSection] = useState<StudentSection | null>(StudentSection.MORNING);
   const [selectedFaculty, setSelectedFaculty] = useState<FacultySearchResult | null>(null);
   const [showCrossProgramWarning, setShowCrossProgramWarning] = useState(false);
 
@@ -138,7 +138,7 @@ export function CourseAssignmentFormDialog({
     setCourseId(defaultCourseId ?? null);
     setProgramId(availablePrograms[0]?.id ?? "");
     setYearLevel(YearLevel.FIRST_YEAR);
-    setSection(null);
+    setSection(StudentSection.MORNING);
     setSelectedFaculty(null);
     setShowCrossProgramWarning(false);
   };
@@ -157,7 +157,7 @@ export function CourseAssignmentFormDialog({
       case "course":
         return !!courseId;
       case "class":
-        return !!programId;
+        return !!programId && !!section;
       case "faculty":
         return !!selectedFaculty;
       case "confirm":
@@ -349,9 +349,7 @@ export function CourseAssignmentFormDialog({
                 <div className="flex gap-2">
                   <span className="w-16 shrink-0 text-muted-foreground">Section</span>
                   <span>
-                    {section
-                      ? (STUDENT_SECTION_OPTIONS.find((o) => o.value === section)?.label ?? section)
-                      : <span className="text-muted-foreground">None</span>}
+                    {STUDENT_SECTION_OPTIONS.find((o) => o.value === section)?.label ?? section}
                   </span>
                 </div>
                 <div className="flex gap-2">
