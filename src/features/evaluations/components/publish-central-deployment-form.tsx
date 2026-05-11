@@ -214,7 +214,7 @@ export function PublishCentralDeploymentForm({
             <>
               <Input
                 readOnly
-                value={`${selectedTemplate.code} — ${selectedTemplate.name}`}
+                value={selectedTemplate.name}
                 className="bg-surface-container-low"
               />
               <input type="hidden" name="template_id" value={selectedTemplateId} />
@@ -231,7 +231,7 @@ export function PublishCentralDeploymentForm({
               <option value="">Select a template...</option>
               {templates.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.code} — {t.name}
+                  {t.name}
                 </option>
               ))}
             </select>
