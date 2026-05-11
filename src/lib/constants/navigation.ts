@@ -41,7 +41,6 @@ const FACULTY_NAV: NavItem[] = [
   { name: "Dashboard", href: "/faculty/dashboard", icon: LayoutDashboard },
   { name: "Manage CILOs", href: "/faculty/cilos", icon: BookOpen },
   { name: "Tools", href: "/faculty/tools", icon: ClipboardList },
-  { name: "Analytics", href: "/faculty/analytics", icon: BarChart3 },
   { name: "Profile", href: "/faculty/profile", icon: UserCircle },
 ];
 
