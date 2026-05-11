@@ -36,30 +36,20 @@ export async function listFacultyCourseContexts(
       return [];
     }
   } else {
-    // Legacy: Resolve faculty's active program affiliations
-    const affiliations = await prisma.facultyProgramAffiliation.findMany({
+    // All terms: return distinct courses the faculty is assigned to across all terms
+    const assignments = await prisma.courseAssignment.findMany({
       where: {
         faculty_id: authSession.userId,
         is_active: true,
       },
-      select: { program_id: true },
+      select: { course_id: true },
+      distinct: ["course_id"],
     });
+    courseIds = assignments.map((a) => a.course_id);
 
-    if (affiliations.length === 0) {
+    if (courseIds.length === 0) {
       return [];
     }
-
-    const programIds = affiliations.map((a) => a.program_id);
-
-    // Fetch all course IDs in scope
-    const courses = await prisma.course.findMany({
-      where: {
-        is_active: true,
-        OR: [{ program_id: { in: programIds } }, { course_scope: CourseScope.GENERAL_EDUCATION }],
-      },
-      select: { id: true },
-    });
-    courseIds = courses.map((c) => c.id);
   }
 
   // Fetch full course details
