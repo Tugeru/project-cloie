@@ -13,14 +13,26 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronLeft, ChevronRight, MoreHorizontal, Edit, Trash2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, MoreHorizontal, Edit, Trash2, Power, AlertTriangle } from "lucide-react";
 import { showToast } from "@/components/ui/toast";
-import { deactivateCourseAssignmentAction } from "@/lib/actions/course-assignment-actions";
+import {
+  deactivateCourseAssignmentAction,
+  activateCourseAssignmentAction,
+  deleteCourseAssignmentAction,
+} from "@/lib/actions/course-assignment-actions";
 import type { CourseAssignmentItem } from "@/features/course-assignments/types";
 import { DEFAULT_TABLE_PAGE_SIZE } from "@/lib/constants/page-sizes";
 import { getYearLevelDisplay } from "@/lib/constants/academic";
@@ -46,14 +58,32 @@ export function CourseAssignmentsTable({
   onAssignmentUpdated,
   onEdit,
 }: CourseAssignmentsTableProps) {
-  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean;
+    type: "deactivate" | "delete" | null;
+    assignment: CourseAssignmentItem | null;
+  }>({ open: false, type: null, assignment: null });
 
   const totalPages = Math.ceil(total / pageSize);
 
+  const handleActivate = async (assignmentId: string) => {
+    setProcessingId(assignmentId);
+    const result = await activateCourseAssignmentAction({ assignmentId });
+    setProcessingId(null);
+
+    if (result.success) {
+      showToast("Assignment activated successfully.", "success");
+      onAssignmentUpdated?.();
+    } else {
+      showToast(result.error || "Failed to activate assignment.", "error");
+    }
+  };
+
   const handleDeactivate = async (assignmentId: string) => {
-    setDeletingId(assignmentId);
+    setProcessingId(assignmentId);
     const result = await deactivateCourseAssignmentAction({ assignmentId });
-    setDeletingId(null);
+    setProcessingId(null);
 
     if (result.success) {
       showToast("Assignment deactivated successfully.", "success");
@@ -61,6 +91,41 @@ export function CourseAssignmentsTable({
     } else {
       showToast(result.error || "Failed to deactivate assignment.", "error");
     }
+  };
+
+  const handleDelete = async (assignmentId: string) => {
+    setProcessingId(assignmentId);
+    const result = await deleteCourseAssignmentAction({ assignmentId });
+    setProcessingId(null);
+
+    if (result.success) {
+      showToast("Assignment deleted permanently.", "success");
+      onAssignmentUpdated?.();
+    } else {
+      showToast(result.error || "Failed to delete assignment.", "error");
+    }
+  };
+
+  const openConfirmDialog = (type: "deactivate" | "delete", assignment: CourseAssignmentItem) => {
+    setConfirmDialog({ open: true, type, assignment });
+  };
+
+  const closeConfirmDialog = () => {
+    setConfirmDialog({ open: false, type: null, assignment: null });
+  };
+
+  const confirmAction = () => {
+    if (!confirmDialog.assignment || !confirmDialog.type) return;
+
+    const assignmentId = confirmDialog.assignment.id;
+
+    if (confirmDialog.type === "deactivate") {
+      handleDeactivate(assignmentId);
+    } else {
+      handleDelete(assignmentId);
+    }
+
+    closeConfirmDialog();
   };
 
   if (loading) {
@@ -82,6 +147,13 @@ export function CourseAssignmentsTable({
       </div>
     );
   }
+
+  const dialogTitle = confirmDialog.type === "deactivate" ? "Deactivate Assignment?" : "Delete Assignment?";
+  const dialogDescription = confirmDialog.type === "deactivate"
+    ? "This will deactivate the assignment. You can reactivate it later if needed."
+    : "This will permanently delete the assignment. This action cannot be undone.";
+  const confirmButtonText = confirmDialog.type === "deactivate" ? "Deactivate" : "Delete";
+  const confirmButtonVariant = confirmDialog.type === "deactivate" ? "default" : "destructive";
 
   return (
     <div className="space-y-4">
@@ -135,13 +207,30 @@ export function CourseAssignmentsTable({
                         <Edit className="mr-2 h-4 w-4" />
                         Edit
                       </DropdownMenuItem>
+                      {assignment.isActive ? (
+                        <DropdownMenuItem
+                          onClick={() => openConfirmDialog("deactivate", assignment)}
+                          disabled={processingId === assignment.id}
+                        >
+                          <Power className="mr-2 h-4 w-4 text-amber-600" />
+                          Deactivate
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem
+                          onClick={() => handleActivate(assignment.id)}
+                          disabled={processingId === assignment.id}
+                        >
+                          <Power className="mr-2 h-4 w-4 text-emerald-600" />
+                          Activate
+                        </DropdownMenuItem>
+                      )}
                       <DropdownMenuItem
-                        onClick={() => handleDeactivate(assignment.id)}
-                        disabled={deletingId === assignment.id || !assignment.isActive}
+                        onClick={() => openConfirmDialog("delete", assignment)}
+                        disabled={processingId === assignment.id}
                         className="text-red-600"
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
-                        {deletingId === assignment.id ? "Deactivating..." : "Deactivate"}
+                        Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -151,6 +240,38 @@ export function CourseAssignmentsTable({
           </TableBody>
         </Table>
       </div>
+
+      {/* Confirmation Dialog */}
+      <Dialog open={confirmDialog.open} onOpenChange={closeConfirmDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {confirmDialog.type === "delete" && <AlertTriangle className="h-5 w-5 text-red-500" />}
+              {dialogTitle}
+            </DialogTitle>
+            <DialogDescription>{dialogDescription}</DialogDescription>
+          </DialogHeader>
+          {confirmDialog.assignment && (
+            <div className="bg-muted rounded-md p-3 text-sm">
+              <p><strong>Course:</strong> {confirmDialog.assignment.courseCode} - {confirmDialog.assignment.courseTitle}</p>
+              <p><strong>Faculty:</strong> {confirmDialog.assignment.facultyName}</p>
+              <p><strong>Term:</strong> {confirmDialog.assignment.termLabel}</p>
+            </div>
+          )}
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={closeConfirmDialog}>
+              Cancel
+            </Button>
+            <Button
+              variant={confirmButtonVariant as "default" | "destructive"}
+              onClick={confirmAction}
+              disabled={processingId !== null}
+            >
+              {processingId !== null ? `${confirmButtonText}...` : confirmButtonText}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between">

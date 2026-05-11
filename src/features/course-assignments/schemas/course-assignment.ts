@@ -31,6 +31,20 @@ export const deactivateCourseAssignmentSchema = z.object({
 });
 
 /**
+ * Schema for activating a course assignment.
+ */
+export const activateCourseAssignmentSchema = z.object({
+  assignmentId: z.string().uuid(),
+});
+
+/**
+ * Schema for deleting a course assignment (hard delete).
+ */
+export const deleteCourseAssignmentSchema = z.object({
+  assignmentId: z.string().uuid(),
+});
+
+/**
  * Schema for bulk creating course assignments.
  */
 export const bulkCreateCourseAssignmentsSchema = z.object({
@@ -43,4 +57,6 @@ export const bulkCreateCourseAssignmentsSchema = z.object({
 export type CreateCourseAssignmentInput = z.infer<typeof createCourseAssignmentSchema>;
 export type UpdateCourseAssignmentInput = z.infer<typeof updateCourseAssignmentSchema>;
 export type DeactivateCourseAssignmentInput = z.infer<typeof deactivateCourseAssignmentSchema>;
+export type ActivateCourseAssignmentInput = z.infer<typeof activateCourseAssignmentSchema>;
+export type DeleteCourseAssignmentInput = z.infer<typeof deleteCourseAssignmentSchema>;
 export type BulkCreateCourseAssignmentsInput = z.infer<typeof bulkCreateCourseAssignmentsSchema>;

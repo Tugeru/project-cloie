@@ -56,6 +56,20 @@ export type DeactivateCourseAssignmentInput = {
 };
 
 /**
+ * Input for activating a course assignment.
+ */
+export type ActivateCourseAssignmentInput = {
+  assignmentId: string;
+};
+
+/**
+ * Input for deleting a course assignment (hard delete).
+ */
+export type DeleteCourseAssignmentInput = {
+  assignmentId: string;
+};
+
+/**
  * Input for bulk creating course assignments.
  */
 export type BulkCreateCourseAssignmentsInput = {

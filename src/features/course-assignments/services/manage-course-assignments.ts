@@ -8,6 +8,8 @@ import type {
   UpdateCourseAssignmentInput,
   CourseAssignmentResult,
   BulkCreateResult,
+  DeleteCourseAssignmentInput,
+  ActivateCourseAssignmentInput,
 } from "../types";
 
 /**
@@ -57,6 +59,26 @@ export async function createCourseAssignment(
   const permission = canManageCourseAssignment(authSession, course.program_id, phProgramScope);
   if (!permission.allowed) {
     return { success: false, error: permission.reason };
+  }
+
+  // Check for existing assignment (including inactive ones)
+  const existingAssignment = await prisma.courseAssignment.findFirst({
+    where: {
+      term_instance_id: input.termInstanceId,
+      faculty_id: input.facultyId,
+      course_id: input.courseId,
+      program_id: input.programId,
+      year_level: input.yearLevel,
+      section: input.section ?? null,
+    },
+  });
+
+  if (existingAssignment) {
+    if (existingAssignment.is_active) {
+      return { success: false, error: "An identical active assignment already exists." };
+    } else {
+      return { success: false, error: "An identical inactive assignment exists. Please activate it instead of creating a new one." };
+    }
   }
 
   try {
@@ -158,6 +180,91 @@ export async function deactivateCourseAssignment(
     return { success: true, data: undefined };
   } catch (error) {
     return { success: false, error: "Failed to deactivate course assignment." };
+  }
+}
+
+/**
+ * Activate a course assignment (re-enable soft deleted).
+ */
+export async function activateCourseAssignment(
+  input: ActivateCourseAssignmentInput
+): Promise<CourseAssignmentResult> {
+  const authSession = await resolveAuthSession();
+
+  // Get existing assignment
+  const existing = await prisma.courseAssignment.findUnique({
+    where: { id: input.assignmentId },
+    include: { course: true },
+  });
+
+  if (!existing) {
+    return { success: false, error: "Assignment not found." };
+  }
+
+  // Resolve PH program scope and check permissions
+  const phProgramScope = await resolvePHProgramScope(authSession);
+  const permission = canManageCourseAssignment(authSession, existing.course.program_id, phProgramScope);
+  if (!permission.allowed) {
+    return { success: false, error: permission.reason };
+  }
+
+  try {
+    await prisma.courseAssignment.update({
+      where: { id: input.assignmentId },
+      data: { is_active: true },
+    });
+
+    return { success: true, data: undefined };
+  } catch (error) {
+    return { success: false, error: "Failed to activate course assignment." };
+  }
+}
+
+/**
+ * Delete a course assignment (hard delete).
+ * Blocked if course-bound evaluations exist for this assignment.
+ */
+export async function deleteCourseAssignment(
+  input: DeleteCourseAssignmentInput
+): Promise<CourseAssignmentResult> {
+  const authSession = await resolveAuthSession();
+
+  // Get existing assignment with related evaluations
+  const existing = await prisma.courseAssignment.findUnique({
+    where: { id: input.assignmentId },
+    include: { 
+      course: true,
+      course_bound_evaluations: true,
+    },
+  });
+
+  if (!existing) {
+    return { success: false, error: "Assignment not found." };
+  }
+
+  // Resolve PH program scope and check permissions
+  const phProgramScope = await resolvePHProgramScope(authSession);
+  const permission = canManageCourseAssignment(authSession, existing.course.program_id, phProgramScope);
+  if (!permission.allowed) {
+    return { success: false, error: permission.reason };
+  }
+
+  // Check if assignment has related course-bound evaluations
+  if (existing.course_bound_evaluations.length > 0) {
+    return { 
+      success: false, 
+      error: "Cannot delete assignment because it has published course-bound evaluations. Please deactivate instead." 
+    };
+  }
+
+  try {
+    await prisma.courseAssignment.delete({
+      where: { id: input.assignmentId },
+    });
+
+    return { success: true, data: undefined };
+  } catch (error) {
+    return { success: false, error: "Failed to delete course assignment." };
   }
 }
 

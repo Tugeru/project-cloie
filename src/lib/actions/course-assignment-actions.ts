@@ -5,12 +5,16 @@ import {
   createCourseAssignmentSchema,
   updateCourseAssignmentSchema,
   deactivateCourseAssignmentSchema,
+  activateCourseAssignmentSchema,
+  deleteCourseAssignmentSchema,
   bulkCreateCourseAssignmentsSchema,
 } from "@/features/course-assignments/schemas/course-assignment";
 import {
   createCourseAssignment,
   updateCourseAssignment,
   deactivateCourseAssignment,
+  activateCourseAssignment,
+  deleteCourseAssignment,
   bulkCreateCourseAssignments,
 } from "@/features/course-assignments/services/manage-course-assignments";
 import { listCourseAssignmentsForProgramHead } from "@/features/course-assignments/services/list-course-assignments-for-program-head";
@@ -20,6 +24,8 @@ import type {
   CreateCourseAssignmentInput,
   UpdateCourseAssignmentInput,
   DeactivateCourseAssignmentInput,
+  ActivateCourseAssignmentInput,
+  DeleteCourseAssignmentInput,
   BulkCreateCourseAssignmentsInput,
   ListCourseAssignmentsFilter,
   ListOptions,
@@ -74,6 +80,44 @@ export async function deactivateCourseAssignmentAction(input: DeactivateCourseAs
   }
 
   const result = await deactivateCourseAssignment(parsed.data.assignmentId);
+
+  if (result.success) {
+    revalidatePath("/program-head/course-assignments");
+  }
+
+  return result;
+}
+
+/**
+ * Activate a course assignment.
+ */
+export async function activateCourseAssignmentAction(input: ActivateCourseAssignmentInput) {
+  const parsed = activateCourseAssignmentSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const result = await activateCourseAssignment(parsed.data);
+
+  if (result.success) {
+    revalidatePath("/program-head/course-assignments");
+  }
+
+  return result;
+}
+
+/**
+ * Delete a course assignment (hard delete).
+ */
+export async function deleteCourseAssignmentAction(input: DeleteCourseAssignmentInput) {
+  const parsed = deleteCourseAssignmentSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" };
+  }
+
+  const result = await deleteCourseAssignment(parsed.data);
 
   if (result.success) {
     revalidatePath("/program-head/course-assignments");
