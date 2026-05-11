@@ -80,6 +80,7 @@ export async function searchFacultyPool(
         firstName: f.first_name,
         lastName: f.last_name,
         primaryAffiliation: primaryAffiliation?.program.name,
+        primaryAffiliationCode: primaryAffiliation?.program.code,
         affiliations,
       };
     });

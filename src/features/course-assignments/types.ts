@@ -109,6 +109,7 @@ export type FacultySearchResult = {
   firstName: string;
   lastName: string;
   primaryAffiliation?: string;
+  primaryAffiliationCode?: string;
   affiliations: string[];
 };
 
