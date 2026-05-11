@@ -3,12 +3,11 @@ import { prisma } from "@/lib/db/prisma";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default async function AdminDashboardPage() {
-  const [userCount, programCount, courseCount, templateCount, inviteCount] = await Promise.all([
+  const [userCount, programCount, courseCount, templateCount] = await Promise.all([
     prisma.user.count(),
     prisma.program.count({ where: { is_active: true } }),
     prisma.course.count({ where: { is_active: true } }),
     prisma.instrumentTemplate.count({ where: { is_active: true } }),
-    prisma.externalStakeholderInvite.count(),
   ]);
 
   const quickLinks = [
@@ -34,7 +33,6 @@ export default async function AdminDashboardPage() {
           { label: "Programs", value: programCount },
           { label: "Courses", value: courseCount },
           { label: "Templates", value: templateCount },
-          { label: "Invite Drafts", value: inviteCount },
         ].map((stat) => (
           <Card key={stat.label}>
             <CardHeader className="pb-2">

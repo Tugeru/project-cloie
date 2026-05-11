@@ -88,7 +88,7 @@ export default async function LoginPage({
           <div className="space-y-2">
             <div className="flex items-center justify-center gap-2 text-sm font-medium text-text-secondary">
               <Users className="size-4 text-primary" />
-              <span>Faculty & Staff</span>
+              
             </div>
             <GoogleSignInButton />
           </div>

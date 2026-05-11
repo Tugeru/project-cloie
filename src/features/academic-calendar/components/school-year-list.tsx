@@ -174,7 +174,7 @@ function TermInstanceRow({ term, isArchived, onSetActive }: TermInstanceRowProps
       <TableCell>{term.term ? getTermLabel(term.term) : "—"}</TableCell>
       <TableCell>
         {term.isActive ? (
-          <Badge className="bg-green-500">
+          <Badge variant="default">
             <CheckCircle className="mr-1 h-3 w-3" />
             Active
           </Badge>

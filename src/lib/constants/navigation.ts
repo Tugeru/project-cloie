@@ -57,7 +57,6 @@ const PROGRAM_HEAD_NAV: NavItem[] = [
   { name: "Dashboard", href: "/program-head/dashboard", icon: LayoutDashboard },
   { name: "Courses", href: "/program-head/courses", icon: BookOpen },
   { name: "Course Assignments", href: "/program-head/course-assignments", icon: UsersRound },
-  { name: "CILO Reviews", href: "/program-head/cilo-reviews", icon: ClipboardList },
   { name: "Outcomes", href: "/program-head/outcomes", icon: Layers3 },
   { name: "Tools", href: "/program-head/tools", icon: FileText },
   { name: "Analytics", href: "/program-head/analytics", icon: BarChart3 },
@@ -68,7 +67,6 @@ const PROGRAM_HEAD_NAV: NavItem[] = [
 const DEAN_NAV: NavItem[] = [
   { name: "Dashboard", href: "/dean/dashboard", icon: LayoutDashboard },
   { name: "Courses", href: "/dean/courses", icon: BookOpen },
-  { name: "CILO Reviews", href: "/dean/cilo-reviews", icon: ClipboardList },
   { name: "Tools", href: "/dean/instruments", icon: Layers3 },
   { name: "Analytics", href: "/dean/analytics", icon: BarChart3 },
   { name: "Reports", href: "/dean/reports", icon: FileText },
