@@ -11,21 +11,22 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#0051C3",
     icons: [
       {
-        src: "/logos/cloie-logo.png",
-        sizes: "any",
-        type: "image/png",
-      },
-      {
-        src: "/logos/cloie-logo.png",
+        src: "/icons/icon-192.png",
         sizes: "192x192",
         type: "image/png",
         purpose: "any",
       },
       {
-        src: "/logos/cloie-logo.png",
+        src: "/icons/icon-512.png",
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
+      },
+      {
+        src: "/icons/icon-512-maskable.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "maskable",
       },
     ],
   };

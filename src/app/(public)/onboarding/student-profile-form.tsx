@@ -313,7 +313,7 @@ export function StudentProfileForm({
                 </Label>
                 <Input
                   id="student_id_number"
-                  placeholder="e.g., 1000816695"
+                  placeholder="e.g., 1000571225"
                   {...register("student_id_number")}
                   className={
                     errors.student_id_number ? "border-danger focus-visible:ring-danger" : ""

@@ -248,7 +248,9 @@ function CourseFormDialog({
               onValueChange={(v) => setScopeType(v as "program-wide" | "major-specific")}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select scope" />
+                <SelectValue>
+                  {scopeType === "program-wide" ? "Program-Wide" : "Major-Specific"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="program-wide">Program-Wide</SelectItem>
