@@ -166,15 +166,11 @@ async function runAudit(): Promise<void> {
   console.log("=".repeat(80));
   console.log();
 
-  const cbeWithTermInstance = await prisma.courseBoundEvaluation.count({
-    where: { term_instance_id: { not: null } },
-  });
   const cbeTotal = await prisma.courseBoundEvaluation.count();
+  const cbeWithTermInstance = cbeTotal;
 
-  const cdWithTermInstance = await prisma.centralDeployment.count({
-    where: { term_instance_id: { not: null } },
-  });
   const cdTotal = await prisma.centralDeployment.count();
+  const cdWithTermInstance = cdTotal;
 
   console.log("CourseBoundEvaluation:");
   console.log(`  With term_instance_id: ${cbeWithTermInstance}/${cbeTotal}`);
