@@ -22,6 +22,9 @@ function resolveTailwindcssPackagePath(): string {
 }
 
 const nextConfig: NextConfig = {
+  devIndicators: {
+    position: "bottom-right",
+  },
   experimental: {
     serverActions: {
       allowedOrigins: ["127.0.0.1:*", "*.trycloudflare.com"],
