@@ -23,6 +23,7 @@ import { showToast } from "@/components/ui/toast";
 import { deactivateCourseAssignmentAction } from "@/lib/actions/course-assignment-actions";
 import type { CourseAssignmentItem } from "@/features/course-assignments/types";
 import { DEFAULT_TABLE_PAGE_SIZE } from "@/lib/constants/page-sizes";
+import { getYearLevelDisplay } from "@/lib/constants/academic";
 
 interface CourseAssignmentsTableProps {
   assignments: CourseAssignmentItem[];
@@ -112,7 +113,7 @@ export function CourseAssignmentsTable({
                 <TableCell>
                   <Badge variant="outline">{assignment.programCode}</Badge>
                 </TableCell>
-                <TableCell>{assignment.yearLevel}</TableCell>
+                <TableCell>{getYearLevelDisplay(assignment.yearLevel)}</TableCell>
                 <TableCell>{assignment.section ?? "—"}</TableCell>
                 <TableCell>{assignment.termLabel}</TableCell>
                 <TableCell>

@@ -17,6 +17,7 @@ import { listCourseAssignmentsForProgramHeadAction } from "@/lib/actions/course-
 import { CourseAssignmentFormDialog } from "./course-assignment-form-dialog";
 import type { CourseAssignmentItem } from "@/features/course-assignments/types";
 import type { TermInstanceItem } from "@/features/academic-calendar/types";
+import { getYearLevelDisplay } from "@/lib/constants/academic";
 
 interface CourseRowAssignmentsSheetProps {
   courseId: string;
@@ -109,7 +110,7 @@ export function CourseRowAssignmentsSheet({
                           {assignment.programCode}
                         </Badge>
                         <span className="text-xs text-muted-foreground">
-                          {assignment.yearLevel}
+                          {getYearLevelDisplay(assignment.yearLevel)}
                           {assignment.section ? ` • ${assignment.section}` : ""}
                         </span>
                       </div>

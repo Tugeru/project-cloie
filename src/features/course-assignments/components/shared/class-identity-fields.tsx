@@ -60,7 +60,11 @@ export function ClassIdentityFields({
             disabled={disabled}
           >
             <SelectTrigger id="year-level">
-              <SelectValue placeholder="Select year" />
+              <SelectValue placeholder="Select year">
+                {yearLevel
+                  ? (YEAR_LEVEL_OPTIONS.find((o) => o.value === yearLevel)?.label ?? null)
+                  : null}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               {YEAR_LEVEL_OPTIONS.map((option) => (
@@ -80,7 +84,11 @@ export function ClassIdentityFields({
             disabled={disabled}
           >
             <SelectTrigger id="section">
-              <SelectValue placeholder="Select section" />
+              <SelectValue placeholder="Select section">
+                {section
+                  ? (STUDENT_SECTION_OPTIONS.find((o) => o.value === section)?.label ?? null)
+                  : "—"}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="none">—</SelectItem>

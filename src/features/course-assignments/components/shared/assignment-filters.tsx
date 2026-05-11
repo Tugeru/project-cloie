@@ -82,7 +82,14 @@ export function AssignmentFilters({
           onValueChange={(value) => updateFilter("courseId", value === "all" ? null : value)}
         >
           <SelectTrigger>
-            <SelectValue placeholder="All Courses" />
+            <SelectValue placeholder="All Courses">
+              {filters.courseId
+                ? (() => {
+                    const c = availableCourses.find((c) => c.id === filters.courseId);
+                    return c ? `${c.code} — ${c.title}` : null;
+                  })()
+                : "All Courses"}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Courses</SelectItem>
@@ -101,7 +108,14 @@ export function AssignmentFilters({
           onValueChange={(value) => updateFilter("facultyId", value === "all" ? null : value)}
         >
           <SelectTrigger>
-            <SelectValue placeholder="All Faculty" />
+            <SelectValue placeholder="All Faculty">
+              {filters.facultyId
+                ? (() => {
+                    const f = availableFaculty.find((f) => f.id === filters.facultyId);
+                    return f ? `${f.firstName} ${f.lastName}` : null;
+                  })()
+                : "All Faculty"}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Faculty</SelectItem>
@@ -120,7 +134,14 @@ export function AssignmentFilters({
           onValueChange={(value) => updateFilter("programId", value === "all" ? null : value)}
         >
           <SelectTrigger>
-            <SelectValue placeholder="All Programs" />
+            <SelectValue placeholder="All Programs">
+              {filters.programId
+                ? (() => {
+                    const p = availablePrograms.find((p) => p.id === filters.programId);
+                    return p ? `${p.code} — ${p.name}` : null;
+                  })()
+                : "All Programs"}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Programs</SelectItem>
@@ -141,7 +162,11 @@ export function AssignmentFilters({
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="All Years" />
+            <SelectValue placeholder="All Years">
+              {filters.yearLevel
+                ? (YEAR_LEVEL_OPTIONS.find((o) => o.value === filters.yearLevel)?.label ?? null)
+                : "All Years"}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Years</SelectItem>
@@ -162,7 +187,11 @@ export function AssignmentFilters({
           }
         >
           <SelectTrigger>
-            <SelectValue placeholder="All Sections" />
+            <SelectValue placeholder="All Sections">
+              {filters.section
+                ? (STUDENT_SECTION_OPTIONS.find((o) => o.value === filters.section)?.label ?? null)
+                : "All Sections"}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Sections</SelectItem>

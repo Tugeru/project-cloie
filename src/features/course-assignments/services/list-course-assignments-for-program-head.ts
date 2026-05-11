@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { ROLES } from "@/lib/constants/roles";
 import { DEFAULT_TABLE_PAGE_SIZE } from "@/lib/constants/page-sizes";
+import { formatTermInstanceLabel } from "@/lib/utils/date-format";
 import { canViewCourseAssignments } from "../policies";
 import type {
   ListCourseAssignmentsFilter,
@@ -140,7 +141,13 @@ export async function listCourseAssignmentsForProgramHead(
         courseTitle: a.course?.title,
         programCode: a.program?.code,
         programName: a.program?.name,
-        termLabel: a.term_instance?.school_year?.code,
+        termLabel: a.term_instance
+          ? formatTermInstanceLabel(
+              a.term_instance.school_year.code,
+              a.term_instance.semester,
+              a.term_instance.term ?? null
+            )
+          : undefined,
         lastTermTaught: lastTaughtMap.get(key),
       };
     });
