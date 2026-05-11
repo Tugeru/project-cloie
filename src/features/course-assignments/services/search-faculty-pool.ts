@@ -29,7 +29,7 @@ export async function searchFacultyPool(
     // Search faculty by name or email
     const where = {
       is_active: true,
-      user_roles: {
+      roles: {
         some: {
           role: ROLES.FACULTY,
         },
@@ -50,6 +50,7 @@ export async function searchFacultyPool(
           first_name: true,
           last_name: true,
           faculty_program_affiliations: {
+            where: { is_active: true },
             select: {
               program: {
                 select: {

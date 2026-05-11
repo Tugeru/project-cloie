@@ -11,6 +11,30 @@ import type {
 } from "../types";
 
 /**
+ * Resolve the list of program IDs a Program Head is actively assigned to.
+ * Returns an empty array for non-PH roles (admin/dean bypass scope checks in the policy).
+ */
+async function resolvePHProgramScope(
+  session: Awaited<ReturnType<typeof resolveAuthSession>>
+): Promise<string[]> {
+  if (
+    !session ||
+    !session.roles.includes(ROLES.PROGRAM_HEAD) ||
+    session.roles.includes(ROLES.ADMIN) ||
+    session.roles.includes(ROLES.DEAN)
+  ) {
+    return [];
+  }
+
+  const rows = await prisma.programHeadAssignment.findMany({
+    where: { program_head_id: session.userId, is_active: true },
+    select: { program_id: true },
+  });
+
+  return [...new Set(rows.map((r) => r.program_id))];
+}
+
+/**
  * Create a new course assignment.
  */
 export async function createCourseAssignment(
@@ -28,8 +52,9 @@ export async function createCourseAssignment(
     return { success: false, error: "Course not found." };
   }
 
-  // Check permissions
-  const permission = canManageCourseAssignment(authSession, course.program_id);
+  // Resolve PH program scope and check permissions
+  const phProgramScope = await resolvePHProgramScope(authSession);
+  const permission = canManageCourseAssignment(authSession, course.program_id, phProgramScope);
   if (!permission.allowed) {
     return { success: false, error: permission.reason };
   }
@@ -76,8 +101,9 @@ export async function updateCourseAssignment(
     return { success: false, error: "Assignment not found." };
   }
 
-  // Check permissions
-  const permission = canManageCourseAssignment(authSession, existing.course.program_id);
+  // Resolve PH program scope and check permissions
+  const phProgramScope = await resolvePHProgramScope(authSession);
+  const permission = canManageCourseAssignment(authSession, existing.course.program_id, phProgramScope);
   if (!permission.allowed) {
     return { success: false, error: permission.reason };
   }
@@ -116,8 +142,9 @@ export async function deactivateCourseAssignment(
     return { success: false, error: "Assignment not found." };
   }
 
-  // Check permissions
-  const permission = canManageCourseAssignment(authSession, existing.course.program_id);
+  // Resolve PH program scope and check permissions
+  const phProgramScope = await resolvePHProgramScope(authSession);
+  const permission = canManageCourseAssignment(authSession, existing.course.program_id, phProgramScope);
   if (!permission.allowed) {
     return { success: false, error: permission.reason };
   }
@@ -147,6 +174,9 @@ export async function bulkCreateCourseAssignments(
     return { success: false, created: 0, errors: [{ index: -1, error: "Insufficient permissions." }] };
   }
 
+  // Resolve PH program scope once for the entire bulk operation
+  const phProgramScope = await resolvePHProgramScope(authSession);
+
   const errors: Array<{ index: number; error: string }> = [];
   let created = 0;
 
@@ -167,7 +197,7 @@ export async function bulkCreateCourseAssignments(
       }
 
       // Check permissions
-      const permission = canManageCourseAssignment(authSession, course.program_id);
+      const permission = canManageCourseAssignment(authSession, course.program_id, phProgramScope);
       if (!permission.allowed) {
         errors.push({ index: i, error: permission.reason });
         continue;

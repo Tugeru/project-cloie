@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { ROLES } from "@/lib/constants/roles";
@@ -29,7 +30,20 @@ export async function listCourseAssignmentsForProgramHead(
   const page = options?.page ?? 0;
   const pageSize = options?.pageSize ?? DEFAULT_TABLE_PAGE_SIZE;
 
-  const where = {
+  // Resolve the PH's assigned program IDs for row-level scoping
+  let phProgramIds: string[] | undefined;
+  if (authSession && authSession.roles.includes(ROLES.PROGRAM_HEAD)) {
+    const phAssignments = await prisma.programHeadAssignment.findMany({
+      where: { program_head_id: authSession.userId, is_active: true },
+      select: { program_id: true },
+    });
+    phProgramIds = [...new Set(phAssignments.map((a) => a.program_id))];
+  }
+
+  // Build a strongly-typed where clause.
+  // PHs are always scoped to their assigned programs; other roles (Admin/Dean) see all.
+  const where: Prisma.CourseAssignmentWhereInput = {
+    ...(phProgramIds !== undefined && { program_id: { in: phProgramIds } }),
     ...(filter.termInstanceId && { term_instance_id: filter.termInstanceId }),
     ...(filter.courseId && { course_id: filter.courseId }),
     ...(filter.facultyId && { faculty_id: filter.facultyId }),
