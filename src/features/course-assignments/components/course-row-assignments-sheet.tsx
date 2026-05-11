@@ -26,7 +26,7 @@ interface CourseRowAssignmentsSheetProps {
   termInstances: TermInstanceItem[];
   availablePrograms: Array<{ id: string; code: string; name: string }>;
   availableCourses: Array<{ id: string; code: string; title: string }>;
-  children: React.ReactNode;
+  triggerRender: React.ReactElement;
 }
 
 export function CourseRowAssignmentsSheet({
@@ -37,7 +37,7 @@ export function CourseRowAssignmentsSheet({
   termInstances,
   availablePrograms,
   availableCourses,
-  children,
+  triggerRender,
 }: CourseRowAssignmentsSheetProps) {
   const [open, setOpen] = useState(false);
   const [assignments, setAssignments] = useState<CourseAssignmentItem[]>([]);
@@ -68,7 +68,7 @@ export function CourseRowAssignmentsSheet({
   return (
     <>
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetTrigger>{children}</SheetTrigger>
+        <SheetTrigger render={triggerRender} />
         <SheetContent className="sm:max-w-[500px]">
           <SheetHeader>
             <SheetTitle>

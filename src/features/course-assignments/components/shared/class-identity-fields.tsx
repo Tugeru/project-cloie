@@ -27,12 +27,19 @@ export function ClassIdentityFields({
   disabled = false,
 }: ClassIdentityFieldsProps) {
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="program">Program</Label>
         <Select value={programId} onValueChange={(value) => value && onProgramChange(value)} disabled={disabled}>
           <SelectTrigger id="program">
-            <SelectValue placeholder="Select program" />
+            <SelectValue placeholder="Select program">
+              {programId
+                ? (() => {
+                    const p = availablePrograms.find((p) => p.id === programId);
+                    return p ? `${p.code} — ${p.name}` : null;
+                  })()
+                : null}
+            </SelectValue>
           </SelectTrigger>
           <SelectContent>
             {availablePrograms.map((program) => (
@@ -44,45 +51,47 @@ export function ClassIdentityFields({
         </Select>
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="year-level">Year Level</Label>
-        <Select
-          value={yearLevel}
-          onValueChange={(value) => onYearLevelChange(value as YearLevel)}
-          disabled={disabled}
-        >
-          <SelectTrigger id="year-level">
-            <SelectValue placeholder="Select year" />
-          </SelectTrigger>
-          <SelectContent>
-            {YEAR_LEVEL_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="year-level">Year Level</Label>
+          <Select
+            value={yearLevel}
+            onValueChange={(value) => onYearLevelChange(value as YearLevel)}
+            disabled={disabled}
+          >
+            <SelectTrigger id="year-level">
+              <SelectValue placeholder="Select year" />
+            </SelectTrigger>
+            <SelectContent>
+              {YEAR_LEVEL_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="section">Section (Optional)</Label>
-        <Select
-          value={section ?? "none"}
-          onValueChange={(value) => onSectionChange(value === "none" ? null : (value as StudentSection))}
-          disabled={disabled}
-        >
-          <SelectTrigger id="section">
-            <SelectValue placeholder="Select section" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">—</SelectItem>
-            {STUDENT_SECTION_OPTIONS.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="space-y-2">
+          <Label htmlFor="section">Section (Optional)</Label>
+          <Select
+            value={section ?? "none"}
+            onValueChange={(value) => onSectionChange(value === "none" ? null : (value as StudentSection))}
+            disabled={disabled}
+          >
+            <SelectTrigger id="section">
+              <SelectValue placeholder="Select section" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">—</SelectItem>
+              {STUDENT_SECTION_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
     </div>
   );

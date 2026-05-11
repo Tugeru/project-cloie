@@ -79,22 +79,24 @@ export function FacultySearchPopover({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger>
-        <Button
-          variant="outline"
-          role="combobox"
-          className="w-full justify-between"
-          disabled={disabled}
-        >
-          {selectedFacultyId ? (
-            <span className="flex items-center gap-2">
-              <User className="h-4 w-4" />
-              {selectedFacultyName || "Unknown Faculty"}
-            </span>
-          ) : (
-            <span className="text-muted-foreground">Search faculty...</span>
-          )}
-        </Button>
+      <DialogTrigger
+        render={
+          <Button
+            variant="outline"
+            role="combobox"
+            className="w-full justify-between"
+            disabled={disabled}
+          />
+        }
+      >
+        {selectedFacultyId ? (
+          <span className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            {selectedFacultyName || "Unknown Faculty"}
+          </span>
+        ) : (
+          <span className="text-muted-foreground">Search faculty...</span>
+        )}
       </DialogTrigger>
       <DialogContent className="w-[400px] p-0">
         <DialogHeader>

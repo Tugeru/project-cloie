@@ -385,7 +385,7 @@ export function ProgramHeadCoursesCatalog({
           <div className="w-64">
             <TermInstancePicker
               termInstances={termInstances}
-              value={selectedTermId ?? undefined}
+              value={selectedTermId ?? ""}
               onChange={setSelectedTermId}
               placeholder="Select term..."
             />
@@ -547,16 +547,17 @@ export function ProgramHeadCoursesCatalog({
                                   code: c.code,
                                   title: c.title,
                                 }))}
-                              >
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  className="h-8 w-8"
-                                  title="Assign Faculty"
-                                >
-                                  <Users className="h-4 w-4" />
-                                </Button>
-                              </CourseRowAssignmentsSheet>
+                                triggerRender={
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    title="Assign Faculty"
+                                  >
+                                    <Users className="h-4 w-4" />
+                                  </Button>
+                                }
+                              />
                               <Button
                                 variant="ghost"
                                 size="icon"

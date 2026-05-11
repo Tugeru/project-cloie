@@ -70,8 +70,8 @@ export function AssignmentFilters({
       <div className="min-w-[200px]">
         <TermInstancePicker
           termInstances={termInstances}
-          value={filters.termInstanceId ?? undefined}
-          onChange={(value) => updateFilter("termInstanceId", value)}
+          value={filters.termInstanceId ?? ""}
+          onChange={(value) => updateFilter("termInstanceId", value || null)}
           placeholder="Select term..."
         />
       </div>

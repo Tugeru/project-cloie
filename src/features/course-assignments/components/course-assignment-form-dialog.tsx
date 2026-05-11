@@ -5,7 +5,6 @@ import { YearLevel, StudentSection } from "@prisma/client";
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -13,14 +12,17 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { showToast } from "@/components/ui/toast";
+import { UserIcon, CheckIcon } from "lucide-react";
 import { TermInstancePicker } from "@/features/academic-calendar/components/term-instance-picker";
 import { ClassIdentityFields } from "./shared/class-identity-fields";
 import { FacultySearchPopover } from "./shared/faculty-search-popover";
 import { createCourseAssignmentAction } from "@/lib/actions/course-assignment-actions";
-import { searchFacultyPoolAction } from "@/lib/actions/course-assignment-actions";
 import type { FacultySearchResult } from "@/features/course-assignments/types";
 import type { TermInstanceItem } from "@/features/academic-calendar/types";
+import { getYearLevelDisplay } from "@/lib/constants/year-levels";
+import { STUDENT_SECTION_OPTIONS } from "@/lib/constants/academic";
 
 interface Course {
   id: string;
@@ -163,15 +165,64 @@ export function CourseAssignmentFormDialog({
     }
   };
 
+  const STEPS: { key: Step; label: string }[] = [
+    { key: "term", label: "Term" },
+    { key: "course", label: "Course" },
+    { key: "class", label: "Class" },
+    { key: "faculty", label: "Faculty" },
+    { key: "confirm", label: "Confirm" },
+  ];
+
+  const currentStepIndex = STEPS.findIndex((s) => s.key === step);
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Assign Faculty to Course</DialogTitle>
-          <DialogDescription>
-            Step {step === "term" ? 1 : step === "course" ? 2 : step === "class" ? 3 : step === "faculty" ? 4 : 5} of 5
-          </DialogDescription>
         </DialogHeader>
+
+        {/* Step progress bar */}
+        <div className="flex items-center gap-0">
+          {STEPS.map((s, i) => {
+            const isCompleted = i < currentStepIndex;
+            const isActive = i === currentStepIndex;
+            return (
+              <div key={s.key} className="flex items-center" style={{ flex: i < STEPS.length - 1 ? "1" : "0 0 auto" }}>
+                <div className="flex flex-col items-center gap-1">
+                  <div
+                    className={[
+                      "flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold transition-colors",
+                      isCompleted
+                        ? "bg-primary text-primary-foreground"
+                        : isActive
+                        ? "bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2"
+                        : "bg-muted text-muted-foreground",
+                    ].join(" ")}
+                  >
+                    {isCompleted ? <CheckIcon className="h-3.5 w-3.5" /> : <span>{i + 1}</span>}
+                  </div>
+                  <span
+                    className={[
+                      "text-[10px] font-medium leading-none",
+                      isActive ? "text-primary" : isCompleted ? "text-foreground" : "text-muted-foreground",
+                    ].join(" ")}
+                  >
+                    {s.label}
+                  </span>
+                </div>
+                {i < STEPS.length - 1 && (
+                  <div
+                    className={[
+                      "mx-1 mb-4 h-px flex-1 transition-colors",
+                      i < currentStepIndex ? "bg-primary" : "bg-border",
+                    ].join(" ")}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
 
         {step === "term" && (
           <div className="space-y-4">
@@ -179,8 +230,8 @@ export function CourseAssignmentFormDialog({
               <Label>Academic Term</Label>
               <TermInstancePicker
                 termInstances={termInstances}
-                value={termInstanceId ?? undefined}
-                onChange={setTermInstanceId}
+                value={termInstanceId ?? ""}
+                onChange={(val) => setTermInstanceId(val || null)}
               />
             </div>
           </div>
@@ -190,18 +241,28 @@ export function CourseAssignmentFormDialog({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Course</Label>
-              <select
+              <Select
                 value={courseId ?? ""}
-                onChange={(e) => setCourseId(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2"
+                onValueChange={(value) => value && setCourseId(value)}
               >
-                <option value="">Select a course...</option>
-                {availableCourses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.code} — {course.title}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a course...">
+                    {courseId
+                      ? (() => {
+                          const c = availableCourses.find((c) => c.id === courseId);
+                          return c ? `${c.code} — ${c.title}` : null;
+                        })()
+                      : null}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {availableCourses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.code} — {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         )}
@@ -237,18 +298,22 @@ export function CourseAssignmentFormDialog({
               />
             </div>
 
-            {selectedFaculty && selectedProgram && (
-              <div className="rounded-md bg-muted p-3">
-                <p className="text-sm font-medium">Selected Faculty</p>
-                <p className="text-sm">
-                  {selectedFaculty.firstName} {selectedFaculty.lastName}
-                </p>
-                <p className="text-xs text-muted-foreground">{selectedFaculty.email}</p>
-                {selectedFaculty.primaryAffiliation && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Primary: {selectedFaculty.primaryAffiliation}
+            {selectedFaculty && (
+              <div className="flex items-start gap-3 rounded-xl border bg-muted/40 p-4">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                  <UserIcon className="h-4 w-4 text-primary" />
+                </div>
+                <div className="min-w-0 space-y-0.5">
+                  <p className="text-sm font-medium leading-snug">
+                    {selectedFaculty.firstName} {selectedFaculty.lastName}
                   </p>
-                )}
+                  <p className="text-xs text-muted-foreground">{selectedFaculty.email}</p>
+                  {selectedFaculty.primaryAffiliation && (
+                    <p className="text-xs text-muted-foreground">
+                      {selectedFaculty.primaryAffiliation}
+                    </p>
+                  )}
+                </div>
               </div>
             )}
           </div>
@@ -266,21 +331,34 @@ export function CourseAssignmentFormDialog({
               </AlertDescription>
             </Alert>
 
-            <div className="rounded-md bg-muted p-3 space-y-2">
+            <div className="rounded-xl border bg-muted/40 p-4 space-y-2">
               <p className="text-sm font-medium">Assignment Summary</p>
-              <p className="text-sm">
-                <span className="text-muted-foreground">Course:</span>{" "}
-                {selectedCourse?.code} — {selectedCourse?.title}
-              </p>
-              <p className="text-sm">
-                <span className="text-muted-foreground">Class:</span>{" "}
-                {selectedProgram?.code} — {yearLevel}
-                {section ? ` (${section})` : ""}
-              </p>
-              <p className="text-sm">
-                <span className="text-muted-foreground">Faculty:</span>{" "}
-                {selectedFaculty?.firstName} {selectedFaculty?.lastName}
-              </p>
+              <div className="space-y-1.5 text-sm">
+                <div className="flex gap-2">
+                  <span className="w-16 shrink-0 text-muted-foreground">Course</span>
+                  <span className="font-medium">{selectedCourse?.code} — {selectedCourse?.title}</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="w-16 shrink-0 text-muted-foreground">Program</span>
+                  <span>{selectedProgram?.code}</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="w-16 shrink-0 text-muted-foreground">Year</span>
+                  <span>{getYearLevelDisplay(yearLevel)}</span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="w-16 shrink-0 text-muted-foreground">Section</span>
+                  <span>
+                    {section
+                      ? (STUDENT_SECTION_OPTIONS.find((o) => o.value === section)?.label ?? section)
+                      : <span className="text-muted-foreground">None</span>}
+                  </span>
+                </div>
+                <div className="flex gap-2">
+                  <span className="w-16 shrink-0 text-muted-foreground">Faculty</span>
+                  <span>{selectedFaculty?.firstName} {selectedFaculty?.lastName}</span>
+                </div>
+              </div>
             </div>
           </div>
         )}
