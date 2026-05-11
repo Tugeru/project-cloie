@@ -86,257 +86,257 @@ export function UserDialogs({
   yearLevels,
   onUserUpdated,
 }: UserDialogsProps) {
+  // All hooks must be at the top level - never inside conditionals
   const [isPending, startTransition] = useTransition();
+  const [editError, setEditError] = useState<string | null>(null);
+  const [contextError, setContextError] = useState<string | null>(null);
 
-  // View Dialog
-  if (viewUser) {
-    return (
-      <Dialog open={!!viewUser} onOpenChange={(open) => !open && onCloseView()}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>User Details</DialogTitle>
-            <DialogDescription>
-              Viewing information for {viewUser.firstName} {viewUser.lastName}.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <div className="space-y-1">
-              <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
-                Full Name
-              </label>
-              <p className="text-sm font-semibold">
-                {viewUser.firstName} {viewUser.lastName}
-              </p>
-            </div>
-            <div className="space-y-1">
-              <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
-                Email Address
-              </label>
-              <div className="flex items-center gap-2 text-sm font-semibold">
-                <Mail className="text-muted-foreground size-4" />
-                {viewUser.email}
-              </div>
-            </div>
-            <div className="space-y-1">
-              <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
-                Role
-              </label>
-              <div className="flex flex-wrap gap-1.5">
-                {viewUser.roles.map((role) => (
-                  <Badge key={role} className={getRoleBadgeClass(role)}>
-                    {formatRole(role)}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-            <div className="space-y-1">
-              <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
-                Program
-              </label>
-              <div className="flex items-center gap-2 text-sm">
-                <Building2 className="text-muted-foreground size-4" />
-                {viewUser.programLabel}
-              </div>
-            </div>
-            {viewUser.majorLabel && (
+  // Early return only after all hooks are called
+  if (!viewUser && !editUser && !studentContextUser) {
+    return null;
+  }
+
+  // View Dialog handlers and content
+  const handleEditSubmit = (formData: FormData) => {
+    if (!editUser) return;
+    setEditError(null);
+    startTransition(async () => {
+      const result = await updateAdminUserAction(formData);
+      if (!result.success) {
+        setEditError(result.error);
+        return;
+      }
+      showToast(`${editUser.firstName} ${editUser.lastName}'s information has been updated.`);
+      onUserUpdated();
+      onCloseEdit();
+    });
+  };
+
+  const handleContextSubmit = (formData: FormData) => {
+    if (!studentContextUser) return;
+    setContextError(null);
+    startTransition(async () => {
+      const result = await updateStudentAcademicContextAction(formData);
+      if (!result.success) {
+        setContextError(result.error);
+        return;
+      }
+      showToast(`${studentContextUser.firstName} ${studentContextUser.lastName}'s academic context has been updated.`);
+      onUserUpdated();
+      onCloseStudentContext();
+    });
+  };
+
+  return (
+    <>
+      {/* View Dialog */}
+      {viewUser && (
+        <Dialog open={!!viewUser} onOpenChange={(open) => !open && onCloseView()}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>User Details</DialogTitle>
+              <DialogDescription>
+                Viewing information for {viewUser.firstName} {viewUser.lastName}.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4 pt-2">
               <div className="space-y-1">
                 <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
-                  Major
+                  Full Name
                 </label>
-                <div className="flex items-center gap-2 text-sm">
-                  <BookOpen className="text-muted-foreground size-4" />
-                  {viewUser.majorLabel}
-                </div>
+                <p className="text-sm font-semibold">
+                  {viewUser.firstName} {viewUser.lastName}
+                </p>
               </div>
-            )}
-            {viewUser.sectionLabel && (
               <div className="space-y-1">
                 <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
-                  Section
+                  Email Address
                 </label>
-                <div className="flex items-center gap-2 text-sm">
-                  <GraduationCap className="text-muted-foreground size-4" />
-                  {viewUser.sectionLabel}
+                <div className="flex items-center gap-2 text-sm font-semibold">
+                  <Mail className="text-muted-foreground size-4" />
+                  {viewUser.email}
                 </div>
               </div>
-            )}
-            <div className="space-y-1">
-              <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
-                Status
-              </label>
-              <Badge variant={viewUser.isActive ? "default" : "secondary"}>
-                {viewUser.isActive ? "Active" : "Inactive"}
-              </Badge>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  // Edit Dialog
-  if (editUser) {
-    const [error, setError] = useState<string | null>(null);
-
-    const handleSubmit = (formData: FormData) => {
-      setError(null);
-      startTransition(async () => {
-        const result = await updateAdminUserAction(formData);
-        if (!result.success) {
-          setError(result.error);
-          return;
-        }
-        showToast(`${editUser.firstName} ${editUser.lastName}'s information has been updated.`);
-        onUserUpdated();
-        onCloseEdit();
-      });
-    };
-
-    return (
-      <Dialog open={!!editUser} onOpenChange={(open) => !open && onCloseEdit()}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit User</DialogTitle>
-            <DialogDescription>
-              Update details for {editUser.firstName} {editUser.lastName}.
-            </DialogDescription>
-          </DialogHeader>
-          <form action={handleSubmit} className="space-y-4 pt-2">
-            <input type="hidden" name="id" value={editUser.id} />
-
-            {error && (
-              <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
-                {error}
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-first-name">First Name</Label>
-              <Input
-                id="edit-first-name"
-                name="first_name"
-                defaultValue={editUser.firstName}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-last-name">Last Name</Label>
-              <Input
-                id="edit-last-name"
-                name="last_name"
-                defaultValue={editUser.lastName}
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Email Address</Label>
-              <Input value={editUser.email} disabled className="opacity-60" />
-              <p className="text-muted-foreground text-xs">Email cannot be changed.</p>
-            </div>
-
-            <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={onCloseEdit}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isPending}>
-                {isPending ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-    );
-  }
-
-  // Student Context Dialog
-  if (studentContextUser) {
-    const [error, setError] = useState<string | null>(null);
-    const program = programs.find((p) => p.code === studentContextUser.programLabel);
-
-    const handleSubmit = (formData: FormData) => {
-      setError(null);
-      startTransition(async () => {
-        const result = await updateStudentAcademicContextAction(formData);
-        if (!result.success) {
-          setError(result.error);
-          return;
-        }
-        showToast(`${studentContextUser.firstName} ${studentContextUser.lastName}'s academic context has been updated.`);
-        onUserUpdated();
-        onCloseStudentContext();
-      });
-    };
-
-    return (
-      <Dialog open={!!studentContextUser} onOpenChange={(open) => !open && onCloseStudentContext()}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Edit Student Context</DialogTitle>
-            <DialogDescription>
-              Update academic context for {studentContextUser.firstName}{" "}
-              {studentContextUser.lastName}.
-            </DialogDescription>
-          </DialogHeader>
-          <form action={handleSubmit} className="space-y-4 pt-2">
-            <input type="hidden" name="id" value={studentContextUser.id} />
-
-            {error && (
-              <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
-                {error}
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="ctx-year-level">Year Level</Label>
-              <Select
-                name="year_level"
-              >
-                <SelectTrigger id="ctx-year-level">
-                  <SelectValue placeholder="Select year level" />
-                </SelectTrigger>
-                <SelectContent>
-                  {yearLevels.map((yl) => (
-                    <SelectItem key={yl} value={yl}>
-                      {yl.replace("_", " ").toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase())}
-                    </SelectItem>
+              <div className="space-y-1">
+                <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
+                  Role
+                </label>
+                <div className="flex flex-wrap gap-1.5">
+                  {viewUser.roles.map((role) => (
+                    <Badge key={role} className={getRoleBadgeClass(role)}>
+                      {formatRole(role)}
+                    </Badge>
                   ))}
-                </SelectContent>
-              </Select>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
+                  Program
+                </label>
+                <div className="flex items-center gap-2 text-sm">
+                  <Building2 className="text-muted-foreground size-4" />
+                  {viewUser.programLabel}
+                </div>
+              </div>
+              {viewUser.majorLabel && (
+                <div className="space-y-1">
+                  <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
+                    Major
+                  </label>
+                  <div className="flex items-center gap-2 text-sm">
+                    <BookOpen className="text-muted-foreground size-4" />
+                    {viewUser.majorLabel}
+                  </div>
+                </div>
+              )}
+              {viewUser.sectionLabel && (
+                <div className="space-y-1">
+                  <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
+                    Section
+                  </label>
+                  <div className="flex items-center gap-2 text-sm">
+                    <GraduationCap className="text-muted-foreground size-4" />
+                    {viewUser.sectionLabel}
+                  </div>
+                </div>
+              )}
+              <div className="space-y-1">
+                <label className="text-muted-foreground text-[10px] font-black tracking-widest uppercase">
+                  Status
+                </label>
+                <Badge variant={viewUser.isActive ? "default" : "secondary"}>
+                  {viewUser.isActive ? "Active" : "Inactive"}
+                </Badge>
+              </div>
             </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
-            <div className="space-y-2">
-              <Label htmlFor="ctx-section">Section</Label>
-              <Select name="section" defaultValue={studentContextUser.sectionLabel ?? ""}>
-                <SelectTrigger id="ctx-section">
-                  <SelectValue placeholder="Select section" />
-                </SelectTrigger>
-                <SelectContent>
-                  {SECTION_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+      {/* Edit Dialog */}
+      {editUser && (
+        <Dialog open={!!editUser} onOpenChange={(open) => !open && onCloseEdit()}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit User</DialogTitle>
+              <DialogDescription>
+                Update details for {editUser.firstName} {editUser.lastName}.
+              </DialogDescription>
+            </DialogHeader>
+            <form action={handleEditSubmit} className="space-y-4 pt-2">
+              <input type="hidden" name="id" value={editUser.id} />
 
-            <div className="flex justify-end gap-2 pt-4">
-              <Button type="button" variant="outline" onClick={onCloseStudentContext}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={isPending}>
-                {isPending ? "Saving..." : "Save Context"}
-              </Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
-    );
-  }
+              {editError && (
+                <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
+                  {editError}
+                </div>
+              )}
 
-  return null;
+              <div className="space-y-2">
+                <Label htmlFor="edit-first-name">First Name</Label>
+                <Input
+                  id="edit-first-name"
+                  name="first_name"
+                  defaultValue={editUser.firstName}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="edit-last-name">Last Name</Label>
+                <Input
+                  id="edit-last-name"
+                  name="last_name"
+                  defaultValue={editUser.lastName}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Email Address</Label>
+                <Input value={editUser.email} disabled className="opacity-60" />
+                <p className="text-muted-foreground text-xs">Email cannot be changed.</p>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button type="button" variant="outline" onClick={onCloseEdit}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? "Saving..." : "Save Changes"}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* Student Context Dialog */}
+      {studentContextUser && (
+        <Dialog open={!!studentContextUser} onOpenChange={(open) => !open && onCloseStudentContext()}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Student Context</DialogTitle>
+              <DialogDescription>
+                Update academic context for {studentContextUser.firstName}{" "}
+                {studentContextUser.lastName}.
+              </DialogDescription>
+            </DialogHeader>
+            <form action={handleContextSubmit} className="space-y-4 pt-2">
+              <input type="hidden" name="id" value={studentContextUser.id} />
+
+              {contextError && (
+                <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
+                  {contextError}
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="ctx-year-level">Year Level</Label>
+                <Select name="year_level">
+                  <SelectTrigger id="ctx-year-level">
+                    <SelectValue placeholder="Select year level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {yearLevels.map((yl) => (
+                      <SelectItem key={yl} value={yl}>
+                        {yl.replace("_", " ").toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase())}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="ctx-section">Section</Label>
+                <Select name="section" defaultValue={studentContextUser.sectionLabel ?? ""}>
+                  <SelectTrigger id="ctx-section">
+                    <SelectValue placeholder="Select section" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SECTION_OPTIONS.map((opt) => (
+                      <SelectItem key={opt.value} value={opt.value}>
+                        {opt.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button type="button" variant="outline" onClick={onCloseStudentContext}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isPending}>
+                  {isPending ? "Saving..." : "Save Context"}
+                </Button>
+              </div>
+            </form>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
+  );
 }
 
 // Helper export for toggle action
