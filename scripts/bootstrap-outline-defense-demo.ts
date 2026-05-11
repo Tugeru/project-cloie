@@ -17,12 +17,6 @@ function requireEnv(name: string) {
   return value;
 }
 
-function getAcademicYear(now = new Date()) {
-  const year = now.getFullYear();
-
-  return `${year}-${year + 1}`;
-}
-
 function startOfNextWeek() {
   const value = new Date();
 
@@ -96,7 +90,6 @@ async function main() {
   const programHeadEmail = requireEnv("OUTLINE_PROGRAM_HEAD_EMAIL");
   const deanEmail = requireEnv("OUTLINE_DEAN_EMAIL");
   const studentEmail = requireEnv("OUTLINE_STUDENT_EMAIL");
-  const academicYear = getAcademicYear();
   const semester = AcademicSemester.SECOND;
   const term = AcademicTerm.SECOND_TERM;
 
@@ -189,35 +182,40 @@ async function main() {
   await prisma.studentAcademicProfile.upsert({
     where: { user_id: student.id },
     update: {
-      academic_year: academicYear,
       program_id: program.id,
       student_id_number: "OUTLINE-DEMO-001",
-      year_level: yearLevel,
     },
     create: {
-      academic_year: academicYear,
       program_id: program.id,
       student_id_number: "OUTLINE-DEMO-001",
       user_id: student.id,
-      year_level: yearLevel,
     },
   });
 
+  const termInstance = await prisma.academicTermInstance.findFirst({
+    where: { semester, term },
+    orderBy: { created_at: "desc" },
+  });
+
+  if (!termInstance) {
+    throw new Error(
+      "No matching AcademicTermInstance found for the demo's semester/term. Ensure seed data is loaded."
+    );
+  }
+
   let evaluation = await prisma.courseBoundEvaluation.findFirst({
     where: {
-      academic_year: academicYear,
+      term_instance_id: termInstance.id,
       course_id: course.id,
       faculty_id: faculty.id,
       instrument_version_id: instrumentVersion.id,
-      semester,
-      term,
     },
   });
 
   if (!evaluation) {
     evaluation = await prisma.courseBoundEvaluation.create({
       data: {
-        academic_year: academicYear,
+        term_instance_id: termInstance.id,
         activation_at: new Date(),
         cilos_snapshot: [],
         course_id: course.id,
@@ -232,9 +230,7 @@ async function main() {
         instrument_version_id: instrumentVersion.id,
         program_id: program.id,
         published_at: new Date(),
-        semester,
         status: DeploymentStatus.ACTIVE,
-        term,
       },
     });
   }
