@@ -114,6 +114,14 @@ export function AdminUsersList({ users, kpi, programs, yearLevels }: AdminUsersL
 
   return (
     <div className="space-y-6">
+      {/* Page Header */}
+      <div className="space-y-1">
+        <h1 className="text-2xl font-semibold tracking-tight">User Management</h1>
+        <p className="text-muted-foreground text-sm">
+          Manage users, roles, and academic contexts across the institution.
+        </p>
+      </div>
+
       {/* KPI Cards */}
       <UsersKPI kpi={kpi} />
 
