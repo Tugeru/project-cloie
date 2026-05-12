@@ -93,7 +93,6 @@ async function previewStudents(
       lastName: student.lastName,
       majorName: student.majorName,
       programCode: program?.code ?? null,
-      section: null, // Section is not stored in enrollment for central deployment
       stakeholderType: TargetStakeholder.STUDENT,
       studentId: student.studentIdNumber,
       userId: student.userId,
@@ -101,43 +100,7 @@ async function previewStudents(
     }));
   }
 
-  // Legacy: Fall back to profile-based lookup
-  const whereClause: Record<string, unknown> = {
-    program_id: input.programId,
-  };
-
-  if (input.yearLevel) {
-    whereClause.year_level = input.yearLevel;
-  }
-
-  if (input.majorId) {
-    whereClause.major_id = input.majorId;
-  }
-
-  const profiles = await prisma.studentAcademicProfile.findMany({
-    where: whereClause,
-    include: {
-      user: {
-        select: { id: true, email: true, first_name: true, last_name: true },
-      },
-      program: { select: { code: true } },
-      major: { select: { name: true } },
-    },
-    orderBy: { user: { last_name: "asc" } },
-  });
-
-  return profiles.map((p) => ({
-    email: p.user.email,
-    firstName: p.user.first_name,
-    lastName: p.user.last_name,
-    majorName: p.major?.name ?? null,
-    programCode: p.program.code,
-    section: p.section,
-    stakeholderType: TargetStakeholder.STUDENT,
-    studentId: p.student_id_number,
-    userId: p.user.id,
-    yearLevel: p.year_level,
-  }));
+  return [];
 }
 
 // ─── Alumni Preview ───────────────────────────────────────────────────────────

@@ -109,6 +109,11 @@ export async function getFacultyAnalyticsData(
             assignments: true,
           },
         },
+        term_instance: {
+          include: {
+            school_year: true,
+          },
+        },
       },
     });
 
@@ -190,14 +195,18 @@ export async function getFacultyAnalyticsData(
         }
       }
 
+      const ti = evaluation.term_instance;
+      const termLabel = ti.term ? `${ti.term}` : "";
+      const termInstanceLabel = termLabel
+        ? `${ti.school_year.code} — ${ti.semester} — ${termLabel}`
+        : `${ti.school_year.code} — ${ti.semester}`;
+
       return {
         evaluationId: evaluation.id,
         deploymentName: evaluation.deployment_name,
         courseTitle: evaluation.course.title,
         programName: evaluation.program.name,
-        academicYear: evaluation.academic_year,
-        semester: evaluation.semester,
-        term: evaluation.term,
+        termInstanceLabel,
         status: evaluation.status,
         overallMean: mean(allQuantRatings),
         responseCount,

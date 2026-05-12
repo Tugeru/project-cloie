@@ -63,6 +63,11 @@ export async function getFacultyEvaluationDetail(
           assignments: true,
         },
       },
+      term_instance: {
+        include: {
+          school_year: true,
+        },
+      },
       assignments: {
         where: {
           response: {
@@ -98,8 +103,14 @@ export async function getFacultyEvaluationDetail(
     label: string;
   }> | null;
 
+  const ti = evaluation.term_instance;
+  const termLabel = ti.term ? `${ti.term}` : "";
+  const termInstanceLabel = termLabel
+    ? `${ti.school_year.code} — ${ti.semester} — ${termLabel}`
+    : `${ti.school_year.code} — ${ti.semester}`;
+
   const detail: FacultyEvaluationDetail = {
-    academicYear: evaluation.academic_year,
+    termInstanceLabel,
     activationAt: evaluation.activation_at,
     cilos:
       cilosSnapshot?.map((cilo) => ({
@@ -122,7 +133,6 @@ export async function getFacultyEvaluationDetail(
     evaluationId: evaluation.id,
     publishedAt: evaluation.published_at,
     responseCount: evaluation.assignments.length,
-    semester: evaluation.semester,
     status: evaluation.status,
     targets: evaluation.targets.map((target) => ({
       programCode: target.program.code,
@@ -136,7 +146,6 @@ export async function getFacultyEvaluationDetail(
       questionPromptSnapshot: binding.question_prompt_snapshot,
       sectionKey: binding.section_key,
     })),
-    term: evaluation.term,
     totalAssignments: evaluation._count.assignments,
   };
 

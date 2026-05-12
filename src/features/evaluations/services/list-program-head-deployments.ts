@@ -2,7 +2,7 @@ import { ROLES } from "@/lib/constants/roles";
 import { getYearLevelDisplay } from "@/lib/constants/year-levels";
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
-import type { DeploymentStatus, TargetStakeholder, AcademicSemester } from "@prisma/client";
+import type { DeploymentStatus, TargetStakeholder } from "@prisma/client";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -18,9 +18,6 @@ export type ProgramHeadDeploymentItem = {
   yearLevelName: string | null;
   target_stakeholder: TargetStakeholder;
   status: DeploymentStatus;
-  academic_year: string;
-  semester: AcademicSemester;
-  // Phase 7: Term instance info
   termInstanceLabel: string | null;
   activation_at: Date | null;
   deadline_at: Date | null;
@@ -141,8 +138,6 @@ export async function listProgramHeadDeployments(): Promise<
       yearLevelName: d.year_level ? getYearLevelDisplay(d.year_level) : null,
       target_stakeholder: d.target_stakeholder,
       status: d.status,
-      academic_year: d.academic_year,
-      semester: d.semester,
       termInstanceLabel,
       activation_at: d.activation_at,
       deadline_at: d.deadline_at,

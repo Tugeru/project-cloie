@@ -109,6 +109,11 @@ export async function getCourseBoundReviewDetail(
       },
       major: true,
       program: true,
+      term_instance: {
+        include: {
+          school_year: true,
+        },
+      },
     },
   });
 
@@ -198,8 +203,14 @@ export async function getCourseBoundReviewDetail(
     }))
     .sort((left, right) => left.submittedAt.getTime() - right.submittedAt.getTime());
 
+  const ti = evaluation.term_instance;
+  const termLabel = ti.term ? `${ti.term}` : "";
+  const termInstanceLabel = termLabel
+    ? `${ti.school_year.code} — ${ti.semester} — ${termLabel}`
+    : `${ti.school_year.code} — ${ti.semester}`;
+
   return {
-    academicYear: evaluation.academic_year,
+    termInstanceLabel,
     ciloMetrics,
     courseTitle: evaluation.course.title,
     deadlineAt: evaluation.deadline_at,
@@ -211,8 +222,6 @@ export async function getCourseBoundReviewDetail(
     responseCount: submittedResponses.length,
     reviewerRole,
     sections,
-    semester: evaluation.semester,
-    term: evaluation.term,
     wordCloudTokens: buildReviewWordCloudTokens(qualitativeTexts),
   };
 }
