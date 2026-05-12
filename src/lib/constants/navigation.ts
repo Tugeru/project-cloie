@@ -41,7 +41,6 @@ const FACULTY_NAV: NavItem[] = [
   { name: "Dashboard", href: "/faculty/dashboard", icon: LayoutDashboard },
   { name: "Manage CILOs", href: "/faculty/cilos", icon: BookOpen },
   { name: "Tools", href: "/faculty/tools", icon: ClipboardList },
-  { name: "Analytics", href: "/faculty/analytics", icon: BarChart3 },
   { name: "Profile", href: "/faculty/profile", icon: UserCircle },
 ];
 
@@ -60,7 +59,6 @@ const PROGRAM_HEAD_NAV: NavItem[] = [
   { name: "Course Assignments", href: "/program-head/course-assignments", icon: UsersRound },
   { name: "Outcomes", href: "/program-head/outcomes", icon: Layers3 },
   { name: "Tools", href: "/program-head/tools", icon: FileText },
-  { name: "CILO Reviews", href: "/program-head/cilo-reviews", icon: FileText },
   { name: "Analytics", href: "/program-head/analytics", icon: BarChart3 },
   { name: "Reports", href: "/program-head/reports", icon: FileText },
   { name: "Profile", href: "/program-head/profile", icon: UserCircle },
@@ -70,7 +68,6 @@ const DEAN_NAV: NavItem[] = [
   { name: "Dashboard", href: "/dean/dashboard", icon: LayoutDashboard },
   { name: "Courses", href: "/dean/courses", icon: BookOpen },
   { name: "Tools", href: "/dean/instruments", icon: Layers3 },
-  { name: "CILO Reviews", href: "/dean/cilo-reviews", icon: FileText },
   { name: "Analytics", href: "/dean/analytics", icon: BarChart3 },
   { name: "Reports", href: "/dean/reports", icon: FileText },
   { name: "Profile", href: "/dean/profile", icon: UserCircle },
