@@ -28,8 +28,7 @@ export default async function ProgramHeadCiloReviewDetailPage({
       <section className="space-y-1">
         <h1 className="text-2xl font-bold">{detail.evaluationTitle}</h1>
         <p className="text-text-muted text-sm">
-          {detail.courseTitle} | {detail.programLabel} | {detail.academicYear} {detail.semester}{" "}
-          {detail.term}
+          {detail.courseTitle} | {detail.programLabel} | {detail.termInstanceLabel}
         </p>
       </section>
 
