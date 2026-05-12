@@ -6,6 +6,18 @@ const { getUserMock, findUniqueMock } = vi.hoisted(() => ({
   findUniqueMock: vi.fn(),
 }));
 
+vi.mock("next/headers", () => ({
+  cookies: vi.fn(async () => ({
+    get: vi.fn(() => undefined),
+    set: vi.fn(),
+    delete: vi.fn(),
+  })),
+}));
+
+vi.mock("@/features/auth/services/dev-auth", () => ({
+  readDevAuthCookie: vi.fn(async () => null),
+}));
+
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn(async () => ({
     auth: {

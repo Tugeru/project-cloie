@@ -1,6 +1,46 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { YearLevel } from "@prisma/client";
+
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
+  usePathname: () => "/faculty/tools/publish",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+vi.mock("@/features/evaluations/components/assignment-picker", () => ({
+  AssignmentPicker: ({
+    assignments,
+    value,
+    onChange,
+    label,
+  }: {
+    assignments: { id: string; courseCode: string; courseTitle: string }[];
+    value: string | null;
+    onChange: (id: string | null) => void;
+    label?: string;
+  }) => (
+    <div>
+      {label && <label htmlFor="assignment-picker-mock">{label}</label>}
+      <select
+        id="assignment-picker-mock"
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value || null)}
+        disabled={assignments.length === 0}
+        aria-label={label ?? "Class Assignment"}
+      >
+        <option value="">Select a class assignment...</option>
+        {assignments.map((a) => (
+          <option key={a.id} value={a.id}>
+            {a.courseCode} - {a.courseTitle}
+          </option>
+        ))}
+      </select>
+      {assignments.length === 0 && <span>No assignments available</span>}
+    </div>
+  ),
+}));
+
 import { PublishCourseBoundEvaluationFormV2 } from "@/features/evaluations/components/publish-course-bound-evaluation-form-v2";
 import type { AssignmentOption } from "@/features/evaluations/components/assignment-picker";
 
@@ -76,13 +116,13 @@ describe("PublishCourseBoundEvaluationFormV2", () => {
 
     expect(screen.getByRole("heading", { name: /publish cilo evaluation/i })).toBeInTheDocument();
     expect(screen.getByText("Course-Bound CILO Evaluation")).toBeInTheDocument();
-    expect(screen.getByText("CS101 - Intro to Computing")).toBeInTheDocument();
+    expect(screen.getAllByText("CS101 - Intro to Computing").length).toBeGreaterThan(0);
     expect(screen.getByText("Apply core concepts")).toBeInTheDocument();
     expect(
       screen.getByText(/students can apply the core concepts taught in the course/i)
     ).toBeInTheDocument();
     // Assignment picker exists
-    expect(screen.getByText(/class assignment/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/class assignment/i).length).toBeGreaterThan(0);
   });
 
   it("loads preview when assignment is selected then publishes with confirmed respondents", async () => {
@@ -127,12 +167,10 @@ describe("PublishCourseBoundEvaluationFormV2", () => {
       target: { value: "CS101 Post-Term CILO Evaluation" },
     });
 
-    // Select assignment from dropdown
-    fireEvent.click(screen.getByText(/select a class/i));
-    await waitFor(() => {
-      expect(screen.getByText(/CS101 - Intro to Computing/i)).toBeInTheDocument();
+    // Select assignment using the mocked native select
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "assignment-1" },
     });
-    fireEvent.click(screen.getByText(/CS101 - Intro to Computing/i));
 
     // Click Preview Respondents
     fireEvent.click(screen.getByRole("button", { name: /preview respondents/i }));
@@ -177,6 +215,8 @@ describe("PublishCourseBoundEvaluationFormV2", () => {
       />
     );
 
+    // Picker is disabled and shows empty message
+    expect(screen.getByRole("combobox")).toBeDisabled();
     expect(screen.getByText(/no assignments available/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /preview respondents/i })).toBeDisabled();
   });
@@ -223,6 +263,6 @@ describe("PublishCourseBoundEvaluationFormV2", () => {
     // No Academic Term filter should be present
     expect(screen.queryByText(/all terms/i)).not.toBeInTheDocument();
     // Class Assignment picker should still be visible
-    expect(screen.getByText(/class assignment/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/class assignment/i).length).toBeGreaterThan(0);
   });
 });

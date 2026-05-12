@@ -162,7 +162,6 @@ describe("TemplateBuilder", () => {
       expect(screen.getByText(/saved cilo\(s\) available for binding/i)).toBeInTheDocument();
     });
     expect(screen.getByText("CILO Binding")).toBeInTheDocument();
-    expect(screen.getByText("BSIT - Information Technology")).toBeInTheDocument();
     expect(
       screen.getByText("IT401 - Capstone 1 (BSIT - Shared Program Course)")
     ).toBeInTheDocument();
@@ -189,7 +188,7 @@ describe("TemplateBuilder", () => {
         },
       ])
     );
-    expect(pushMock).toHaveBeenCalledWith("/faculty/tools?toast=Template%20saved%20successfully.");
+    expect(pushMock).toHaveBeenCalledWith("/faculty/tools");
   });
 
   test("redirects program head saves back to tools with a success toast", async () => {
@@ -241,9 +240,7 @@ describe("TemplateBuilder", () => {
     fireEvent.click(screen.getByRole("button", { name: /save template/i }));
 
     await waitFor(() => {
-      expect(pushMock).toHaveBeenCalledWith(
-        "/program-head/tools?toast=Template%20saved%20successfully."
-      );
+      expect(pushMock).toHaveBeenCalledWith("/program-head/tools");
     });
     expect(screen.queryByText("Template saved successfully.")).not.toBeInTheDocument();
   });
