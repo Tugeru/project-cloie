@@ -1,4 +1,4 @@
-import { AcademicSemester, AcademicTerm, CourseScope, DeploymentStatus, StudentSection, TargetStakeholder, YearLevel } from "@prisma/client";
+import { AcademicSemester, CourseScope, DeploymentStatus, StudentSection, TargetStakeholder, YearLevel } from "@prisma/client";
 
 export type { StudentSection };
 
@@ -130,7 +130,7 @@ export type PreviewCourseBoundRespondentsResult =
 // ============================================================================
 
 export type FacultyPublishedEvaluationItem = {
-  academicYear: string;
+  termInstanceLabel: string;
   activationAt: Date | null;
   courseCode: string;
   courseId: string;
@@ -146,10 +146,8 @@ export type FacultyPublishedEvaluationItem = {
   programName: string;
   publishedAt: Date | null;
   responseCount: number;
-  semester: AcademicSemester;
   status: DeploymentStatus;
   targetYearLevels: YearLevel[];
-  term: AcademicTerm;
   totalAssignments: number;
 };
 
@@ -168,7 +166,7 @@ export type FacultyPublishedEvaluationTarget = {
 };
 
 export type FacultyEvaluationDetail = {
-  academicYear: string;
+  termInstanceLabel: string;
   activationAt: Date | null;
   cilos: Array<{
     description: string;
@@ -188,11 +186,9 @@ export type FacultyEvaluationDetail = {
   evaluationId: string;
   publishedAt: Date | null;
   responseCount: number;
-  semester: AcademicSemester;
   status: DeploymentStatus;
   targets: FacultyPublishedEvaluationTarget[];
   templateBindings: FacultyPublishedEvaluationCiloBinding[];
-  term: AcademicTerm;
   totalAssignments: number;
 };
 
@@ -264,7 +260,6 @@ export type PreviewCentralDeploymentRespondent = {
   lastName: string;
   majorName: string | null;
   programCode: string | null;
-  section: StudentSection | null;
   stakeholderType: TargetStakeholder;
   studentId: string | null;
   userId: string;
