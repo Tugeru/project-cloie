@@ -220,10 +220,7 @@ export function PublishCourseBoundEvaluationForm({
 
     try {
       const result = await previewAction({
-        academicYear: academicYear.trim(),
-        section,
-        targetPrograms: selectedProgramIds,
-        targetYearLevel: selectedYearLevel as YearLevel,
+        assignmentId: "",
       });
 
       if (!result.success) {
@@ -253,17 +250,12 @@ export function PublishCourseBoundEvaluationForm({
       .map((r) => r.userId);
 
     const payload: PublishCourseBoundEvaluationInput = {
-      academicYear: academicYear.trim(),
+      assignmentId: "",
       activationAt: activationSchedule ? new Date(activationSchedule) : null,
       deadlineAt: deadline ? new Date(deadline) : null,
       deploymentName: deploymentName.trim(),
       respondentIds: finalRespondentIds,
-      section,
-      semester,
-      targetPrograms: selectedProgramIds,
-      targetYearLevel: selectedYearLevel as YearLevel,
       templateId: publicationContext.template.id,
-      term,
     };
 
     try {

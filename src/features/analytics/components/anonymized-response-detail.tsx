@@ -15,7 +15,7 @@ export function AnonymizedResponseDetail({ response }: AnonymizedResponseDetailP
       <section className="space-y-1">
         <h1 className="text-2xl font-bold">{response.evaluationTitle}</h1>
         <p className="text-text-muted text-sm">
-          {response.courseTitle} | {response.programLabel} | {response.academicYear}
+          {response.courseTitle} | {response.programLabel} | {response.termInstanceLabel}
         </p>
         <p className="text-text-muted text-sm">{response.respondentLabel}</p>
       </section>

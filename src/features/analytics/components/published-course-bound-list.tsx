@@ -45,8 +45,7 @@ export function PublishedCourseBoundList({
                 <CardHeader className="gap-2">
                   <CardTitle>{item.evaluationTitle}</CardTitle>
                   <p className="text-text-muted text-sm">
-                    {item.courseTitle} | {item.programLabel} | {item.academicYear} {item.semester}{" "}
-                    {item.term}
+                    {item.courseTitle} | {item.programLabel} | {item.termInstanceLabel}
                   </p>
                 </CardHeader>
 

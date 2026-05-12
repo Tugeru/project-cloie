@@ -9,7 +9,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { showToast } from "@/components/ui/toast";
 import { getYearLevelDisplay } from "@/lib/constants/year-levels";
-import { getSectionLabel } from "@/lib/constants/academic";
 import type {
   PreviewCentralDeploymentInput,
   PreviewCentralDeploymentRespondent,
@@ -496,7 +495,6 @@ export function PublishCentralDeploymentForm({
                           <>
                             <td className="px-3 py-2">{respondent.programCode ?? "—"}</td>
                             <td className="px-3 py-2">{respondent.yearLevel ? getYearLevelDisplay(respondent.yearLevel as YearLevel) : "—"}</td>
-                            <td className="px-3 py-2">{respondent.section ? getSectionLabel(respondent.section) : "—"}</td>
                             <td className="px-3 py-2">{respondent.studentId ?? "—"}</td>
                           </>
                         )}

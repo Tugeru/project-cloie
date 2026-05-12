@@ -176,7 +176,7 @@ export function FacultyAnalyticsDashboard({
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{evaluation.deploymentName}</p>
                     <p className="text-muted-foreground text-xs">
-                      {evaluation.courseCode} • {evaluation.academicYear}
+                      {evaluation.courseCode} • {evaluation.termInstanceLabel}
                     </p>
                     <p className="text-muted-foreground text-xs">
                       {evaluation.responseCount}/{evaluation.totalAssignments} responses
