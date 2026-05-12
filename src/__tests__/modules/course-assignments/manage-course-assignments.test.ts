@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { YearLevel } from "@prisma/client";
+import { ROLES } from "@/lib/constants/roles";
 import {
   createCourseAssignment,
   updateCourseAssignment,
@@ -13,6 +14,7 @@ vi.mock("@/lib/db/prisma", () => ({
   prisma: {
     courseAssignment: {
       create: vi.fn(),
+      findFirst: vi.fn(),
       update: vi.fn(),
       findUnique: vi.fn(),
     },
@@ -26,19 +28,28 @@ describe("manage-course-assignments", () => {
   const mockAdminSession = {
     userId: "admin-1",
     email: "admin@test.com",
-    roles: ["ADMIN"],
+    roles: [ROLES.ADMIN],
+    primaryRole: ROLES.ADMIN,
+    studentProfileId: null,
+    profileGate: { status: "COMPLETE" as const },
   };
 
   const mockProgramHeadSession = {
     userId: "ph-1",
     email: "ph@test.com",
-    roles: ["PROGRAM_HEAD"],
+    roles: [ROLES.PROGRAM_HEAD],
+    primaryRole: ROLES.PROGRAM_HEAD,
+    studentProfileId: null,
+    profileGate: { status: "COMPLETE" as const },
   };
 
   const mockFacultySession = {
     userId: "faculty-1",
     email: "faculty@test.com",
-    roles: ["FACULTY"],
+    roles: [ROLES.FACULTY],
+    primaryRole: ROLES.FACULTY,
+    studentProfileId: null,
+    profileGate: { status: "COMPLETE" as const },
   };
 
   describe("createCourseAssignment", () => {
@@ -50,6 +61,7 @@ describe("manage-course-assignments", () => {
         id: "course-1",
         program_id: "program-1",
       } as never);
+      vi.mocked(prisma.courseAssignment.findFirst).mockResolvedValue(null as never);
       vi.mocked(prisma.courseAssignment.create).mockResolvedValue({ id: "assignment-1" } as never);
 
       const result = await createCourseAssignment({
@@ -93,6 +105,7 @@ describe("manage-course-assignments", () => {
         id: "course-1",
         program_id: "program-1",
       } as never);
+      vi.mocked(prisma.courseAssignment.findFirst).mockResolvedValue(null as never);
       vi.mocked(prisma.courseAssignment.create).mockRejectedValue({
         code: "P2002",
       } as never);

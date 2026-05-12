@@ -47,7 +47,7 @@ describe("listCourseBoundReviewItems", () => {
     resolveReviewerProgramScopeMock.mockResolvedValue(["program-1"]);
     courseBoundEvaluationFindManyMock.mockResolvedValue([
       {
-        academic_year: "2025-2026",
+        term_instance: { semester: "SECOND", term: "FIRST_TERM", school_year: { code: "2025-2026" } },
         assignments: [
           {
             response: {
@@ -72,14 +72,12 @@ describe("listCourseBoundReviewItems", () => {
         instrument: { template: { name: "Post-Term CILO Evaluation Tool" } },
         major: null,
         program: { id: "program-1", name: "BSIT" },
-        semester: "2ND",
-        term: "REGULAR",
       },
     ]);
 
     await expect(listCourseBoundReviewItems()).resolves.toEqual([
       {
-        academicYear: "2025-2026",
+        termInstanceLabel: "2025-2026 — SECOND — FIRST_TERM",
         courseTitle: "Software Engineering",
         deadlineAt: new Date("2026-01-10T10:00:00.000Z"),
         evaluationId: "eval-1",
@@ -88,8 +86,6 @@ describe("listCourseBoundReviewItems", () => {
         programLabel: "BSIT",
         responseCount: 2,
         reviewerRole: ROLES.FACULTY,
-        semester: "2ND",
-        term: "REGULAR",
       },
     ]);
 
@@ -138,7 +134,7 @@ describe("listCourseBoundReviewItems", () => {
     resolveReviewerProgramScopeMock.mockResolvedValue(["program-1"]);
     courseBoundEvaluationFindManyMock.mockResolvedValue([
       {
-        academic_year: "2025-2026",
+        term_instance: { semester: "SECOND", term: null, school_year: { code: "2025-2026" } },
         assignments: [
           {
             response: {
@@ -155,8 +151,6 @@ describe("listCourseBoundReviewItems", () => {
         instrument: { template: { name: "Post-Term CILO Evaluation Tool" } },
         major: null,
         program: { id: "program-1", name: "BSIT" },
-        semester: "2ND",
-        term: "REGULAR",
       },
     ]);
 

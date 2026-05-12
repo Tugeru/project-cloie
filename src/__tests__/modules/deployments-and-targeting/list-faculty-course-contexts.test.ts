@@ -51,18 +51,12 @@ describe("listFacultyCourseContexts", () => {
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });
-    affiliationFindManyMock.mockResolvedValue([
-      {
-        program_id: "program-1",
-      },
+    // New service: gets course IDs from assignments (all-term fallback)
+    courseAssignmentFindManyMock.mockResolvedValue([
+      { course_id: "course-1" },
+      { course_id: "course-2" },
     ]);
-    // First call returns course IDs
-    courseFindManyMock.mockResolvedValueOnce([
-      { id: "course-1" },
-      { id: "course-2" },
-    ]);
-    // Second call returns full course details
-    courseFindManyMock.mockResolvedValueOnce([
+    courseFindManyMock.mockResolvedValue([
       {
         code: "IT-401",
         course_scope: "PROGRAM_SPECIFIC",
@@ -116,32 +110,16 @@ describe("listFacultyCourseContexts", () => {
       },
     ]);
 
-    expect(affiliationFindManyMock).toHaveBeenCalledWith({
+    expect(affiliationFindManyMock).not.toHaveBeenCalled();
+    expect(courseAssignmentFindManyMock).toHaveBeenCalledWith({
       where: {
         faculty_id: "faculty-1",
         is_active: true,
       },
-      select: { program_id: true },
+      select: { course_id: true },
+      distinct: ["course_id"],
     });
-    // First call - get course IDs
-    expect(courseFindManyMock).toHaveBeenNthCalledWith(1, {
-      where: {
-        is_active: true,
-        OR: [
-          {
-            program_id: {
-              in: ["program-1"],
-            },
-          },
-          {
-            course_scope: "GENERAL_EDUCATION",
-          },
-        ],
-      },
-      select: { id: true },
-    });
-    // Second call - get full course details
-    expect(courseFindManyMock).toHaveBeenNthCalledWith(2, {
+    expect(courseFindManyMock).toHaveBeenCalledWith({
       where: {
         id: { in: ["course-1", "course-2"] },
         is_active: true,

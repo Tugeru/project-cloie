@@ -110,7 +110,7 @@ describe("getCourseBoundReviewDetail", () => {
     resolveAuthSessionMock.mockResolvedValue({ roles: [ROLES.DEAN], userId: "dean-1" });
     resolveReviewerProgramScopeMock.mockResolvedValue(null);
     courseBoundEvaluationFindFirstMock.mockResolvedValue({
-      academic_year: "2025-2026",
+      term_instance: { semester: "SECOND", term: "FIRST_TERM", school_year: { code: "2025-2026" } },
       assignments: [
         {
           respondent_id: "student-1",
@@ -142,6 +142,7 @@ describe("getCourseBoundReviewDetail", () => {
           },
         },
       ],
+      cilo_question_bindings: [],
       course: { title: "Capstone 2" },
       deadline_at: new Date("2026-01-10T00:00:00.000Z"),
       id: "eval-1",
@@ -166,12 +167,10 @@ describe("getCourseBoundReviewDetail", () => {
       },
       major: null,
       program: { name: "BSIT" },
-      semester: "2ND",
-      term: "REGULAR",
     });
 
     await expect(getCourseBoundReviewDetail("eval-1")).resolves.toEqual({
-      academicYear: "2025-2026",
+      termInstanceLabel: "2025-2026 — SECOND — FIRST_TERM",
       ciloMetrics: [],
       courseTitle: "Capstone 2",
       deadlineAt: new Date("2026-01-10T00:00:00.000Z"),
@@ -208,8 +207,6 @@ describe("getCourseBoundReviewDetail", () => {
           ],
         },
       ],
-      semester: "2ND",
-      term: "REGULAR",
       wordCloudTokens: [
         { text: "great", value: 1 },
         { text: "lectures", value: 1 },
@@ -244,7 +241,7 @@ describe("getCourseBoundReviewDetail", () => {
     resolveAuthSessionMock.mockResolvedValue({ roles: [ROLES.DEAN], userId: "dean-1" });
     resolveReviewerProgramScopeMock.mockResolvedValue(null);
     courseBoundEvaluationFindFirstMock.mockResolvedValue({
-      academic_year: "2025-2026",
+      term_instance: { semester: "SECOND", term: null, school_year: { code: "2025-2026" } },
       assignments: [
         {
           response: {
@@ -257,6 +254,7 @@ describe("getCourseBoundReviewDetail", () => {
           },
         },
       ],
+      cilo_question_bindings: [],
       course: { title: "Capstone 2" },
       deadline_at: null,
       id: "eval-1",
@@ -275,8 +273,6 @@ describe("getCourseBoundReviewDetail", () => {
       },
       major: null,
       program: { name: "BSIT" },
-      semester: "2ND",
-      term: "REGULAR",
     });
 
     await expect(getCourseBoundReviewDetail("eval-1")).resolves.toEqual(

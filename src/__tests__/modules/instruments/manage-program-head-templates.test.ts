@@ -155,20 +155,6 @@ describe("manage-program-head-templates", () => {
         ],
         _count: { versions: 1 },
       },
-      {
-        id: "baseline-1",
-        code: "CILO_EVAL",
-        name: "CILO Evaluation Baseline",
-        description: "Institutional baseline",
-        structure: [],
-        is_active: true,
-        is_faculty_accessible: true,
-        program_id: null,
-        created_at: new Date(),
-        updated_at: new Date(),
-        versions: [],
-        _count: { versions: 0 },
-      },
     ]);
 
     const result = await listProgramHeadTemplates();
@@ -176,15 +162,11 @@ describe("manage-program-head-templates", () => {
     expect(result.success).toBe(true);
     if (!result.success) return;
 
-    expect(result.data.templates).toHaveLength(2);
+    expect(result.data.templates).toHaveLength(1);
 
     // Program-owned template is not read-only
     const ownTemplate = result.data.templates.find((t) => t.id === TEMPLATE_ID);
     expect(ownTemplate?.isReadOnly).toBe(false);
-
-    // Institutional baseline is read-only
-    const baseline = result.data.templates.find((t) => t.id === "baseline-1");
-    expect(baseline?.isReadOnly).toBe(true);
   });
 
   // ─── createProgramHeadTemplate ─────────────────────────────────────

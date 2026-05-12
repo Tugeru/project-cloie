@@ -38,7 +38,7 @@ describe("listStudentAssignedEvaluations", () => {
           program: { code: "BSIT", name: "Information Technology" },
           status: "ACTIVE",
           target_stakeholder: "STUDENT",
-          year_level: { name: "4th Year" },
+          year_level: "FOURTH_YEAR",
         },
         course_bound: null,
         id: "assignment-central-1",

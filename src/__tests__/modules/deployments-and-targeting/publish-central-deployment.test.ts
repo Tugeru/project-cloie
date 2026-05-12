@@ -7,31 +7,42 @@ const {
   assignmentCreateManyMock,
   centralDeploymentCreateMock,
   centralDeploymentFindFirstMock,
+  academicTermInstanceFindUniqueMock,
+  externalStakeholderInviteFindManyMock,
   industryPartnerProfileFindManyMock,
   instrumentTemplateFindFirstMock,
   instrumentVersionFindFirstMock,
+  listStudentsForClassMock,
   programHeadAssignmentFindFirstMock,
   resolveAuthSessionMock,
   studentAcademicProfileFindManyMock,
   transactionMock,
+  txUserFindManyMock,
   userRoleFindManyMock,
 } = vi.hoisted(() => ({
   assignmentCreateManyMock: vi.fn(),
   centralDeploymentCreateMock: vi.fn(),
   centralDeploymentFindFirstMock: vi.fn(),
+  academicTermInstanceFindUniqueMock: vi.fn(),
+  externalStakeholderInviteFindManyMock: vi.fn(),
   industryPartnerProfileFindManyMock: vi.fn(),
   instrumentTemplateFindFirstMock: vi.fn(),
   instrumentVersionFindFirstMock: vi.fn(),
+  listStudentsForClassMock: vi.fn(),
   programHeadAssignmentFindFirstMock: vi.fn(),
   resolveAuthSessionMock: vi.fn(),
   studentAcademicProfileFindManyMock: vi.fn(),
   transactionMock: vi.fn(),
+  txUserFindManyMock: vi.fn(),
   userRoleFindManyMock: vi.fn(),
 }));
 
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
     $transaction: transactionMock,
+    academicTermInstance: {
+      findUnique: academicTermInstanceFindUniqueMock,
+    },
     centralDeployment: {
       findFirst: centralDeploymentFindFirstMock,
     },
@@ -45,6 +56,10 @@ vi.mock("@/lib/db/prisma", () => ({
       findFirst: programHeadAssignmentFindFirstMock,
     },
   },
+}));
+
+vi.mock("@/features/enrollments/services/list-students-for-class", () => ({
+  listStudentsForClass: listStudentsForClassMock,
 }));
 
 vi.mock("@/features/auth/services/resolve-auth-session", () => ({
@@ -90,21 +105,13 @@ function mockNoDuplicate() {
 function setupTransaction() {
   transactionMock.mockImplementation(async (callback) =>
     callback({
-      centralDeployment: {
-        create: centralDeploymentCreateMock,
-      },
-      evaluationAssignment: {
-        createMany: assignmentCreateManyMock,
-      },
-      industryPartnerProfile: {
-        findMany: industryPartnerProfileFindManyMock,
-      },
-      studentAcademicProfile: {
-        findMany: studentAcademicProfileFindManyMock,
-      },
-      userRole: {
-        findMany: userRoleFindManyMock,
-      },
+      centralDeployment: { create: centralDeploymentCreateMock },
+      evaluationAssignment: { createMany: assignmentCreateManyMock },
+      externalStakeholderInvite: { findMany: externalStakeholderInviteFindManyMock },
+      industryPartnerProfile: { findMany: industryPartnerProfileFindManyMock },
+      studentAcademicProfile: { findMany: studentAcademicProfileFindManyMock },
+      user: { findMany: txUserFindManyMock },
+      userRole: { findMany: userRoleFindManyMock },
     })
   );
 }
@@ -113,10 +120,18 @@ const baseInput = {
   template_id: "template-1",
   deployment_name: "Graduate Exit Evaluation",
   target_stakeholder: "STUDENT" as const,
-  academic_year: "2025-2026",
-  semester: "FIRST" as const,
+  term_instance_id: "term-instance-1",
   year_level: "FOURTH_YEAR" as const,
 };
+
+function mockTermInstance() {
+  academicTermInstanceFindUniqueMock.mockResolvedValue({
+    id: "term-instance-1",
+    semester: "FIRST",
+    term: null,
+    school_year: { code: "2025-2026" },
+  });
+}
 
 // ─── Tests ───────────────────────────────────────────────────────────────────
 
@@ -257,15 +272,19 @@ describe("publishCentralDeployment", () => {
     mockTemplate();
     mockVersion();
     mockNoDuplicate();
+    mockTermInstance();
 
     centralDeploymentCreateMock.mockResolvedValue({
       id: "deployment-1",
     });
-    studentAcademicProfileFindManyMock.mockResolvedValue([
-      { user_id: "student-1" },
-      { user_id: "student-2" },
-      { user_id: "student-3" },
-    ]);
+    listStudentsForClassMock.mockResolvedValue({
+      success: true,
+      data: [
+        { userId: "student-1" },
+        { userId: "student-2" },
+        { userId: "student-3" },
+      ],
+    });
 
     const result = await publishCentralDeployment({
       ...baseInput,
@@ -289,20 +308,18 @@ describe("publishCentralDeployment", () => {
         deployment_name: "Graduate Exit Evaluation",
         program_id: "program-1",
         target_stakeholder: "STUDENT",
-        academic_year: "2025-2026",
-        semester: "FIRST",
+        term_instance_id: "term-instance-1",
         year_level: "FOURTH_YEAR",
         status: "ACTIVE",
       }),
     });
 
-    // Verify student profile query filters by program + year_level
-    expect(studentAcademicProfileFindManyMock).toHaveBeenCalledWith({
-      where: {
-        program_id: "program-1",
-        year_level: "FOURTH_YEAR",
-      },
-      select: { user_id: true },
+    // Verify enrollment-based student lookup
+    expect(listStudentsForClassMock).toHaveBeenCalledWith({
+      termInstanceId: "term-instance-1",
+      programId: "program-1",
+      yearLevel: "FOURTH_YEAR",
+      majorId: undefined,
     });
 
     // Verify assignments were created
@@ -321,11 +338,15 @@ describe("publishCentralDeployment", () => {
     mockTemplate();
     mockVersion();
     mockNoDuplicate();
+    mockTermInstance();
 
     centralDeploymentCreateMock.mockResolvedValue({
       id: "deployment-2",
     });
-    studentAcademicProfileFindManyMock.mockResolvedValue([{ user_id: "student-5" }]);
+    listStudentsForClassMock.mockResolvedValue({
+      success: true,
+      data: [{ userId: "student-5" }],
+    });
 
     const result = await publishCentralDeployment({
       ...baseInput,
@@ -343,13 +364,11 @@ describe("publishCentralDeployment", () => {
       },
     });
 
-    expect(studentAcademicProfileFindManyMock).toHaveBeenCalledWith({
-      where: {
-        program_id: "program-1",
-        major_id: "major-1",
-        year_level: "FOURTH_YEAR",
-      },
-      select: { user_id: true },
+    expect(listStudentsForClassMock).toHaveBeenCalledWith({
+      termInstanceId: "term-instance-1",
+      programId: "program-1",
+      yearLevel: "FOURTH_YEAR",
+      majorId: "major-1",
     });
   });
 
@@ -361,11 +380,20 @@ describe("publishCentralDeployment", () => {
     mockTemplate();
     mockVersion();
     mockNoDuplicate();
+    mockTermInstance();
+
+    externalStakeholderInviteFindManyMock.mockResolvedValue([
+      { email: "alumni1@example.com" },
+      { email: "alumni2@example.com" },
+    ]);
+    txUserFindManyMock.mockResolvedValue([
+      { id: "alumni-1" },
+      { id: "alumni-2" },
+    ]);
 
     centralDeploymentCreateMock.mockResolvedValue({
       id: "deployment-3",
     });
-    userRoleFindManyMock.mockResolvedValue([{ user_id: "alumni-1" }, { user_id: "alumni-2" }]);
 
     const result = await publishCentralDeployment({
       ...baseInput,
@@ -382,11 +410,12 @@ describe("publishCentralDeployment", () => {
       },
     });
 
-    // Verify alumni role query
-    expect(userRoleFindManyMock).toHaveBeenCalledWith({
-      where: { role: ROLES.ALUMNI },
-      select: { user_id: true },
-    });
+    // Verify alumni invite query
+    expect(externalStakeholderInviteFindManyMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ role: ROLES.ALUMNI }),
+      })
+    );
 
     // Verify assignments were created for alumni
     expect(assignmentCreateManyMock).toHaveBeenCalledWith({
@@ -405,6 +434,7 @@ describe("publishCentralDeployment", () => {
     mockTemplate();
     mockVersion();
     mockNoDuplicate();
+    mockTermInstance();
 
     centralDeploymentCreateMock.mockResolvedValue({
       id: "deployment-4",
@@ -471,13 +501,14 @@ describe("publishCentralDeployment", () => {
     mockTemplate();
     mockVersion();
     mockNoDuplicate();
+    mockTermInstance();
 
     const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days from now
 
     centralDeploymentCreateMock.mockResolvedValue({
       id: "deployment-5",
     });
-    studentAcademicProfileFindManyMock.mockResolvedValue([]);
+    listStudentsForClassMock.mockResolvedValue({ success: true, data: [] });
 
     const result = await publishCentralDeployment({
       ...baseInput,
@@ -509,6 +540,7 @@ describe("publishCentralDeployment", () => {
     mockTemplate();
     mockVersion();
     mockNoDuplicate();
+    mockTermInstance();
 
     transactionMock.mockRejectedValue({
       code: "P2002",
@@ -526,26 +558,23 @@ describe("publishCentralDeployment", () => {
 
   // ─── Deduplication of Respondent IDs ─────────────────────────────────────
 
-  it("deduplicates respondent IDs when creating assignments", async () => {
+  it("deduplicates respondent IDs when using the respondent_ids path", async () => {
     mockAuthenticatedPH();
     mockPHAssignment();
     mockTemplate();
     mockVersion();
     mockNoDuplicate();
+    mockTermInstance();
 
     centralDeploymentCreateMock.mockResolvedValue({
       id: "deployment-6",
     });
-    // Student appears twice in query results
-    studentAcademicProfileFindManyMock.mockResolvedValue([
-      { user_id: "student-1" },
-      { user_id: "student-1" },
-      { user_id: "student-2" },
-    ]);
 
+    // Pass duplicate respondent IDs explicitly (respondent_ids path applies dedup)
     const result = await publishCentralDeployment({
       ...baseInput,
       target_stakeholder: "STUDENT",
+      respondent_ids: ["student-1", "student-1", "student-2"],
     });
 
     expect(result).toEqual({

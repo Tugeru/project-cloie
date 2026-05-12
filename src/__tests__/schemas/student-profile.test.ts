@@ -9,7 +9,7 @@ const validInput = {
   last_name: "Dela Cruz",
   program_id: VALID_UUID,
   major_id: "",
-  year_level_id: VALID_UUID_2,
+  year_level: "FIRST_YEAR" as const,
   student_id_number: "21-12345",
   section: "MORNING" as const,
 };
@@ -106,20 +106,18 @@ describe("studentProfileSchema", () => {
     });
   });
 
-  describe("year_level_id validation", () => {
-    it("rejects non-UUID year_level_id", () => {
+  describe("year_level validation", () => {
+    it("rejects invalid year_level value", () => {
       const result = studentProfileSchema.safeParse({
         ...validInput,
-        year_level_id: "first-year",
+        year_level: "FIFTH_YEAR",
       });
       expect(result.success).toBe(false);
     });
 
-    it("rejects empty year_level_id", () => {
-      const result = studentProfileSchema.safeParse({
-        ...validInput,
-        year_level_id: "",
-      });
+    it("rejects missing year_level", () => {
+      const { year_level, ...withoutYearLevel } = validInput;
+      const result = studentProfileSchema.safeParse(withoutYearLevel);
       expect(result.success).toBe(false);
     });
   });

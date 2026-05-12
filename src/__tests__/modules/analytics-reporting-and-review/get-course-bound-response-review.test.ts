@@ -44,7 +44,7 @@ describe("getCourseBoundResponseReview", () => {
     responseFindFirstMock.mockResolvedValue({
       assignment: {
         course_bound: {
-          academic_year: "2025-2026",
+          term_instance: { semester: "SECOND", term: "FIRST_TERM", school_year: { code: "2025-2026" } },
           course: { title: "Capstone 2" },
           id: "eval-1",
           instrument: {
@@ -67,8 +67,6 @@ describe("getCourseBoundResponseReview", () => {
           },
           major: null,
           program: { id: "program-1", name: "BSIT" },
-          semester: "2ND",
-          term: "REGULAR",
         },
       },
       id: "response-1",
@@ -80,7 +78,7 @@ describe("getCourseBoundResponseReview", () => {
     });
 
     await expect(getCourseBoundResponseReview("response-1")).resolves.toEqual({
-      academicYear: "2025-2026",
+      termInstanceLabel: "2025-2026 — SECOND — FIRST_TERM",
       courseTitle: "Capstone 2",
       evaluationId: "eval-1",
       evaluationTitle: "Post-Term CILO Evaluation Tool",
@@ -158,7 +156,7 @@ describe("getCourseBoundResponseReview", () => {
     responseFindFirstMock.mockResolvedValue({
       assignment: {
         course_bound: {
-          academic_year: "2025-2026",
+          term_instance: { semester: "SECOND", term: null, school_year: { code: "2025-2026" } },
           course: { title: "Capstone 2" },
           id: "eval-1",
           instrument: {
@@ -180,8 +178,6 @@ describe("getCourseBoundResponseReview", () => {
           },
           major: null,
           program: { id: "program-1", name: "BSIT" },
-          semester: "2ND",
-          term: "REGULAR",
         },
       },
       id: "response-1",
