@@ -206,10 +206,11 @@ export async function publishCentralDeployment(
         // Use the curated list from preview/exclude flow
         respondentIds = [...new Set(input.respondent_ids)];
       } else if (input.target_stakeholder === "STUDENT") {
-        // Phase 7: Use enrollment-based lookup when term_instance_id is provided
-        if (input.term_instance_id && input.year_level) {
+        // Enrollment-based lookup via student enrollment ledger
+        // Note: term_instance_id is already validated as required at lines 140-145
+        if (input.year_level) {
           const studentsResult = await listStudentsForClass({
-            termInstanceId: input.term_instance_id,
+            termInstanceId: input.term_instance_id!,
             programId,
             yearLevel: input.year_level,
             majorId: input.major_id,
@@ -218,23 +219,6 @@ export async function publishCentralDeployment(
           if (studentsResult.success) {
             respondentIds = studentsResult.data.map((s) => s.userId);
           }
-        } else {
-          // Legacy: Profile-based lookup
-          const whereClause: Record<string, unknown> = {
-            program_id: programId,
-            year_level: input.year_level,
-          };
-
-          if (input.major_id) {
-            whereClause.major_id = input.major_id;
-          }
-
-          const studentProfiles = await tx.studentAcademicProfile.findMany({
-            where: whereClause,
-            select: { user_id: true },
-          });
-
-          respondentIds = [...new Set(studentProfiles.map((p) => p.user_id))];
         }
       } else if (input.target_stakeholder === "ALUMNI") {
         // Find accepted alumni invites scoped to this program

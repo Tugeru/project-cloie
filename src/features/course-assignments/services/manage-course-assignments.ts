@@ -61,26 +61,6 @@ export async function createCourseAssignment(
     return { success: false, error: permission.reason };
   }
 
-  // Check for existing assignment (including inactive ones)
-  const existingAssignment = await prisma.courseAssignment.findFirst({
-    where: {
-      term_instance_id: input.termInstanceId,
-      faculty_id: input.facultyId,
-      course_id: input.courseId,
-      program_id: input.programId,
-      year_level: input.yearLevel,
-      section: input.section ?? null,
-    },
-  });
-
-  if (existingAssignment) {
-    if (existingAssignment.is_active) {
-      return { success: false, error: "An identical active assignment already exists." };
-    } else {
-      return { success: false, error: "An identical inactive assignment exists. Please activate it instead of creating a new one." };
-    }
-  }
-
   try {
     const assignment = await prisma.courseAssignment.create({
       data: {
@@ -97,9 +77,9 @@ export async function createCourseAssignment(
 
     return { success: true, data: { id: assignment.id } };
   } catch (error) {
-    // Handle unique constraint violation
+    // Handle unique constraint violation (database enforces uniqueness)
     if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
-      return { success: false, error: "Assignment already exists for this faculty/course combination." };
+      return { success: false, error: "An identical assignment already exists. If inactive, please activate it instead of creating a new one." };
     }
     return { success: false, error: "Failed to create course assignment." };
   }
@@ -270,6 +250,16 @@ export async function deleteCourseAssignment(
 
 /**
  * Bulk create course assignments with per-row error reporting.
+ *
+ * DESIGN: Partial Success Behavior
+ * - Each assignment is created independently
+ * - Successful creations persist even if some items fail
+ * - Returns detailed per-item error reporting
+ * - Caller receives: { success: boolean, created: number, errors: [...] }
+ * - success=true only when ALL items succeed (errors.length === 0)
+ *
+ * This design prioritizes user experience: users don't lose progress on
+ * successful items when one item in the batch has an issue.
  */
 export async function bulkCreateCourseAssignments(
   inputs: CreateCourseAssignmentInput[]

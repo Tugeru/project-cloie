@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { ROLES } from "@/lib/constants/roles";
-import { isValidSemesterTerm } from "@/lib/constants/academic-period";
+import { isValidSemesterTerm, compareSemesters } from "@/lib/constants/academic-period";
 import { canSetActiveTerm, canDeleteTermInstance } from "../policies";
 import type {
   CreateTermInstanceInput,
@@ -196,7 +196,7 @@ export async function setActiveTermInstance(
     return { success: false, error: "Cannot activate a term in an archived school year" };
   }
 
-  // Get current active term
+  // Get current active for validation (outside transaction is fine for this read-only check)
   const currentActive = await prisma.academicTermInstance.findFirst({
     where: { is_active: true },
     select: { id: true },
@@ -214,11 +214,18 @@ export async function setActiveTermInstance(
   }
 
   // Transaction: clear existing active, set new active
+  // Re-fetch currentActive inside transaction to prevent race conditions with concurrent requests
   const result = await prisma.$transaction(async (tx) => {
-    // Clear existing active
-    if (currentActive) {
+    // Get current active INSIDE transaction to prevent race conditions
+    const currentActiveTx = await tx.academicTermInstance.findFirst({
+      where: { is_active: true },
+      select: { id: true },
+    });
+
+    // Clear existing active (if any) - using the transaction-fetched value
+    if (currentActiveTx) {
       await tx.academicTermInstance.update({
-        where: { id: currentActive.id },
+        where: { id: currentActiveTx.id },
         data: { is_active: false },
       });
     }
@@ -231,7 +238,7 @@ export async function setActiveTermInstance(
 
     return {
       id: updated.id,
-      previousActiveId: currentActive?.id ?? null,
+      previousActiveId: currentActiveTx?.id ?? null,
     };
   });
 
@@ -249,12 +256,10 @@ export async function setActiveTermInstance(
 
   // Find the first term that comes after the activated term
   const nextTerm = allTerms.find((t) => {
-    const semesterOrder = ["FIRST", "SECOND"];
-    const currentSemesterIdx = semesterOrder.indexOf(termInstance.semester);
-    const termSemesterIdx = semesterOrder.indexOf(t.semester);
+    const semesterComparison = compareSemesters(t.semester, termInstance.semester);
 
-    if (termSemesterIdx > currentSemesterIdx) return true;
-    if (termSemesterIdx === currentSemesterIdx && termInstance.term && t.term) {
+    if (semesterComparison > 0) return true;
+    if (semesterComparison === 0 && termInstance.term && t.term) {
       const termOrder = ["FIRST", "SECOND"];
       return termOrder.indexOf(t.term) > termOrder.indexOf(termInstance.term);
     }
