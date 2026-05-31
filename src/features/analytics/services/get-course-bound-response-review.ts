@@ -65,6 +65,11 @@ export async function getCourseBoundResponseReview(
               },
               major: true,
               program: true,
+              term_instance: {
+                include: {
+                  school_year: true,
+                },
+              },
             },
           },
         },
@@ -136,8 +141,14 @@ export async function getCourseBoundResponseReview(
       };
     });
 
+  const ti = evaluation.term_instance;
+  const termLabel = ti.term ? `${ti.term}` : "";
+  const termInstanceLabel = termLabel
+    ? `${ti.school_year.code} — ${ti.semester} — ${termLabel}`
+    : `${ti.school_year.code} — ${ti.semester}`;
+
   return {
-    academicYear: evaluation.academic_year,
+    termInstanceLabel,
     courseTitle: evaluation.course.title,
     evaluationId: evaluation.id,
     evaluationTitle: evaluation.deployment_name ?? evaluation.instrument.template.name,

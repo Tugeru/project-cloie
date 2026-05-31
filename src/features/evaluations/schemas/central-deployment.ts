@@ -1,13 +1,18 @@
-import { AcademicSemester, YearLevel } from "@prisma/client";
+import { AcademicTerm, YearLevel } from "@prisma/client";
 import { z } from "zod";
 
+/**
+ * Phase 9: Schema requires term_instance_id as the source of truth.
+ * Legacy academic_year/semester fields removed.
+ */
 export const publishCentralDeploymentSchema = z
   .object({
     template_id: z.string().uuid(),
     deployment_name: z.string().trim().min(3, "Deployment name must be at least 3 characters."),
     target_stakeholder: z.enum(["STUDENT", "ALUMNI", "INDUSTRY_PARTNER"]),
-    academic_year: z.string().min(1, "Academic year is required."),
-    semester: z.nativeEnum(AcademicSemester),
+    // Phase 9: term_instance_id is required (source of truth)
+    term_instance_id: z.string().uuid(),
+    term: z.nativeEnum(AcademicTerm).optional(),
     major_id: z.string().uuid().optional(),
     year_level: z.nativeEnum(YearLevel).optional(),
     activation_at: z.coerce.date().optional(),

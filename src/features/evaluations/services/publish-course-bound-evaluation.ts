@@ -1,6 +1,7 @@
 import { DeploymentStatus, EvaluationTemplateType, YearLevel } from "@prisma/client";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { getFacultyTemplatePublicationContext } from "@/features/instruments/services/manage-faculty-templates";
+import { listStudentsForClass } from "@/features/enrollments/services/list-students-for-class";
 import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import type {
@@ -41,14 +42,14 @@ function isCourseContextDuplicatePublishError(error: unknown) {
 
   const target = (error as { meta?: { target?: string[] | string } }).meta?.target;
 
-  // Updated for new unique constraint: course_id + faculty_id + academic_year + semester + term + section
+  // Phase 9: Updated for new unique constraint: term_instance_id + course_id + faculty_id + section
   if (typeof target === "string") {
-    return target.includes("course_bound_evaluations_course_id_faculty_id_academic_year_semester_term_section_key");
+    return target.includes("course_bound_evaluations_term_instance_id_course_id_faculty_id_section_key");
   }
 
   if (Array.isArray(target)) {
     const targetSet = new Set(target);
-    return ["course_id", "faculty_id", "academic_year", "semester", "term", "section"].every((field) =>
+    return ["term_instance_id", "course_id", "faculty_id", "section"].every((field) =>
       targetSet.has(field)
     );
   }
@@ -56,19 +57,17 @@ function isCourseContextDuplicatePublishError(error: unknown) {
   return false;
 }
 
+/**
+ * Phase 9: Publish course-bound evaluation using course assignment ID.
+ * Resolves class identity from assignment and creates deployment with term/course FKs.
+ */
 export async function publishCourseBoundEvaluation({
-  academicYear,
+  assignmentId,
   activationAt = null,
   deadlineAt = null,
   deploymentName,
   respondentIds: providedRespondentIds,
-  section,
-  semester,
-  targetPrograms,
-  targetYearLevel,
   templateId,
-  term,
-  yearLevels, // Deprecated fallback
 }: PublishCourseBoundEvaluationInput): Promise<PublishCourseBoundEvaluationResult> {
   const authSession = await resolveAuthSession();
 
@@ -83,32 +82,46 @@ export async function publishCourseBoundEvaluation({
     return { error: "Deployment name is required.", success: false };
   }
 
+  // Lookup the assignment and verify faculty ownership
+  const assignment = await prisma.courseAssignment.findUnique({
+    where: { id: assignmentId },
+    include: {
+      term_instance: {
+        include: {
+          school_year: true,
+        },
+      },
+      course: {
+        include: {
+          major: true,
+        },
+      },
+      program: true,
+    },
+  });
+
+  if (!assignment) {
+    return { error: "Course assignment not found.", success: false };
+  }
+
+  if (assignment.faculty_id !== authSession.userId) {
+    return { error: "You do not have access to this course assignment.", success: false };
+  }
+
+  if (!assignment.is_active) {
+    return { error: "This course assignment is inactive.", success: false };
+  }
+
   const publicationContext = await getFacultyTemplatePublicationContext(templateId);
 
   if (!publicationContext.success) {
     return publicationContext;
   }
 
-  // Support new targetYearLevel, fallback to deprecated yearLevels
-  const effectiveYearLevels: YearLevel[] = targetYearLevel
-    ? [targetYearLevel]
-    : (yearLevels ?? []);
-
-  if (effectiveYearLevels.length === 0) {
+  // Verify the template's course matches the assignment's course
+  if (publicationContext.data.course.id !== assignment.course_id) {
     return {
-      error: "A year level must be selected.",
-      success: false,
-    };
-  }
-
-  // Support new targetPrograms, fallback to publication context's program
-  const normalizedTargetPrograms = targetPrograms && targetPrograms.length > 0
-    ? toUniqueValues(targetPrograms)
-    : [publicationContext.data.programId];
-
-  if (normalizedTargetPrograms.length === 0) {
-    return {
-      error: "At least one target program must be selected.",
+      error: "The selected template is not for this course.",
       success: false,
     };
   }
@@ -151,29 +164,29 @@ export async function publishCourseBoundEvaluation({
 
       const evaluation = await tx.courseBoundEvaluation.create({
         data: {
-          academic_year: academicYear,
+          // Phase 9: term_instance_id is now the source of truth
+          term_instance_id: assignment.term_instance_id,
+          course_assignment_id: assignment.id,
+          section: assignment.section,
           activation_at: activationAt,
           cilos_snapshot: ciloSnapshots,
-          course_id: publicationContext.data.course.id,
+          course_id: assignment.course_id,
           course_info_snapshot: {
-            courseCode: publicationContext.data.course.code,
+            courseCode: assignment.course.code,
             courseScope: publicationContext.data.course.courseType,
-            courseTitle: publicationContext.data.course.title,
-            majorName: publicationContext.data.course.majorName,
-            programCode: publicationContext.data.course.programCode,
-            programName: publicationContext.data.course.programName,
+            courseTitle: assignment.course.title,
+            majorName: assignment.course.major?.name ?? null,
+            programCode: assignment.program.code,
+            programName: assignment.program.name,
           },
           deadline_at: deadlineAt,
           deployment_name: deploymentName.trim(),
           faculty_id: authSession.userId,
           instrument_version_id: latestVersion.id,
-          major_id: publicationContext.data.majorId,
-          program_id: publicationContext.data.programId,
-          section,
+          major_id: assignment.course.major_id,
+          program_id: assignment.program_id,
           published_at: new Date(),
-          semester,
           status,
-          term,
         },
       });
 
@@ -188,45 +201,37 @@ export async function publishCourseBoundEvaluation({
         })),
       });
 
-      // Create target rows: one per (program, year_level) combination
-      const targetRows = normalizedTargetPrograms.flatMap((programId) =>
-        effectiveYearLevels.map((yearLevel) => ({
-          course_bound_evaluation_id: evaluation.id,
-          program_id: programId,
-          year_level: yearLevel,
-        }))
-      );
+      // Create single target row for the assignment's program/year
+      const targetRows = [{
+        course_bound_evaluation_id: evaluation.id,
+        program_id: assignment.program_id,
+        year_level: assignment.year_level,
+      }];
 
       await tx.courseBoundEvaluationTarget.createMany({
         data: targetRows,
       });
 
-      // Determine respondent IDs: use provided list if available, otherwise query based on targeting
+      // Determine respondent IDs
       let respondentIds: string[];
 
       if (providedRespondentIds && providedRespondentIds.length > 0) {
         // Use the confirmed respondent list from preview step
         respondentIds = toUniqueValues(providedRespondentIds);
       } else {
-        // Query students based on targeting criteria
-        const studentProfiles = await tx.studentAcademicProfile.findMany({
-          where: {
-            academic_year: academicYear,
-            program_id: {
-              in: normalizedTargetPrograms,
-            },
-            year_level: { in: effectiveYearLevels },
-            // For major-specific courses, enforce major match
-            ...(publicationContext.data.majorId ? { major_id: publicationContext.data.majorId } : {}),
-            // For section-specific publications, enforce section match
-            ...(section ? { section } : {}),
-          },
-          select: {
-            user_id: true,
-          },
+        // Query students from enrollment ledger
+        const studentsResult = await listStudentsForClass({
+          termInstanceId: assignment.term_instance_id,
+          programId: assignment.program_id,
+          yearLevel: assignment.year_level,
+          section: assignment.section,
         });
 
-        respondentIds = toUniqueValues(studentProfiles.map((profile) => profile.user_id));
+        if (!studentsResult.success) {
+          throw new Error(studentsResult.error);
+        }
+
+        respondentIds = studentsResult.data.map((s) => s.userId);
       }
 
       if (respondentIds.length > 0) {
@@ -249,13 +254,17 @@ export async function publishCourseBoundEvaluation({
 
     return result;
   } catch (error) {
-    if (isCourseContextDuplicatePublishError(error)) {
+    if (isUniqueConstraintError(error)) {
       return {
-        error: "An evaluation is already published for this course context.",
+        error: `An evaluation is already published for ${assignment.course.code} - ${assignment.year_level}${assignment.section ? ` - ${assignment.section}` : ""}.`,
         success: false,
       };
     }
 
-    throw error;
+    console.error("Failed to publish course-bound evaluation (V2):", error);
+    return {
+      error: "Failed to publish evaluation. Please try again.",
+      success: false,
+    };
   }
 }

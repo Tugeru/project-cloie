@@ -34,42 +34,59 @@ export type FacultyCourseWithCilosResult =
 // Service
 // ---------------------------------------------------------------------------
 
-export async function listFacultyCoursesWithCilos(): Promise<FacultyCourseWithCilosResult> {
+/**
+ * List faculty courses with CILO counts.
+ * If termInstanceId is provided, returns courses assigned to faculty for that term.
+ * Otherwise, falls back to program-affiliated courses (legacy behavior).
+ */
+export async function listFacultyCoursesWithCilos(
+  termInstanceId?: string
+): Promise<FacultyCourseWithCilosResult> {
   const session = await resolveAuthSession();
 
   if (!session || !session.roles.includes(ROLES.FACULTY)) {
     return { success: false, error: "Faculty authentication is required." };
   }
 
-  // Resolve faculty's active program affiliations
-  const affiliations = await prisma.facultyProgramAffiliation.findMany({
-    where: {
-      faculty_id: session.userId,
-      is_active: true,
-    },
-    select: {
-      program: {
-        select: {
-          id: true,
-          code: true,
-          name: true,
-        },
-      },
-    },
-  });
+  let courseIds: string[] = [];
 
-  if (affiliations.length === 0) {
-    return { success: false, error: "No active program affiliation found." };
+  if (termInstanceId) {
+    // Get courses from assignments for this term
+    const assignments = await prisma.courseAssignment.findMany({
+      where: {
+        faculty_id: session.userId,
+        term_instance_id: termInstanceId,
+        is_active: true,
+      },
+      select: { course_id: true },
+    });
+    courseIds = assignments.map((a) => a.course_id);
+
+    if (courseIds.length === 0) {
+      return { success: true, courses: [], programs: [] };
+    }
+  } else {
+    // All terms: return distinct courses the faculty is assigned to across all terms
+    const assignments = await prisma.courseAssignment.findMany({
+      where: {
+        faculty_id: session.userId,
+        is_active: true,
+      },
+      select: { course_id: true },
+      distinct: ["course_id"],
+    });
+    courseIds = assignments.map((a) => a.course_id);
+
+    if (courseIds.length === 0) {
+      return { success: true, courses: [], programs: [] };
+    }
   }
 
-  const programs = affiliations.map((a) => a.program);
-  const programIds = programs.map((p) => p.id);
-
-  // Fetch courses: program-affiliated courses + general education courses
+  // Fetch full course details with CILO counts
   const rawCourses = await prisma.course.findMany({
     where: {
+      id: { in: courseIds },
       is_active: true,
-      OR: [{ program_id: { in: programIds } }, { course_scope: CourseScope.GENERAL_EDUCATION }],
     },
     include: {
       program: { select: { id: true, code: true, name: true } },
@@ -77,6 +94,14 @@ export async function listFacultyCoursesWithCilos(): Promise<FacultyCourseWithCi
       _count: { select: { cilos: true } },
     },
     orderBy: { code: "asc" },
+  });
+
+  // Build unique programs list
+  const programsMap = new Map<string, { id: string; code: string; name: string }>();
+  rawCourses.forEach((c) => {
+    if (c.program) {
+      programsMap.set(c.program.id, c.program);
+    }
   });
 
   const courses: FacultyCourseWithCiloCount[] = rawCourses.map((c) => {
@@ -103,5 +128,5 @@ export async function listFacultyCoursesWithCilos(): Promise<FacultyCourseWithCi
     };
   });
 
-  return { success: true, courses, programs };
+  return { success: true, courses, programs: Array.from(programsMap.values()) };
 }

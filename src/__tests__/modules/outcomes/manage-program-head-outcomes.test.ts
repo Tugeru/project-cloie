@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ROLES } from "@/lib/constants/roles";
 
 const {
+  goAggregateMock,
   goCreateMock,
   goDeleteMock,
   goFindManyMock,
@@ -14,6 +15,7 @@ const {
   transactionMock,
   courseFindManyMock,
 } = vi.hoisted(() => ({
+  goAggregateMock: vi.fn(),
   goCreateMock: vi.fn(),
   goDeleteMock: vi.fn(),
   goFindManyMock: vi.fn(),
@@ -29,6 +31,7 @@ const {
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
     gO: {
+      aggregate: goAggregateMock,
       create: goCreateMock,
       delete: goDeleteMock,
       findMany: goFindManyMock,
@@ -134,6 +137,7 @@ describe("manage-program-head-outcomes", () => {
   // ─── createGO ────────────────────────────────────────────────────────
 
   it("PH can create a GO within assigned program", async () => {
+    goAggregateMock.mockResolvedValue({ _max: { order: null } });
     goCreateMock.mockResolvedValue({ id: GO_ID });
 
     const result = await createGO({
@@ -146,6 +150,7 @@ describe("manage-program-head-outcomes", () => {
       data: {
         code: "GO-1",
         description: "Critical Thinking",
+        order: 0,
         program_id: PROGRAM_ID,
       },
     });
@@ -158,7 +163,6 @@ describe("manage-program-head-outcomes", () => {
     const result = await createGO({
       code: "GO-1",
       description: "Critical Thinking",
-      order: 0,
     });
 
     expect(result).toEqual({
@@ -169,12 +173,12 @@ describe("manage-program-head-outcomes", () => {
   });
 
   it("unique constraint error on duplicate GO code within program", async () => {
+    goAggregateMock.mockResolvedValue({ _max: { order: null } });
     goCreateMock.mockRejectedValue({ code: "P2002" });
 
     const result = await createGO({
       code: "GO-1",
       description: "Duplicate GO",
-      order: 0,
     });
 
     expect(result).toEqual({
@@ -218,7 +222,6 @@ describe("manage-program-head-outcomes", () => {
       id: GO_ID,
       code: "GO-1",
       description: "Attempt update",
-      order: 0,
     });
 
     expect(result).toEqual({
@@ -287,7 +290,7 @@ describe("manage-program-head-outcomes", () => {
     const result = await reorderGOs(["go-2", "go-1"]);
 
     expect(result).toEqual({ success: true, data: undefined });
-    expect(transactionMock).not.toHaveBeenCalled();
+    expect(transactionMock).toHaveBeenCalled();
   });
 
   // ─── Auth guards ─────────────────────────────────────────────────────
@@ -298,7 +301,6 @@ describe("manage-program-head-outcomes", () => {
     const result = await createGO({
       code: "GO-1",
       description: "Test",
-      order: 0,
     });
 
     expect(result).toEqual({
@@ -317,7 +319,6 @@ describe("manage-program-head-outcomes", () => {
     const result = await createGO({
       code: "GO-1",
       description: "Test",
-      order: 0,
     });
 
     expect(result).toEqual({

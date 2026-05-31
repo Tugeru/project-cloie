@@ -23,6 +23,8 @@ import {
 } from "@/components/ui/table";
 import { showToast } from "@/components/ui/toast";
 import type { FacultyPublishedEvaluationItem } from "../types";
+import { getYearLevelDisplay } from "@/lib/constants/year-levels";
+import { YearLevel } from "@prisma/client";
 import { EvaluationDetailDialog } from "./evaluation-detail-dialog";
 import { CloseEvaluationDialog } from "./close-evaluation-dialog";
 import {
@@ -47,18 +49,6 @@ function formatDate(date: Date | string | null): string {
   });
 }
 
-function formatSemester(semester: string): string {
-  if (semester === "FIRST" || semester === "1ST") return "1st Sem";
-  if (semester === "SECOND" || semester === "2ND") return "2nd Sem";
-  if (semester === "SUMMER") return "Summer";
-  return semester;
-}
-
-function formatTerm(term: string): string {
-  if (term === "FIRST_TERM") return "1st Term";
-  if (term === "SECOND_TERM") return "2nd Term";
-  return term;
-}
 
 function getStatusColor(status: string): string {
   switch (status) {
@@ -235,9 +225,7 @@ export function FacultyPublishedEvaluationsTable({
                         </div>
                       </TableCell>
                       <TableCell className="text-muted-foreground text-sm">
-                        {evalItem.academicYear}
-                        <br />
-                        {formatSemester(evalItem.semester)} • {formatTerm(evalItem.term)}
+                        {evalItem.termInstanceLabel}
                       </TableCell>
                       <TableCell>
                         <Badge className={getStatusColor(evalItem.status)}>
@@ -344,7 +332,7 @@ export function FacultyPublishedEvaluationsTable({
                                 ) : (
                                   evalItem.targetYearLevels.map((level, idx) => (
                                     <Badge key={idx} variant="outline" className="text-xs">
-                                      {level}
+                                      {getYearLevelDisplay(level as YearLevel)}
                                     </Badge>
                                   ))
                                 )}

@@ -1,0 +1,442 @@
+"use client";
+
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent } from "@/components/ui/card";
+import { showToast } from "@/components/ui/toast";
+import type {
+  PreviewCourseBoundRespondentsInput,
+  PreviewCourseBoundRespondentsResult,
+  PreviewRespondent,
+  PublishCourseBoundEvaluationInput,
+  PublishCourseBoundEvaluationResult,
+} from "@/features/evaluations/types";
+import type { TemplateStructure } from "@/features/instruments/types";
+import { AssignmentPicker, type AssignmentOption } from "./assignment-picker";
+
+type PublicationContext = {
+  bindings: Array<{
+    ciloDescriptionSnapshot: string;
+    ciloId: string;
+    itemKey: string;
+    questionPromptSnapshot: string;
+    sectionKey: string;
+  }>;
+  cilos: Array<{ description: string; id: string }>;
+  course: {
+    code: string;
+    id: string;
+    title: string;
+  };
+  template: {
+    id: string;
+    name: string;
+    structure: TemplateStructure;
+  };
+};
+
+type Step = "configure" | "preview";
+
+interface PublishCourseBoundEvaluationFormV2Props {
+  assignments: AssignmentOption[];
+  previewAction: (
+    payload: PreviewCourseBoundRespondentsInput
+  ) => Promise<PreviewCourseBoundRespondentsResult>;
+  publicationContext: PublicationContext;
+  publishAction: (
+    payload: PublishCourseBoundEvaluationInput
+  ) => Promise<PublishCourseBoundEvaluationResult>;
+}
+
+/**
+ * Phase 6: Simplified publish form using course assignment picker.
+ * Removes manual AY/semester/term inputs in favor of assignment selection.
+ */
+export function PublishCourseBoundEvaluationFormV2({
+  assignments,
+  previewAction,
+  publicationContext,
+  publishAction,
+}: PublishCourseBoundEvaluationFormV2Props) {
+  // Step state
+  const [step, setStep] = useState<Step>("configure");
+
+  // Form fields
+  const [deploymentName, setDeploymentName] = useState("");
+  const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
+  const [activationSchedule, setActivationSchedule] = useState("");
+  const [deadline, setDeadline] = useState("");
+
+  // Preview state
+  const [previewRespondents, setPreviewRespondents] = useState<PreviewRespondent[]>([]);
+  const [excludedRespondentIds, setExcludedRespondentIds] = useState<string[]>([]);
+  const [isLoadingPreview, setIsLoadingPreview] = useState(false);
+
+  // Status
+  const [error, setError] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const router = useRouter();
+
+  const fallbackPublishErrorMessage = "Unable to publish evaluation right now. Please try again.";
+
+  // Get selected assignment details
+  const selectedAssignment = assignments.find((a) => a.id === selectedAssignmentId);
+
+  const bindingByCiloId = new Map(
+    publicationContext.bindings.map((binding) => [binding.ciloId, binding])
+  );
+
+  // Build a lookup from sectionKey:itemKey → { sectionIndex, sectionTitle, questionIndex }
+  const questionLocationMap = new Map<
+    string,
+    { sectionIndex: number; sectionTitle: string; questionIndex: number }
+  >();
+  for (const [sIdx, section] of publicationContext.template.structure.entries()) {
+    for (const [qIdx, question] of section.questions.entries()) {
+      questionLocationMap.set(`${section.key}:${question.key}`, {
+        sectionIndex: sIdx + 1,
+        sectionTitle: section.title,
+        questionIndex: qIdx + 1,
+      });
+    }
+  }
+
+  const handleExcludeRespondent = (userId: string, excluded: boolean) => {
+    setExcludedRespondentIds((previous) => {
+      if (excluded) {
+        if (previous.includes(userId)) return previous;
+        return [...previous, userId];
+      }
+      return previous.filter((id) => id !== userId);
+    });
+  };
+
+  const validateConfiguration = (): boolean => {
+    if (!deploymentName.trim()) {
+      const message = "Please provide a deployed evaluation name.";
+      setError(message);
+      showToast(message, "error");
+      return false;
+    }
+
+    if (!selectedAssignmentId) {
+      const message = "Please select a class assignment.";
+      setError(message);
+      showToast(message, "error");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handlePreview = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError(null);
+
+    if (!validateConfiguration()) return;
+
+    setIsLoadingPreview(true);
+
+    try {
+      const result = await previewAction({
+        assignmentId: selectedAssignmentId!,
+      });
+
+      if (!result.success) {
+        setError(result.error);
+        showToast(result.error, "error");
+        return;
+      }
+
+      setPreviewRespondents(result.respondents);
+      setExcludedRespondentIds([]);
+      setStep("preview");
+    } catch {
+      setError("Unable to load respondent preview. Please try again.");
+      showToast("Unable to load respondent preview. Please try again.", "error");
+    } finally {
+      setIsLoadingPreview(false);
+    }
+  };
+
+  const handlePublishFinal = async () => {
+    setError(null);
+    setIsSubmitting(true);
+
+    // Calculate final respondent list (excluding unchecked respondents)
+    const finalRespondentIds = previewRespondents
+      .filter((r) => !excludedRespondentIds.includes(r.userId))
+      .map((r) => r.userId);
+
+    const payload: PublishCourseBoundEvaluationInput = {
+      assignmentId: selectedAssignmentId!,
+      activationAt: activationSchedule ? new Date(activationSchedule) : null,
+      deadlineAt: deadline ? new Date(deadline) : null,
+      deploymentName: deploymentName.trim(),
+      respondentIds: finalRespondentIds,
+      templateId: publicationContext.template.id,
+    };
+
+    try {
+      const result = await publishAction(payload);
+
+      if (!result.success) {
+        setError(result.error);
+        showToast(result.error, "error");
+        return;
+      }
+
+      const toastMessage = `Evaluation published successfully! ${result.assignmentCount} assignment(s) created.`;
+      router.push(`/faculty/tools?toast=${encodeURIComponent(toastMessage)}`);
+      return;
+    } catch {
+      setError(fallbackPublishErrorMessage);
+      showToast(fallbackPublishErrorMessage, "error");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleBack = () => {
+    setStep("configure");
+    setExcludedRespondentIds([]);
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold">Publish CILO Evaluation</h1>
+        <p className="text-text-muted text-sm">
+          Select a class assignment to target the right students. The course context and
+          CILO-to-question bindings come from the saved faculty template.
+        </p>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+        <section className="border-border bg-surface space-y-4 rounded-xl border p-5">
+          <div className="space-y-1">
+            <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
+              Template
+            </p>
+            <h2 className="text-text-primary text-lg font-semibold">
+              {publicationContext.template.name}
+            </h2>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="space-y-1">
+              <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
+                Course
+              </p>
+              <p className="text-text-primary text-sm">
+                {publicationContext.course.code} - {publicationContext.course.title}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-base font-semibold">Saved CILO Bindings</h3>
+                <p className="text-text-muted text-sm">
+                  These bindings were saved in the template builder and will be frozen into the
+                  published evaluation.
+                </p>
+              </div>
+              <Button asChild type="button" variant="outline">
+                <Link href={`/faculty/tools/${publicationContext.template.id}/edit`}>
+                  Edit Template
+                </Link>
+              </Button>
+            </div>
+
+            <ol className="space-y-3">
+              {publicationContext.cilos.map((cilo, index) => {
+                const binding = bindingByCiloId.get(cilo.id);
+
+                return (
+                  <li key={cilo.id} className="border-border rounded-lg border p-4">
+                    <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
+                      CILO {index + 1}
+                    </p>
+                    <p className="text-text-primary mt-2 text-sm">{cilo.description}</p>
+                    {binding && (() => {
+                      const location = questionLocationMap.get(
+                        `${binding.sectionKey}:${binding.itemKey}`
+                      );
+                      return (
+                        <div className="bg-surface-container-low mt-3 rounded-md p-3">
+                          <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
+                            {location
+                              ? `Section ${location.sectionIndex}: ${location.sectionTitle} · Question ${location.questionIndex}`
+                              : "Bound Likert Question"}
+                          </p>
+                          <p className="text-text-primary mt-1 text-sm">
+                            {binding.questionPromptSnapshot}
+                          </p>
+                        </div>
+                      );
+                    })()}
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        </section>
+
+        {step === "configure" ? (
+          <form
+            className="border-border bg-surface space-y-6 rounded-xl border p-5"
+            onSubmit={handlePreview}
+          >
+            <div className="space-y-2">
+              <Label htmlFor="deployment-name">Deployed Evaluation Name</Label>
+              <Input
+                id="deployment-name"
+                placeholder="e.g. IT 401 Post-Term CILO Evaluation"
+                value={deploymentName}
+                onChange={(event) => setDeploymentName(event.target.value)}
+              />
+            </div>
+
+            <AssignmentPicker
+              assignments={assignments}
+              value={selectedAssignmentId}
+              onChange={setSelectedAssignmentId}
+              label="Class Assignment"
+              placeholder="Select a class..."
+            />
+
+            {selectedAssignment && (
+              <Card className="bg-surface-container-low">
+                <CardContent className="pt-6 space-y-2">
+                  <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
+                    Selected Class
+                  </p>
+                  <p className="text-text-primary font-medium">
+                    {selectedAssignment.courseCode} - {selectedAssignment.courseTitle}
+                  </p>
+                  <p className="text-text-secondary text-sm">
+                    {selectedAssignment.programCode} — {" "}
+                    {selectedAssignment.yearLevel.replace("_", " ").toLowerCase()}
+                    {selectedAssignment.section ? ` — ${selectedAssignment.section}` : ""}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="flex flex-col gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="activation">Activation (optional)</Label>
+                <Input
+                  id="activation"
+                  type="datetime-local"
+                  value={activationSchedule}
+                  onChange={(event) => setActivationSchedule(event.target.value)}
+                />
+                <p className="text-text-muted text-xs">
+                  Leave blank to activate immediately.
+                </p>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="deadline">Deadline (optional)</Label>
+                <Input
+                  id="deadline"
+                  type="datetime-local"
+                  value={deadline}
+                  onChange={(event) => setDeadline(event.target.value)}
+                />
+                <p className="text-text-muted text-xs">
+                  Optional. Respondents cannot submit after this deadline.
+                </p>
+              </div>
+            </div>
+
+            {error && (
+              <div className="bg-destructive/10 text-destructive rounded-lg p-3 text-sm">
+                {error}
+              </div>
+            )}
+
+            <Button
+              type="submit"
+              className="w-full"
+              disabled={isLoadingPreview || !selectedAssignmentId}
+            >
+              {isLoadingPreview ? "Loading Preview..." : "Preview Respondents"}
+            </Button>
+          </form>
+        ) : (
+          <div className="border-border bg-surface space-y-6 rounded-xl border p-5">
+            <div className="space-y-2">
+              <h3 className="text-lg font-semibold">Respondent Preview</h3>
+              <p className="text-text-muted text-sm">
+                {previewRespondents.length} student(s) will receive this evaluation.
+                Uncheck any students you wish to exclude.
+              </p>
+            </div>
+
+            <div className="max-h-96 space-y-2 overflow-y-auto">
+              {previewRespondents.map((respondent) => (
+                <label
+                  key={respondent.userId}
+                  className="border-border flex items-start gap-3 rounded-lg border p-3 cursor-pointer hover:bg-surface-container-low"
+                >
+                  <input
+                    type="checkbox"
+                    checked={!excludedRespondentIds.includes(respondent.userId)}
+                    onChange={(e) =>
+                      handleExcludeRespondent(respondent.userId, !e.target.checked)
+                    }
+                    className="mt-1 h-4 w-4"
+                  />
+                  <div className="flex-1">
+                    <p className="font-medium">
+                      {respondent.firstName} {respondent.lastName}
+                    </p>
+                    <p className="text-text-secondary text-sm">{respondent.email}</p>
+                    <p className="text-text-muted text-xs">
+                      {respondent.programCode} — {respondent.yearLevel.replace("_", " ").toLowerCase()}
+                      {respondent.section ? ` — ${respondent.section}` : ""}
+                    </p>
+                  </div>
+                </label>
+              ))}
+            </div>
+
+            {error && (
+              <div className="bg-destructive/10 text-destructive rounded-lg p-3 text-sm">
+                {error}
+              </div>
+            )}
+
+            <div className="flex gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleBack}
+                disabled={isSubmitting}
+              >
+                Back
+              </Button>
+              <Button
+                type="button"
+                className="flex-1"
+                onClick={handlePublishFinal}
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Publishing..." : "Publish Evaluation"}
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

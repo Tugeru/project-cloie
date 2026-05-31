@@ -81,13 +81,6 @@ function getTargetStakeholderBadgeClass(stakeholder: string): string {
   }
 }
 
-function formatSemester(semester: string): string {
-  if (semester === "FIRST" || semester === "1ST") return "1st Sem";
-  if (semester === "SECOND" || semester === "2ND") return "2nd Sem";
-  if (semester === "SUMMER") return "Summer";
-  return semester;
-}
-
 export function ProgramHeadToolsPage({
   templates,
   deployments,
@@ -344,8 +337,8 @@ function TemplateCard({ template }: { template: ProgramHeadTemplateItem }) {
           <DialogHeader>
             <DialogTitle>Delete Template</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete <span className="font-semibold">{template.name}</span>{" "}
-              ({template.code})? This action cannot be undone.
+              Are you sure you want to delete <span className="font-semibold">{template.name}</span>?{" "}
+              This action cannot be undone.
             </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end gap-2 pt-4">
@@ -650,7 +643,7 @@ function DeploymentAccordionRow({
 
         {/* Academic Period */}
         <div className="text-muted-foreground text-sm">
-          {deployment.academic_year} - {formatSemester(deployment.semester)}
+          {deployment.termInstanceLabel ?? "—"}
         </div>
 
         {/* Status */}

@@ -2,6 +2,7 @@ import { TargetStakeholder } from "@prisma/client";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
+import { listStudentsForClass } from "@/features/enrollments/services/list-students-for-class";
 import type {
   PreviewCentralDeploymentInput,
   PreviewCentralDeploymentRespondent,
@@ -67,42 +68,39 @@ export async function previewCentralDeploymentRespondents(
 async function previewStudents(
   input: PreviewCentralDeploymentInput
 ): Promise<PreviewCentralDeploymentRespondent[]> {
-  const whereClause: Record<string, unknown> = {
-    program_id: input.programId,
-  };
+  // Phase 7: Use enrollment-based lookup when termInstanceId is provided
+  if (input.termInstanceId && input.yearLevel) {
+    const studentsResult = await listStudentsForClass({
+      termInstanceId: input.termInstanceId,
+      programId: input.programId,
+      yearLevel: input.yearLevel,
+      majorId: input.majorId,
+    });
 
-  if (input.yearLevel) {
-    whereClause.year_level = input.yearLevel;
+    if (!studentsResult.success) {
+      return [];
+    }
+
+    // Get program code for mapping
+    const program = await prisma.program.findUnique({
+      where: { id: input.programId },
+      select: { code: true },
+    });
+
+    return studentsResult.data.map((student) => ({
+      email: student.email,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      majorName: student.majorName,
+      programCode: program?.code ?? null,
+      stakeholderType: TargetStakeholder.STUDENT,
+      studentId: student.studentIdNumber,
+      userId: student.userId,
+      yearLevel: input.yearLevel ?? null,
+    }));
   }
 
-  if (input.majorId) {
-    whereClause.major_id = input.majorId;
-  }
-
-  const profiles = await prisma.studentAcademicProfile.findMany({
-    where: whereClause,
-    include: {
-      user: {
-        select: { id: true, email: true, first_name: true, last_name: true },
-      },
-      program: { select: { code: true } },
-      major: { select: { name: true } },
-    },
-    orderBy: { user: { last_name: "asc" } },
-  });
-
-  return profiles.map((p) => ({
-    email: p.user.email,
-    firstName: p.user.first_name,
-    lastName: p.user.last_name,
-    majorName: p.major?.name ?? null,
-    programCode: p.program.code,
-    section: p.section,
-    stakeholderType: TargetStakeholder.STUDENT,
-    studentId: p.student_id_number,
-    userId: p.user.id,
-    yearLevel: p.year_level,
-  }));
+  return [];
 }
 
 // ─── Alumni Preview ───────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { listStudentsForClass } from "@/features/enrollments/services/list-students-for-class";
 import type { PublishCentralDeploymentInput } from "../schemas/central-deployment";
 import {
   DeploymentStatus,
@@ -134,15 +135,25 @@ export async function publishCentralDeployment(
   const status = computeDeploymentStatus(input.activation_at);
 
   // 7. Check for duplicate deployment
+  // Phase 7: If term_instance_id provided, use it for duplicate check
+  // Phase 9: term_instance_id is now required for duplicate checking
+  if (!input.term_instance_id) {
+    return {
+      success: false,
+      error: "term_instance_id is required.",
+    };
+  }
+
+  const duplicateWhereClause = {
+    instrument_version_id: latestVersion.id,
+    program_id: programId,
+    target_stakeholder: input.target_stakeholder as TargetStakeholder,
+    year_level: input.year_level ?? null,
+    term_instance_id: input.term_instance_id,
+  };
+
   const existingDeployment = await prisma.centralDeployment.findFirst({
-    where: {
-      instrument_version_id: latestVersion.id,
-      program_id: programId,
-      target_stakeholder: input.target_stakeholder as TargetStakeholder,
-      academic_year: input.academic_year,
-      semester: input.semester as AcademicSemester,
-      year_level: input.year_level ?? null,
-    },
+    where: duplicateWhereClause,
     select: { id: true },
   });
 
@@ -154,10 +165,24 @@ export async function publishCentralDeployment(
     };
   }
 
+  // Phase 9: Resolve term details for display
+  const termInstance = await prisma.academicTermInstance.findUnique({
+    where: { id: input.term_instance_id! },
+    include: { school_year: true },
+  });
+
+  if (!termInstance) {
+    return {
+      success: false,
+      error: "Term instance not found.",
+    };
+  }
+
   // 8. Transaction: create deployment + assignments
   try {
     const result = await prisma.$transaction(async (tx) => {
       // 8a. Create the CentralDeployment record
+      // Phase 9: term_instance_id is now the source of truth
       const deployment = await tx.centralDeployment.create({
         data: {
           instrument_version_id: latestVersion.id,
@@ -166,8 +191,8 @@ export async function publishCentralDeployment(
           major_id: input.major_id ?? null,
           year_level: input.year_level ?? null,
           target_stakeholder: input.target_stakeholder as TargetStakeholder,
-          academic_year: input.academic_year,
-          semester: input.semester as AcademicSemester,
+          term_instance_id: input.term_instance_id!,
+          term: termInstance.term,
           activation_at: input.activation_at ?? null,
           deadline_at: input.deadline_at ?? null,
           status,
@@ -181,21 +206,20 @@ export async function publishCentralDeployment(
         // Use the curated list from preview/exclude flow
         respondentIds = [...new Set(input.respondent_ids)];
       } else if (input.target_stakeholder === "STUDENT") {
-        const whereClause: Record<string, unknown> = {
-          program_id: programId,
-          year_level: input.year_level,
-        };
+        // Enrollment-based lookup via student enrollment ledger
+        // Note: term_instance_id is already validated as required at lines 140-145
+        if (input.year_level) {
+          const studentsResult = await listStudentsForClass({
+            termInstanceId: input.term_instance_id!,
+            programId,
+            yearLevel: input.year_level,
+            majorId: input.major_id,
+          });
 
-        if (input.major_id) {
-          whereClause.major_id = input.major_id;
+          if (studentsResult.success) {
+            respondentIds = studentsResult.data.map((s) => s.userId);
+          }
         }
-
-        const studentProfiles = await tx.studentAcademicProfile.findMany({
-          where: whereClause,
-          select: { user_id: true },
-        });
-
-        respondentIds = [...new Set(studentProfiles.map((p) => p.user_id))];
       } else if (input.target_stakeholder === "ALUMNI") {
         // Find accepted alumni invites scoped to this program
         const invites = await tx.externalStakeholderInvite.findMany({

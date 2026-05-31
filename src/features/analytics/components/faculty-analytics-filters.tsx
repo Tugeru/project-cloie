@@ -1,6 +1,5 @@
 "use client";
 
-import { AcademicSemester, AcademicTerm } from "@prisma/client";
 import {
   Select,
   SelectContent,
@@ -18,18 +17,6 @@ type FacultyAnalyticsFiltersProps = {
   availableAcademicYears: string[];
   availableCourses: { id: string; label: string }[];
 };
-
-const SEMESTER_OPTIONS = [
-  { value: "FIRST", label: "First Semester" },
-  { value: "SECOND", label: "Second Semester" },
-  { value: "SUMMER", label: "Summer" },
-];
-
-const TERM_OPTIONS = [
-  { value: "FIRST_TERM", label: "First Term" },
-  { value: "SECOND_TERM", label: "Second Term" },
-  { value: "WHOLE_SEMESTER", label: "Whole Semester" },
-];
 
 const STATUS_OPTIONS = [
   { value: "ACTIVE", label: "Active" },
@@ -49,22 +36,20 @@ export function FacultyAnalyticsFilters({
   };
 
   const hasFilters =
-    filters.academicYear ||
-    filters.semester ||
-    filters.term ||
+    filters.schoolYearCode ||
     (filters.courseIds && filters.courseIds.length > 0) ||
     (filters.statuses && filters.statuses.length > 0);
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {/* Academic Year */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {/* School Year */}
         <div className="space-y-2">
-          <label className="text-xs font-medium">Academic Year</label>
+          <label className="text-xs font-medium">School Year</label>
           <Select
-            value={filters.academicYear ?? "all"}
+            value={filters.schoolYearCode ?? "all"}
             onValueChange={(value) =>
-              onChange({ ...filters, academicYear: value === "all" || !value ? undefined : value })
+              onChange({ ...filters, schoolYearCode: value === "all" || !value ? undefined : value })
             }
           >
             <SelectTrigger>
@@ -75,58 +60,6 @@ export function FacultyAnalyticsFilters({
               {availableAcademicYears.map((year) => (
                 <SelectItem key={year} value={year}>
                   {year}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Semester */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium">Semester</label>
-          <Select
-            value={filters.semester ?? "all"}
-            onValueChange={(value) =>
-              onChange({
-                ...filters,
-                semester: value === "all" ? undefined : (value as AcademicSemester),
-              })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="All Semesters" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Semesters</SelectItem>
-              {SEMESTER_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Term */}
-        <div className="space-y-2">
-          <label className="text-xs font-medium">Term</label>
-          <Select
-            value={filters.term ?? "all"}
-            onValueChange={(value) =>
-              onChange({
-                ...filters,
-                term: value === "all" ? undefined : (value as AcademicTerm),
-              })
-            }
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="All Terms" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Terms</SelectItem>
-              {TERM_OPTIONS.map((opt) => (
-                <SelectItem key={opt.value} value={opt.value}>
-                  {opt.label}
                 </SelectItem>
               ))}
             </SelectContent>

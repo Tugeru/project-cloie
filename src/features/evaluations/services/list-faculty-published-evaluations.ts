@@ -67,6 +67,11 @@ export async function listFacultyPublishedEvaluations(): Promise<ListFacultyPubl
           assignments: true,
         },
       },
+      term_instance: {
+        include: {
+          school_year: true,
+        },
+      },
       assignments: {
         where: {
           response: {
@@ -93,8 +98,14 @@ export async function listFacultyPublishedEvaluations(): Promise<ListFacultyPubl
       programName?: string;
     } | null;
 
+    const ti = evalItem.term_instance;
+    const termLabel = ti.term ? `${ti.term}` : "";
+    const termInstanceLabel = termLabel
+      ? `${ti.school_year.code} — ${ti.semester} — ${termLabel}`
+      : `${ti.school_year.code} — ${ti.semester}`;
+
     return {
-      academicYear: evalItem.academic_year,
+      termInstanceLabel,
       activationAt: evalItem.activation_at,
       courseCode: courseInfoSnapshot?.courseCode ?? evalItem.course.code,
       courseId: evalItem.course.id,
@@ -110,12 +121,10 @@ export async function listFacultyPublishedEvaluations(): Promise<ListFacultyPubl
       programName: courseInfoSnapshot?.programName ?? evalItem.program.name,
       publishedAt: evalItem.published_at,
       responseCount: evalItem.assignments.length,
-      semester: evalItem.semester,
       status: evalItem.status,
       targetYearLevels: evalItem.targets
         .map((t) => t.year_level)
         .filter((yl): yl is NonNullable<typeof yl> => yl !== null),
-      term: evalItem.term,
       totalAssignments: evalItem._count.assignments,
     };
   });

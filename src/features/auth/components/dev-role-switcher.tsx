@@ -23,14 +23,15 @@ function useDraggable() {
 
   useEffect(() => {
     const saved = window.localStorage.getItem("cloie-dev-switcher-pos");
-    if (saved) {
+    if (!saved) return;
+    queueMicrotask(() => {
       try {
         const parsed = JSON.parse(saved) as { x: number; y: number };
         setPosition(parsed);
       } catch {
         // ignore
       }
-    }
+    });
   }, []);
 
   const onPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
@@ -107,17 +108,19 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
 
   const isDemoMode =
     process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_DEMO_MODE === "true";
-  if (!isDemoMode) {
-    return null;
-  }
 
   useEffect(() => {
+    if (!isDemoMode) return;
     const storedValue = window.localStorage.getItem("cloie-dev-role-switcher-expanded");
 
     if (storedValue === "true") {
-      setIsExpanded(true);
+      queueMicrotask(() => setIsExpanded(true));
     }
-  }, []);
+  }, [isDemoMode]);
+
+  if (!isDemoMode) {
+    return null;
+  }
 
   const toggleExpanded = () => {
     if (isDragging.current) return;

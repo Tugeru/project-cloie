@@ -3,7 +3,9 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CourseScope } from "@prisma/client";
-import { Archive, Edit, Plus, Search } from "lucide-react";
+import { Archive, Edit, Plus, Search, Users } from "lucide-react";
+import { TermInstancePicker } from "@/features/academic-calendar/components/term-instance-picker";
+import { CourseRowAssignmentsSheet } from "@/features/course-assignments/components/course-row-assignments-sheet";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,12 +42,14 @@ import type {
   ProgramHeadCourseItem,
   ProgramHeadCourseSummary,
 } from "../services/resolve-program-head-courses";
+import type { TermInstanceItem } from "@/features/academic-calendar/types";
 
 type ProgramHeadCoursesCatalogProps = {
   courses: ProgramHeadCourseItem[];
   summary: ProgramHeadCourseSummary;
   programs: Array<{ id: string; code: string; name: string }>;
   majors: Array<{ id: string; name: string; program_id: string }>;
+  termInstances: TermInstanceItem[];
 };
 
 type CourseFormMode = "create" | "edit";
@@ -244,7 +248,9 @@ function CourseFormDialog({
               onValueChange={(v) => setScopeType(v as "program-wide" | "major-specific")}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select scope" />
+                <SelectValue>
+                  {scopeType === "program-wide" ? "Program-Wide" : "Major-Specific"}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="program-wide">Program-Wide</SelectItem>
@@ -314,6 +320,7 @@ export function ProgramHeadCoursesCatalog({
   summary,
   programs,
   majors,
+  termInstances,
 }: ProgramHeadCoursesCatalogProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -323,6 +330,7 @@ export function ProgramHeadCoursesCatalog({
   const [currentPage, setCurrentPage] = useState(1);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<ProgramHeadCourseItem | null>(null);
+  const [selectedTermId, setSelectedTermId] = useState<string | null>(null);
 
   const PAGE_SIZE = 15;
   const filteredCourses = filterCourses(courses, activeTab, search, majorFilter);
@@ -374,6 +382,18 @@ export function ProgramHeadCoursesCatalog({
 
       {/* Content Container */}
       <div className="bg-surface-alt rounded-xl p-2">
+        {/* Header with Term Picker */}
+        <div className="flex flex-wrap items-center justify-between gap-4 px-4 pt-3 pb-2">
+          <div className="w-64">
+            <TermInstancePicker
+              termInstances={termInstances}
+              value={selectedTermId ?? ""}
+              onChange={setSelectedTermId}
+              placeholder="Select term..."
+            />
+          </div>
+        </div>
+
         {/* Tab pill selector */}
         <div className="mb-4 flex flex-wrap gap-2 px-4 pt-3 pb-2">
           {([
@@ -517,6 +537,29 @@ export function ProgramHeadCoursesCatalog({
                         <TableCell className="text-right whitespace-nowrap">
                           {!course.isReadOnly && (
                             <div className="flex items-center justify-end gap-1">
+                              <CourseRowAssignmentsSheet
+                                courseId={course.id}
+                                courseCode={course.code}
+                                courseTitle={course.title}
+                                termInstanceId={selectedTermId}
+                                termInstances={termInstances}
+                                availablePrograms={programs}
+                                availableCourses={courses.map((c) => ({
+                                  id: c.id,
+                                  code: c.code,
+                                  title: c.title,
+                                }))}
+                                triggerRender={
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    title="Assign Faculty"
+                                  >
+                                    <Users className="h-4 w-4" />
+                                  </Button>
+                                }
+                              />
                               <Button
                                 variant="ghost"
                                 size="icon"

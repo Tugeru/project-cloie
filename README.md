@@ -177,6 +177,8 @@ CSS custom properties in `src/styles/tokens.css`, mapped via `@theme inline` in 
 
 ## Environment Variables
 
+Key variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_PROJECT_REF`. See `supabase/README.md` for the full Supabase setup workflow.
+
 Required in `.env.local`:
 
 ```bash

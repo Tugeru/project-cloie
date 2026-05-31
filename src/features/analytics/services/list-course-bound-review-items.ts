@@ -68,6 +68,11 @@ export async function listCourseBoundReviewItems(): Promise<CourseBoundReviewLis
       },
       major: true,
       program: true,
+      term_instance: {
+        include: {
+          school_year: true,
+        },
+      },
     },
     orderBy: {
       published_at: "desc",
@@ -82,8 +87,14 @@ export async function listCourseBoundReviewItems(): Promise<CourseBoundReviewLis
       response!.quant_items.map((item) => item.rating_value)
     );
 
+    const ti = evaluation.term_instance;
+    const termLabel = ti.term ? `${ti.term}` : "";
+    const termInstanceLabel = termLabel
+      ? `${ti.school_year.code} — ${ti.semester} — ${termLabel}`
+      : `${ti.school_year.code} — ${ti.semester}`;
+
     return {
-      academicYear: evaluation.academic_year,
+      termInstanceLabel,
       courseTitle: evaluation.course.title,
       deadlineAt: evaluation.deadline_at,
       evaluationId: evaluation.id,
@@ -92,8 +103,6 @@ export async function listCourseBoundReviewItems(): Promise<CourseBoundReviewLis
       programLabel: evaluation.major?.name ?? evaluation.program.name,
       responseCount: submittedResponses.length,
       reviewerRole,
-      semester: evaluation.semester,
-      term: evaluation.term,
     };
   });
 }

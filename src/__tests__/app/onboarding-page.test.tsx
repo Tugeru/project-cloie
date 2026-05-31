@@ -128,7 +128,7 @@ describe("OnboardingPage", () => {
 
   it("renders the student form path for incomplete users with intent=student", async () => {
     const page = await OnboardingPage({
-      searchParams: Promise.resolve({ intent: "student" }),
+      searchParams: Promise.resolve({ intent: "student", step: "form" }),
     });
 
     render(page);

@@ -29,21 +29,15 @@ export const assignRoleSchema = z.object({
   role: z.nativeEnum(SystemRole),
 });
 
+/**
+ * Phase 9: StudentAcademicProfile now only holds static cohort identifiers.
+ * Academic year, year level, and section moved to StudentEnrollment ledger.
+ */
 export const updateStudentAcademicContextSchema = z.object({
   user_id: z.string().uuid(),
   program_id: z.string().uuid(),
   major_id: optionalUuidField,
-  year_level: z.nativeEnum(YearLevel),
   student_id_number: optionalTextField,
-  academic_year: z
-    .string()
-    .trim()
-    .min(4, "Academic year is required.")
-    .max(20, "Academic year must be 20 characters or fewer."),
-  section: z.preprocess(
-    (value) => (value === "" || value == null ? undefined : value),
-    z.nativeEnum(StudentSection).optional()
-  ),
 });
 
 export const createFacultyAffiliationSchema = z.object({

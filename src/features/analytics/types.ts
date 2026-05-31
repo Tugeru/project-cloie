@@ -7,9 +7,7 @@ export type CourseBoundReviewListItem = {
   evaluationTitle: string;
   courseTitle: string;
   programLabel: string;
-  academicYear: string;
-  semester: string;
-  term: string;
+  termInstanceLabel: string;
   deadlineAt: Date | null;
   responseCount: number;
   overallMean: number | null;
@@ -59,9 +57,7 @@ export type CourseBoundReviewDetail = {
   evaluationTitle: string;
   courseTitle: string;
   programLabel: string;
-  academicYear: string;
-  semester: string;
-  term: string;
+  termInstanceLabel: string;
   deadlineAt: Date | null;
   responseCount: number;
   overallMean: number | null;
@@ -100,7 +96,7 @@ export type CourseBoundResponseReview = {
   evaluationTitle: string;
   courseTitle: string;
   programLabel: string;
-  academicYear: string;
+  termInstanceLabel: string;
   overallMean: number | null;
   reviewerRole: ReviewerRole;
   sections: CourseBoundResponseSection[];
@@ -116,9 +112,8 @@ export type FacultyAnalyticsEvaluationItem = {
   courseTitle: string;
   programId: string;
   programName: string;
-  academicYear: string;
-  semester: string;
-  term: string;
+  termInstanceLabel: string;
+  schoolYearCode: string;
   status: string;
   publishedAt: Date | null;
   responseCount: number;
@@ -157,9 +152,7 @@ export type FacultyAnalyticsData = {
   deploymentName: string;
   courseTitle: string;
   programName: string;
-  academicYear: string;
-  semester: string;
-  term: string;
+  termInstanceLabel: string;
   status: string;
   overallMean: number | null;
   responseCount: number;

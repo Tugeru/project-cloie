@@ -55,7 +55,7 @@ function makeAssignment(overrides: {
       program: overrides.programCode
         ? { code: overrides.programCode, name: overrides.programCode }
         : null,
-      year_level: overrides.yearLevelName ? { name: overrides.yearLevelName } : null,
+      year_level: overrides.yearLevelName ?? null,
     },
     response: overrides.response
       ? {
@@ -229,7 +229,7 @@ describe("listStakeholderEvaluations", () => {
         status: "ACTIVE",
         programCode: "BSIT",
         majorName: "Web Development",
-        yearLevelName: "4th Year",
+        yearLevelName: "FOURTH_YEAR",
       }),
     ]);
 

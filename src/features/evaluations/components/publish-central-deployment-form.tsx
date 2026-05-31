@@ -3,16 +3,19 @@
 import { useState, useRef, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { type TargetStakeholder, YearLevel } from "@prisma/client";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { showToast } from "@/components/ui/toast";
-import { SEMESTER_OPTIONS } from "@/lib/constants/academic";
+import { getYearLevelDisplay } from "@/lib/constants/year-levels";
 import type {
   PreviewCentralDeploymentInput,
   PreviewCentralDeploymentRespondent,
   PreviewCentralDeploymentResult,
 } from "@/features/evaluations/types";
+import type { TermInstanceItem } from "@/features/academic-calendar/types";
+import { getSemesterLabel, getTermLabel } from "@/lib/constants/academic";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -29,6 +32,8 @@ interface PublishCentralDeploymentFormProps {
   programId: string;
   programLabel: string;
   preselectedTemplateId?: string;
+  termInstances: TermInstanceItem[];
+  activeTermId?: string;
   previewAction: (payload: PreviewCentralDeploymentInput) => Promise<PreviewCentralDeploymentResult>;
   publishAction: (formData: FormData) => Promise<ActionResult>;
 }
@@ -50,6 +55,8 @@ export function PublishCentralDeploymentForm({
   programId,
   programLabel,
   preselectedTemplateId,
+  termInstances,
+  activeTermId,
   previewAction,
   publishAction,
 }: PublishCentralDeploymentFormProps) {
@@ -57,6 +64,7 @@ export function PublishCentralDeploymentForm({
   const formRef = useRef<HTMLFormElement>(null);
   const [selectedTemplateId, setSelectedTemplateId] = useState(preselectedTemplateId ?? "");
   const [targetStakeholder, setTargetStakeholder] = useState<string>("STUDENT");
+  const [selectedTermInstanceId, setSelectedTermInstanceId] = useState<string>(activeTermId ?? "");
   const [step, setStep] = useState<Step>("configure");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -91,15 +99,15 @@ export function PublishCentralDeploymentForm({
     }
 
     const formData = new FormData(event.currentTarget);
-    const academicYear = (formData.get("academic_year") as string)?.trim();
     const yearLevelValue = formData.get("year_level");
     const yearLevel = yearLevelValue && typeof yearLevelValue === "string" && yearLevelValue.length > 0
       ? (yearLevelValue as YearLevel)
       : undefined;
     const majorId = (formData.get("major_id") as string) || undefined;
 
-    if (!academicYear) {
-      setError("Please provide an academic year.");
+    // Phase 7: Validate term instance selection
+    if (!selectedTermInstanceId) {
+      setError("Please select an academic term.");
       return;
     }
 
@@ -112,7 +120,7 @@ export function PublishCentralDeploymentForm({
 
     try {
       const result = await previewAction({
-        academicYear,
+        termInstanceId: selectedTermInstanceId,
         majorId,
         programId,
         targetStakeholder: targetStakeholder as TargetStakeholder,
@@ -206,11 +214,12 @@ export function PublishCentralDeploymentForm({
           <Label htmlFor="template_id">Evaluation Template</Label>
           {preselectedTemplateId && selectedTemplate ? (
             <>
-              <Input
-                readOnly
-                value={`${selectedTemplate.code} — ${selectedTemplate.name}`}
-                className="bg-surface-container-low"
-              />
+              <div className="border-input bg-surface-container-low flex items-center gap-3 rounded-lg border px-3 py-2">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium">{selectedTemplate.name}</p>
+                </div>
+                <Badge variant="outline" className="shrink-0 text-xs">Pre-selected</Badge>
+              </div>
               <input type="hidden" name="template_id" value={selectedTemplateId} />
             </>
           ) : (
@@ -225,7 +234,7 @@ export function PublishCentralDeploymentForm({
               <option value="">Select a template...</option>
               {templates.map((t) => (
                 <option key={t.id} value={t.id}>
-                  {t.code} — {t.name}
+                  {t.name}
                 </option>
               ))}
             </select>
@@ -255,25 +264,19 @@ export function PublishCentralDeploymentForm({
               </h2>
             </div>
 
-            {/* Activation Date + Time */}
+            {/* Activation Date & Time */}
             <div className="space-y-2">
-              <Label>Activation Date & Time</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Input type="date" name="activation_date" placeholder="Date" />
-                <Input type="time" name="activation_time" placeholder="Time" />
-              </div>
+              <Label htmlFor="activation_at">Activation Date & Time</Label>
+              <Input type="datetime-local" id="activation_at" name="activation_at" />
               <p className="text-text-secondary text-xs">
                 Leave empty to activate immediately upon publication.
               </p>
             </div>
 
-            {/* Deadline Date + Time */}
+            {/* Deadline Date & Time */}
             <div className="space-y-2">
-              <Label>Deadline Date & Time</Label>
-              <div className="grid grid-cols-2 gap-2">
-                <Input type="date" name="deadline_date" placeholder="Date" />
-                <Input type="time" name="deadline_time" placeholder="Time" />
-              </div>
+              <Label htmlFor="deadline_at">Deadline Date & Time</Label>
+              <Input type="datetime-local" id="deadline_at" name="deadline_at" />
               <p className="text-text-secondary text-xs">
                 Optional. Respondents cannot submit after this deadline.
               </p>
@@ -301,31 +304,29 @@ export function PublishCentralDeploymentForm({
               </h2>
             </div>
 
-            {/* Academic Context */}
+            {/* Academic Context - Phase 7: Term Instance Picker */}
             <div className="space-y-2">
-              <Label htmlFor="academic_year">Academic Year</Label>
-              <Input
-                id="academic_year"
-                name="academic_year"
-                placeholder="e.g. 2025-2026"
-                required
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="semester">Semester</Label>
+              <Label htmlFor="term_instance_id">Academic Term</Label>
               <select
-                id="semester"
-                name="semester"
+                id="term_instance_id"
+                name="term_instance_id"
                 className="border-input h-9 w-full rounded-lg border bg-transparent px-2.5 text-sm"
+                value={selectedTermInstanceId}
+                onChange={(e) => setSelectedTermInstanceId(e.target.value)}
                 required
               >
-                {SEMESTER_OPTIONS.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
+                <option value="">Select a term...</option>
+                {termInstances.map((ti) => (
+                  <option key={ti.id} value={ti.id}>
+                    {ti.schoolYearCode} — {getSemesterLabel(ti.semester)}
+                    {ti.term ? ` — ${getTermLabel(ti.term)}` : ""}
+                    {ti.isActive ? " (Active)" : ""}
                   </option>
                 ))}
               </select>
+              <p className="text-text-muted text-xs">
+                Select the academic term for this deployment.
+              </p>
             </div>
 
             {/* Target Stakeholder */}
@@ -360,7 +361,7 @@ export function PublishCentralDeploymentForm({
                   <option value="">Select year level</option>
                   {yearLevels.map((yl) => (
                     <option key={yl} value={yl}>
-                      {yl.replace("_", " ")}
+                      {getYearLevelDisplay(yl)}
                     </option>
                   ))}
                 </select>
@@ -493,8 +494,7 @@ export function PublishCentralDeploymentForm({
                         {targetStakeholder === "STUDENT" && (
                           <>
                             <td className="px-3 py-2">{respondent.programCode ?? "—"}</td>
-                            <td className="px-3 py-2">{respondent.yearLevel ?? "—"}</td>
-                            <td className="px-3 py-2">{respondent.section ?? "—"}</td>
+                            <td className="px-3 py-2">{respondent.yearLevel ? getYearLevelDisplay(respondent.yearLevel as YearLevel) : "—"}</td>
                             <td className="px-3 py-2">{respondent.studentId ?? "—"}</td>
                           </>
                         )}

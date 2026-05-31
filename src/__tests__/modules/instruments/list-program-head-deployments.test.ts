@@ -67,8 +67,7 @@ const MOCK_DEPLOYMENT_RAW = {
   major_id: null,
   year_level_id: null,
   target_stakeholder: "GRADUATING_STUDENT",
-  academic_year: "2025-2026",
-  semester: "FIRST",
+  term_instance: { semester: "FIRST", term: null, school_year: { code: "2025-2026" } },
   activation_at: new Date("2026-01-15"),
   deadline_at: new Date("2026-02-15"),
   status: "ACTIVE",
@@ -247,7 +246,7 @@ describe("listProgramHeadDeployments", () => {
     const deploymentWithDetails = {
       ...MOCK_DEPLOYMENT_RAW,
       major: { name: "Web Development" },
-      year_level: { name: "4th Year" },
+      year_level: "FOURTH_YEAR",
     };
     centralDeploymentFindManyMock.mockResolvedValue([deploymentWithDetails]);
 

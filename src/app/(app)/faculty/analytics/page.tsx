@@ -36,12 +36,17 @@ export default async function FacultyAnalyticsPage() {
   }
 
   // Get available filter options
-  const [academicYears, courses] = await Promise.all([
+  const [termInstances, courses] = await Promise.all([
     prisma.courseBoundEvaluation.findMany({
       where: { faculty_id: session.userId },
-      select: { academic_year: true },
-      distinct: ["academic_year"],
-      orderBy: { academic_year: "desc" },
+      select: {
+        term_instance: {
+          select: {
+            school_year: { select: { code: true } },
+          },
+        },
+      },
+      distinct: ["term_instance_id"],
     }),
     prisma.course.findMany({
       where: {
@@ -63,7 +68,9 @@ export default async function FacultyAnalyticsPage() {
     }),
   ]);
 
-  const availableAcademicYears = academicYears.map((y) => y.academic_year);
+  const availableAcademicYears = [
+    ...new Set(termInstances.map((t) => t.term_instance.school_year.code)),
+  ].sort((a, b) => b.localeCompare(a));
   const availableCourses = courses.map((c) => ({
     id: c.id,
     label: `${c.code} - ${c.title}`,

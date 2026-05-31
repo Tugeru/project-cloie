@@ -90,6 +90,20 @@ const D = {
   CB_BSHM_HM401: "f4444444-4444-4444-8444-444444444444",
   CB_BEED_BEED301: "f5555555-5555-4555-8555-555555555555",
   CB_BSSW_SW301: "f6666666-6666-4666-8666-666666666666",
+  // School Years
+  SY_2026_2027: "e1111111-1111-4111-8111-111111111111",
+  SY_2027_2028: "e2222222-2222-4222-8222-222222222222",
+  // Term Instances
+  TI_2026_2027_1ST: "e3333333-3333-4333-8333-333333333333",
+  TI_2026_2027_2ND: "e4444444-4444-4444-8444-444444444444",
+  TI_2027_2028_1ST: "e5555555-5555-4555-8555-555555555555",
+  // Course Assignments (faculty-course-term links)
+  CA_BSIT_IT201: "e6666666-6666-4666-8666-666666666666",
+  CA_BSBA_FIN101: "e7777777-7777-4777-8777-777777777777",
+  CA_BSED_EDUC301: "e8888888-8888-4888-8888-888888888888",
+  CA_BSHM_HM401: "e9999999-9999-4999-8999-999999999999",
+  CA_BEED_BEED301: "ea111111-1111-4111-8111-111111111111",
+  CA_BSSW_SW301: "ea222222-2222-4222-8222-222222222222",
 } as const;
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1122,10 +1136,132 @@ async function seedFoundation() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// A.5 Academic Calendar (School Years & Term Instances)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function seedAcademicCalendar() {
+  console.log("  → School years...");
+
+  // Create School Year 2026-2027
+  const sy2026_2027 = await prisma.schoolYear.upsert({
+    where: { id: D.SY_2026_2027 },
+    update: {
+      code: "2026-2027",
+      start_date: new Date("2026-06-01"),
+      end_date: new Date("2027-05-31"),
+    },
+    create: {
+      id: D.SY_2026_2027,
+      code: "2026-2027",
+      start_date: new Date("2026-06-01"),
+      end_date: new Date("2027-05-31"),
+    },
+  });
+
+  // Create School Year 2027-2028 (for rollover testing)
+  const sy2027_2028 = await prisma.schoolYear.upsert({
+    where: { id: D.SY_2027_2028 },
+    update: {
+      code: "2027-2028",
+      start_date: new Date("2027-06-01"),
+      end_date: new Date("2028-05-31"),
+    },
+    create: {
+      id: D.SY_2027_2028,
+      code: "2027-2028",
+      start_date: new Date("2027-06-01"),
+      end_date: new Date("2028-05-31"),
+    },
+  });
+
+  console.log("  → Term instances...");
+
+  // Create Term Instance: 2026-2027 First Semester (historical)
+  const ti2026First = await prisma.academicTermInstance.upsert({
+    where: { id: D.TI_2026_2027_1ST },
+    update: {
+      school_year_id: sy2026_2027.id,
+      semester: AcademicSemester.FIRST,
+      term: AcademicTerm.FIRST_TERM,
+      start_date: new Date("2026-08-01"),
+      end_date: new Date("2026-12-15"),
+      is_active: false,
+    },
+    create: {
+      id: D.TI_2026_2027_1ST,
+      school_year_id: sy2026_2027.id,
+      semester: AcademicSemester.FIRST,
+      term: AcademicTerm.FIRST_TERM,
+      start_date: new Date("2026-08-01"),
+      end_date: new Date("2026-12-15"),
+      is_active: false,
+    },
+  });
+
+  // Create Term Instance: 2026-2027 Second Semester (ACTIVE - current)
+  const ti2026Second = await prisma.academicTermInstance.upsert({
+    where: { id: D.TI_2026_2027_2ND },
+    update: {
+      school_year_id: sy2026_2027.id,
+      semester: AcademicSemester.SECOND,
+      term: AcademicTerm.SECOND_TERM,
+      start_date: new Date("2027-01-15"),
+      end_date: new Date("2027-05-31"),
+      is_active: true,
+    },
+    create: {
+      id: D.TI_2026_2027_2ND,
+      school_year_id: sy2026_2027.id,
+      semester: AcademicSemester.SECOND,
+      term: AcademicTerm.SECOND_TERM,
+      start_date: new Date("2027-01-15"),
+      end_date: new Date("2027-05-31"),
+      is_active: true,
+    },
+  });
+
+  // Create Term Instance: 2027-2028 First Semester (future for rollover testing)
+  const ti2027First = await prisma.academicTermInstance.upsert({
+    where: { id: D.TI_2027_2028_1ST },
+    update: {
+      school_year_id: sy2027_2028.id,
+      semester: AcademicSemester.FIRST,
+      term: AcademicTerm.FIRST_TERM,
+      start_date: new Date("2027-08-01"),
+      end_date: new Date("2027-12-15"),
+      is_active: false,
+    },
+    create: {
+      id: D.TI_2027_2028_1ST,
+      school_year_id: sy2027_2028.id,
+      semester: AcademicSemester.FIRST,
+      term: AcademicTerm.FIRST_TERM,
+      start_date: new Date("2027-08-01"),
+      end_date: new Date("2027-12-15"),
+      is_active: false,
+    },
+  });
+
+  return {
+    schoolYear: sy2026_2027,
+    termInstance: ti2026Second, // Return active term
+    termInstances: {
+      ti2026First,
+      ti2026Second,
+      ti2027First,
+    },
+  };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // B. Users & Roles
 // ═══════════════════════════════════════════════════════════════════════════════
 
-async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { id: string }>) {
+async function seedUsers(
+  pMap: Map<string, { id: string }>,
+  mMap: Map<string, { id: string }>,
+  termInstanceId: string
+) {
   console.log("  → Users & roles...");
   for (const u of allUsers) {
     await prisma.user.upsert({
@@ -1197,19 +1333,41 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
       update: {
         program_id: s.pid,
         major_id: s.mid,
-        year_level: s.ylid,
         student_id_number: s.sn,
-        academic_year: "2026-2027",
-        section: s.sec,
       },
       create: {
         user_id: s.uid,
         program_id: s.pid,
         major_id: s.mid,
-        year_level: s.ylid,
         student_id_number: s.sn,
-        academic_year: "2026-2027",
+      },
+    });
+
+    // Create enrollment record for active term (enrollment now holds year_level and section)
+    await prisma.studentEnrollment.upsert({
+      where: {
+        student_user_id_term_instance_id: {
+          student_user_id: s.uid,
+          term_instance_id: termInstanceId,
+        },
+      },
+      update: {
+        program_id: s.pid,
+        major_id: s.mid,
+        year_level: s.ylid,
         section: s.sec,
+        is_active: true,
+        source: "ADMIN",
+      },
+      create: {
+        student_user_id: s.uid,
+        term_instance_id: termInstanceId,
+        program_id: s.pid,
+        major_id: s.mid,
+        year_level: s.ylid,
+        section: s.sec,
+        is_active: true,
+        source: "ADMIN",
       },
     });
   }
@@ -1330,6 +1488,98 @@ async function seedUsers(pMap: Map<string, { id: string }>, mMap: Map<string, { 
       },
     });
   }
+
+  // Return student data for enrollment creation
+  return { students };
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// B.5 Course Assignments (Faculty to Courses in Term Instances)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+async function seedCourseAssignments(
+  pMap: Map<string, { id: string }>,
+  cMap: Map<string, { id: string; code: string; title: string }>,
+  termInstanceId: string
+) {
+  console.log("  → Course assignments...");
+
+  const bsit = pMap.get("BSIT")!;
+  const bsba = pMap.get("BSBA")!;
+  const bsed = pMap.get("BSED")!;
+  const beed = pMap.get("BEED")!;
+  const bshm = pMap.get("BSHM")!;
+  const bssw = pMap.get("BSSW")!;
+
+  const courseAssignments = [
+    // BSIT courses - Faculty assignments
+    { courseCode: "IT-OD-401", programCode: "BSIT", facultyId: U.FAC_BSIT, yearLevel: YearLevel.FOURTH_YEAR, section: "MORNING" },
+    { courseCode: "IT-CM-301", programCode: "BSIT", facultyId: U.FAC_BSIT, yearLevel: YearLevel.THIRD_YEAR, section: "MORNING" },
+    { courseCode: "IT-OS-201", programCode: "BSIT", facultyId: U.FAC_BSIT, yearLevel: YearLevel.SECOND_YEAR, section: "AFTERNOON" },
+    { courseCode: "IT-IM-101", programCode: "BSIT", facultyId: U.FAC_BSIT, yearLevel: YearLevel.FIRST_YEAR, section: "MORNING" },
+
+    // BSBA courses
+    { courseCode: "MKT301", programCode: "BSBA", facultyId: U.FAC_BSBA, yearLevel: YearLevel.FOURTH_YEAR, section: "MORNING" },
+    { courseCode: "FIN101", programCode: "BSBA", facultyId: U.FAC_BSBA, yearLevel: YearLevel.SECOND_YEAR, section: "AFTERNOON" },
+
+    // BSED courses
+    { courseCode: "EDUC301", programCode: "BSED", facultyId: U.FAC_BSED, yearLevel: YearLevel.THIRD_YEAR, section: "MORNING" },
+    { courseCode: "ENG201", programCode: "BSED", facultyId: U.FAC_BSED, yearLevel: YearLevel.SECOND_YEAR, section: "MORNING" },
+
+    // BEED courses
+    { courseCode: "BEED301", programCode: "BEED", facultyId: U.FAC_BSED, yearLevel: YearLevel.THIRD_YEAR, section: "MORNING" },
+    { courseCode: "MATH101", programCode: "BEED", facultyId: U.FAC_BSED, yearLevel: YearLevel.FIRST_YEAR, section: "AFTERNOON" },
+
+    // BSHM courses
+    { courseCode: "HM401", programCode: "BSHM", facultyId: U.FAC_BSHM, yearLevel: YearLevel.FOURTH_YEAR, section: "EVENING" },
+    { courseCode: "FOOD201", programCode: "BSHM", facultyId: U.FAC_BSHM, yearLevel: YearLevel.SECOND_YEAR, section: "EVENING" },
+
+    // BSSW courses
+    { courseCode: "SW301", programCode: "BSSW", facultyId: U.FAC_BSED, yearLevel: YearLevel.THIRD_YEAR, section: "MORNING" },
+  ];
+
+  const assignmentMap = new Map<string, string>();
+
+  for (const ca of courseAssignments) {
+    const course = cMap.get(ca.courseCode);
+    const program = pMap.get(ca.programCode);
+
+    if (!course || !program) {
+      console.warn(`    ⚠️ Skipping assignment for ${ca.courseCode} - course or program not found`);
+      continue;
+    }
+
+    // Check for existing assignment
+    const existing = await prisma.courseAssignment.findFirst({
+      where: {
+        term_instance_id: termInstanceId,
+        course_id: course.id,
+        faculty_id: ca.facultyId,
+        program_id: program.id,
+        year_level: ca.yearLevel,
+        section: ca.section as import("@prisma/client").StudentSection,
+      },
+    });
+
+    const assignment = existing
+      ? existing
+      : await prisma.courseAssignment.create({
+          data: {
+            term_instance_id: termInstanceId,
+            course_id: course.id,
+            faculty_id: ca.facultyId,
+            program_id: program.id,
+            year_level: ca.yearLevel,
+            section: ca.section as import("@prisma/client").StudentSection,
+            is_active: true,
+          },
+        });
+
+    assignmentMap.set(ca.courseCode, assignment.id);
+    console.log(`    ✓ Assigned ${ca.courseCode} to faculty`);
+  }
+
+  return assignmentMap;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1685,7 +1935,9 @@ async function seedTemplates() {
 async function seedEvaluations(
   pMap: Map<string, { id: string }>,
   cMap: Map<string, { id: string; code: string; title: string }>,
-  ciloMap: Map<string, { id: string; description: string; order: number }[]>
+  ciloMap: Map<string, { id: string; description: string; order: number }[]>,
+  termInstanceId: string,
+  assignmentMap: Map<string, string>
 ) {
   const ciloVer = await prisma.instrumentVersion.findFirstOrThrow({
     where: { template: { code: "CILO_EVAL" }, version_number: 1 },
@@ -1725,16 +1977,17 @@ async function seedEvaluations(
     programName: "Bachelor of Science in Information Technology",
   };
 
+  const cbEval1AssignmentId = assignmentMap.get("IT-OD-401");
+
   const existingCbEval1 = await prisma.courseBoundEvaluation.findFirst({
     where: {
-      course_id: itCourse.id,
-      academic_year: "2026-2027",
-      semester: AcademicSemester.SECOND,
-      term: AcademicTerm.SECOND_TERM,
+      course_assignment_id: cbEval1AssignmentId,
+      term_instance_id: termInstanceId,
     },
   });
 
   const cbEval1Data = {
+    course_id: itCourse.id,
     deployment_name: "IT-OD-401 Post-Term CILO Evaluation",
     instrument_version_id: ciloVer.id,
     program_id: bsit.id,
@@ -1746,6 +1999,8 @@ async function seedEvaluations(
     deadline_at: new Date("2026-05-31T23:59:00Z"),
     status: DeploymentStatus.ACTIVE,
     published_at: new Date("2026-04-01T08:00:00Z"),
+    term_instance_id: termInstanceId,
+    course_assignment_id: cbEval1AssignmentId,
   };
 
   const cbEval1 = existingCbEval1
@@ -1754,13 +2009,7 @@ async function seedEvaluations(
         data: cbEval1Data,
       })
     : await prisma.courseBoundEvaluation.create({
-        data: {
-          course_id: itCourse.id,
-          academic_year: "2026-2027",
-          semester: AcademicSemester.SECOND,
-          term: AcademicTerm.SECOND_TERM,
-          ...cbEval1Data,
-        },
+        data: cbEval1Data,
       });
 
   await prisma.courseBoundEvaluationTarget.upsert({
@@ -1813,16 +2062,17 @@ async function seedEvaluations(
     programName: "Bachelor of Science in Business Administration",
   };
 
+  const cbEval2AssignmentId = assignmentMap.get("MKT301");
+
   const existingCbEval2 = await prisma.courseBoundEvaluation.findFirst({
     where: {
-      course_id: mktCourse.id,
-      academic_year: "2026-2027",
-      semester: AcademicSemester.SECOND,
-      term: AcademicTerm.SECOND_TERM,
+      course_assignment_id: cbEval2AssignmentId,
+      term_instance_id: termInstanceId,
     },
   });
 
   const cbEval2Data = {
+    course_id: mktCourse.id,
     deployment_name: "MKT301 Post-Term CILO Evaluation",
     instrument_version_id: ciloVer.id,
     program_id: bsba.id,
@@ -1834,6 +2084,8 @@ async function seedEvaluations(
     deadline_at: new Date("2026-05-31T23:59:00Z"),
     status: DeploymentStatus.ACTIVE,
     published_at: new Date("2026-04-01T08:00:00Z"),
+    term_instance_id: termInstanceId,
+    course_assignment_id: cbEval2AssignmentId,
   };
 
   const cbEval2 = existingCbEval2
@@ -1842,13 +2094,7 @@ async function seedEvaluations(
         data: cbEval2Data,
       })
     : await prisma.courseBoundEvaluation.create({
-        data: {
-          course_id: mktCourse.id,
-          academic_year: "2026-2027",
-          semester: AcademicSemester.SECOND,
-          term: AcademicTerm.SECOND_TERM,
-          ...cbEval2Data,
-        },
+        data: cbEval2Data,
       });
 
   await prisma.courseBoundEvaluationTarget.upsert({
@@ -1976,16 +2222,17 @@ async function seedEvaluations(
       programName: def.progName,
     };
 
+    const cbAssignmentId = assignmentMap.get(def.courseCode);
+
     const existingCb = await prisma.courseBoundEvaluation.findFirst({
       where: {
-        course_id: course.id,
-        academic_year: "2026-2027",
-        semester: AcademicSemester.SECOND,
-        term: AcademicTerm.SECOND_TERM,
+        course_assignment_id: cbAssignmentId,
+        term_instance_id: termInstanceId,
       },
     });
 
     const cbData = {
+      course_id: course.id,
       deployment_name: def.deployName,
       instrument_version_id: ciloVer.id,
       program_id: def.progId,
@@ -1997,19 +2244,13 @@ async function seedEvaluations(
       deadline_at: new Date("2026-05-31T23:59:00Z"),
       status: DeploymentStatus.ACTIVE,
       published_at: new Date("2026-04-10T08:00:00Z"),
+      term_instance_id: termInstanceId,
+      course_assignment_id: cbAssignmentId,
     };
 
     const cb = existingCb
       ? await prisma.courseBoundEvaluation.update({ where: { id: existingCb.id }, data: cbData })
-      : await prisma.courseBoundEvaluation.create({
-          data: {
-            course_id: course.id,
-            academic_year: "2026-2027",
-            semester: AcademicSemester.SECOND,
-            term: AcademicTerm.SECOND_TERM,
-            ...cbData,
-          },
-        });
+      : await prisma.courseBoundEvaluation.create({ data: cbData });
 
     newCbEvals.set(def.courseCode, cb);
 
@@ -2103,12 +2344,11 @@ async function seedEvaluations(
         program_id: cd.pid,
         major_id: null,
         target_stakeholder: cd.target,
-        academic_year: "2026-2027",
-        semester: AcademicSemester.SECOND,
         activation_at: new Date("2026-04-15T08:00:00Z"),
         deadline_at: new Date("2026-06-01T23:59:00Z"),
         status: DeploymentStatus.ACTIVE,
         year_level: cd.ylId,
+        term_instance_id: termInstanceId,
       },
       create: {
         id: cd.id,
@@ -2117,12 +2357,11 @@ async function seedEvaluations(
         program_id: cd.pid,
         major_id: null,
         target_stakeholder: cd.target,
-        academic_year: "2026-2027",
-        semester: AcademicSemester.SECOND,
         activation_at: new Date("2026-04-15T08:00:00Z"),
         deadline_at: new Date("2026-06-01T23:59:00Z"),
         status: DeploymentStatus.ACTIVE,
         year_level: cd.ylId,
+        term_instance_id: termInstanceId,
       },
     });
   }
@@ -2854,8 +3093,14 @@ async function main() {
   console.log("[A] Foundation data...");
   const { pMap, mMap, cMap } = await seedFoundation();
 
+  console.log("[A.5] Academic calendar...");
+  const { termInstance, termInstances } = await seedAcademicCalendar();
+
   console.log("[B] Users & roles...");
-  await seedUsers(pMap, mMap);
+  const { students } = await seedUsers(pMap, mMap, termInstance.id);
+
+  console.log("[B.5] Course assignments...");
+  const assignmentMap = await seedCourseAssignments(pMap, cMap, termInstance.id);
 
   console.log("[C] Outcomes (GOs, CILOs, mappings)...");
   const { ciloMap } = await seedOutcomes(pMap, cMap);
@@ -2864,7 +3109,13 @@ async function main() {
   await seedTemplates();
 
   console.log("[E] Evaluations & deployments...");
-  const { cbEval1, cbEval2, newCbEvals } = await seedEvaluations(pMap, cMap, ciloMap);
+  const { cbEval1, cbEval2, newCbEvals } = await seedEvaluations(
+    pMap,
+    cMap,
+    ciloMap,
+    termInstance.id,
+    assignmentMap
+  );
 
   console.log("[F] Responses with items...");
   await seedResponses(cbEval1.id, cbEval2.id, newCbEvals);

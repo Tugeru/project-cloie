@@ -1,4 +1,4 @@
-import { AcademicSemester, AcademicTerm, CourseScope, DeploymentStatus, StudentSection, TargetStakeholder, YearLevel } from "@prisma/client";
+import { AcademicSemester, CourseScope, DeploymentStatus, StudentSection, TargetStakeholder, YearLevel } from "@prisma/client";
 
 export type { StudentSection };
 
@@ -62,19 +62,17 @@ export type CourseBoundCiloQuestionBindingInput = {
   sectionKey: string;
 };
 
+/**
+ * Phase 9: Simplified input using course assignment ID.
+ * All class identity (term, program, year level, section) is resolved from the assignment.
+ */
 export type PublishCourseBoundEvaluationInput = {
-  academicYear: string;
+  assignmentId: string;
   activationAt?: Date | null;
   deadlineAt?: Date | null;
   deploymentName: string;
   respondentIds?: string[]; // Final list of respondent IDs after preview/exclude
-  section?: StudentSection | null;
-  semester: AcademicSemester;
-  targetPrograms?: string[]; // Multi-select for GE courses; falls back to publication context's program
-  targetYearLevel?: YearLevel; // Single year level; falls back to first item in yearLevelIds
-  term: AcademicTerm;
   templateId: string;
-  yearLevels?: YearLevel[]; // Deprecated: kept for backward compatibility
 };
 
 export type PublishCourseBoundEvaluationResult =
@@ -109,11 +107,11 @@ export type PreviewRespondent = {
   yearLevel: YearLevel;
 };
 
+/**
+ * Phase 9: Simplified preview input using course assignment ID.
+ */
 export type PreviewCourseBoundRespondentsInput = {
-  academicYear: string;
-  section: StudentSection | null;
-  targetPrograms: string[];
-  targetYearLevel: YearLevel;
+  assignmentId: string;
 };
 
 export type PreviewCourseBoundRespondentsResult =
@@ -132,7 +130,7 @@ export type PreviewCourseBoundRespondentsResult =
 // ============================================================================
 
 export type FacultyPublishedEvaluationItem = {
-  academicYear: string;
+  termInstanceLabel: string;
   activationAt: Date | null;
   courseCode: string;
   courseId: string;
@@ -148,10 +146,8 @@ export type FacultyPublishedEvaluationItem = {
   programName: string;
   publishedAt: Date | null;
   responseCount: number;
-  semester: AcademicSemester;
   status: DeploymentStatus;
   targetYearLevels: YearLevel[];
-  term: AcademicTerm;
   totalAssignments: number;
 };
 
@@ -170,7 +166,7 @@ export type FacultyPublishedEvaluationTarget = {
 };
 
 export type FacultyEvaluationDetail = {
-  academicYear: string;
+  termInstanceLabel: string;
   activationAt: Date | null;
   cilos: Array<{
     description: string;
@@ -190,11 +186,9 @@ export type FacultyEvaluationDetail = {
   evaluationId: string;
   publishedAt: Date | null;
   responseCount: number;
-  semester: AcademicSemester;
   status: DeploymentStatus;
   targets: FacultyPublishedEvaluationTarget[];
   templateBindings: FacultyPublishedEvaluationCiloBinding[];
-  term: AcademicTerm;
   totalAssignments: number;
 };
 
@@ -232,8 +226,28 @@ export type CloseFacultyEvaluationResult =
 // Preview Central Deployment Respondents (Program Head publish flow)
 // ============================================================================
 
-export type PreviewCentralDeploymentInput = {
+/**
+ * @deprecated Use PreviewCentralDeploymentInput with termInstanceId instead.
+ * Legacy input kept for backward compatibility during Phase 7 transition.
+ */
+export type PreviewCentralDeploymentInputLegacy = {
   academicYear: string;
+  majorId?: string;
+  programId: string;
+  targetStakeholder: TargetStakeholder;
+  yearLevel?: YearLevel;
+};
+
+/**
+ * Phase 7: Preview input supporting term instance ID for enrollment-based lookup.
+ * Either termInstanceId OR academicYear should be provided.
+ */
+export type PreviewCentralDeploymentInput = {
+  // Phase 7: term instance is the preferred way
+  termInstanceId?: string;
+  // Legacy fields (optional during transition)
+  academicYear?: string;
+  semester?: AcademicSemester;
   majorId?: string;
   programId: string;
   targetStakeholder: TargetStakeholder;
@@ -246,7 +260,6 @@ export type PreviewCentralDeploymentRespondent = {
   lastName: string;
   majorName: string | null;
   programCode: string | null;
-  section: StudentSection | null;
   stakeholderType: TargetStakeholder;
   studentId: string | null;
   userId: string;

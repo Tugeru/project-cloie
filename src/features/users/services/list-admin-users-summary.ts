@@ -98,10 +98,8 @@ function resolveMajorLabel(user: PrismaUserWithIncludes): string {
 /**
  * Capitalizes a StudentSection enum value into a display label (e.g., "MORNING" → "Morning").
  */
-function resolveSectionLabel(user: PrismaUserWithIncludes): string {
-  const section = user.student_profile?.section;
-  if (!section) return "—";
-  return section.charAt(0) + section.slice(1).toLowerCase();
+function resolveSectionLabel(_user: PrismaUserWithIncludes): string {
+  return "—";
 }
 
 // ---------------------------------------------------------------------------

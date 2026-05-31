@@ -4,52 +4,59 @@ import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import type { FacultyCourseContext } from "../types";
 
-export async function listFacultyCourseContexts(): Promise<FacultyCourseContext[]> {
+/**
+ * List faculty course contexts.
+ * If termInstanceId is provided, returns courses assigned to faculty for that term.
+ * Otherwise, falls back to program-affiliated courses (legacy behavior).
+ */
+export async function listFacultyCourseContexts(
+  termInstanceId?: string
+): Promise<FacultyCourseContext[]> {
   const authSession = await resolveAuthSession();
 
   if (!authSession?.roles?.includes(ROLES.FACULTY)) {
     return [];
   }
 
-  const affiliations = await prisma.facultyProgramAffiliation.findMany({
-    where: {
-      faculty_id: authSession.userId,
-      is_active: true,
-      program: {
+  let courseIds: string[] = [];
+
+  if (termInstanceId) {
+    // Get courses from assignments for this term
+    const assignments = await prisma.courseAssignment.findMany({
+      where: {
+        faculty_id: authSession.userId,
+        term_instance_id: termInstanceId,
         is_active: true,
       },
-    },
-    include: {
-      program: {
-        include: {
-          majors: {
-            where: { is_active: true },
-            orderBy: { name: "asc" },
-          },
-        },
-      },
-    },
-    orderBy: { program: { code: "asc" } },
-  });
+      select: { course_id: true },
+    });
+    courseIds = assignments.map((a) => a.course_id);
 
-  if (affiliations.length === 0) {
-    return [];
+    if (courseIds.length === 0) {
+      return [];
+    }
+  } else {
+    // All terms: return distinct courses the faculty is assigned to across all terms
+    const assignments = await prisma.courseAssignment.findMany({
+      where: {
+        faculty_id: authSession.userId,
+        is_active: true,
+      },
+      select: { course_id: true },
+      distinct: ["course_id"],
+    });
+    courseIds = assignments.map((a) => a.course_id);
+
+    if (courseIds.length === 0) {
+      return [];
+    }
   }
 
-  const programIds = affiliations.map((affiliation) => affiliation.program_id);
+  // Fetch full course details
   const courses = await prisma.course.findMany({
     where: {
+      id: { in: courseIds },
       is_active: true,
-      OR: [
-        {
-          program_id: {
-            in: programIds,
-          },
-        },
-        {
-          course_scope: CourseScope.GENERAL_EDUCATION,
-        },
-      ],
     },
     include: {
       major: true,
@@ -58,37 +65,28 @@ export async function listFacultyCourseContexts(): Promise<FacultyCourseContext[
     orderBy: [{ course_scope: "asc" }, { code: "asc" }],
   });
 
-  const contexts: FacultyCourseContext[] = [];
+  const contexts: FacultyCourseContext[] = courses.map((course) => {
+    const isGeneralEducation = course.course_scope === CourseScope.GENERAL_EDUCATION;
+    const isMajorSpecific =
+      course.course_scope === CourseScope.MAJOR_SPECIFIC || Boolean(course.major_id);
 
-  for (const affiliation of affiliations) {
-    for (const course of courses) {
-      const isGeneralEducation = course.course_scope === CourseScope.GENERAL_EDUCATION;
-      const isMajorSpecific =
-        course.course_scope === CourseScope.MAJOR_SPECIFIC || Boolean(course.major_id);
-      const isProgramMatch = course.program_id === affiliation.program_id;
-
-      if (!isGeneralEducation && !isProgramMatch) {
-        continue;
-      }
-
-      contexts.push({
-        courseCode: course.code,
-        courseId: course.id,
-        courseTitle: course.title,
-        courseType: isMajorSpecific ? CourseScope.MAJOR_SPECIFIC : course.course_scope,
-        majorId: course.major_id,
-        majorName: course.major?.name ?? null,
-        programCode: affiliation.program.code,
-        programId: affiliation.program.id,
-        programName: affiliation.program.name,
-        scopeLabel: isGeneralEducation
-          ? `${affiliation.program.code} - General Education`
-          : isMajorSpecific && course.major?.name
-            ? `${affiliation.program.code} - ${course.major.name}`
-            : `${affiliation.program.code} - Shared Program Course`,
-      });
-    }
-  }
+    return {
+      courseCode: course.code,
+      courseId: course.id,
+      courseTitle: course.title,
+      courseType: isMajorSpecific ? CourseScope.MAJOR_SPECIFIC : course.course_scope,
+      majorId: course.major_id,
+      majorName: course.major?.name ?? null,
+      programCode: course.program?.code ?? "",
+      programId: course.program?.id ?? "",
+      programName: course.program?.name ?? "",
+      scopeLabel: isGeneralEducation
+        ? `${course.program?.code ?? ""} - General Education`
+        : isMajorSpecific && course.major?.name
+          ? `${course.program?.code ?? ""} - ${course.major.name}`
+          : `${course.program?.code ?? ""} - Shared Program Course`,
+    };
+  });
 
   return contexts;
 }

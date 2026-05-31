@@ -1,0 +1,43 @@
+import { Metadata } from "next";
+import { redirect, notFound } from "next/navigation";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { ROLES } from "@/lib/constants/roles";
+import { getSchoolYearById } from "@/features/academic-calendar/services/list-school-years";
+import { SchoolYearDetailClientPage } from "./client-page";
+
+interface SchoolYearDetailPageProps {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export async function generateMetadata({
+  params,
+}: SchoolYearDetailPageProps): Promise<Metadata> {
+  const { id } = await params;
+  const schoolYear = await getSchoolYearById(id);
+
+  return {
+    title: schoolYear ? `${schoolYear.code} | School Years` : "School Year Not Found",
+    description: "View and manage school year details",
+  };
+}
+
+export default async function SchoolYearDetailPage({
+  params,
+}: SchoolYearDetailPageProps) {
+  const session = await resolveAuthSession();
+
+  if (!session || !session.roles.includes(ROLES.ADMIN)) {
+    redirect("/dashboard");
+  }
+
+  const { id } = await params;
+  const schoolYear = await getSchoolYearById(id);
+
+  if (!schoolYear) {
+    notFound();
+  }
+
+  return <SchoolYearDetailClientPage schoolYear={schoolYear} />;
+}

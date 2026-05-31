@@ -7,9 +7,7 @@ import type {
 } from "../types";
 
 export type FacultyAnalyticsFilters = {
-  academicYear?: string;
-  semester?: string;
-  term?: string;
+  schoolYearCode?: string;
   courseIds?: string[];
   statuses?: string[];
   dateFrom?: Date;
@@ -48,16 +46,8 @@ export async function listFacultyAnalyticsEvaluations(
       where.status = { in: filters.statuses };
     }
 
-    if (filters.academicYear) {
-      where.academic_year = filters.academicYear;
-    }
-
-    if (filters.semester) {
-      where.semester = filters.semester;
-    }
-
-    if (filters.term) {
-      where.term = filters.term;
+    if (filters.schoolYearCode) {
+      where.term_instance = { school_year: { code: filters.schoolYearCode } };
     }
 
     if (filters.courseIds && filters.courseIds.length > 0) {
@@ -91,6 +81,11 @@ export async function listFacultyAnalyticsEvaluations(
             name: true,
           },
         },
+        term_instance: {
+          include: {
+            school_year: true,
+          },
+        },
         assignments: {
           select: {
             id: true,
@@ -115,6 +110,12 @@ export async function listFacultyAnalyticsEvaluations(
         (a) => a.response?.status === "SUBMITTED"
       ).length;
 
+      const ti = evalItem.term_instance;
+      const termLabel = ti.term ? `${ti.term}` : "";
+      const termInstanceLabel = termLabel
+        ? `${ti.school_year.code} — ${ti.semester} — ${termLabel}`
+        : `${ti.school_year.code} — ${ti.semester}`;
+
       return {
         id: evalItem.id,
         deploymentName: evalItem.deployment_name,
@@ -123,9 +124,8 @@ export async function listFacultyAnalyticsEvaluations(
         courseTitle: evalItem.course.title,
         programId: evalItem.program.id,
         programName: evalItem.program.name,
-        academicYear: evalItem.academic_year,
-        semester: evalItem.semester,
-        term: evalItem.term,
+        termInstanceLabel,
+        schoolYearCode: ti.school_year.code,
         status: evalItem.status,
         publishedAt: evalItem.published_at,
         responseCount,

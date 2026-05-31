@@ -11,6 +11,13 @@ interface EvaluationDetailDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+function getScopeLabel(scope: string): string {
+  return scope
+    .replace(/_/g, " ")
+    .toLowerCase()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
 function formatDate(date: Date | string | null): string {
   if (!date) return "--";
   const d = typeof date === "string" ? new Date(date) : date;
@@ -21,19 +28,6 @@ function formatDate(date: Date | string | null): string {
     hour: "2-digit",
     minute: "2-digit",
   });
-}
-
-function formatSemester(semester: string): string {
-  if (semester === "FIRST" || semester === "1ST") return "1st Semester";
-  if (semester === "SECOND" || semester === "2ND") return "2nd Semester";
-  if (semester === "SUMMER") return "Summer";
-  return semester;
-}
-
-function formatTerm(term: string): string {
-  if (term === "FIRST_TERM") return "1st Term";
-  if (term === "SECOND_TERM") return "2nd Term";
-  return term;
 }
 
 function getStatusColor(status: string): string {
@@ -76,7 +70,7 @@ export function EvaluationDetailDialog({
               {detail.status.charAt(0) + detail.status.slice(1).toLowerCase()}
             </Badge>
             <span className="text-muted-foreground text-sm">
-              {detail.academicYear} • {formatSemester(detail.semester)} • {formatTerm(detail.term)}
+              {detail.termInstanceLabel}
             </span>
           </div>
 
@@ -94,7 +88,7 @@ export function EvaluationDetailDialog({
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Scope:</span>
-                <span className="font-medium capitalize">{detail.courseInfo.courseScope}</span>
+                <span className="font-medium">{getScopeLabel(detail.courseInfo.courseScope)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Program:</span>

@@ -1,9 +1,50 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { AcademicSemester, AcademicTerm } from "@prisma/client";
-import { PublishCourseBoundEvaluationForm } from "@/features/evaluations/components/publish-course-bound-evaluation-form";
+import { YearLevel } from "@prisma/client";
 
-describe("PublishCourseBoundEvaluationForm", () => {
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
+  usePathname: () => "/faculty/tools/publish",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
+vi.mock("@/features/evaluations/components/assignment-picker", () => ({
+  AssignmentPicker: ({
+    assignments,
+    value,
+    onChange,
+    label,
+  }: {
+    assignments: { id: string; courseCode: string; courseTitle: string }[];
+    value: string | null;
+    onChange: (id: string | null) => void;
+    label?: string;
+  }) => (
+    <div>
+      {label && <label htmlFor="assignment-picker-mock">{label}</label>}
+      <select
+        id="assignment-picker-mock"
+        value={value ?? ""}
+        onChange={(e) => onChange(e.target.value || null)}
+        disabled={assignments.length === 0}
+        aria-label={label ?? "Class Assignment"}
+      >
+        <option value="">Select a class assignment...</option>
+        {assignments.map((a) => (
+          <option key={a.id} value={a.id}>
+            {a.courseCode} - {a.courseTitle}
+          </option>
+        ))}
+      </select>
+      {assignments.length === 0 && <span>No assignments available</span>}
+    </div>
+  ),
+}));
+
+import { PublishCourseBoundEvaluationFormV2 } from "@/features/evaluations/components/publish-course-bound-evaluation-form-v2";
+import type { AssignmentOption } from "@/features/evaluations/components/assignment-picker";
+
+describe("PublishCourseBoundEvaluationFormV2", () => {
   const publicationContext = {
     bindings: [
       {
@@ -27,18 +68,9 @@ describe("PublishCourseBoundEvaluationForm", () => {
     ],
     course: {
       code: "CS101",
-      courseType: "PROGRAM_SPECIFIC" as const,
       id: "course-1",
-      majorId: null,
-      majorName: null,
-      programCode: "BSCS",
-      programId: "program-1",
-      programName: "BS Computer Science",
-      scopeLabel: "BSCS - Shared Program Course",
       title: "Intro to Computing",
     },
-    majorId: null,
-    programId: "program-1",
     template: {
       id: "template-1",
       name: "Course-Bound CILO Evaluation",
@@ -56,16 +88,27 @@ describe("PublishCourseBoundEvaluationForm", () => {
     },
   };
 
-  const yearLevels = [
-    { id: "year-1", name: "1st Year", order: 1 },
-    { id: "year-2", name: "2nd Year", order: 2 },
+  const assignments: AssignmentOption[] = [
+    {
+      id: "assignment-1",
+      courseId: "course-1",
+      courseCode: "CS101",
+      courseTitle: "Intro to Computing",
+      programId: "program-1",
+      programCode: "BSCS",
+      yearLevel: YearLevel.FIRST_YEAR,
+      section: "MORNING",
+      termInstanceId: "term-1",
+      termInstanceLabel: "2025-2026 — 1st Semester — 1st Term",
+      isActive: true,
+    },
   ];
 
   it("renders the saved template context and bound cilos", () => {
     render(
-      <PublishCourseBoundEvaluationForm
+      <PublishCourseBoundEvaluationFormV2
+        assignments={assignments}
         publicationContext={publicationContext}
-        yearLevels={yearLevels}
         previewAction={vi.fn()}
         publishAction={vi.fn()}
       />
@@ -73,18 +116,16 @@ describe("PublishCourseBoundEvaluationForm", () => {
 
     expect(screen.getByRole("heading", { name: /publish cilo evaluation/i })).toBeInTheDocument();
     expect(screen.getByText("Course-Bound CILO Evaluation")).toBeInTheDocument();
-    expect(screen.getByText("CS101 - Intro to Computing")).toBeInTheDocument();
+    expect(screen.getAllByText("CS101 - Intro to Computing").length).toBeGreaterThan(0);
     expect(screen.getByText("Apply core concepts")).toBeInTheDocument();
     expect(
       screen.getByText(/students can apply the core concepts taught in the course/i)
     ).toBeInTheDocument();
-    // Year level is now a dropdown (single-select)
-    expect(screen.getByLabelText(/target year level/i)).toBeInTheDocument();
-    // Section selector exists
-    expect(screen.getByLabelText(/section/i)).toBeInTheDocument();
+    // Assignment picker exists
+    expect(screen.getAllByText(/class assignment/i).length).toBeGreaterThan(0);
   });
 
-  it("loads preview when configuration is valid then publishes with confirmed respondents", async () => {
+  it("loads preview when assignment is selected then publishes with confirmed respondents", async () => {
     const previewAction = vi.fn().mockResolvedValue({
       respondents: [
         {
@@ -99,8 +140,7 @@ describe("PublishCourseBoundEvaluationForm", () => {
           section: "MORNING",
           studentId: "S001",
           userId: "user-1",
-          yearLevelId: "year-1",
-          yearLevelName: "1st Year",
+          yearLevel: YearLevel.FIRST_YEAR,
         },
       ],
       success: true,
@@ -115,14 +155,9 @@ describe("PublishCourseBoundEvaluationForm", () => {
     });
 
     render(
-      <PublishCourseBoundEvaluationForm
-        initialSelection={{
-          academicYear: "2026-2027",
-          semester: AcademicSemester.FIRST,
-          term: AcademicTerm.FIRST_TERM,
-        }}
+      <PublishCourseBoundEvaluationFormV2
+        assignments={assignments}
         publicationContext={publicationContext}
-        yearLevels={yearLevels}
         previewAction={previewAction}
         publishAction={publishAction}
       />
@@ -131,12 +166,12 @@ describe("PublishCourseBoundEvaluationForm", () => {
     fireEvent.change(screen.getByLabelText(/deployed evaluation name/i), {
       target: { value: "CS101 Post-Term CILO Evaluation" },
     });
-    // Select year level (single)
-    fireEvent.change(screen.getByLabelText(/target year level/i), {
-      target: { value: "year-1" },
+
+    // Select assignment using the mocked native select
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "assignment-1" },
     });
-    // For PROGRAM_SPECIFIC courses the single program is pre-selected — verify, don't click
-    expect(screen.getByLabelText(/BSCS - BS Computer Science/i)).toBeChecked();
+
     // Click Preview Respondents
     fireEvent.click(screen.getByRole("button", { name: /preview respondents/i }));
 
@@ -144,35 +179,90 @@ describe("PublishCourseBoundEvaluationForm", () => {
       expect(previewAction).toHaveBeenCalledTimes(1);
     });
 
+    // V2 form calls preview with assignmentId only
     expect(previewAction).toHaveBeenCalledWith({
-      academicYear: "2026-2027",
-      section: null,
-      targetPrograms: ["program-1"],
-      targetYearLevelId: "year-1",
+      assignmentId: "assignment-1",
     });
 
     // Confirm and publish
     await waitFor(() => {
-      expect(screen.getByRole("button", { name: /confirm and publish/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /publish evaluation/i })).toBeInTheDocument();
     });
-    fireEvent.click(screen.getByRole("button", { name: /confirm and publish/i }));
+    fireEvent.click(screen.getByRole("button", { name: /publish evaluation/i }));
 
     await waitFor(() => {
       expect(publishAction).toHaveBeenCalledTimes(1);
     });
 
+    // V2 form calls publish with simplified payload
     expect(publishAction).toHaveBeenCalledWith(
       expect.objectContaining({
-        academicYear: "2026-2027",
+        assignmentId: "assignment-1",
         deploymentName: "CS101 Post-Term CILO Evaluation",
         respondentIds: ["user-1"],
-        section: null,
-        semester: AcademicSemester.FIRST,
-        targetPrograms: ["program-1"],
-        targetYearLevelId: "year-1",
         templateId: "template-1",
-        term: AcademicTerm.FIRST_TERM,
       })
     );
+  });
+
+  it("shows empty state when no assignments available", () => {
+    render(
+      <PublishCourseBoundEvaluationFormV2
+        assignments={[]}
+        publicationContext={publicationContext}
+        previewAction={vi.fn()}
+        publishAction={vi.fn()}
+      />
+    );
+
+    // Picker is disabled and shows empty message
+    expect(screen.getByRole("combobox")).toBeDisabled();
+    expect(screen.getByText(/no assignments available/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /preview respondents/i })).toBeDisabled();
+  });
+
+  it("shows all assignments without a term filter", () => {
+    const multiAssignments: AssignmentOption[] = [
+      {
+        id: "assignment-1",
+        courseId: "course-1",
+        courseCode: "CS101",
+        courseTitle: "Intro to Computing",
+        programId: "program-1",
+        programCode: "BSCS",
+        yearLevel: YearLevel.FIRST_YEAR,
+        section: null,
+        termInstanceId: "term-1",
+        termInstanceLabel: "2025-2026 — 1st Semester",
+        isActive: true,
+      },
+      {
+        id: "assignment-2",
+        courseId: "course-1",
+        courseCode: "CS101",
+        courseTitle: "Intro to Computing",
+        programId: "program-1",
+        programCode: "BSCS",
+        yearLevel: YearLevel.SECOND_YEAR,
+        section: null,
+        termInstanceId: "term-2",
+        termInstanceLabel: "2025-2026 — 2nd Semester",
+        isActive: true,
+      },
+    ];
+
+    render(
+      <PublishCourseBoundEvaluationFormV2
+        assignments={multiAssignments}
+        publicationContext={publicationContext}
+        previewAction={vi.fn()}
+        publishAction={vi.fn()}
+      />
+    );
+
+    // No Academic Term filter should be present
+    expect(screen.queryByText(/all terms/i)).not.toBeInTheDocument();
+    // Class Assignment picker should still be visible
+    expect(screen.getAllByText(/class assignment/i).length).toBeGreaterThan(0);
   });
 });

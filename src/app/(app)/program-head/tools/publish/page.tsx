@@ -2,12 +2,14 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import { YearLevel } from "@prisma/client";
 import { listProgramHeadTemplates } from "@/features/instruments/services/manage-program-head-templates";
+import { resolveActiveTerm } from "@/features/academic-calendar/services/resolve-active-term";
 import { PublishCentralDeploymentForm } from "@/features/evaluations/components/publish-central-deployment-form";
 import {
   publishCentralDeploymentAction,
   previewCentralDeploymentRespondentsAction,
 } from "@/lib/actions/central-deployment-actions";
 import { prisma } from "@/lib/db/prisma";
+import type { TermInstanceItem } from "@/features/academic-calendar/types";
 
 export const metadata = {
   title: "Publish Evaluation Tool — Program Head | CLOIE",
@@ -44,7 +46,35 @@ export default async function ProgramHeadPublishToolPage({ searchParams }: PageP
     select: { id: true, name: true },
   });
 
-  // 4. Validate pre-selected template
+  // 4. Load term instances for the picker
+  const termInstancesData = await prisma.academicTermInstance.findMany({
+    include: {
+      school_year: true,
+    },
+    orderBy: [
+      { school_year: { start_date: "desc" } },
+      { semester: "asc" },
+    ],
+  });
+
+  const termInstances: TermInstanceItem[] = termInstancesData.map((ti) => ({
+    id: ti.id,
+    schoolYearId: ti.school_year_id,
+    schoolYearCode: ti.school_year.code,
+    semester: ti.semester,
+    term: ti.term ?? null,
+    startDate: ti.start_date ?? null,
+    endDate: ti.end_date ?? null,
+    isActive: ti.is_active,
+    createdAt: ti.created_at,
+    updatedAt: ti.updated_at,
+  }));
+
+  // 5. Resolve active term for default selection
+  const activeTerm = await resolveActiveTerm();
+  const activeTermId = activeTerm?.termInstance.id;
+
+  // 6. Validate pre-selected template
   const preselectedTemplateId =
     templateId && activeTemplates.some((t) => t.id === templateId) ? templateId : undefined;
 
@@ -87,6 +117,8 @@ export default async function ProgramHeadPublishToolPage({ searchParams }: PageP
         programId={program.id}
         programLabel={`${program.code} — ${program.name}`}
         preselectedTemplateId={preselectedTemplateId}
+        termInstances={termInstances}
+        activeTermId={activeTermId}
         previewAction={previewCentralDeploymentRespondentsAction}
         publishAction={publishCentralDeploymentAction}
       />
