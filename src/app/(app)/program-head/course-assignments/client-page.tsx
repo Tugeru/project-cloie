@@ -41,31 +41,44 @@ export function CourseAssignmentsClientPage({
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [createOpen, setCreateOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  const fetchAssignments = useCallback(async () => {
-    setLoading(true);
-    const result = await listCourseAssignmentsForProgramHeadAction(
-      {
-        ...(filters.termInstanceId && { termInstanceId: filters.termInstanceId }),
-        ...(filters.courseId && { courseId: filters.courseId }),
-        ...(filters.facultyId && { facultyId: filters.facultyId }),
-        ...(filters.programId && { programId: filters.programId }),
-        ...(filters.yearLevel && { yearLevel: filters.yearLevel as YearLevel }),
-        ...(filters.section && { section: filters.section as StudentSection }),
-      },
-      { page }
-    );
-
-    if (result.success) {
-      setAssignments(result.data.items);
-      setTotal(result.data.total);
-    }
-    setLoading(false);
-  }, [filters, page]);
+  const refreshAssignments = useCallback(() => {
+    setRefreshTrigger((prev) => prev + 1);
+  }, []);
 
   useEffect(() => {
+    let cancelled = false;
+
+    async function fetchAssignments() {
+      setLoading(true);
+      const result = await listCourseAssignmentsForProgramHeadAction(
+        {
+          ...(filters.termInstanceId && { termInstanceId: filters.termInstanceId }),
+          ...(filters.courseId && { courseId: filters.courseId }),
+          ...(filters.facultyId && { facultyId: filters.facultyId }),
+          ...(filters.programId && { programId: filters.programId }),
+          ...(filters.yearLevel && { yearLevel: filters.yearLevel as YearLevel }),
+          ...(filters.section && { section: filters.section as StudentSection }),
+        },
+        { page }
+      );
+
+      if (!cancelled) {
+        if (result.success) {
+          setAssignments(result.data.items);
+          setTotal(result.data.total);
+        }
+        setLoading(false);
+      }
+    }
+
     fetchAssignments();
-  }, [fetchAssignments]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [filters, page, refreshTrigger]);
 
   const handleFiltersChange = (next: AssignmentFiltersState) => {
     setFilters(next);
@@ -102,7 +115,7 @@ export function CourseAssignmentsClientPage({
         page={page}
         loading={loading}
         onPageChange={setPage}
-        onAssignmentUpdated={fetchAssignments}
+        onAssignmentUpdated={refreshAssignments}
       />
 
       <CourseAssignmentFormDialog
@@ -111,7 +124,7 @@ export function CourseAssignmentsClientPage({
         availableCourses={availableCourses}
         availablePrograms={availablePrograms}
         termInstances={termInstances}
-        onSuccess={fetchAssignments}
+        onSuccess={refreshAssignments}
       />
     </div>
   );
