@@ -75,7 +75,7 @@ export function UsersDataTable({
         <Users className="text-muted-foreground/50 mx-auto mb-3 h-12 w-12" />
         <h3 className="text-lg font-medium">No users found</h3>
         <p className="text-muted-foreground mt-1 max-w-sm mx-auto text-sm">
-          Try adjusting your filters or search to find what you're looking for.
+          Try adjusting your filters or search to find what you&apos;re looking for.
         </p>
       </div>
     );
