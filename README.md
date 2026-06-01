@@ -2,7 +2,7 @@
 
 **Comprehensive Learning Outcomes and Instructional Evaluation**
 
-[![Quality Checks](https://github.com/capstone/project-cloie/actions/workflows/ci.yml/badge.svg)](https://github.com/capstone/project-cloie/actions/workflows/ci.yml)
+[![Quality Checks](https://github.com/Tugeru/project-cloie/actions/workflows/ci.yml/badge.svg)](https://github.com/Tugeru/project-cloie/actions/workflows/ci.yml)
 
 A college-level digital evaluation, monitoring, and reporting platform for Assumption College of Davao. CLOIE supports multiple academic programs, their courses, faculty members, and stakeholder-based outcome evaluation processes.
 
