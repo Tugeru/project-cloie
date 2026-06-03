@@ -43,21 +43,43 @@ export default async function LoginPage({
       </div>
 
       {/* Error Alerts */}
-      {error === "invalid_domain" && (
-        <Alert
-          variant="destructive"
-          className="mb-6 border-danger/20 bg-danger-soft"
-        >
-          <AlertCircle className="size-5 shrink-0 text-danger" />
-          <div className="ml-3">
-            <AlertTitle className="text-danger">Access Restricted</AlertTitle>
-            <AlertDescription className="text-danger/90">
-              Please use your official <span className="font-semibold">@acd.edu.ph</span> or{" "}
-              <span className="font-semibold">@acdeducation.com</span> email.
-            </AlertDescription>
-          </div>
-        </Alert>
-      )}
+      {error === "invalid_domain" && (() => {
+        const role = typeof resolvedSearchParams?.role === "string" ? resolvedSearchParams.role : undefined;
+        let title = "Access Restricted";
+        let message = (
+          <>
+            Please use your official <span className="font-semibold">@acd.edu.ph</span> or{" "}
+            <span className="font-semibold">@acdeducation.com</span> email.
+          </>
+        );
+
+        if (role) {
+          const roleDisplay = role.replace("-", " ").toUpperCase();
+          title = `${roleDisplay} Access Restricted`;
+          message = (
+            <>
+              The <span className="font-semibold">{roleDisplay}</span> role requires an ACD institutional email (
+              <span className="font-semibold">@acd.edu.ph</span> or{" "}
+              <span className="font-semibold">@acdeducation.com</span>).
+            </>
+          );
+        }
+
+        return (
+          <Alert
+            variant="destructive"
+            className="mb-6 border-danger/20 bg-danger-soft"
+          >
+            <AlertCircle className="size-5 shrink-0 text-danger" />
+            <div className="ml-3">
+              <AlertTitle className="text-danger">{title}</AlertTitle>
+              <AlertDescription className="text-danger/90">
+                {message}
+              </AlertDescription>
+            </div>
+          </Alert>
+        );
+      })()}
 
       {error === "auth-failure" && (
         <Alert
