@@ -31,6 +31,39 @@ describe("resolvePostLoginDestination", () => {
     ).toBe("/onboarding?intent=student");
   });
 
+  it("sends a roleless alumni signup to alumni onboarding", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "/dashboard",
+        intent: "alumni",
+        primaryRole: null,
+        profileGate: { status: "ROLE_SELECTION_REQUIRED" },
+      })
+    ).toBe("/onboarding?intent=alumni");
+  });
+
+  it("sends a roleless industry partner signup to industry partner onboarding (dash)", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "/dashboard",
+        intent: "industry-partner",
+        primaryRole: null,
+        profileGate: { status: "ROLE_SELECTION_REQUIRED" },
+      })
+    ).toBe("/onboarding?intent=industry-partner");
+  });
+
+  it("sends a roleless industry partner signup to industry partner onboarding (underscore)", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "/dashboard",
+        intent: "industry_partner",
+        primaryRole: null,
+        profileGate: { status: "ROLE_SELECTION_REQUIRED" },
+      })
+    ).toBe("/onboarding?intent=industry-partner");
+  });
+
   it("sends an incomplete student profile back to onboarding", () => {
     expect(
       resolvePostLoginDestination({

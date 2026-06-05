@@ -68,6 +68,8 @@ describe("resolveAuthSession", () => {
       roles: [],
       primaryRole: null,
       studentProfileId: null,
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
       profileGate: { status: "ROLE_SELECTION_REQUIRED" },
     });
   });
@@ -89,6 +91,8 @@ describe("resolveAuthSession", () => {
       roles: [ROLES.STUDENT],
       primaryRole: ROLES.STUDENT,
       studentProfileId: null,
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
       profileGate: {
         status: "STUDENT_ONBOARDING_REQUIRED",
         intent: "student",
@@ -113,6 +117,8 @@ describe("resolveAuthSession", () => {
       roles: [ROLES.STUDENT],
       primaryRole: ROLES.STUDENT,
       studentProfileId: "profile-1",
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
       profileGate: { status: "COMPLETE" },
     });
   });
@@ -134,6 +140,8 @@ describe("resolveAuthSession", () => {
       roles: [ROLES.FACULTY, ROLES.STUDENT],
       primaryRole: ROLES.FACULTY,
       studentProfileId: null,
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
       profileGate: {
         status: "STUDENT_ONBOARDING_REQUIRED",
         intent: "student",
@@ -158,6 +166,8 @@ describe("resolveAuthSession", () => {
       roles: [],
       primaryRole: null,
       studentProfileId: null,
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
       profileGate: { status: "ROLE_SELECTION_REQUIRED" },
     });
   });
