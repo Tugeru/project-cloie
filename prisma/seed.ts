@@ -14,6 +14,7 @@ import {
   ResponseStatus,
   SystemRole,
   TargetStakeholder,
+  VerificationStatus,
   YearLevel,
 } from "@prisma/client";
 import { prisma } from "../src/lib/db/prisma";
@@ -1402,6 +1403,38 @@ async function seedUsers(
     });
   }
 
+  console.log("  → Alumni profiles...");
+  // demo-alumni: PENDING (newly registered, awaiting review)
+  await prisma.alumniProfile.upsert({
+    where: { user_id: U.ALU_BSIT },
+    update: {
+      graduation_year: 2023,
+      program_id: bsit.id,
+      verification_status: VerificationStatus.PENDING,
+    },
+    create: {
+      user_id: U.ALU_BSIT,
+      graduation_year: 2023,
+      program_id: bsit.id,
+      verification_status: VerificationStatus.PENDING,
+    },
+  });
+  // alumni-bsba: APPROVED (verified alumni)
+  await prisma.alumniProfile.upsert({
+    where: { user_id: U.ALU_BSBA },
+    update: {
+      graduation_year: 2021,
+      program_id: bsba.id,
+      verification_status: VerificationStatus.APPROVED,
+    },
+    create: {
+      user_id: U.ALU_BSBA,
+      graduation_year: 2021,
+      program_id: bsba.id,
+      verification_status: VerificationStatus.APPROVED,
+    },
+  });
+
   console.log("  → Industry partner profiles...");
   await prisma.industryPartnerProfile.upsert({
     where: { user_id: U.IND_BSIT },
@@ -1409,12 +1442,14 @@ async function seedUsers(
       company_name: "Demo Industry Partner",
       position: "HR and Training Lead",
       program_id: bsit.id,
+      verification_status: VerificationStatus.PENDING,
     },
     create: {
       user_id: U.IND_BSIT,
       company_name: "Demo Industry Partner",
       position: "HR and Training Lead",
       program_id: bsit.id,
+      verification_status: VerificationStatus.PENDING,
     },
   });
   await prisma.industryPartnerProfile.upsert({
@@ -1423,12 +1458,14 @@ async function seedUsers(
       company_name: "Grand Hotel Corp",
       position: "Operations Manager",
       program_id: bshm.id,
+      verification_status: VerificationStatus.APPROVED,
     },
     create: {
       user_id: U.IND_BSHM,
       company_name: "Grand Hotel Corp",
       position: "Operations Manager",
       program_id: bshm.id,
+      verification_status: VerificationStatus.APPROVED,
     },
   });
 
