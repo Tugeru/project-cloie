@@ -1,8 +1,6 @@
-# CLOIE
+# System CLOIE
 
 **Comprehensive Learning Outcomes and Instructional Evaluation**
-
-[![Quality Checks](https://github.com/Tugeru/project-cloie/actions/workflows/ci.yml/badge.svg)](https://github.com/Tugeru/project-cloie/actions/workflows/ci.yml)
 
 A college-level digital evaluation, monitoring, and reporting platform for Assumption College of Davao. CLOIE supports multiple academic programs, their courses, faculty members, and stakeholder-based outcome evaluation processes.
 
@@ -295,15 +293,3 @@ public-hoist-pattern[]=*tailwindcss*
 
 And `next.config.ts` includes custom `resolveTailwindcssPackagePath()` for Turbopack.
 
-## Documentation
-
-- **PRD**: `docs/cloie-prd.md`
-- **SRS**: `docs/cloie-srs.md`
-- **Tech Stack**: `docs/cloie-techstack.md`
-- **MVP Roadmap**: `docs/plans/cloie-mvp-roadmap.md`
-- **Design System**: `docs/design-system.txt`
-- **Full Folder Structure**: `docs/full-folder-structure.txt`
-
-## License
-
-This project is part of a BSIT capstone at Assumption College of Davao.
