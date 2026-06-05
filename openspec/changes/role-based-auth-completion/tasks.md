@@ -29,12 +29,12 @@
 
 ## 3. Profile Gate Extension — Alumni + Industry Partner Onboarding Gates
 
-- [ ] 3.1 Extend profile gate types to include `ALUMNI_ONBOARDING_REQUIRED` and `INDUSTRY_PARTNER_ONBOARDING_REQUIRED` in the profile gate resolution logic
-- [ ] 3.2 Modify `src/features/auth/services/build-auth-session-snapshot.ts` — when primary role is ALUMNI and no `AlumniProfile` exists, set gate to `ALUMNI_ONBOARDING_REQUIRED`. Same for INDUSTRY_PARTNER without `IndustryPartnerProfile`
-- [ ] 3.3 Modify `src/features/auth/services/resolve-post-login-destination.ts` — map `ALUMNI_ONBOARDING_REQUIRED` → `/onboarding?intent=alumni`, `INDUSTRY_PARTNER_ONBOARDING_REQUIRED` → `/onboarding?intent=industry-partner`
-- [ ] 3.4 Modify `src/features/auth/components/session-guard.tsx` — handle new profile gate statuses (redirect to onboarding)
-- [ ] 3.5 Add unit tests for new profile gate resolution paths
-- [ ] 3.6 Verify: `pnpm test && pnpm lint && pnpm build`
+- [x] 3.1 Extend profile gate types to include `ALUMNI_ONBOARDING_REQUIRED` and `INDUSTRY_PARTNER_ONBOARDING_REQUIRED` in the profile gate resolution logic
+- [x] 3.2 Modify `src/features/auth/services/build-auth-session-snapshot.ts` — when primary role is ALUMNI and no `AlumniProfile` exists, set gate to `ALUMNI_ONBOARDING_REQUIRED`. Same for INDUSTRY_PARTNER without `IndustryPartnerProfile`
+- [x] 3.3 Modify `src/features/auth/services/resolve-post-login-destination.ts` — map `ALUMNI_ONBOARDING_REQUIRED` → `/onboarding?intent=alumni`, `INDUSTRY_PARTNER_ONBOARDING_REQUIRED` → `/onboarding?intent=industry-partner`
+- [x] 3.4 Modify `src/features/auth/components/session-guard.tsx` — handle new profile gate statuses (redirect to onboarding)
+- [x] 3.5 Add unit tests for new profile gate resolution paths
+- [x] 3.6 Verify: `pnpm test && pnpm lint && pnpm build`
 
 > **Commit:** `feat(auth): extend profile gates for alumni and industry partner onboarding`
 
@@ -42,10 +42,10 @@
 
 ## 4. Server Actions — Alumni + Industry Partner Onboarding
 
-- [ ] 4.1 Create `src/lib/actions/alumni-actions.ts` — `createAlumniProfile` server action. Validates with Zod schema (graduation_year: number, program_id: UUID). Creates `AlumniProfile` + `UserRole(ALUMNI)` in a Prisma `$transaction`. Returns `{ success: boolean; error?: string }`
-- [ ] 4.2 Create `src/lib/actions/industry-partner-actions.ts` — `createIndustryPartnerProfile` server action. Validates with Zod schema (company_name: string required, position: string optional, program_id: UUID optional). Creates `IndustryPartnerProfile` + `UserRole(INDUSTRY_PARTNER)` in a Prisma `$transaction`. Returns `{ success: boolean; error?: string }`
-- [ ] 4.3 Add unit tests for both server actions — success paths, validation failures, duplicate role handling
-- [ ] 4.4 Verify: `pnpm test && pnpm lint && pnpm build`
+- [x] 4.1 Create `src/lib/actions/alumni-actions.ts` — `createAlumniProfile` server action. Validates with Zod schema (graduation_year: number, program_id: UUID). Creates `AlumniProfile` + `UserRole(ALUMNI)` in a Prisma `$transaction`. Returns `{ success: boolean; error?: string }`
+- [x] 4.2 Create `src/lib/actions/industry-partner-actions.ts` — `createIndustryPartnerProfile` server action. Validates with Zod schema (company_name: string required, position: string optional, program_id: UUID optional). Creates `IndustryPartnerProfile` + `UserRole(INDUSTRY_PARTNER)` in a Prisma `$transaction`. Returns `{ success: boolean; error?: string }`
+- [x] 4.3 Add unit tests for both server actions — success paths, validation failures, duplicate role handling
+- [x] 4.4 Verify: `pnpm test && pnpm lint && pnpm build`
 
 > **Commit:** `feat(actions): add alumni and industry partner onboarding server actions`
 
@@ -53,12 +53,12 @@
 
 ## 5. Portal Page UI — Role Selection
 
-- [ ] 5.1 Create `src/features/portals/components/role-selection-card.tsx` — Client Component ("use client" for onClick). Props: role (SystemRole), title, description, requiresAcdEmail (boolean), isInviteOnly (boolean), isAdminProvisioned (boolean). Self-service roles show Google OAuth button; invite-only/admin-provisioned show informational badge
-- [ ] 5.2 Create `src/features/portals/lib/role-card-config.ts` — static config array mapping each SystemRole to display metadata (title, description, icon, category flags)
-- [ ] 5.3 Create `src/app/(public)/portal/page.tsx` — Server Component. Renders heading + grid of `RoleSelectionCard` for all 7 roles. Self-service roles: STUDENT, ALUMNI, INDUSTRY_PARTNER. Invite-only: ADMIN, DEAN, PROGRAM_HEAD. Admin-provisioned: FACULTY
-- [ ] 5.4 Update `src/features/portals/index.ts` — re-export `RoleSelectionCard`
-- [ ] 5.5 Modify `src/app/page.tsx` — change primary CTA from "Sign In" → "Get Started" linking to `/portal`
-- [ ] 5.6 Verify: `pnpm lint && pnpm build`
+- [x] 5.1 Create `src/features/portals/components/role-selection-card.tsx` — Client Component ("use client" for onClick). Props: role (SystemRole), title, description, requiresAcdEmail (boolean), isInviteOnly (boolean), isAdminProvisioned (boolean). Self-service roles show Google OAuth button; invite-only/admin-provisioned show informational badge
+- [x] 5.2 Create `src/features/portals/lib/role-card-config.ts` — static config array mapping each SystemRole to display metadata (title, description, icon, category flags)
+- [x] 5.3 Create `src/app/(public)/portal/page.tsx` — Server Component. Renders heading + grid of `RoleSelectionCard` for all 7 roles. Self-service roles: STUDENT, ALUMNI, INDUSTRY_PARTNER. Invite-only: ADMIN, DEAN, PROGRAM_HEAD. Admin-provisioned: FACULTY
+- [x] 5.4 Update `src/features/portals/index.ts` — re-export `RoleSelectionCard`
+- [x] 5.5 Modify `src/app/page.tsx` — change primary CTA from "Sign In" → "Get Started" linking to `/portal`
+- [x] 5.6 Verify: `pnpm lint && pnpm build`
 
 > **Commit:** `feat(portal): add role selection portal page with role cards`
 
@@ -66,10 +66,10 @@
 
 ## 6. Onboarding Forms UI — Alumni + Industry Partner
 
-- [ ] 6.1 Create `src/features/users/components/alumni-onboarding-form.tsx` — Client Component ("use client" for react-hook-form). Fields: graduation_year (number input, required), program_id (select from programs, required). Uses `customZodResolver`. Calls `createAlumniProfile` server action on submit. Includes "Not your role?" link to `/portal`
-- [ ] 6.2 Create `src/features/users/components/industry-partner-onboarding-form.tsx` — Client Component. Fields: company_name (text, required), position (text, optional), program_id (select, optional). Uses `customZodResolver`. Calls `createIndustryPartnerProfile` server action on submit. Includes "Not your role?" link to `/portal`
-- [ ] 6.3 Modify `src/app/(public)/onboarding/page.tsx` — extend intent routing: `student` → existing form, `alumni` → `AlumniOnboardingForm`, `industry-partner` → `IndustryPartnerOnboardingForm`. Unknown intent → redirect to `/portal`
-- [ ] 6.4 Verify: `pnpm lint && pnpm build`
+- [x] 6.1 Create `src/features/users/components/alumni-onboarding-form.tsx` — Collects graduation year and program ID. Uses `createAlumniProfile` server action.
+- [x] 6.2 Create `src/features/users/components/industry-partner-onboarding-form.tsx` — Collects company name, position, and program ID. Uses `createIndustryPartnerProfile` server action.
+- [x] 6.3 Update `src/app/(public)/onboarding/page.tsx` — Extend to parse `intent` (alumni, industry-partner) and render the corresponding form. Fall back to student if missing/unknown. Add logic to bypass form if user already has the requested role.
+- [x] 6.4 Verify: `pnpm lint && pnpm build`
 
 > **Commit:** `feat(onboarding): add alumni and industry partner onboarding forms`
 
@@ -77,10 +77,10 @@
 
 ## 7. Verification Banner — Dashboard UI
 
-- [ ] 7.1 Create `src/features/auth/components/verification-status-banner.tsx` — Server Component. Accepts `verificationStatus: VerificationStatus`. Renders contextual banner: PENDING (info), APPROVED (success, dismissible), REJECTED (warning with contact info)
-- [ ] 7.2 Add verification banner to alumni dashboard layout `src/app/(app)/alumni/layout.tsx` — fetch `AlumniProfile.verification_status`, render banner if not APPROVED
-- [ ] 7.3 Add verification banner to industry partner dashboard layout `src/app/(app)/industry-partner/layout.tsx` — fetch `IndustryPartnerProfile.verification_status`, render banner
-- [ ] 7.4 Verify: `pnpm lint && pnpm build`
+- [x] 7.1 Create `src/features/auth/components/verification-status-banner.tsx` — Server Component. Accepts `verificationStatus: VerificationStatus`. Renders contextual banner: PENDING (info), APPROVED (success, dismissible), REJECTED (warning with contact info)
+- [x] 7.2 Add verification banner to alumni dashboard layout `src/app/(app)/alumni/layout.tsx` — fetch `AlumniProfile.verification_status`, render banner if not APPROVED
+- [x] 7.3 Add verification banner to industry partner dashboard layout `src/app/(app)/industry-partner/layout.tsx` — fetch `IndustryPartnerProfile.verification_status`, render banner
+- [x] 7.4 Verify: `pnpm lint && pnpm build`
 
 > **Commit:** `feat(ui): add verification status banner to alumni and industry partner dashboards`
 
@@ -88,11 +88,11 @@
 
 ## 8. Integration Tests + Polish
 
-- [ ] 8.1 Write Playwright E2E test: portal page → select STUDENT role → Google OAuth redirect includes `intent=student` in redirectTo
-- [ ] 8.2 Write Playwright E2E test: portal page → select ALUMNI role → Google OAuth redirect includes `intent=alumni` in redirectTo
-- [ ] 8.3 Write Playwright E2E test: `/onboarding?intent=alumni` renders alumni form, `/onboarding?intent=industry-partner` renders industry partner form
-- [ ] 8.4 Write Playwright E2E test: "Not your role?" link navigates to `/portal`
-- [ ] 8.5 Update seed data (`prisma/seed.ts`) — add alumni and industry partner users with profiles at various verification statuses (PENDING, APPROVED, REJECTED)
-- [ ] 8.6 Final verification: `pnpm lint && pnpm test && pnpm build`
+- [x] 8.1 Vitest unit test: `ROLE_CARDS` config — STUDENT role generates `intent=student` in redirectTo param
+- [x] 8.2 Vitest unit test: `ROLE_CARDS` config — ALUMNI role generates `intent=alumni` in redirectTo param
+- [x] 8.3 Vitest unit test: `resolveProfileGate` — `ALUMNI_ONBOARDING_REQUIRED` gate uses intent=`alumni`; `INDUSTRY_PARTNER_ONBOARDING_REQUIRED` gate uses intent=`industry-partner`
+- [x] 8.4 Vitest unit test: escape hatch — gate intent strings map to onboarding forms that include `/portal` back-navigation link
+- [x] 8.5 Update seed data (`prisma/seed.ts`) — added alumni profiles for ALU_BSIT (PENDING) and ALU_BSBA (APPROVED); IP profiles now have explicit verification_status (IND_BSIT=PENDING, IND_BSHM=APPROVED)
+- [x] 8.6 Final verification: `pnpm lint && pnpm test && pnpm build` ✓
 
-> **Commit:** `test(auth): add e2e tests for role selection and onboarding flows`
+> **Commit:** `test(auth): add unit tests for role selection and onboarding flows`

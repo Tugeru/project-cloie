@@ -1,0 +1,98 @@
+schema: spec-driven
+
+context: |
+  # CLOIE — Comprehensive Learning Outcomes and Instructional Evaluation
+  Domain: Academic evaluation system for a Philippine college (ACD).
+  Handles CILO evaluations, exit surveys, alumni/industry evaluations, and analytics reporting.
+
+  ## Tech Stack
+  - Framework: Next.js 16.x (App Router, Turbopack) + React 19.x
+  - Language: TypeScript 5.x (strict mode)
+  - Package Manager: pnpm (enforced via package.json#packageManager) — NEVER use npm or yarn
+  - Styling: Tailwind CSS 4.x + class-variance-authority (cva)
+  - UI Components: shadcn/ui (base-nova style) + @base-ui/react primitives — NEVER use Radix UI
+  - Forms: react-hook-form + Zod 4.x + customZodResolver from @/lib/forms/zod-resolver — NEVER use @hookform/resolvers/zod
+  - Database: PostgreSQL (Supabase-hosted) + Prisma 6.x ORM
+  - Auth: Supabase Auth + Google OAuth (SSR cookies via @supabase/ssr)
+  - State: TanStack Query (selective, for interactive server state)
+  - Charts: Recharts (quantitative dashboards)
+  - Testing: Vitest (unit/integration) + Playwright (E2E)
+  - Deployment: Vercel + Supabase
+
+  ## Architecture
+  - Modular monolith: feature-based organization under src/features/<domain>/
+  - Server Components by default; "use client" only for hooks, browser APIs, event handlers, react-hook-form
+  - Server Actions named as <role>-<domain>-actions.ts in src/lib/actions/
+  - Server Actions return serializable results: { success: boolean; error?: string }
+  - Request/session handling via src/proxy.ts (NOT middleware.ts)
+  - Auth middleware: src/lib/supabase/middleware.ts (updateSession)
+  - Path aliases: @/* maps to ./src/*
+
+  ## Database Workflow (CRITICAL)
+  - Prisma schema (prisma/schema.prisma) is the single source of truth
+  - Migration workflow: edit schema → pnpm supabase:migration:diff → pnpm supabase:push:dry-run → pnpm supabase:push → pnpm supabase:types
+  - NEVER hand-edit src/types/supabase-database.ts
+  - NEVER use Docker-backed commands: supabase db pull, supabase db diff --linked
+  - Mirror SQL-only constraints (e.g., NULLS NOT DISTINCT) as @@index in Prisma (not @@unique)
+
+  ## Auth / RBAC Model
+  - 7 SystemRole values: ADMIN, DEAN, PROGRAM_HEAD, FACULTY, STUDENT, ALUMNI, INDUSTRY_PARTNER
+  - Many-to-many via UserRole join table (unique on [user_id, role])
+  - Primary role resolved by hierarchy: ADMIN(100) > DEAN(80) > PROGRAM_HEAD(70) > FACULTY(50) > INDUSTRY_PARTNER(30) > ALUMNI(20) > STUDENT(10)
+  - Route protection via SessionGuard component in layout.tsx per role group
+  - Profile gates: ROLE_SELECTION_REQUIRED, STUDENT_ONBOARDING_REQUIRED, COMPLETE
+  - Scoping: ProgramHeadAssignment (program-head → program), FacultyProgramAffiliation (faculty → program)
+  - Dev auth bypass: httpOnly cookie cloie_dev_auth (development/demo only)
+
+  ## Route Structure
+  - Public routes: (public)/ — login, onboarding
+  - Authenticated routes: (app)/ — wrapped in SessionGuard + AppShell
+  - Per-role groups: admin/, dean/, program-head/, faculty/, student/, alumni/, industry-partner/
+  - API routes: api/auth/callback, api/auth/dev-login, api/auth/logout
+
+  ## Existing Feature Modules (src/features/)
+  academic-calendar, academic-structure, analytics, auth, course-assignments,
+  enrollments, evaluations, instruments, outcomes, portals, responses, users
+
+  ## Verification Commands
+  - Lint: pnpm lint
+  - Tests: pnpm test (Vitest)
+  - Build (includes typecheck): pnpm build
+  - Single test: pnpm vitest run src/__tests__/path/to/file.test.ts
+
+  ## Commit Convention
+  Conventional Commits: <type>(<scope>): <description>
+  Types: feat, fix, refactor, perf, style, test, docs, build, ops, chore
+  Lowercase, no trailing period, imperative present tense.
+
+rules:
+  proposal:
+    - Reference existing codebase patterns and conventions before proposing new approaches
+    - Explicitly state what already exists in the codebase vs what needs to be built
+    - Identify which existing feature modules (src/features/*) are affected
+    - Mark any changes that would affect the Prisma schema or require database migrations
+    - Mark breaking changes with **BREAKING** prefix
+    - Include a "Constitution Compliance" note confirming alignment with the 6 core principles
+  specs:
+    - Use Given/When/Then format for all scenarios
+    - Reference SystemRole enum values by exact name (ADMIN, DEAN, PROGRAM_HEAD, etc.)
+    - Reference existing Prisma models and relations by exact name
+    - Distinguish server-side vs client-side requirements explicitly
+    - Specify route paths matching the existing (public)/ and (app)/ route group structure
+    - Include edge cases for multi-role users (a user can hold multiple SystemRole values)
+    - Requirements MUST be testable — specify what verification looks like (Vitest unit, Playwright E2E, or manual)
+  design:
+    - Follow feature-based organization under src/features/<domain>/
+    - Server Components by default; justify any "use client" directives
+    - Use customZodResolver for all form validation (never @hookform/resolvers/zod)
+    - Use @base-ui/react primitives (never Radix UI)
+    - Specify the exact Prisma migration workflow for any schema changes
+    - Include file paths relative to project root for all new/modified files
+    - Include sequence diagrams for auth flows and multi-step user interactions
+  tasks:
+    - Group tasks by implementation layer (schema → server logic → UI → tests → polish)
+    - Each task should take no more than 2 hours of focused work
+    - Include verification step for each task group (lint, test, build)
+    - Database schema tasks must precede all dependent tasks
+    - Specify which pnpm commands to run for verification after each task group
+    - Include the conventional commit message for each task group
