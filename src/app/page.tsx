@@ -51,7 +51,7 @@ export default function Home() {
           </div>
 
           <Button
-            render={<Link href="/login" />}
+            render={<Link href="/portal" />}
             variant="outline"
             className="text-label-lg h-10 px-4"
           >
@@ -76,11 +76,11 @@ export default function Home() {
 
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Button
-                  render={<Link href="/login" />}
+                  render={<Link href="/portal" />}
                   size="lg"
                   className="text-label-lg h-12 px-6 text-white"
                 >
-                  Sign In to CLOIE
+                  Get Started
                 </Button>
               </div>
 

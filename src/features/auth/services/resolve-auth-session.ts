@@ -13,6 +13,8 @@ type AuthenticatedUser = {
 type AuthSessionUserRecord = {
   roles: Array<{ role: Role }>;
   student_profile: { id: string } | null;
+  alumni_profile: { id: string } | null;
+  industry_partner_profile: { id: string } | null;
 } | null;
 
 const KNOWN_ROLES = new Set<Role>(Object.values(ROLES));
@@ -27,6 +29,8 @@ async function resolveAuthSessionFromAuthenticatedUser(user: AuthenticatedUser) 
     include: {
       roles: true,
       student_profile: true,
+      alumni_profile: true,
+      industry_partner_profile: true,
     },
   });
 
@@ -35,12 +39,16 @@ async function resolveAuthSessionFromAuthenticatedUser(user: AuthenticatedUser) 
       .map((userRole) => userRole.role)
       .filter((roleName): roleName is Role => isKnownRole(roleName)) ?? [];
   const studentProfileId = dbUser?.student_profile?.id ?? null;
+  const alumniProfileId = dbUser?.alumni_profile?.id ?? null;
+  const industryPartnerProfileId = dbUser?.industry_partner_profile?.id ?? null;
 
   return buildAuthSessionSnapshot({
     userId: user.id,
     email: user.email,
     roles,
     studentProfileId,
+    alumniProfileId,
+    industryPartnerProfileId,
   });
 }
 

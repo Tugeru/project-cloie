@@ -9,6 +9,7 @@ const VALID_SELF_SERVICE_INTENTS: Record<string, SystemRole> = {
   student: SystemRole.STUDENT,
   alumni: SystemRole.ALUMNI,
   "industry-partner": SystemRole.INDUSTRY_PARTNER,
+  "industry_partner": SystemRole.INDUSTRY_PARTNER,
   faculty: SystemRole.FACULTY,
 };
 

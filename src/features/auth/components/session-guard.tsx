@@ -23,7 +23,7 @@ export async function SessionGuard({ children, allowedRoles = [] }: SessionGuard
     redirect(
       resolvePostLoginDestination({
         requestedPath: "/dashboard",
-        intent: session.profileGate.status === "STUDENT_ONBOARDING_REQUIRED" ? "student" : null,
+        intent: "intent" in session.profileGate ? session.profileGate.intent : null,
         primaryRole: session.primaryRole,
         profileGate: session.profileGate,
       })

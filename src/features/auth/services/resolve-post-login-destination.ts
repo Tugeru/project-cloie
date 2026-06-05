@@ -33,11 +33,25 @@ export function resolvePostLoginDestination({
   const sanitizedRequestedPath = sanitizeRequestedPath(requestedPath);
 
   if (profileGate.status === "ROLE_SELECTION_REQUIRED") {
+    if (intent === "alumni") {
+      return "/onboarding?intent=alumni";
+    }
+    if (intent === "industry-partner" || intent === "industry_partner") {
+      return "/onboarding?intent=industry-partner";
+    }
     return "/onboarding?intent=student";
   }
 
   if (profileGate.status === "STUDENT_ONBOARDING_REQUIRED") {
     return "/onboarding?intent=student";
+  }
+
+  if (profileGate.status === "ALUMNI_ONBOARDING_REQUIRED") {
+    return "/onboarding?intent=alumni";
+  }
+
+  if (profileGate.status === "INDUSTRY_PARTNER_ONBOARDING_REQUIRED") {
+    return "/onboarding?intent=industry-partner";
   }
 
   if (sanitizedRequestedPath && !sanitizedRequestedPath.startsWith("/onboarding")) {

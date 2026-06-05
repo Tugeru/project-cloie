@@ -8,6 +8,8 @@ export type AuthSessionSnapshot = {
   roles: Role[];
   primaryRole: Role | null;
   studentProfileId: string | null;
+  alumniProfileId: string | null;
+  industryPartnerProfileId: string | null;
   profileGate: ReturnType<typeof resolveProfileGate>;
 };
 
@@ -16,6 +18,8 @@ export function buildAuthSessionSnapshot(input: {
   email: string | null;
   roles: Role[];
   studentProfileId: string | null;
+  alumniProfileId: string | null;
+  industryPartnerProfileId: string | null;
 }): AuthSessionSnapshot {
   const primaryRole = resolvePrimaryRole(input.roles);
 
@@ -25,10 +29,14 @@ export function buildAuthSessionSnapshot(input: {
     roles: input.roles,
     primaryRole,
     studentProfileId: input.studentProfileId,
+    alumniProfileId: input.alumniProfileId,
+    industryPartnerProfileId: input.industryPartnerProfileId,
     profileGate: resolveProfileGate({
       roles: input.roles,
       primaryRole,
       studentProfileId: input.studentProfileId,
+      alumniProfileId: input.alumniProfileId,
+      industryPartnerProfileId: input.industryPartnerProfileId,
     }),
   };
 }
