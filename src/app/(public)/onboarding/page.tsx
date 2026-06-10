@@ -11,7 +11,9 @@ import { createClient } from "@/lib/supabase/server";
 import { StudentProfileForm } from "./student-profile-form";
 import { AlumniOnboardingForm } from "@/features/users/components/alumni-onboarding-form";
 import { IndustryPartnerOnboardingForm } from "@/features/users/components/industry-partner-onboarding-form";
+import { FacultyOnboardingForm } from "@/features/users/components/faculty-onboarding-form";
 import { resetIncompleteRoleClaim } from "@/lib/actions/onboarding-actions";
+import { getActiveTermId } from "@/features/academic-calendar/services/resolve-active-term";
 
 export default async function OnboardingPage({
   searchParams,
@@ -53,8 +55,23 @@ export default async function OnboardingPage({
   const lastNameFallback = meta.family_name ?? (nameParts.length > 1 ? nameParts[nameParts.length - 1] : "");
 
   const programs = await prisma.program.findMany({
+    where: { is_active: true },
     include: { majors: true },
+    orderBy: { code: "asc" },
   });
+
+  if (intent === "faculty") {
+    return (
+      <div className="mx-auto w-full max-w-2xl py-8">
+        <FacultyOnboardingForm
+          email={user.email!}
+          initialFirstName={firstNameFallback}
+          initialLastName={lastNameFallback}
+          programs={programs}
+        />
+      </div>
+    );
+  }
 
   if (intent === "alumni") {
     return (
@@ -74,6 +91,8 @@ export default async function OnboardingPage({
 
   if (intent === "student" && step === "form") {
     const yearLevels = Object.values(YearLevel);
+    const activeTermId = await getActiveTermId();
+    const hasActiveTerm = !!activeTermId;
 
     return (
       <div className="mx-auto w-full max-w-2xl py-8">
@@ -83,6 +102,7 @@ export default async function OnboardingPage({
           initialLastName={lastNameFallback}
           programs={programs}
           yearLevels={yearLevels}
+          hasActiveTerm={hasActiveTerm}
         />
       </div>
     );

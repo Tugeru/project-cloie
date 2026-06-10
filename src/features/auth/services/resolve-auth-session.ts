@@ -5,6 +5,9 @@ import { createClient } from "@/lib/supabase/server";
 import { readDevAuthCookie } from "./dev-auth";
 import { buildAuthSessionSnapshot } from "./build-auth-session-snapshot";
 
+import { getActiveTermId } from "@/features/academic-calendar/services/resolve-active-term";
+import type { VerificationStatus } from "@prisma/client";
+
 type AuthenticatedUser = {
   id: string;
   email: string | null;
@@ -12,10 +15,11 @@ type AuthenticatedUser = {
 
 type AuthSessionUserRecord = {
   id: string;
+  is_active: boolean;
   roles: Array<{ role: Role }>;
   student_profile: { id: string } | null;
-  alumni_profile: { id: string } | null;
-  industry_partner_profile: { id: string } | null;
+  alumni_profile: { id: string; verification_status: VerificationStatus } | null;
+  industry_partner_profile: { id: string; verification_status: VerificationStatus } | null;
 } | null;
 
 const KNOWN_ROLES = new Set<Role>(Object.values(ROLES));
@@ -46,6 +50,30 @@ async function resolveAuthSessionFromAuthenticatedUser(
   const alumniProfileId = dbUser?.alumni_profile?.id ?? null;
   const industryPartnerProfileId = dbUser?.industry_partner_profile?.id ?? null;
 
+  let hasActiveEnrollment = false;
+  if (roles.includes(ROLES.STUDENT) && studentProfileId && dbUser) {
+    const activeTermId = await getActiveTermId();
+    if (activeTermId) {
+      const enrollment = await prisma.studentEnrollment.findUnique({
+        where: {
+          student_user_id_term_instance_id: {
+            student_user_id: dbUser.id,
+            term_instance_id: activeTermId,
+          },
+        },
+      });
+      hasActiveEnrollment = !!(enrollment && enrollment.is_active);
+    }
+  }
+
+  let hasFacultyAffiliation = false;
+  if (roles.includes(ROLES.FACULTY) && dbUser) {
+    const affiliation = await prisma.facultyProgramAffiliation.findFirst({
+      where: { faculty_id: dbUser.id, is_active: true },
+    });
+    hasFacultyAffiliation = !!affiliation;
+  }
+
   return buildAuthSessionSnapshot({
     userId: dbUser?.id ?? user.id,
     email: user.email,
@@ -53,6 +81,11 @@ async function resolveAuthSessionFromAuthenticatedUser(
     studentProfileId,
     alumniProfileId,
     industryPartnerProfileId,
+    isActive: dbUser?.is_active ?? true,
+    alumniVerificationStatus: dbUser?.alumni_profile?.verification_status ?? null,
+    industryPartnerVerificationStatus: dbUser?.industry_partner_profile?.verification_status ?? null,
+    hasActiveEnrollment,
+    hasFacultyAffiliation,
   });
 }
 

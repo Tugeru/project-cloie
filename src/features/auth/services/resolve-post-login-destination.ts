@@ -32,6 +32,18 @@ export function resolvePostLoginDestination({
 }: DestinationInput): string {
   const sanitizedRequestedPath = sanitizeRequestedPath(requestedPath);
 
+  if (profileGate.status === "INACTIVE") {
+    return "/status/inactive";
+  }
+
+  if (profileGate.status === "REJECTED_EXTERNAL_ACCOUNT") {
+    return "/status/rejected";
+  }
+
+  if (profileGate.status === "DEFERRED_ENROLLMENT") {
+    return "/student/dashboard";
+  }
+
   if (profileGate.status === "ROLE_SELECTION_REQUIRED") {
     if (intent === "alumni") {
       return "/onboarding?intent=alumni";
@@ -44,6 +56,10 @@ export function resolvePostLoginDestination({
 
   if (profileGate.status === "STUDENT_ONBOARDING_REQUIRED") {
     return "/onboarding?intent=student";
+  }
+
+  if (profileGate.status === "FACULTY_ONBOARDING_REQUIRED") {
+    return "/onboarding?intent=faculty";
   }
 
   if (profileGate.status === "ALUMNI_ONBOARDING_REQUIRED") {

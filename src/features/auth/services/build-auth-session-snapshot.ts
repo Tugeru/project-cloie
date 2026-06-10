@@ -18,8 +18,13 @@ export function buildAuthSessionSnapshot(input: {
   email: string | null;
   roles: Role[];
   studentProfileId: string | null;
-  alumniProfileId: string | null;
-  industryPartnerProfileId: string | null;
+  alumniProfileId?: string | null;
+  industryPartnerProfileId?: string | null;
+  isActive?: boolean;
+  alumniVerificationStatus?: string | null;
+  industryPartnerVerificationStatus?: string | null;
+  hasActiveEnrollment?: boolean;
+  hasFacultyAffiliation?: boolean;
 }): AuthSessionSnapshot {
   const primaryRole = resolvePrimaryRole(input.roles);
 
@@ -29,14 +34,19 @@ export function buildAuthSessionSnapshot(input: {
     roles: input.roles,
     primaryRole,
     studentProfileId: input.studentProfileId,
-    alumniProfileId: input.alumniProfileId,
-    industryPartnerProfileId: input.industryPartnerProfileId,
+    alumniProfileId: input.alumniProfileId ?? null,
+    industryPartnerProfileId: input.industryPartnerProfileId ?? null,
     profileGate: resolveProfileGate({
       roles: input.roles,
       primaryRole,
       studentProfileId: input.studentProfileId,
-      alumniProfileId: input.alumniProfileId,
-      industryPartnerProfileId: input.industryPartnerProfileId,
+      alumniProfileId: input.alumniProfileId ?? null,
+      industryPartnerProfileId: input.industryPartnerProfileId ?? null,
+      isActive: input.isActive,
+      alumniVerificationStatus: input.alumniVerificationStatus,
+      industryPartnerVerificationStatus: input.industryPartnerVerificationStatus,
+      hasActiveEnrollment: input.hasActiveEnrollment,
+      hasFacultyAffiliation: input.hasFacultyAffiliation,
     }),
   };
 }

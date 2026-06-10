@@ -63,9 +63,26 @@ describe("buildAuthSessionSnapshot", () => {
       email: "faculty@acd.edu.ph",
       roles: [ROLES.FACULTY],
       studentProfileId: null,
+      hasFacultyAffiliation: true,
     });
 
     expect(session.primaryRole).toBe(ROLES.FACULTY);
     expect(session.profileGate).toEqual({ status: "COMPLETE" });
+  });
+
+  it("requires faculty onboarding when hasFacultyAffiliation is false", () => {
+    const session = buildAuthSessionSnapshot({
+      userId: "user-6",
+      email: "faculty@acd.edu.ph",
+      roles: [ROLES.FACULTY],
+      studentProfileId: null,
+      hasFacultyAffiliation: false,
+    });
+
+    expect(session.primaryRole).toBe(ROLES.FACULTY);
+    expect(session.profileGate).toEqual({
+      status: "FACULTY_ONBOARDING_REQUIRED",
+      intent: "faculty",
+    });
   });
 });
