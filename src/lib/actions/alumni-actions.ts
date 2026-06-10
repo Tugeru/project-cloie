@@ -41,8 +41,8 @@ export async function createAlumniProfile(data: AlumniProfileInput) {
 
       // 2. Assign Global Role (Idempotent)
       await tx.userRole.upsert({
-        where: { user_id_role: { user_id: user.id, role: ROLES.ALUMNI } },
-        update: {},
+        where: { user_id: user.id },
+        update: { role: ROLES.ALUMNI },
         create: {
           user_id: user.id,
           role: ROLES.ALUMNI,

@@ -4,6 +4,7 @@ import { dirname } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { getSupabaseCommand } from "./supabase-cli";
+import { loadEnvConfig } from "@next/env";
 
 export const OUTPUT_PATH = "src/types/supabase-database.ts";
 
@@ -12,6 +13,7 @@ export function buildTypegenArgs() {
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  loadEnvConfig(process.cwd());
   const output = execFileSync(getSupabaseCommand(), buildTypegenArgs(), {
     encoding: "utf8",
     shell: process.platform === "win32",

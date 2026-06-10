@@ -115,8 +115,8 @@ describe("Alumni Actions", () => {
       },
     });
     expect(prisma.userRole.upsert).toHaveBeenCalledWith({
-      where: { user_id_role: { user_id: "user-123", role: ROLES.ALUMNI } },
-      update: {},
+      where: { user_id: "user-123" },
+      update: { role: ROLES.ALUMNI },
       create: {
         user_id: "user-123",
         role: ROLES.ALUMNI,
@@ -161,8 +161,8 @@ describe("Alumni Actions", () => {
       },
     });
     expect(prisma.userRole.upsert).toHaveBeenCalledWith({
-      where: { user_id_role: { user_id: "user-123", role: ROLES.ALUMNI } },
-      update: {},
+      where: { user_id: "user-123" },
+      update: { role: ROLES.ALUMNI },
       create: {
         user_id: "user-123",
         role: ROLES.ALUMNI,

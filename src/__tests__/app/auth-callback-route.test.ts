@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { SystemRole } from "@prisma/client";
 
 const {
   exchangeCodeForSessionMock,
@@ -6,12 +7,18 @@ const {
   resolveAuthSessionMock,
   resolveAuthSessionFromUserMock,
   resolvePostLoginDestinationMock,
+  findUniqueUserMock,
+  updateUserMock,
+  createUserMock,
 } = vi.hoisted(() => ({
   exchangeCodeForSessionMock: vi.fn(),
   signOutMock: vi.fn(),
   resolveAuthSessionMock: vi.fn(),
   resolveAuthSessionFromUserMock: vi.fn(),
   resolvePostLoginDestinationMock: vi.fn(),
+  findUniqueUserMock: vi.fn(),
+  updateUserMock: vi.fn(),
+  createUserMock: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -32,12 +39,26 @@ vi.mock("@/features/auth/services/resolve-post-login-destination", () => ({
   resolvePostLoginDestination: resolvePostLoginDestinationMock,
 }));
 
+vi.mock("@/lib/db/prisma", () => ({
+  prisma: {
+    user: {
+      findUnique: findUniqueUserMock,
+      update: updateUserMock,
+      create: createUserMock,
+    },
+  },
+}));
+
 import { GET } from "@/app/api/auth/callback/route";
+
+const VALID_UUID_1 = "00000000-0000-0000-0000-000000000001";
+const VALID_UUID_2 = "00000000-0000-0000-0000-000000000002";
 
 describe("auth callback route", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.unstubAllEnvs();
+    vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://cloie.test");
     resolvePostLoginDestinationMock.mockReturnValue("/student/dashboard");
     resolveAuthSessionMock.mockResolvedValue({
       primaryRole: "STUDENT",
@@ -56,22 +77,46 @@ describe("auth callback route", () => {
     expect(exchangeCodeForSessionMock).not.toHaveBeenCalled();
   });
 
-  it("signs out and redirects invalid domains to the invalid-domain login page", async () => {
+  it("signs out and redirects invalid domains to the invalid-domain login page when intent is passed", async () => {
     exchangeCodeForSessionMock.mockResolvedValue({
       error: null,
-      data: { user: { email: "user@gmail.com" } },
+      data: { user: { id: VALID_UUID_1, email: "user@gmail.com" } },
     });
+    findUniqueUserMock.mockResolvedValue(null); // not found
 
-    const response = await GET(new Request("https://cloie.test/api/auth/callback?code=abc"));
+    const response = await GET(
+      new Request("https://cloie.test/api/auth/callback?code=abc&intent=student")
+    );
 
     expect(signOutMock).toHaveBeenCalledTimes(1);
     expect(response.headers.get("location")).toContain("/login?error=invalid_domain");
   });
 
-  it("uses resolvePostLoginDestination for successful redirects", async () => {
+  it("redirects new users with no intent to the role selection portal", async () => {
     exchangeCodeForSessionMock.mockResolvedValue({
       error: null,
-      data: { user: { id: "user-1", email: "user@acd.edu.ph" } },
+      data: { user: { id: VALID_UUID_1, email: "user@gmail.com" } },
+    });
+    findUniqueUserMock.mockResolvedValue(null);
+
+    const response = await GET(
+      new Request("https://cloie.test/api/auth/callback?code=abc")
+    );
+
+    expect(signOutMock).toHaveBeenCalledTimes(1);
+    expect(response.headers.get("location")).toBe("https://cloie.test/");
+  });
+
+  it("redirects existing users with no intent to their stored role dashboard", async () => {
+    exchangeCodeForSessionMock.mockResolvedValue({
+      error: null,
+      data: { user: { id: VALID_UUID_1, email: "user@acd.edu.ph" } },
+    });
+    findUniqueUserMock.mockResolvedValue({
+      id: "domain-user-1",
+      auth_user_id: VALID_UUID_1,
+      email: "user@acd.edu.ph",
+      roles: [{ role: SystemRole.FACULTY }],
     });
     resolveAuthSessionFromUserMock.mockResolvedValue({
       primaryRole: "FACULTY",
@@ -80,17 +125,113 @@ describe("auth callback route", () => {
     resolvePostLoginDestinationMock.mockReturnValue("/faculty/dashboard");
 
     const response = await GET(
-      new Request("https://cloie.test/api/auth/callback?code=abc&next=%2Fdashboard&intent=student")
+      new Request("https://cloie.test/api/auth/callback?code=abc")
+    );
+
+    expect(response.headers.get("location")).toBe("https://cloie.test/faculty/dashboard");
+  });
+
+  it("links an existing unlinked admin-created user by normalized email and does not overwrite name", async () => {
+    exchangeCodeForSessionMock.mockResolvedValue({
+      error: null,
+      data: {
+        user: {
+          id: VALID_UUID_1,
+          email: "Unlinked@ACD.edu.ph ",
+          user_metadata: { given_name: "GoogleFirst", family_name: "GoogleLast" },
+        },
+      },
+    });
+    // First lookup by auth_user_id finds nothing
+    findUniqueUserMock.mockResolvedValueOnce(null);
+    // Second lookup by email finds unlinked user
+    findUniqueUserMock.mockResolvedValueOnce({
+      id: "domain-user-1",
+      email: "unlinked@acd.edu.ph",
+      first_name: "AdminFirst",
+      last_name: "AdminLast",
+      roles: [{ role: SystemRole.FACULTY }],
+    });
+    // Mock the update action
+    updateUserMock.mockResolvedValue({
+      id: "domain-user-1",
+      email: "unlinked@acd.edu.ph",
+      auth_user_id: VALID_UUID_1,
+      first_name: "AdminFirst",
+      last_name: "AdminLast",
+      roles: [{ role: SystemRole.FACULTY }],
+    });
+    resolveAuthSessionFromUserMock.mockResolvedValue({
+      primaryRole: "FACULTY",
+      profileGate: { status: "COMPLETE" },
+    });
+    resolvePostLoginDestinationMock.mockReturnValue("/faculty/dashboard");
+
+    const response = await GET(
+      new Request("https://cloie.test/api/auth/callback?code=abc&intent=faculty")
+    );
+
+    expect(updateUserMock).toHaveBeenCalledWith({
+      where: { id: "domain-user-1" },
+      data: {
+        auth_user_id: VALID_UUID_1,
+        first_name: "AdminFirst",
+        last_name: "AdminLast",
+      },
+      include: { roles: true },
+    });
+    expect(response.headers.get("location")).toBe("https://cloie.test/faculty/dashboard");
+  });
+
+  it("redirects to role mismatch page when the intent does not match the stored role", async () => {
+    exchangeCodeForSessionMock.mockResolvedValue({
+      error: null,
+      data: { user: { id: VALID_UUID_1, email: "user@acd.edu.ph" } },
+    });
+    findUniqueUserMock.mockResolvedValue({
+      id: "domain-user-1",
+      auth_user_id: VALID_UUID_1,
+      email: "user@acd.edu.ph",
+      roles: [{ role: SystemRole.FACULTY }],
+    });
+
+    const response = await GET(
+      new Request("https://cloie.test/api/auth/callback?code=abc&intent=student")
+    );
+
+    expect(signOutMock).toHaveBeenCalledTimes(1);
+    expect(response.headers.get("location")).toContain("/login?error=role_mismatch");
+  });
+
+  it("uses resolvePostLoginDestination for successful redirects", async () => {
+    exchangeCodeForSessionMock.mockResolvedValue({
+      error: null,
+      data: { user: { id: VALID_UUID_1, email: "user@acd.edu.ph" } },
+    });
+    findUniqueUserMock.mockResolvedValue({
+      id: "domain-user-1",
+      auth_user_id: VALID_UUID_1,
+      email: "user@acd.edu.ph",
+      roles: [{ role: SystemRole.FACULTY }],
+    });
+    resolveAuthSessionFromUserMock.mockResolvedValue({
+      primaryRole: "FACULTY",
+      profileGate: { status: "COMPLETE" },
+    });
+    resolvePostLoginDestinationMock.mockReturnValue("/faculty/dashboard");
+
+    const response = await GET(
+      new Request("https://cloie.test/api/auth/callback?code=abc&next=%2Fdashboard&intent=faculty")
     );
 
     expect(resolvePostLoginDestinationMock).toHaveBeenCalledWith({
       requestedPath: "/dashboard",
-      intent: "student",
+      intent: "faculty",
       primaryRole: "FACULTY",
       profileGate: { status: "COMPLETE" },
     });
     expect(resolveAuthSessionFromUserMock).toHaveBeenCalledWith({
-      id: "user-1",
+      id: VALID_UUID_1,
       email: "user@acd.edu.ph",
     });
     expect(resolveAuthSessionMock).not.toHaveBeenCalled();
@@ -102,22 +243,34 @@ describe("auth callback route", () => {
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://public.example");
     exchangeCodeForSessionMock.mockResolvedValue({
       error: null,
-      data: { user: { id: "user-2", email: "user@acd.edu.ph" } },
+      data: { user: { id: VALID_UUID_1, email: "user@acd.edu.ph" } },
     });
-    resolvePostLoginDestinationMock.mockReturnValue("/admin/dashboard");
+    findUniqueUserMock.mockResolvedValue({
+      id: "domain-user-1",
+      auth_user_id: VALID_UUID_1,
+      email: "user@acd.edu.ph",
+      roles: [{ role: SystemRole.FACULTY }],
+    });
+    resolvePostLoginDestinationMock.mockReturnValue("/faculty/dashboard");
 
     const request = new Request("https://internal.example/api/auth/callback?code=abc", {
       headers: { "x-forwarded-host": "app.example.com" },
     });
     const response = await GET(request);
 
-    expect(response.headers.get("location")).toBe("https://public.example/admin/dashboard");
+    expect(response.headers.get("location")).toBe("https://public.example/faculty/dashboard");
   });
 
   it("sanitizes malformed next values before redirecting", async () => {
     exchangeCodeForSessionMock.mockResolvedValue({
       error: null,
-      data: { user: { id: "user-3", email: "user@acd.edu.ph" } },
+      data: { user: { id: VALID_UUID_1, email: "user@acd.edu.ph" } },
+    });
+    findUniqueUserMock.mockResolvedValue({
+      id: "domain-user-1",
+      auth_user_id: VALID_UUID_1,
+      email: "user@acd.edu.ph",
+      roles: [{ role: SystemRole.STUDENT }],
     });
 
     const response = await GET(

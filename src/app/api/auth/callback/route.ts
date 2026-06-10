@@ -4,6 +4,7 @@ import { resolveAuthSessionFromUser } from "@/features/auth/services/resolve-aut
 import { resolvePostLoginDestination } from "@/features/auth/services/resolve-post-login-destination";
 import { validateRoleDomain } from "@/features/auth/services/validate-role-domain";
 import { SystemRole } from "@prisma/client";
+import { prisma } from "@/lib/db/prisma";
 
 const VALID_SELF_SERVICE_INTENTS: Record<string, SystemRole> = {
   student: SystemRole.STUDENT,
@@ -11,6 +12,14 @@ const VALID_SELF_SERVICE_INTENTS: Record<string, SystemRole> = {
   "industry-partner": SystemRole.INDUSTRY_PARTNER,
   "industry_partner": SystemRole.INDUSTRY_PARTNER,
   faculty: SystemRole.FACULTY,
+};
+
+const VALID_INTENTS: Record<string, SystemRole> = {
+  ...VALID_SELF_SERVICE_INTENTS,
+  admin: SystemRole.ADMIN,
+  dean: SystemRole.DEAN,
+  "program-head": SystemRole.PROGRAM_HEAD,
+  "program_head": SystemRole.PROGRAM_HEAD,
 };
 
 export async function GET(request: Request) {
@@ -30,39 +39,126 @@ export async function GET(request: Request) {
   }
 
   const email = data.user.email || "";
+  const normalizedEmail = email.trim().toLowerCase();
   const intentParam = searchParams.get("intent");
+  const authUserId = data.user.id;
 
-  if (intentParam) {
-    const role = VALID_SELF_SERVICE_INTENTS[intentParam.toLowerCase()];
-    if (role) {
-      const validation = validateRoleDomain(email, role);
-      if (!validation.valid) {
-        await supabase.auth.signOut();
-        return NextResponse.redirect(
-          `${siteUrl}/login?error=invalid_domain&role=${intentParam}`
-        );
-      }
-    } else {
-      // Treat unknown intent (like 'admin' etc.) as invalid intent and fall back to default domain enforcement
-      const isAuthorized = email.endsWith("@acd.edu.ph") || email.endsWith("@acdeducation.com");
-      if (!isAuthorized) {
+  // 1. Try to find an existing user by auth_user_id
+  let dbUser = await prisma.user.findUnique({
+    where: { auth_user_id: authUserId },
+    include: { roles: true },
+  });
+
+  // 2. If not found by auth_user_id, link by normalized email
+  if (!dbUser && normalizedEmail) {
+    const matchedUser = await prisma.user.findUnique({
+      where: { email: normalizedEmail },
+      include: { roles: true },
+    });
+
+    if (matchedUser) {
+      const meta = data.user.user_metadata || {};
+      const googleFirstName = meta.given_name || meta.first_name || "";
+      const googleLastName = meta.family_name || meta.last_name || "";
+
+      dbUser = await prisma.user.update({
+        where: { id: matchedUser.id },
+        data: {
+          auth_user_id: authUserId,
+          first_name: matchedUser.first_name || googleFirstName || "User",
+          last_name: matchedUser.last_name || googleLastName || "Name",
+        },
+        include: { roles: true },
+      });
+    }
+  }
+
+  // 3. Perform validations based on role intent or stored role
+  const targetRole = intentParam ? VALID_INTENTS[intentParam.toLowerCase()] : null;
+
+  if (dbUser) {
+    const userRole = dbUser.roles[0]?.role;
+
+    // Reject on role mismatch if intent was explicitly requested
+    if (targetRole && userRole !== targetRole) {
+      await supabase.auth.signOut();
+      return NextResponse.redirect(`${siteUrl}/login?error=role_mismatch`);
+    }
+
+    // ACD-domain validation for internal roles
+    const isInternal =
+      userRole === SystemRole.STUDENT ||
+      userRole === SystemRole.FACULTY ||
+      userRole === SystemRole.ADMIN ||
+      userRole === SystemRole.DEAN ||
+      userRole === SystemRole.PROGRAM_HEAD;
+    if (isInternal) {
+      const isACD =
+        normalizedEmail.endsWith("@acd.edu.ph") ||
+        normalizedEmail.endsWith("@acdeducation.com");
+      if (!isACD) {
         await supabase.auth.signOut();
         return NextResponse.redirect(`${siteUrl}/login?error=invalid_domain`);
       }
     }
   } else {
-    // Default domain enforcement (backward compatibility)
-    const isAuthorized = email.endsWith("@acd.edu.ph") || email.endsWith("@acdeducation.com");
-    if (!isAuthorized) {
+    // New user signup
+    if (intentParam) {
+      if (targetRole) {
+        // Pre-provisioned roles cannot be self-claimed
+        const isPreProvisioned =
+          targetRole === SystemRole.ADMIN ||
+          targetRole === SystemRole.DEAN ||
+          targetRole === SystemRole.PROGRAM_HEAD;
+        if (isPreProvisioned) {
+          await supabase.auth.signOut();
+          return NextResponse.redirect(`${siteUrl}/login?error=pre_provisioning_required`);
+        }
+
+        // Validate domain for self-service roles
+        const validation = validateRoleDomain(normalizedEmail, targetRole);
+        if (!validation.valid) {
+          await supabase.auth.signOut();
+          return NextResponse.redirect(
+            `${siteUrl}/login?error=invalid_domain&role=${intentParam}`
+          );
+        }
+
+        // Create domain user and their single role record
+        const meta = data.user.user_metadata || {};
+        const googleFirstName = meta.given_name || meta.first_name || "User";
+        const googleLastName = meta.family_name || meta.last_name || "Name";
+
+        dbUser = await prisma.user.create({
+          data: {
+            auth_user_id: authUserId,
+            email: normalizedEmail,
+            first_name: googleFirstName,
+            last_name: googleLastName,
+            roles: {
+              create: {
+                role: targetRole,
+              },
+            },
+          },
+          include: { roles: true },
+        });
+      } else {
+        await supabase.auth.signOut();
+        return NextResponse.redirect(`${siteUrl}/login?error=invalid_domain`);
+      }
+    } else {
+      // No intent and no user: redirect to portal
       await supabase.auth.signOut();
-      return NextResponse.redirect(`${siteUrl}/login?error=invalid_domain`);
+      return NextResponse.redirect(`${siteUrl}/`);
     }
   }
 
   const session = await resolveAuthSessionFromUser({
-    id: data.user.id,
-    email: data.user.email ?? null,
+    id: authUserId,
+    email: normalizedEmail,
   });
+
   const nextUrl = resolvePostLoginDestination({
     requestedPath: searchParams.get("next") ?? "/dashboard",
     intent: intentParam,

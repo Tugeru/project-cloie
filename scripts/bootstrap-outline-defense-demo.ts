@@ -72,12 +72,11 @@ async function ensureUser(input: DemoUserInput) {
 async function ensureUserRole(userId: string, role: Role) {
   await prisma.userRole.upsert({
     where: {
-      user_id_role: {
-        user_id: userId,
-        role,
-      },
+      user_id: userId,
     },
-    update: {},
+    update: {
+      role,
+    },
     create: {
       user_id: userId,
       role,

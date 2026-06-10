@@ -54,8 +54,8 @@ export async function registerStudentProfile(data: StudentProfileInput) {
 
       // 2. Assign Global Role (Idempotent)
       await tx.userRole.upsert({
-        where: { user_id_role: { user_id: user.id, role: ROLES.STUDENT } },
-        update: {},
+        where: { user_id: user.id },
+        update: { role: ROLES.STUDENT },
         create: {
           user_id: user.id,
           role: ROLES.STUDENT,

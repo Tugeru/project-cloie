@@ -208,6 +208,7 @@ model CourseAssignment {
 
 model User {
   id                   String                  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  auth_user_id         String?                 @unique @db.Uuid
   email                String                  @unique
   first_name           String
   last_name            String
@@ -238,13 +239,12 @@ model User {
 
 model UserRole {
   id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  user_id     String     @db.Uuid
+  user_id     String     @unique @db.Uuid
   role        SystemRole
   assigned_at DateTime   @default(now())
 
   user        User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
 
-  @@unique([user_id, role])
   @@map("user_roles")
 }
 

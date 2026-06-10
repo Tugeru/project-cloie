@@ -11,6 +11,7 @@ type AuthenticatedUser = {
 };
 
 type AuthSessionUserRecord = {
+  id: string;
   roles: Array<{ role: Role }>;
   student_profile: { id: string } | null;
   alumni_profile: { id: string } | null;
@@ -23,9 +24,12 @@ function isKnownRole(roleName: string): roleName is Role {
   return KNOWN_ROLES.has(roleName as Role);
 }
 
-async function resolveAuthSessionFromAuthenticatedUser(user: AuthenticatedUser) {
+async function resolveAuthSessionFromAuthenticatedUser(
+  user: AuthenticatedUser,
+  isDevAuth: boolean = false
+) {
   const dbUser: AuthSessionUserRecord = await prisma.user.findUnique({
-    where: { id: user.id },
+    where: isDevAuth ? { id: user.id } : { auth_user_id: user.id },
     include: {
       roles: true,
       student_profile: true,
@@ -43,7 +47,7 @@ async function resolveAuthSessionFromAuthenticatedUser(user: AuthenticatedUser) 
   const industryPartnerProfileId = dbUser?.industry_partner_profile?.id ?? null;
 
   return buildAuthSessionSnapshot({
-    userId: user.id,
+    userId: dbUser?.id ?? user.id,
     email: user.email,
     roles,
     studentProfileId,
@@ -53,7 +57,7 @@ async function resolveAuthSessionFromAuthenticatedUser(user: AuthenticatedUser) 
 }
 
 export async function resolveAuthSessionFromUser(user: AuthenticatedUser) {
-  return resolveAuthSessionFromAuthenticatedUser(user);
+  return resolveAuthSessionFromAuthenticatedUser(user, false);
 }
 
 export const resolveAuthSession = cache(async function resolveAuthSession() {
@@ -63,7 +67,7 @@ export const resolveAuthSession = cache(async function resolveAuthSession() {
     return resolveAuthSessionFromAuthenticatedUser({
       id: devAuthUser.userId,
       email: devAuthUser.email,
-    });
+    }, true);
   }
 
   const supabase = await createClient();
@@ -79,5 +83,5 @@ export const resolveAuthSession = cache(async function resolveAuthSession() {
   return resolveAuthSessionFromAuthenticatedUser({
     id: user.id,
     email: user.email ?? null,
-  });
+  }, false);
 });

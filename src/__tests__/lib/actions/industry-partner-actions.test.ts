@@ -112,8 +112,8 @@ describe("Industry Partner Actions", () => {
       },
     });
     expect(prisma.userRole.upsert).toHaveBeenCalledWith({
-      where: { user_id_role: { user_id: "user-123", role: ROLES.INDUSTRY_PARTNER } },
-      update: {},
+      where: { user_id: "user-123" },
+      update: { role: ROLES.INDUSTRY_PARTNER },
       create: {
         user_id: "user-123",
         role: ROLES.INDUSTRY_PARTNER,

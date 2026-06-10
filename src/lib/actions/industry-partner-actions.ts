@@ -41,8 +41,8 @@ export async function createIndustryPartnerProfile(data: IndustryPartnerProfileI
 
       // 2. Assign Global Role (Idempotent)
       await tx.userRole.upsert({
-        where: { user_id_role: { user_id: user.id, role: ROLES.INDUSTRY_PARTNER } },
-        update: {},
+        where: { user_id: user.id },
+        update: { role: ROLES.INDUSTRY_PARTNER },
         create: {
           user_id: user.id,
           role: ROLES.INDUSTRY_PARTNER,
