@@ -76,7 +76,12 @@ export default async function OnboardingPage({
   if (intent === "alumni") {
     return (
       <div className="mx-auto w-full max-w-2xl py-8">
-        <AlumniOnboardingForm email={user.email!} programs={programs} />
+        <AlumniOnboardingForm
+          email={user.email!}
+          initialFirstName={firstNameFallback}
+          initialLastName={lastNameFallback}
+          programs={programs}
+        />
       </div>
     );
   }
@@ -84,7 +89,12 @@ export default async function OnboardingPage({
   if (intent === "industry-partner") {
     return (
       <div className="mx-auto w-full max-w-2xl py-8">
-        <IndustryPartnerOnboardingForm email={user.email!} programs={programs} />
+        <IndustryPartnerOnboardingForm
+          email={user.email!}
+          initialFirstName={firstNameFallback}
+          initialLastName={lastNameFallback}
+          programs={programs}
+        />
       </div>
     );
   }

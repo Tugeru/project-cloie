@@ -17,7 +17,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, ArrowLeft, ArrowRight, GraduationCap, Mail, Calendar } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, GraduationCap, Mail, Calendar, UserCircle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -36,10 +36,17 @@ type Program = {
 
 type AlumniOnboardingFormProps = {
   email: string;
+  initialFirstName: string;
+  initialLastName: string;
   programs: Program[];
 };
 
-export function AlumniOnboardingForm({ email, programs }: AlumniOnboardingFormProps) {
+export function AlumniOnboardingForm({
+  email,
+  initialFirstName,
+  initialLastName,
+  programs,
+}: AlumniOnboardingFormProps) {
   const [globalError, setGlobalError] = useState<string | null>(null);
 
   const {
@@ -51,6 +58,8 @@ export function AlumniOnboardingForm({ email, programs }: AlumniOnboardingFormPr
   } = useForm<AlumniProfileFormValues>({
     resolver: customZodResolver(alumniProfileSchema) as Resolver<AlumniProfileFormValues>,
     defaultValues: {
+      first_name: initialFirstName || "",
+      last_name: initialLastName || "",
       graduation_year: "",
       program_id: "",
       major_id: "",
@@ -122,6 +131,61 @@ export function AlumniOnboardingForm({ email, programs }: AlumniOnboardingFormPr
               <div className="border-border bg-surface-muted flex items-center gap-3 rounded-lg border px-4 py-2.5">
                 <Mail className="text-text-muted size-4 shrink-0" />
                 <span className="text-body-md text-text-secondary">{email}</span>
+              </div>
+            </div>
+
+            {/* Identity Information */}
+            <div className="flex items-center gap-2 pt-4">
+              <UserCircle className="text-primary size-5" />
+              <h2 className="text-label-lg text-primary font-bold tracking-wider uppercase">
+                Identity Information
+              </h2>
+            </div>
+
+            {/* First & Last name side-by-side grid */}
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="first_name"
+                  className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase"
+                >
+                  First Name
+                </Label>
+                <Input
+                  id="first_name"
+                  type="text"
+                  placeholder="e.g. John"
+                  {...register("first_name")}
+                  className={errors.first_name ? "border-danger focus-visible:ring-danger" : ""}
+                />
+                {errors.first_name && (
+                  <p className="text-danger flex items-center gap-1 text-xs">
+                    <AlertCircle className="size-3" />
+                    {errors.first_name.message}
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label
+                  htmlFor="last_name"
+                  className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase"
+                >
+                  Last Name
+                </Label>
+                <Input
+                  id="last_name"
+                  type="text"
+                  placeholder="e.g. Doe"
+                  {...register("last_name")}
+                  className={errors.last_name ? "border-danger focus-visible:ring-danger" : ""}
+                />
+                {errors.last_name && (
+                  <p className="text-danger flex items-center gap-1 text-xs">
+                    <AlertCircle className="size-3" />
+                    {errors.last_name.message}
+                  </p>
+                )}
               </div>
             </div>
 

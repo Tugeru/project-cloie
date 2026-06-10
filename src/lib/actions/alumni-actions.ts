@@ -19,23 +19,52 @@ export async function createAlumniProfile(data: AlumniProfileInput) {
 
     const validatedData = alumniProfileSchema.parse(data);
 
-    // Extract first/last names from user metadata with fallbacks
-    const meta = user.user_metadata || {};
-    const nameParts: string[] = meta.full_name ? meta.full_name.trim().split(/\s+/) : [];
-    const firstName = meta.given_name ?? (nameParts.length > 1 ? nameParts.slice(0, -1).join(" ") : nameParts[0] ?? "Alumni");
-    const lastName = meta.family_name ?? (nameParts.length > 1 ? nameParts[nameParts.length - 1] : "Member");
+    // Verify program exists and is active
+    const program = await prisma.program.findUnique({
+      where: { id: validatedData.program_id },
+    });
+
+    if (!program) {
+      return { success: false, error: "The selected program does not exist." };
+    }
+
+    if (!program.is_active) {
+      return { success: false, error: "The selected program is archived or inactive." };
+    }
+
+    // Verify major exists, is active, and belongs to program
+    if (validatedData.major_id) {
+      const major = await prisma.major.findUnique({
+        where: { id: validatedData.major_id },
+      });
+
+      if (!major) {
+        return { success: false, error: "The selected major does not exist." };
+      }
+
+      if (!major.is_active) {
+        return { success: false, error: "The selected major is archived or inactive." };
+      }
+
+      if (major.program_id !== validatedData.program_id) {
+        return { success: false, error: "The selected major does not belong to the selected program." };
+      }
+    }
 
     // Execute atomic transaction
     await prisma.$transaction(async (tx) => {
       // 1. Find or Create domain User by Supabase auth_user_id
       const domainUser = await tx.user.upsert({
         where: { auth_user_id: user.id },
-        update: {},
+        update: {
+          first_name: validatedData.first_name,
+          last_name: validatedData.last_name,
+        },
         create: {
           auth_user_id: user.id,
           email: user.email!,
-          first_name: firstName,
-          last_name: lastName,
+          first_name: validatedData.first_name,
+          last_name: validatedData.last_name,
         },
       });
 

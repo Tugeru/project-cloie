@@ -104,6 +104,35 @@ describe("resolvePostLoginDestination", () => {
     ).toBe("/industry-partner/dashboard");
   });
 
+  it("routes inactive, rejected external accounts, and deferred enrollments correctly", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "/dashboard",
+        intent: null,
+        primaryRole: ROLES.STUDENT,
+        profileGate: { status: "INACTIVE" },
+      })
+    ).toBe("/status/inactive");
+
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "/dashboard",
+        intent: null,
+        primaryRole: ROLES.ALUMNI,
+        profileGate: { status: "REJECTED_EXTERNAL_ACCOUNT" },
+      })
+    ).toBe("/status/rejected");
+
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "/dashboard",
+        intent: null,
+        primaryRole: ROLES.STUDENT,
+        profileGate: { status: "DEFERRED_ENROLLMENT" },
+      })
+    ).toBe("/student/dashboard");
+  });
+
   it("preserves explicit non-onboarding destinations", () => {
     expect(
       resolvePostLoginDestination({

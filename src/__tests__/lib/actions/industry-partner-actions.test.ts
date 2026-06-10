@@ -17,6 +17,9 @@ vi.mock("@/lib/db/prisma", () => ({
     userRole: {
       upsert: vi.fn(),
     },
+    program: {
+      findUnique: vi.fn(),
+    },
   },
 }));
 
@@ -45,12 +48,20 @@ describe("Industry Partner Actions", () => {
       id: "user-123",
       email: "test@example.com",
     });
+
+    // Mock program.findUnique implementation
+    (prisma.program.findUnique as any).mockResolvedValue({
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      is_active: true,
+    });
   });
 
   it("should fail if user is not authenticated", async () => {
     mockGetUser.mockResolvedValue({ data: { user: null }, error: { message: "No user" } });
 
     const result = await createIndustryPartnerProfile({
+      first_name: "Jane",
+      last_name: "Doe",
       company_name: "Test Corp",
     });
 
@@ -88,6 +99,8 @@ describe("Industry Partner Actions", () => {
     });
 
     const result = await createIndustryPartnerProfile({
+      first_name: "Jane",
+      last_name: "Doe",
       company_name: "Test Corp",
     });
 
@@ -95,7 +108,10 @@ describe("Industry Partner Actions", () => {
     expect(prisma.$transaction).toHaveBeenCalled();
     expect(prisma.user.upsert).toHaveBeenCalledWith({
       where: { auth_user_id: "user-123" },
-      update: {},
+      update: {
+        first_name: "Jane",
+        last_name: "Doe",
+      },
       create: {
         auth_user_id: "user-123",
         email: "test@example.com",
@@ -142,6 +158,8 @@ describe("Industry Partner Actions", () => {
     });
 
     const result = await createIndustryPartnerProfile({
+      first_name: "Jane",
+      last_name: "Doe",
       company_name: "Test Corp",
       position: "Manager",
       program_id: "550e8400-e29b-41d4-a716-446655440000",
@@ -174,10 +192,51 @@ describe("Industry Partner Actions", () => {
     (prisma.$transaction as any).mockRejectedValue({ code: "P2002" });
 
     const result = await createIndustryPartnerProfile({
+      first_name: "Jane",
+      last_name: "Doe",
       company_name: "Test Corp",
     });
 
     expect(result.success).toBe(false);
     expect(result.error).toBe("You already have an industry partner profile.");
+  });
+
+  it("should fail if the program does not exist", async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "user-123", email: "test@example.com" } },
+      error: null,
+    });
+    (prisma.program.findUnique as any).mockResolvedValue(null);
+
+    const result = await createIndustryPartnerProfile({
+      first_name: "Jane",
+      last_name: "Doe",
+      company_name: "Test Corp",
+      program_id: "550e8400-e29b-41d4-a716-446655440000",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("The selected program does not exist.");
+  });
+
+  it("should fail if the program is archived or inactive", async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "user-123", email: "test@example.com" } },
+      error: null,
+    });
+    (prisma.program.findUnique as any).mockResolvedValue({
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      is_active: false,
+    });
+
+    const result = await createIndustryPartnerProfile({
+      first_name: "Jane",
+      last_name: "Doe",
+      company_name: "Test Corp",
+      program_id: "550e8400-e29b-41d4-a716-446655440000",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("The selected program is archived or inactive.");
   });
 });
