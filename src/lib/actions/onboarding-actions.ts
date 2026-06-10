@@ -35,6 +35,33 @@ export async function registerStudentProfile(data: StudentProfileInput | Deferre
     const schema = activeTermId ? studentProfileSchema : deferredStudentProfileSchema;
     const validatedData = schema.parse(data);
 
+    // Verify program exists and is active
+    const program = await prisma.program.findUnique({
+      where: { id: validatedData.program_id },
+    });
+    if (!program) {
+      return { error: "The selected program does not exist." };
+    }
+    if (!program.is_active) {
+      return { error: "The selected program is archived or inactive." };
+    }
+
+    // Verify major exists, is active, and belongs to program
+    if (validatedData.major_id) {
+      const major = await prisma.major.findUnique({
+        where: { id: validatedData.major_id },
+      });
+      if (!major) {
+        return { error: "The selected major does not exist." };
+      }
+      if (!major.is_active) {
+        return { error: "The selected major is archived or inactive." };
+      }
+      if (major.program_id !== validatedData.program_id) {
+        return { error: "The selected major does not belong to the selected program." };
+      }
+    }
+
     let domainUserId = user.id;
 
     // Execute atomic transaction

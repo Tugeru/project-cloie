@@ -138,7 +138,7 @@ describe("resolveAuthSession", () => {
     });
   });
 
-  it("requires onboarding for mixed faculty and student users when the student profile is missing", async () => {
+  it("requires onboarding for mixed faculty and student users when the faculty affiliation is missing", async () => {
     const { resolveAuthSession } = await import("@/features/auth/services/resolve-auth-session");
     getUserMock.mockResolvedValue({
       data: { user: { id: "user-4", email: "faculty@acd.edu.ph" } },
@@ -148,6 +148,7 @@ describe("resolveAuthSession", () => {
       roles: [{ role: ROLES.FACULTY }, { role: ROLES.STUDENT }],
       student_profile: null,
     });
+    findFirstFacultyAffiliationMock.mockResolvedValue(null);
 
     await expect(resolveAuthSession()).resolves.toEqual({
       userId: "user-4",
@@ -158,8 +159,8 @@ describe("resolveAuthSession", () => {
       alumniProfileId: null,
       industryPartnerProfileId: null,
       profileGate: {
-        status: "STUDENT_ONBOARDING_REQUIRED",
-        intent: "student",
+        status: "FACULTY_ONBOARDING_REQUIRED",
+        intent: "faculty",
       },
     });
   });

@@ -115,4 +115,28 @@ describe("resolveProfileGate — Alumni and Industry Partner flows", () => {
       expect(result.status).toBe("ROLE_SELECTION_REQUIRED");
     });
   });
+
+  describe("Multi-role onboarding bypass", () => {
+    it("bypasses student onboarding if primary role is ALUMNI and alumni profile is present", () => {
+      const result = resolveProfileGate({
+        roles: [ROLES.STUDENT, ROLES.ALUMNI],
+        primaryRole: ROLES.ALUMNI,
+        studentProfileId: null,
+        alumniProfileId: UUID,
+        industryPartnerProfileId: null,
+      });
+      expect(result.status).toBe("COMPLETE");
+    });
+
+    it("requires alumni onboarding if primary role is ALUMNI and alumni profile is missing, ignoring student profile state", () => {
+      const result = resolveProfileGate({
+        roles: [ROLES.STUDENT, ROLES.ALUMNI],
+        primaryRole: ROLES.ALUMNI,
+        studentProfileId: "some-student-uuid",
+        alumniProfileId: null,
+        industryPartnerProfileId: null,
+      });
+      expect(result.status).toBe("ALUMNI_ONBOARDING_REQUIRED");
+    });
+  });
 });

@@ -27,29 +27,28 @@ export function resolveProfileGate(input: {
     return { status: "INACTIVE" };
   }
 
-  if (input.roles.length === 0) {
+  if (input.roles.length === 0 || !input.primaryRole) {
     return { status: "ROLE_SELECTION_REQUIRED" };
   }
 
-  const isStudentWorkingRole = input.roles.includes(ROLES.STUDENT);
-  if (isStudentWorkingRole) {
-    if (!input.studentProfileId) {
-      return { status: "STUDENT_ONBOARDING_REQUIRED", intent: "student" };
-    }
-    if (input.hasActiveEnrollment === false) {
-      return { status: "DEFERRED_ENROLLMENT" };
-    }
-  }
+  const role = input.primaryRole;
 
-  const isFacultyWorkingRole = input.roles.includes(ROLES.FACULTY);
-  if (isFacultyWorkingRole) {
+  if (role === ROLES.FACULTY) {
     if (!input.hasFacultyAffiliation) {
       return { status: "FACULTY_ONBOARDING_REQUIRED", intent: "faculty" };
     }
   }
 
-  const isAlumniWorkingRole = input.roles.includes(ROLES.ALUMNI);
-  if (isAlumniWorkingRole) {
+  if (role === ROLES.INDUSTRY_PARTNER) {
+    if (!input.industryPartnerProfileId) {
+      return { status: "INDUSTRY_PARTNER_ONBOARDING_REQUIRED", intent: "industry-partner" };
+    }
+    if (input.industryPartnerVerificationStatus === "REJECTED") {
+      return { status: "REJECTED_EXTERNAL_ACCOUNT" };
+    }
+  }
+
+  if (role === ROLES.ALUMNI) {
     if (!input.alumniProfileId) {
       return { status: "ALUMNI_ONBOARDING_REQUIRED", intent: "alumni" };
     }
@@ -58,13 +57,12 @@ export function resolveProfileGate(input: {
     }
   }
 
-  const isIndustryPartnerWorkingRole = input.roles.includes(ROLES.INDUSTRY_PARTNER);
-  if (isIndustryPartnerWorkingRole) {
-    if (!input.industryPartnerProfileId) {
-      return { status: "INDUSTRY_PARTNER_ONBOARDING_REQUIRED", intent: "industry-partner" };
+  if (role === ROLES.STUDENT) {
+    if (!input.studentProfileId) {
+      return { status: "STUDENT_ONBOARDING_REQUIRED", intent: "student" };
     }
-    if (input.industryPartnerVerificationStatus === "REJECTED") {
-      return { status: "REJECTED_EXTERNAL_ACCOUNT" };
+    if (input.hasActiveEnrollment === false) {
+      return { status: "DEFERRED_ENROLLMENT" };
     }
   }
 

@@ -126,4 +126,26 @@ describe("resolveProfileGate", () => {
     });
     expect(result).toEqual({ status: "DEFERRED_ENROLLMENT" });
   });
+
+  it("gates strictly on primaryRole and ignores secondary roles", () => {
+    // Primary role ALUMNI has profile, secondary role STUDENT lacks profile -> COMPLETE
+    const resultAlumni = resolveProfileGate({
+      roles: [ROLES.STUDENT, ROLES.ALUMNI],
+      primaryRole: ROLES.ALUMNI,
+      studentProfileId: null,
+      alumniProfileId: "alumni-prof-1",
+      industryPartnerProfileId: null,
+    });
+    expect(resultAlumni).toEqual({ status: "COMPLETE" });
+
+    // Primary role STUDENT lacks profile, secondary role INDUSTRY_PARTNER has profile -> STUDENT_ONBOARDING_REQUIRED
+    const resultStudent = resolveProfileGate({
+      roles: [ROLES.STUDENT, ROLES.INDUSTRY_PARTNER],
+      primaryRole: ROLES.STUDENT,
+      studentProfileId: null,
+      alumniProfileId: null,
+      industryPartnerProfileId: "partner-prof-1",
+    });
+    expect(resultStudent).toEqual({ status: "STUDENT_ONBOARDING_REQUIRED", intent: "student" });
+  });
 });

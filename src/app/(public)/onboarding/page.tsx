@@ -51,8 +51,16 @@ export default async function OnboardingPage({
 
   const meta = user.user_metadata || {};
   const nameParts: string[] = meta.full_name ? meta.full_name.trim().split(/\s+/) : [];
-  const firstNameFallback = meta.given_name ?? (nameParts.length > 1 ? nameParts.slice(0, -1).join(" ") : nameParts[0] ?? "");
-  const lastNameFallback = meta.family_name ?? (nameParts.length > 1 ? nameParts[nameParts.length - 1] : "");
+  let firstNameFallback = meta.given_name ?? (nameParts.length > 1 ? nameParts.slice(0, -1).join(" ") : nameParts[0] ?? "");
+  let lastNameFallback = meta.family_name ?? (nameParts.length > 1 ? nameParts[nameParts.length - 1] : "");
+
+  const isPlaceholder = (name: string) => {
+    const lower = name.toLowerCase();
+    return ["alumni", "member", "industry", "partner", "student", "faculty"].some((word) => lower.includes(word));
+  };
+
+  if (isPlaceholder(firstNameFallback)) firstNameFallback = "";
+  if (isPlaceholder(lastNameFallback)) lastNameFallback = "";
 
   const programs = await prisma.program.findMany({
     where: { is_active: true },

@@ -42,7 +42,7 @@ describe("buildAuthSessionSnapshot", () => {
     expect(session.profileGate).toEqual({ status: "COMPLETE" });
   });
 
-  it("requires onboarding for mixed faculty and student users when the student profile is missing", () => {
+  it("gates mixed faculty and student users based on their primary role (FACULTY)", () => {
     const session = buildAuthSessionSnapshot({
       userId: "user-4",
       email: "faculty@acd.edu.ph",
@@ -52,8 +52,8 @@ describe("buildAuthSessionSnapshot", () => {
 
     expect(session.primaryRole).toBe(ROLES.FACULTY);
     expect(session.profileGate).toEqual({
-      status: "STUDENT_ONBOARDING_REQUIRED",
-      intent: "student",
+      status: "FACULTY_ONBOARDING_REQUIRED",
+      intent: "faculty",
     });
   });
 

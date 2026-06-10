@@ -71,6 +71,22 @@ vi.mock("@/app/(public)/onboarding/student-profile-form", () => ({
   StudentProfileForm: ({ email }: { email: string }) => <div>Student form for {email}</div>,
 }));
 
+vi.mock("@/features/users/components/alumni-onboarding-form", () => ({
+  AlumniOnboardingForm: ({ initialFirstName, initialLastName }: { initialFirstName: string; initialLastName: string }) => (
+    <div data-testid="alumni-form">
+      Alumni: [{initialFirstName}] [{initialLastName}]
+    </div>
+  ),
+}));
+
+vi.mock("@/features/users/components/industry-partner-onboarding-form", () => ({
+  IndustryPartnerOnboardingForm: ({ initialFirstName, initialLastName }: { initialFirstName: string; initialLastName: string }) => (
+    <div data-testid="industry-form">
+      Industry: [{initialFirstName}] [{initialLastName}]
+    </div>
+  ),
+}));
+
 import OnboardingPage from "@/app/(public)/onboarding/page";
 
 describe("OnboardingPage", () => {
@@ -144,5 +160,25 @@ describe("OnboardingPage", () => {
       id: "user-1",
       email: "student@acd.edu.ph",
     });
+  });
+
+  it("clears placeholder names in metadata to empty strings", async () => {
+    getUserMock.mockResolvedValue({
+      data: {
+        user: {
+          id: "user-1",
+          email: "alumni@example.com",
+          user_metadata: { full_name: "Alumni Member", given_name: "Alumni", family_name: "Member" },
+        },
+      },
+      error: null,
+    });
+
+    const page = await OnboardingPage({
+      searchParams: Promise.resolve({ intent: "alumni" }),
+    });
+
+    render(page);
+    expect(screen.getByTestId("alumni-form")).toHaveTextContent("Alumni: [] []");
   });
 });
