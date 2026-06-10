@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+
 import { useForm, Controller, type Resolver, type SubmitHandler } from "react-hook-form";
 import { customZodResolver } from "@/lib/forms/zod-resolver";
 import {
@@ -10,6 +10,7 @@ import {
   type IndustryPartnerProfileInput,
 } from "@/lib/schemas/industry-partner-profile";
 import { createIndustryPartnerProfile } from "@/lib/actions/industry-partner-actions";
+import { resetIncompleteRoleClaim } from "@/lib/actions/onboarding-actions";
 
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -24,7 +25,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import Link from "next/link";
+
 
 type Program = {
   id: string;
@@ -217,14 +218,15 @@ export function IndustryPartnerOnboardingForm({ email, programs }: IndustryPartn
           </Button>
 
           <Button
-            asChild
+            type="button"
             variant="ghost"
             className="text-text-muted hover:text-text-primary w-full gap-2"
+            onClick={async () => {
+              await resetIncompleteRoleClaim();
+            }}
           >
-            <Link href="/portal">
-              <ArrowLeft className="size-4" />
-              Not your role? Go back to role selection
-            </Link>
+            <ArrowLeft className="size-4" />
+            Not your role? Go back to role selection
           </Button>
         </CardFooter>
       </form>

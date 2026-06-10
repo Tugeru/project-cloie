@@ -10,6 +10,7 @@ const {
   findUniqueUserMock,
   updateUserMock,
   createUserMock,
+  createUserRoleMock,
 } = vi.hoisted(() => ({
   exchangeCodeForSessionMock: vi.fn(),
   signOutMock: vi.fn(),
@@ -19,6 +20,7 @@ const {
   findUniqueUserMock: vi.fn(),
   updateUserMock: vi.fn(),
   createUserMock: vi.fn(),
+  createUserRoleMock: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -45,6 +47,9 @@ vi.mock("@/lib/db/prisma", () => ({
       findUnique: findUniqueUserMock,
       update: updateUserMock,
       create: createUserMock,
+    },
+    userRole: {
+      create: createUserRoleMock,
     },
   },
 }));
@@ -284,5 +289,80 @@ describe("auth callback route", () => {
       profileGate: { status: "COMPLETE" },
     });
     expect(response.headers.get("location")).toContain("/student/dashboard");
+  });
+
+  it("assigns role to roleless existing user when they log in with a valid self-service intent", async () => {
+    exchangeCodeForSessionMock.mockResolvedValue({
+      error: null,
+      data: { user: { id: VALID_UUID_1, email: "user@acd.edu.ph" } },
+    });
+    findUniqueUserMock.mockResolvedValue({
+      id: "domain-user-1",
+      auth_user_id: VALID_UUID_1,
+      email: "user@acd.edu.ph",
+      roles: [],
+    });
+    createUserRoleMock.mockResolvedValue({
+      id: "role-1",
+      user_id: "domain-user-1",
+      role: SystemRole.STUDENT,
+    });
+    resolveAuthSessionFromUserMock.mockResolvedValue({
+      primaryRole: "STUDENT",
+      profileGate: { status: "STUDENT_ONBOARDING_REQUIRED", intent: "student" },
+    });
+    resolvePostLoginDestinationMock.mockReturnValue("/onboarding?intent=student");
+
+    const response = await GET(
+      new Request("https://cloie.test/api/auth/callback?code=abc&intent=student")
+    );
+
+    expect(createUserRoleMock).toHaveBeenCalledWith({
+      data: {
+        user_id: "domain-user-1",
+        role: SystemRole.STUDENT,
+      },
+    });
+    expect(response.headers.get("location")).toBe("https://cloie.test/onboarding?intent=student");
+  });
+
+  it("blocks roleless existing user claiming a pre-provisioned role", async () => {
+    exchangeCodeForSessionMock.mockResolvedValue({
+      error: null,
+      data: { user: { id: VALID_UUID_1, email: "user@acd.edu.ph" } },
+    });
+    findUniqueUserMock.mockResolvedValue({
+      id: "domain-user-1",
+      auth_user_id: VALID_UUID_1,
+      email: "user@acd.edu.ph",
+      roles: [],
+    });
+
+    const response = await GET(
+      new Request("https://cloie.test/api/auth/callback?code=abc&intent=admin")
+    );
+
+    expect(signOutMock).toHaveBeenCalledTimes(1);
+    expect(response.headers.get("location")).toContain("/login?error=pre_provisioning_required");
+  });
+
+  it("blocks roleless existing user claiming a self-service role with an invalid domain", async () => {
+    exchangeCodeForSessionMock.mockResolvedValue({
+      error: null,
+      data: { user: { id: VALID_UUID_1, email: "user@gmail.com" } },
+    });
+    findUniqueUserMock.mockResolvedValue({
+      id: "domain-user-1",
+      auth_user_id: VALID_UUID_1,
+      email: "user@gmail.com",
+      roles: [],
+    });
+
+    const response = await GET(
+      new Request("https://cloie.test/api/auth/callback?code=abc&intent=student")
+    );
+
+    expect(signOutMock).toHaveBeenCalledTimes(1);
+    expect(response.headers.get("location")).toContain("/login?error=invalid_domain");
   });
 });

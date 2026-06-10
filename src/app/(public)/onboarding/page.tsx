@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { StudentProfileForm } from "./student-profile-form";
 import { AlumniOnboardingForm } from "@/features/users/components/alumni-onboarding-form";
 import { IndustryPartnerOnboardingForm } from "@/features/users/components/industry-partner-onboarding-form";
+import { resetIncompleteRoleClaim } from "@/lib/actions/onboarding-actions";
 
 export default async function OnboardingPage({
   searchParams,
@@ -118,13 +119,15 @@ export default async function OnboardingPage({
               <ArrowRight className="size-5" />
             </Button>
 
-            <Link
-              href="/portal"
-              className="text-text-muted hover:text-text-primary flex items-center justify-center gap-2 text-sm font-medium transition-colors"
-            >
-              <ArrowLeft className="size-4" />
-              Cancel / Back to Role Selection
-            </Link>
+            <form action={resetIncompleteRoleClaim} className="w-full flex justify-center">
+              <button
+                type="submit"
+                className="text-text-muted hover:text-text-primary flex items-center justify-center gap-2 text-sm font-medium transition-colors"
+              >
+                <ArrowLeft className="size-4" />
+                Cancel / Back to Role Selection
+              </button>
+            </form>
           </CardContent>
         </Card>
       </div>

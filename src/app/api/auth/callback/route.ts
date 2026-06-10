@@ -79,26 +79,60 @@ export async function GET(request: Request) {
   if (dbUser) {
     const userRole = dbUser.roles[0]?.role;
 
-    // Reject on role mismatch if intent was explicitly requested
-    if (targetRole && userRole !== targetRole) {
-      await supabase.auth.signOut();
-      return NextResponse.redirect(`${siteUrl}/login?error=role_mismatch`);
-    }
-
-    // ACD-domain validation for internal roles
-    const isInternal =
-      userRole === SystemRole.STUDENT ||
-      userRole === SystemRole.FACULTY ||
-      userRole === SystemRole.ADMIN ||
-      userRole === SystemRole.DEAN ||
-      userRole === SystemRole.PROGRAM_HEAD;
-    if (isInternal) {
-      const isACD =
-        normalizedEmail.endsWith("@acd.edu.ph") ||
-        normalizedEmail.endsWith("@acdeducation.com");
-      if (!isACD) {
+    if (userRole) {
+      // Reject on role mismatch if intent was explicitly requested
+      if (targetRole && userRole !== targetRole) {
         await supabase.auth.signOut();
-        return NextResponse.redirect(`${siteUrl}/login?error=invalid_domain`);
+        return NextResponse.redirect(`${siteUrl}/login?error=role_mismatch`);
+      }
+
+      // ACD-domain validation for internal roles
+      const isInternal =
+        userRole === SystemRole.STUDENT ||
+        userRole === SystemRole.FACULTY ||
+        userRole === SystemRole.ADMIN ||
+        userRole === SystemRole.DEAN ||
+        userRole === SystemRole.PROGRAM_HEAD;
+      if (isInternal) {
+        const isACD =
+          normalizedEmail.endsWith("@acd.edu.ph") ||
+          normalizedEmail.endsWith("@acdeducation.com");
+        if (!isACD) {
+          await supabase.auth.signOut();
+          return NextResponse.redirect(`${siteUrl}/login?error=invalid_domain`);
+        }
+      }
+    } else {
+      // User exists but has no roles (i.e. roleless user)
+      if (targetRole) {
+        // Pre-provisioned roles cannot be self-claimed
+        const isPreProvisioned =
+          targetRole === SystemRole.ADMIN ||
+          targetRole === SystemRole.DEAN ||
+          targetRole === SystemRole.PROGRAM_HEAD;
+        if (isPreProvisioned) {
+          await supabase.auth.signOut();
+          return NextResponse.redirect(`${siteUrl}/login?error=pre_provisioning_required`);
+        }
+
+        // Validate domain for self-service roles
+        const validation = validateRoleDomain(normalizedEmail, targetRole);
+        if (!validation.valid) {
+          await supabase.auth.signOut();
+          return NextResponse.redirect(
+            `${siteUrl}/login?error=invalid_domain&role=${intentParam}`
+          );
+        }
+
+        // Create user role record
+        const newRole = await prisma.userRole.create({
+          data: {
+            user_id: dbUser.id,
+            role: targetRole,
+          },
+        });
+
+        dbUser.roles = [newRole];
       }
     }
   } else {

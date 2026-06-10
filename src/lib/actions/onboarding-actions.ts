@@ -7,6 +7,8 @@ import { createClient } from "@/lib/supabase/server";
 import { studentProfileSchema, type StudentProfileInput } from "@/lib/schemas/student-profile";
 import { getActiveTermId } from "@/features/academic-calendar/services/resolve-active-term";
 import { upsertEnrollmentForActiveTerm } from "@/features/enrollments/services/manage-student-enrollments";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { redirect } from "next/navigation";
 
 export async function registerStudentProfile(data: StudentProfileInput) {
   try {
@@ -108,4 +110,16 @@ export async function registerStudentProfile(data: StudentProfileInput) {
           : "An unexpected error occurred during database persistence.",
     };
   }
+}
+
+export async function resetIncompleteRoleClaim() {
+  const session = await resolveAuthSession();
+
+  if (session && session.profileGate.status !== "COMPLETE") {
+    await prisma.userRole.deleteMany({
+      where: { user_id: session.userId },
+    });
+  }
+
+  redirect("/portal");
 }
