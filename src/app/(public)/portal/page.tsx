@@ -49,7 +49,7 @@ export default async function PortalPage() {
                 Signed in as <span className="font-medium text-text-primary">{email}</span>
               </p>
               <div className="flex items-center gap-3">
-                <form action="/api/auth/signout" method="post">
+                <form action="/api/auth/logout" method="post">
                   <Button variant="outline" size="sm" type="submit">
                     <LogOut className="size-4 mr-2" />
                     Sign Out
