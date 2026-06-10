@@ -27,12 +27,12 @@ export async function createIndustryPartnerProfile(data: IndustryPartnerProfileI
 
     // Execute atomic transaction
     await prisma.$transaction(async (tx) => {
-      // 1. Create or Update User syncing the exact UUID from Supabase
-      await tx.user.upsert({
-        where: { id: user.id },
+      // 1. Find or Create domain User by Supabase auth_user_id
+      const domainUser = await tx.user.upsert({
+        where: { auth_user_id: user.id },
         update: {},
         create: {
-          id: user.id,
+          auth_user_id: user.id,
           email: user.email!,
           first_name: firstName,
           last_name: lastName,
@@ -41,24 +41,24 @@ export async function createIndustryPartnerProfile(data: IndustryPartnerProfileI
 
       // 2. Assign Global Role (Idempotent)
       await tx.userRole.upsert({
-        where: { user_id: user.id },
+        where: { user_id: domainUser.id },
         update: { role: ROLES.INDUSTRY_PARTNER },
         create: {
-          user_id: user.id,
+          user_id: domainUser.id,
           role: ROLES.INDUSTRY_PARTNER,
         },
       });
 
       // 3. Create or Update Industry Partner Profile
       await tx.industryPartnerProfile.upsert({
-        where: { user_id: user.id },
+        where: { user_id: domainUser.id },
         update: {
           company_name: validatedData.company_name,
           position: validatedData.position || null,
           program_id: validatedData.program_id || null,
         },
         create: {
-          user_id: user.id,
+          user_id: domainUser.id,
           company_name: validatedData.company_name,
           position: validatedData.position || null,
           program_id: validatedData.program_id || null,

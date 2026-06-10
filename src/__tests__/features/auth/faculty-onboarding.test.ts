@@ -111,6 +111,12 @@ describe("createFacultyProfile Server Action", () => {
     (prisma.$transaction as any).mockImplementation(async (callback: any) => {
       return callback(prisma);
     });
+
+    // Mock user.upsert implementation
+    (prisma.user.upsert as any).mockResolvedValue({
+      id: "faculty-123",
+      email: "teacher@acd.edu.ph",
+    });
   });
 
   it("should fail if user is not authenticated", async () => {
@@ -182,13 +188,13 @@ describe("createFacultyProfile Server Action", () => {
     expect(result.success).toBe(true);
     expect(prisma.$transaction).toHaveBeenCalled();
     expect(prisma.user.upsert).toHaveBeenCalledWith({
-      where: { id: "faculty-123" },
+      where: { auth_user_id: "faculty-123" },
       update: {
         first_name: "Jane",
         last_name: "Smith",
       },
       create: {
-        id: "faculty-123",
+        auth_user_id: "faculty-123",
         email: "teacher@acd.edu.ph",
         first_name: "Jane",
         last_name: "Smith",

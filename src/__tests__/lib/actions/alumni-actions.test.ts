@@ -39,6 +39,12 @@ describe("Alumni Actions", () => {
     (prisma.$transaction as any).mockImplementation(async (callback: any) => {
       return callback(prisma);
     });
+
+    // Mock user.upsert implementation
+    (prisma.user.upsert as any).mockResolvedValue({
+      id: "user-123",
+      email: "test@example.com",
+    });
   });
 
   it("should fail if user is not authenticated", async () => {
@@ -91,10 +97,10 @@ describe("Alumni Actions", () => {
     expect(result.success).toBe(true);
     expect(prisma.$transaction).toHaveBeenCalled();
     expect(prisma.user.upsert).toHaveBeenCalledWith({
-      where: { id: "user-123" },
+      where: { auth_user_id: "user-123" },
       update: {},
       create: {
-        id: "user-123",
+        auth_user_id: "user-123",
         email: "test@example.com",
         first_name: "John",
         last_name: "Doe",

@@ -35,29 +35,32 @@ export async function registerStudentProfile(data: StudentProfileInput | Deferre
     const schema = activeTermId ? studentProfileSchema : deferredStudentProfileSchema;
     const validatedData = schema.parse(data);
 
+    let domainUserId = user.id;
+
     // Execute atomic transaction
     await prisma.$transaction(async (tx) => {
-      // 1. Create or Update User syncing the exact UUID from Supabase
-      await tx.user.upsert({
-        where: { id: user.id },
+      // 1. Find or Create domain User by Supabase auth_user_id
+      const domainUser = await tx.user.upsert({
+        where: { auth_user_id: user.id },
         update: {
           first_name: validatedData.first_name,
           last_name: validatedData.last_name,
         },
         create: {
-          id: user.id,
+          auth_user_id: user.id,
           email: user.email!,
           first_name: validatedData.first_name,
           last_name: validatedData.last_name,
         },
       });
+      domainUserId = domainUser.id;
 
       // 2. Assign Global Role (Idempotent)
       await tx.userRole.upsert({
-        where: { user_id: user.id },
+        where: { user_id: domainUserId },
         update: { role: ROLES.STUDENT },
         create: {
-          user_id: user.id,
+          user_id: domainUserId,
           role: ROLES.STUDENT,
         },
       });
@@ -65,14 +68,14 @@ export async function registerStudentProfile(data: StudentProfileInput | Deferre
       // 3. Construct Academic Profile parameters (Idempotent)
       // Phase 9: Profile only holds static cohort fields - enrollment data is in StudentEnrollment
       await tx.studentAcademicProfile.upsert({
-        where: { user_id: user.id },
+        where: { user_id: domainUserId },
         update: {
           program_id: validatedData.program_id,
           major_id: validatedData.major_id || null,
           student_id_number: validatedData.student_id_number,
         },
         create: {
-          user_id: user.id,
+          user_id: domainUserId,
           program_id: validatedData.program_id,
           major_id: validatedData.major_id || null,
           student_id_number: validatedData.student_id_number,
@@ -87,7 +90,7 @@ export async function registerStudentProfile(data: StudentProfileInput | Deferre
     if (activeTermId) {
       const fullData = validatedData as StudentProfileInput;
       const enrollmentResult = await upsertEnrollmentForActiveTerm({
-        studentUserId: user.id,
+        studentUserId: domainUserId,
         termInstanceId: activeTermId,
         programId: fullData.program_id,
         majorId: fullData.major_id || null,

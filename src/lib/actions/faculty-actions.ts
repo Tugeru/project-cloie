@@ -34,15 +34,15 @@ export async function createFacultyProfile(data: FacultyProfileInput) {
 
     // Execute atomic transaction
     await prisma.$transaction(async (tx) => {
-      // 1. Create or Update User syncing the exact UUID from Supabase
-      await tx.user.upsert({
-        where: { id: user.id },
+      // 1. Find or Create domain User by Supabase auth_user_id
+      const domainUser = await tx.user.upsert({
+        where: { auth_user_id: user.id },
         update: {
           first_name: validatedData.first_name,
           last_name: validatedData.last_name,
         },
         create: {
-          id: user.id,
+          auth_user_id: user.id,
           email: user.email!,
           first_name: validatedData.first_name,
           last_name: validatedData.last_name,
@@ -51,10 +51,10 @@ export async function createFacultyProfile(data: FacultyProfileInput) {
 
       // 2. Assign Global Role (Idempotent)
       await tx.userRole.upsert({
-        where: { user_id: user.id },
+        where: { user_id: domainUser.id },
         update: { role: ROLES.FACULTY },
         create: {
-          user_id: user.id,
+          user_id: domainUser.id,
           role: ROLES.FACULTY,
         },
       });
@@ -63,7 +63,7 @@ export async function createFacultyProfile(data: FacultyProfileInput) {
       await tx.facultyProgramAffiliation.upsert({
         where: {
           faculty_id_program_id: {
-            faculty_id: user.id,
+            faculty_id: domainUser.id,
             program_id: validatedData.program_id,
           },
         },
@@ -72,7 +72,7 @@ export async function createFacultyProfile(data: FacultyProfileInput) {
           is_active: true,
         },
         create: {
-          faculty_id: user.id,
+          faculty_id: domainUser.id,
           program_id: validatedData.program_id,
           is_primary: true,
           is_active: true,

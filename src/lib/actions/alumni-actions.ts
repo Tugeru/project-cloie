@@ -27,12 +27,12 @@ export async function createAlumniProfile(data: AlumniProfileInput) {
 
     // Execute atomic transaction
     await prisma.$transaction(async (tx) => {
-      // 1. Create or Update User syncing the exact UUID from Supabase
-      await tx.user.upsert({
-        where: { id: user.id },
+      // 1. Find or Create domain User by Supabase auth_user_id
+      const domainUser = await tx.user.upsert({
+        where: { auth_user_id: user.id },
         update: {},
         create: {
-          id: user.id,
+          auth_user_id: user.id,
           email: user.email!,
           first_name: firstName,
           last_name: lastName,
@@ -41,24 +41,24 @@ export async function createAlumniProfile(data: AlumniProfileInput) {
 
       // 2. Assign Global Role (Idempotent)
       await tx.userRole.upsert({
-        where: { user_id: user.id },
+        where: { user_id: domainUser.id },
         update: { role: ROLES.ALUMNI },
         create: {
-          user_id: user.id,
+          user_id: domainUser.id,
           role: ROLES.ALUMNI,
         },
       });
 
       // 3. Create or Update Alumni Profile
       await tx.alumniProfile.upsert({
-        where: { user_id: user.id },
+        where: { user_id: domainUser.id },
         update: {
           graduation_year: validatedData.graduation_year,
           program_id: validatedData.program_id,
           major_id: validatedData.major_id || null,
         },
         create: {
-          user_id: user.id,
+          user_id: domainUser.id,
           graduation_year: validatedData.graduation_year,
           program_id: validatedData.program_id,
           major_id: validatedData.major_id || null,
