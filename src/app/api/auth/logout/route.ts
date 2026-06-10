@@ -13,8 +13,8 @@ export async function POST(request: Request) {
   const cookieStore = await cookies();
   cookieStore.delete(DEV_AUTH_COOKIE_NAME);
 
-  // Return to login page after logout
-  return NextResponse.redirect(`${siteUrl}/login`);
+  // Return to portal page after logout
+  return NextResponse.redirect(`${siteUrl}/portal`);
 }
 
 export async function GET(request: Request) {

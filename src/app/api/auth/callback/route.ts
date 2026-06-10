@@ -150,7 +150,7 @@ export async function GET(request: Request) {
     } else {
       // No intent and no user: redirect to portal
       await supabase.auth.signOut();
-      return NextResponse.redirect(`${siteUrl}/`);
+      return NextResponse.redirect(`${siteUrl}/portal`);
     }
   }
 

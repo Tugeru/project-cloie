@@ -104,7 +104,7 @@ describe("auth callback route", () => {
     );
 
     expect(signOutMock).toHaveBeenCalledTimes(1);
-    expect(response.headers.get("location")).toBe("https://cloie.test/");
+    expect(response.headers.get("location")).toBe("https://cloie.test/portal");
   });
 
   it("redirects existing users with no intent to their stored role dashboard", async () => {

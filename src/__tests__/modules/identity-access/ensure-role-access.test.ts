@@ -3,9 +3,9 @@ import { ROLES } from "@/lib/constants/roles";
 import { ensureRoleAccess } from "@/features/auth/policies/ensure-role-access";
 
 describe("ensureRoleAccess", () => {
-  it("redirects anonymous access to login", () => {
+  it("redirects anonymous access to portal", () => {
     expect(ensureRoleAccess({ primaryRole: null, roles: [], allowedRoles: [ROLES.ADMIN] })).toBe(
-      "/login"
+      "/portal"
     );
   });
 

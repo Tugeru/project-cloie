@@ -7,7 +7,7 @@ export function ensureRoleAccess(input: {
   unauthorizedPath?: string;
 }): string | null {
   if (!input.primaryRole) {
-    return "/login";
+    return "/portal";
   }
 
   const rolesToCheck = input.roles && input.roles.length > 0 ? input.roles : [input.primaryRole];
