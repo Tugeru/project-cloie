@@ -4,13 +4,18 @@ import { EnrollmentSource } from "@prisma/client";
 import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { studentProfileSchema, type StudentProfileInput } from "@/lib/schemas/student-profile";
+import {
+  studentProfileSchema,
+  deferredStudentProfileSchema,
+  type StudentProfileInput,
+  type DeferredStudentProfileInput,
+} from "@/lib/schemas/student-profile";
 import { getActiveTermId } from "@/features/academic-calendar/services/resolve-active-term";
 import { upsertEnrollmentForActiveTerm } from "@/features/enrollments/services/manage-student-enrollments";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { redirect } from "next/navigation";
 
-export async function registerStudentProfile(data: StudentProfileInput) {
+export async function registerStudentProfile(data: StudentProfileInput | DeferredStudentProfileInput) {
   try {
     const supabase = await createClient();
     const {
@@ -22,20 +27,13 @@ export async function registerStudentProfile(data: StudentProfileInput) {
       return { error: "Authentication session invalid or missing." };
     }
 
-    const validatedData = studentProfileSchema.parse(data);
-
-    // Resolve active term for enrollment
+    // Resolve active term for enrollment (deferred if none exists)
     const activeTermId = await getActiveTermId();
-    if (!activeTermId) {
-      return { error: "No active academic term is configured. Please contact an administrator." };
-    }
 
-    // Get school year code from active term
-    const activeTerm = await prisma.academicTermInstance.findUnique({
-      where: { id: activeTermId },
-      include: { school_year: true },
-    });
-    const academicYear = activeTerm?.school_year?.code ?? `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
+    // Choose validation schema based on whether there is an active term.
+    // If no active term exists, year_level and section are not yet known.
+    const schema = activeTermId ? studentProfileSchema : deferredStudentProfileSchema;
+    const validatedData = schema.parse(data);
 
     // Execute atomic transaction
     await prisma.$transaction(async (tx) => {
@@ -84,20 +82,24 @@ export async function registerStudentProfile(data: StudentProfileInput) {
       // 4. Create enrollment for active term (outside transaction since it uses its own transaction)
     });
 
-    // Create enrollment for active term (separate transaction)
-    const enrollmentResult = await upsertEnrollmentForActiveTerm({
-      studentUserId: user.id,
-      termInstanceId: activeTermId,
-      programId: validatedData.program_id,
-      majorId: validatedData.major_id || null,
-      yearLevel: validatedData.year_level,
-      section: validatedData.section || null,
-      source: EnrollmentSource.ONBOARDING,
-    });
+    // Create enrollment for active term (separate transaction) if active term exists.
+    // When activeTermId is set we used studentProfileSchema which requires year_level and section.
+    if (activeTermId) {
+      const fullData = validatedData as StudentProfileInput;
+      const enrollmentResult = await upsertEnrollmentForActiveTerm({
+        studentUserId: user.id,
+        termInstanceId: activeTermId,
+        programId: fullData.program_id,
+        majorId: fullData.major_id || null,
+        yearLevel: fullData.year_level,
+        section: fullData.section || null,
+        source: EnrollmentSource.ONBOARDING,
+      });
 
-    if (!enrollmentResult.success) {
-      console.error("Failed to create enrollment:", enrollmentResult.error);
-      // Don't fail the entire registration, but log the error
+      if (!enrollmentResult.success) {
+        console.error("Failed to create enrollment:", enrollmentResult.error);
+        // Don't fail the entire registration, but log the error
+      }
     }
 
     return { success: true };

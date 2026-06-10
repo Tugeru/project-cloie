@@ -19,7 +19,10 @@ export async function SessionGuard({ children, allowedRoles = [] }: SessionGuard
     redirect("/portal");
   }
 
-  if (session.profileGate.status !== "COMPLETE") {
+  if (
+    session.profileGate.status !== "COMPLETE" &&
+    session.profileGate.status !== "DEFERRED_ENROLLMENT"
+  ) {
     redirect(
       resolvePostLoginDestination({
         requestedPath: "/dashboard",

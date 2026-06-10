@@ -62,6 +62,7 @@ vi.mock("lucide-react", () => ({
   AlertCircle: () => <span>Alert</span>,
   ArrowLeft: () => <span>ArrowLeft</span>,
   ArrowRight: () => <span>ArrowRight</span>,
+  CalendarDays: () => <span>CalendarDays</span>,
   GraduationCap: () => <span>GraduationCap</span>,
   Mail: () => <span>Mail</span>,
   UserCircle: () => <span>UserCircle</span>,
@@ -94,6 +95,7 @@ describe("StudentProfileForm", () => {
         initialLastName="Cruz"
         programs={[]}
         yearLevels={[]}
+        hasActiveTerm={true}
       />
     );
 
@@ -116,6 +118,7 @@ describe("StudentProfileForm", () => {
         initialLastName="Cruz"
         programs={[]}
         yearLevels={[]}
+        hasActiveTerm={true}
       />
     );
 

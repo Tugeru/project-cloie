@@ -83,7 +83,7 @@ export async function GET(request: Request) {
       // Reject on role mismatch if intent was explicitly requested
       if (targetRole && userRole !== targetRole) {
         await supabase.auth.signOut();
-        return NextResponse.redirect(`${siteUrl}/login?error=role_mismatch`);
+        return NextResponse.redirect(`${siteUrl}/status/role-mismatch`);
       }
 
       // ACD-domain validation for internal roles
@@ -99,7 +99,7 @@ export async function GET(request: Request) {
           normalizedEmail.endsWith("@acdeducation.com");
         if (!isACD) {
           await supabase.auth.signOut();
-          return NextResponse.redirect(`${siteUrl}/login?error=invalid_domain`);
+          return NextResponse.redirect(`${siteUrl}/status/invalid-domain`);
         }
       }
     } else {
@@ -112,7 +112,7 @@ export async function GET(request: Request) {
           targetRole === SystemRole.PROGRAM_HEAD;
         if (isPreProvisioned) {
           await supabase.auth.signOut();
-          return NextResponse.redirect(`${siteUrl}/login?error=pre_provisioning_required`);
+          return NextResponse.redirect(`${siteUrl}/status/pre-provisioning-required`);
         }
 
         // Validate domain for self-service roles
@@ -120,7 +120,7 @@ export async function GET(request: Request) {
         if (!validation.valid) {
           await supabase.auth.signOut();
           return NextResponse.redirect(
-            `${siteUrl}/login?error=invalid_domain&role=${intentParam}`
+            `${siteUrl}/status/invalid-domain?role=${intentParam}`
           );
         }
 
@@ -146,7 +146,7 @@ export async function GET(request: Request) {
           targetRole === SystemRole.PROGRAM_HEAD;
         if (isPreProvisioned) {
           await supabase.auth.signOut();
-          return NextResponse.redirect(`${siteUrl}/login?error=pre_provisioning_required`);
+          return NextResponse.redirect(`${siteUrl}/status/pre-provisioning-required`);
         }
 
         // Validate domain for self-service roles
@@ -154,7 +154,7 @@ export async function GET(request: Request) {
         if (!validation.valid) {
           await supabase.auth.signOut();
           return NextResponse.redirect(
-            `${siteUrl}/login?error=invalid_domain&role=${intentParam}`
+            `${siteUrl}/status/invalid-domain?role=${intentParam}`
           );
         }
 
@@ -179,7 +179,7 @@ export async function GET(request: Request) {
         });
       } else {
         await supabase.auth.signOut();
-        return NextResponse.redirect(`${siteUrl}/login?error=invalid_domain`);
+        return NextResponse.redirect(`${siteUrl}/status/invalid-domain`);
       }
     } else {
       // No intent and no user: redirect to portal

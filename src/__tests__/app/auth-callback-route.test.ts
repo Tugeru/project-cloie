@@ -94,7 +94,7 @@ describe("auth callback route", () => {
     );
 
     expect(signOutMock).toHaveBeenCalledTimes(1);
-    expect(response.headers.get("location")).toContain("/login?error=invalid_domain");
+    expect(response.headers.get("location")).toContain("/status/invalid-domain");
   });
 
   it("redirects new users with no intent to the role selection portal", async () => {
@@ -205,7 +205,7 @@ describe("auth callback route", () => {
     );
 
     expect(signOutMock).toHaveBeenCalledTimes(1);
-    expect(response.headers.get("location")).toContain("/login?error=role_mismatch");
+    expect(response.headers.get("location")).toContain("/status/role-mismatch");
   });
 
   it("uses resolvePostLoginDestination for successful redirects", async () => {
@@ -343,7 +343,7 @@ describe("auth callback route", () => {
     );
 
     expect(signOutMock).toHaveBeenCalledTimes(1);
-    expect(response.headers.get("location")).toContain("/login?error=pre_provisioning_required");
+    expect(response.headers.get("location")).toContain("/status/pre-provisioning-required");
   });
 
   it("blocks roleless existing user claiming a self-service role with an invalid domain", async () => {
@@ -363,6 +363,6 @@ describe("auth callback route", () => {
     );
 
     expect(signOutMock).toHaveBeenCalledTimes(1);
-    expect(response.headers.get("location")).toContain("/login?error=invalid_domain");
+    expect(response.headers.get("location")).toContain("/status/invalid-domain");
   });
 });

@@ -78,4 +78,52 @@ describe("resolveProfileGate", () => {
     });
     expect(result3).toEqual({ status: "COMPLETE" });
   });
+
+  it("returns INACTIVE when isActive is false", () => {
+    const result = resolveProfileGate({
+      roles: [ROLES.STUDENT],
+      primaryRole: ROLES.STUDENT,
+      studentProfileId: "student-prof-1",
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
+      isActive: false,
+    });
+    expect(result).toEqual({ status: "INACTIVE" });
+  });
+
+  it("returns REJECTED_EXTERNAL_ACCOUNT when alumni verification status is REJECTED", () => {
+    const result = resolveProfileGate({
+      roles: [ROLES.ALUMNI],
+      primaryRole: ROLES.ALUMNI,
+      studentProfileId: null,
+      alumniProfileId: "alumni-prof-1",
+      industryPartnerProfileId: null,
+      alumniVerificationStatus: "REJECTED",
+    });
+    expect(result).toEqual({ status: "REJECTED_EXTERNAL_ACCOUNT" });
+  });
+
+  it("returns REJECTED_EXTERNAL_ACCOUNT when industry partner verification status is REJECTED", () => {
+    const result = resolveProfileGate({
+      roles: [ROLES.INDUSTRY_PARTNER],
+      primaryRole: ROLES.INDUSTRY_PARTNER,
+      studentProfileId: null,
+      alumniProfileId: null,
+      industryPartnerProfileId: "partner-prof-1",
+      industryPartnerVerificationStatus: "REJECTED",
+    });
+    expect(result).toEqual({ status: "REJECTED_EXTERNAL_ACCOUNT" });
+  });
+
+  it("returns DEFERRED_ENROLLMENT when student does not have active enrollment", () => {
+    const result = resolveProfileGate({
+      roles: [ROLES.STUDENT],
+      primaryRole: ROLES.STUDENT,
+      studentProfileId: "student-prof-1",
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
+      hasActiveEnrollment: false,
+    });
+    expect(result).toEqual({ status: "DEFERRED_ENROLLMENT" });
+  });
 });
