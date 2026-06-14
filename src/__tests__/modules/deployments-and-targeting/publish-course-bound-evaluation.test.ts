@@ -170,11 +170,13 @@ describe("publishCourseBoundEvaluation", () => {
         templateId: "template-1",
       })
     ).resolves.toEqual({
-      assignmentCount: 2,
-      evaluationId: "evaluation-1",
-      status: "ACTIVE",
       success: true,
-      targetCount: 1,
+      data: {
+        assignmentCount: 2,
+        evaluationId: "evaluation-1",
+        status: "ACTIVE",
+        targetCount: 1,
+      },
     });
 
     expect(courseAssignmentFindUniqueMock).toHaveBeenCalledWith(

@@ -50,9 +50,8 @@ export async function previewCentralDeploymentRespondents(
     }
 
     return {
-      respondents,
       success: true,
-      totalCount: respondents.length,
+      data: respondents,
     };
   } catch (error) {
     console.error("Failed to preview central deployment respondents:", error);

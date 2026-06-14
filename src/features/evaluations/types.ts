@@ -1,4 +1,5 @@
 import { AcademicSemester, CourseScope, DeploymentStatus, StudentSection, TargetStakeholder, YearLevel } from "@prisma/client";
+import { type ServiceResult } from "@/lib/utils/service-result";
 
 export type { StudentSection };
 
@@ -26,30 +27,18 @@ export type FacultyManagedCiloItem = {
   id: string;
 };
 
-export type FacultyManagedCiloLoadResult =
-  | {
-      error: string;
-      success: false;
-    }
-  | {
-      hasSavedCilos: boolean;
-      items: FacultyManagedCiloItem[];
-      success: true;
-    };
+export type FacultyManagedCiloLoadResult = ServiceResult<{
+  hasSavedCilos: boolean;
+  items: FacultyManagedCiloItem[];
+}>;
 
 export type FacultyManagedCiloSaveInput = FacultyManagedCiloContext & {
   items: Array<{ id?: string; description: string }>;
 };
 
-export type FacultyManagedCiloSaveResult =
-  | {
-      error: string;
-      success: false;
-    }
-  | {
-      items: FacultyManagedCiloItem[];
-      success: true;
-    };
+export type FacultyManagedCiloSaveResult = ServiceResult<{
+  items: FacultyManagedCiloItem[];
+}>;
 
 export type CourseBoundPublicationCiloInput = {
   description: string;
@@ -75,18 +64,12 @@ export type PublishCourseBoundEvaluationInput = {
   templateId: string;
 };
 
-export type PublishCourseBoundEvaluationResult =
-  | {
-      error: string;
-      success: false;
-    }
-  | {
-      assignmentCount: number;
-      evaluationId: string;
-      status: "ACTIVE" | "SCHEDULED";
-      success: true;
-      targetCount: number;
-    };
+export type PublishCourseBoundEvaluationResult = ServiceResult<{
+  assignmentCount: number;
+  evaluationId: string;
+  status: "ACTIVE" | "SCHEDULED";
+  targetCount: number;
+}>;
 
 // ============================================================================
 // Preview Respondents (Step 2 of publish flow)
@@ -114,16 +97,7 @@ export type PreviewCourseBoundRespondentsInput = {
   assignmentId: string;
 };
 
-export type PreviewCourseBoundRespondentsResult =
-  | {
-      error: string;
-      success: false;
-    }
-  | {
-      respondents: PreviewRespondent[];
-      success: true;
-      totalCount: number;
-    };
+export type PreviewCourseBoundRespondentsResult = ServiceResult<PreviewRespondent[]>;
 
 // ============================================================================
 // Faculty Published Evaluations
@@ -192,35 +166,14 @@ export type FacultyEvaluationDetail = {
   totalAssignments: number;
 };
 
-export type ListFacultyPublishedEvaluationsResult =
-  | {
-      error: string;
-      success: false;
-    }
-  | {
-      evaluations: FacultyPublishedEvaluationItem[];
-      program: { code: string; id: string; name: string };
-      success: true;
-    };
+export type ListFacultyPublishedEvaluationsResult = ServiceResult<{
+  evaluations: FacultyPublishedEvaluationItem[];
+  program: { code: string; id: string; name: string };
+}>;
 
-export type GetFacultyEvaluationDetailResult =
-  | {
-      error: string;
-      success: false;
-    }
-  | {
-      detail: FacultyEvaluationDetail;
-      success: true;
-    };
+export type GetFacultyEvaluationDetailResult = ServiceResult<FacultyEvaluationDetail>;
 
-export type CloseFacultyEvaluationResult =
-  | {
-      error: string;
-      success: false;
-    }
-  | {
-      success: true;
-    };
+export type CloseFacultyEvaluationResult = ServiceResult;
 
 // ============================================================================
 // Preview Central Deployment Respondents (Program Head publish flow)
@@ -266,13 +219,4 @@ export type PreviewCentralDeploymentRespondent = {
   yearLevel: YearLevel | null;
 };
 
-export type PreviewCentralDeploymentResult =
-  | {
-      error: string;
-      success: false;
-    }
-  | {
-      respondents: PreviewCentralDeploymentRespondent[];
-      success: true;
-      totalCount: number;
-    };
+export type PreviewCentralDeploymentResult = ServiceResult<PreviewCentralDeploymentRespondent[]>;

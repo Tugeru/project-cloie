@@ -52,5 +52,5 @@ export async function closeFacultyEvaluation(
     },
   });
 
-  return { success: true };
+  return { success: true, data: undefined };
 }

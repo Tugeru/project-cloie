@@ -151,6 +151,6 @@ export async function getFacultyEvaluationDetail(
 
   return {
     success: true,
-    detail,
+    data: detail,
   };
 }

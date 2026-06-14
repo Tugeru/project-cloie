@@ -104,9 +104,8 @@ export async function previewCourseBoundRespondents({
     }));
 
     return {
-      respondents: mappedRespondents,
       success: true,
-      totalCount: mappedRespondents.length,
+      data: mappedRespondents,
     };
   } catch (error) {
     console.error("Failed to preview respondents (V2):", error);

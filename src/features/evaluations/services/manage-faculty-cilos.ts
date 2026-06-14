@@ -14,7 +14,11 @@ async function assertFacultyManagedCiloScope(
 ): Promise<{ courseId: string; majorId: string | null; programId: string } | null> {
   const availableContexts = await listFacultyCourseContexts();
 
-  const matchingContext = availableContexts.find(
+  if (!availableContexts.success) {
+    return null;
+  }
+
+  const matchingContext = availableContexts.data.find(
     (candidate) =>
       candidate.courseId === context.courseId &&
       candidate.programId === context.programId &&
@@ -65,9 +69,11 @@ export async function loadFacultyManagedCilos(
   });
 
   return {
-    hasSavedCilos: cilos.length > 0,
-    items: cilos,
     success: true,
+    data: {
+      hasSavedCilos: cilos.length > 0,
+      items: cilos,
+    },
   };
 }
 
@@ -158,7 +164,9 @@ export async function saveFacultyManagedCilos(
   });
 
   return {
-    items,
     success: true,
+    data: {
+      items,
+    },
   };
 }

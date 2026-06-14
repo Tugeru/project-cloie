@@ -40,7 +40,10 @@ describe("listFacultyCourseContexts", () => {
       userId: "student-1",
     });
 
-    await expect(listFacultyCourseContexts()).resolves.toEqual([]);
+    await expect(listFacultyCourseContexts()).resolves.toEqual({
+      success: false,
+      error: "Faculty authentication is required.",
+    });
     expect(affiliationFindManyMock).not.toHaveBeenCalled();
     expect(courseFindManyMock).not.toHaveBeenCalled();
   });
@@ -83,32 +86,35 @@ describe("listFacultyCourseContexts", () => {
       },
     ]);
 
-    await expect(listFacultyCourseContexts()).resolves.toEqual([
-      {
-        courseCode: "IT-401",
-        courseId: "course-1",
-        courseTitle: "Capstone 1",
-        courseType: "PROGRAM_SPECIFIC",
-        majorId: null,
-        majorName: null,
-        programCode: "BSIT",
-        programId: "program-1",
-        programName: "Bachelor of Science in Information Technology",
-        scopeLabel: "BSIT - Shared Program Course",
-      },
-      {
-        courseCode: "GE-101",
-        courseId: "course-2",
-        courseTitle: "General Education Foundations",
-        courseType: "GENERAL_EDUCATION",
-        majorId: null,
-        majorName: null,
-        programCode: "",
-        programId: "",
-        programName: "",
-        scopeLabel: " - General Education",
-      },
-    ]);
+    await expect(listFacultyCourseContexts()).resolves.toEqual({
+      success: true,
+      data: [
+        {
+          courseCode: "IT-401",
+          courseId: "course-1",
+          courseTitle: "Capstone 1",
+          courseType: "PROGRAM_SPECIFIC",
+          majorId: null,
+          majorName: null,
+          programCode: "BSIT",
+          programId: "program-1",
+          programName: "Bachelor of Science in Information Technology",
+          scopeLabel: "BSIT - Shared Program Course",
+        },
+        {
+          courseCode: "GE-101",
+          courseId: "course-2",
+          courseTitle: "General Education Foundations",
+          courseType: "GENERAL_EDUCATION",
+          majorId: null,
+          majorName: null,
+          programCode: "",
+          programId: "",
+          programName: "",
+          scopeLabel: " - General Education",
+        },
+      ],
+    });
 
     expect(affiliationFindManyMock).not.toHaveBeenCalled();
     expect(courseAssignmentFindManyMock).toHaveBeenCalledWith({
@@ -175,32 +181,35 @@ describe("listFacultyCourseContexts", () => {
       },
     ]);
 
-    await expect(listFacultyCourseContexts("term-instance-1")).resolves.toEqual([
-      {
-        courseCode: "CS-101",
-        courseId: "course-1",
-        courseTitle: "Intro to CS",
-        courseType: "PROGRAM_SPECIFIC",
-        majorId: null,
-        majorName: null,
-        programCode: "BSCS",
-        programId: "program-1",
-        programName: "Computer Science",
-        scopeLabel: "BSCS - Shared Program Course",
-      },
-      {
-        courseCode: "CS-201",
-        courseId: "course-2",
-        courseTitle: "Data Structures",
-        courseType: "PROGRAM_SPECIFIC",
-        majorId: null,
-        majorName: null,
-        programCode: "BSCS",
-        programId: "program-1",
-        programName: "Computer Science",
-        scopeLabel: "BSCS - Shared Program Course",
-      },
-    ]);
+    await expect(listFacultyCourseContexts("term-instance-1")).resolves.toEqual({
+      success: true,
+      data: [
+        {
+          courseCode: "CS-101",
+          courseId: "course-1",
+          courseTitle: "Intro to CS",
+          courseType: "PROGRAM_SPECIFIC",
+          majorId: null,
+          majorName: null,
+          programCode: "BSCS",
+          programId: "program-1",
+          programName: "Computer Science",
+          scopeLabel: "BSCS - Shared Program Course",
+        },
+        {
+          courseCode: "CS-201",
+          courseId: "course-2",
+          courseTitle: "Data Structures",
+          courseType: "PROGRAM_SPECIFIC",
+          majorId: null,
+          majorName: null,
+          programCode: "BSCS",
+          programId: "program-1",
+          programName: "Computer Science",
+          scopeLabel: "BSCS - Shared Program Course",
+        },
+      ],
+    });
 
     // Should call courseAssignment, not facultyProgramAffiliation
     expect(courseAssignmentFindManyMock).toHaveBeenCalledWith({
@@ -235,7 +244,10 @@ describe("listFacultyCourseContexts", () => {
 
     courseAssignmentFindManyMock.mockResolvedValue([]);
 
-    await expect(listFacultyCourseContexts("term-with-no-assignments")).resolves.toEqual([]);
+    await expect(listFacultyCourseContexts("term-with-no-assignments")).resolves.toEqual({
+      success: true,
+      data: [],
+    });
     expect(courseAssignmentFindManyMock).toHaveBeenCalled();
     expect(courseFindManyMock).not.toHaveBeenCalled();
   });

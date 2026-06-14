@@ -75,13 +75,16 @@ describe("manage-faculty-cilos", () => {
 
     it("loads CILOs successfully for a valid context", async () => {
       resolveAuthSessionMock.mockResolvedValue({ userId: "faculty-1", roles: ["FACULTY"] });
-      listFacultyCourseContextsMock.mockResolvedValue([
-        {
-          courseId: "course-1",
-          majorId: "major-1",
-          programId: "program-1",
-        },
-      ]);
+      listFacultyCourseContextsMock.mockResolvedValue({
+        success: true,
+        data: [
+          {
+            courseId: "course-1",
+            majorId: "major-1",
+            programId: "program-1",
+          },
+        ],
+      });
       findManyCilosMock.mockResolvedValue([
         { id: "cilo-1", description: "CILO 1" },
         { id: "cilo-2", description: "CILO 2" },
@@ -90,8 +93,8 @@ describe("manage-faculty-cilos", () => {
       const result = await loadFacultyManagedCilos(mockContext);
       expect(result.success).toBe(true);
       if (result.success) {
-        expect(result.items).toHaveLength(2);
-        expect(result.items[0]).toEqual({ id: "cilo-1", description: "CILO 1" });
+        expect(result.data.items).toHaveLength(2);
+        expect(result.data.items[0]).toEqual({ id: "cilo-1", description: "CILO 1" });
       }
     });
   });
@@ -99,13 +102,16 @@ describe("manage-faculty-cilos", () => {
   describe("saveFacultyManagedCilos", () => {
     it("performs diff-upsert: updates modified, creates new, deletes removed", async () => {
       resolveAuthSessionMock.mockResolvedValue({ userId: "faculty-1", roles: ["FACULTY"] });
-      listFacultyCourseContextsMock.mockResolvedValue([
-        {
-          courseId: "course-1",
-          majorId: "major-1",
-          programId: "program-1",
-        },
-      ]);
+      listFacultyCourseContextsMock.mockResolvedValue({
+        success: true,
+        data: [
+          {
+            courseId: "course-1",
+            majorId: "major-1",
+            programId: "program-1",
+          },
+        ],
+      });
 
       // Mock existing CILOs inside transaction
       findManyCilosMock.mockResolvedValueOnce([
@@ -163,13 +169,16 @@ describe("manage-faculty-cilos", () => {
 
     it("filters out empty or whitespace-only CILOs", async () => {
       resolveAuthSessionMock.mockResolvedValue({ userId: "faculty-1", roles: ["FACULTY"] });
-      listFacultyCourseContextsMock.mockResolvedValue([
-        {
-          courseId: "course-1",
-          majorId: "major-1",
-          programId: "program-1",
-        },
-      ]);
+      listFacultyCourseContextsMock.mockResolvedValue({
+        success: true,
+        data: [
+          {
+            courseId: "course-1",
+            majorId: "major-1",
+            programId: "program-1",
+          },
+        ],
+      });
       findManyCilosMock.mockResolvedValueOnce([]); // no existing
       findManyCilosMock.mockResolvedValueOnce([]); // final return
 

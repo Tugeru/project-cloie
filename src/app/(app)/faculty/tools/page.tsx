@@ -18,12 +18,12 @@ export default async function FacultyToolsRoute() {
   }
 
   // Evaluations may fail independently (e.g., no evaluations yet), so we handle gracefully
-  const evaluations = evaluationsResult.success ? evaluationsResult.evaluations : [];
+  const evaluations = evaluationsResult.success ? evaluationsResult.data.evaluations : [];
 
   return (
     <FacultyToolsPage
-      program={templatesResult.program}
-      templates={templatesResult.templates}
+      program={templatesResult.data.program}
+      templates={templatesResult.data.templates}
       evaluations={evaluations}
     />
   );

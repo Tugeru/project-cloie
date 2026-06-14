@@ -133,7 +133,7 @@ export function PublishCentralDeploymentForm({
         return;
       }
 
-      setPreviewRespondents(result.respondents);
+      setPreviewRespondents(result.data);
       setExcludedRespondentIds([]);
       setStep("preview");
     } catch {
@@ -185,7 +185,7 @@ export function PublishCentralDeploymentForm({
       {/* Page header */}
       <div className="space-y-1">
         <h1 className="text-heading-lg">Publish Evaluation Tool</h1>
-        <p className="text-body-md text-text-secondary">
+        <p className="text-body-md text-muted-foreground">
           Deploy an evaluation instrument to target stakeholders within{" "}
           <span className="font-semibold">{programLabel}</span>.
         </p>
@@ -194,7 +194,7 @@ export function PublishCentralDeploymentForm({
       {/* Form card */}
       <form
         ref={formRef}
-        className="border-border bg-surface space-y-6 rounded-2xl border p-6 shadow-sm"
+        className="border-border bg-card space-y-6 rounded-2xl border p-6 shadow-sm"
         onSubmit={handlePreview}
       >
         <div className="space-y-2">
@@ -205,7 +205,7 @@ export function PublishCentralDeploymentForm({
             placeholder="e.g. BSIT Exit Survey 2026"
             required
           />
-          <p className="text-text-secondary text-xs">
+          <p className="text-muted-foreground text-xs">
             This is the name respondents and reviewers will see for this publication.
           </p>
         </div>
@@ -214,7 +214,7 @@ export function PublishCentralDeploymentForm({
           <Label htmlFor="template_id">Evaluation Template</Label>
           {preselectedTemplateId && selectedTemplate ? (
             <>
-              <div className="border-input bg-surface-container-low flex items-center gap-3 rounded-lg border px-3 py-2">
+              <div className="border-input bg-muted flex items-center gap-3 rounded-lg border px-3 py-2">
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium">{selectedTemplate.name}</p>
                 </div>
@@ -268,7 +268,7 @@ export function PublishCentralDeploymentForm({
             <div className="space-y-2">
               <Label htmlFor="activation_at">Activation Date & Time</Label>
               <Input type="datetime-local" id="activation_at" name="activation_at" />
-              <p className="text-text-secondary text-xs">
+              <p className="text-muted-foreground text-xs">
                 Leave empty to activate immediately upon publication.
               </p>
             </div>
@@ -277,7 +277,7 @@ export function PublishCentralDeploymentForm({
             <div className="space-y-2">
               <Label htmlFor="deadline_at">Deadline Date & Time</Label>
               <Input type="datetime-local" id="deadline_at" name="deadline_at" />
-              <p className="text-text-secondary text-xs">
+              <p className="text-muted-foreground text-xs">
                 Optional. Respondents cannot submit after this deadline.
               </p>
             </div>
@@ -324,7 +324,7 @@ export function PublishCentralDeploymentForm({
                   </option>
                 ))}
               </select>
-              <p className="text-text-muted text-xs">
+              <p className="text-muted-foreground text-xs">
                 Select the academic term for this deployment.
               </p>
             </div>
@@ -399,7 +399,7 @@ export function PublishCentralDeploymentForm({
           <div className="border-border flex items-center justify-end gap-3 border-t pt-4">
             <a
               href="/program-head/tools"
-              className="text-text-secondary hover:text-text-primary text-sm font-medium"
+              className="text-muted-foreground hover:text-foreground text-sm font-medium"
             >
               Cancel
             </a>
@@ -416,12 +416,12 @@ export function PublishCentralDeploymentForm({
 
       {/* Preview Step */}
       {step === "preview" && (
-        <div className="border-border bg-surface space-y-6 rounded-2xl border p-6 shadow-sm">
+        <div className="border-border bg-card space-y-6 rounded-2xl border p-6 shadow-sm">
           <div className="space-y-1">
             <h2 className="text-label-lg font-semibold tracking-wide uppercase">
               Respondent Preview
             </h2>
-            <p className="text-text-secondary text-sm">
+            <p className="text-muted-foreground text-sm">
               {previewRespondents.length} respondent(s) found.
               {excludedRespondentIds.length > 0 && (
                 <span className="text-warning ml-1 font-medium">
@@ -432,14 +432,14 @@ export function PublishCentralDeploymentForm({
           </div>
 
           {previewRespondents.length === 0 ? (
-            <p className="text-text-muted py-8 text-center text-sm">
+            <p className="text-muted-foreground py-8 text-center text-sm">
               No respondents matched the targeting criteria.
             </p>
           ) : (
             <div className="max-h-[400px] overflow-auto rounded-lg border">
               <table className="w-full text-sm">
-                <thead className="bg-surface-container-low sticky top-0">
-                  <tr className="text-text-secondary text-left text-xs font-semibold uppercase">
+                <thead className="bg-muted sticky top-0">
+                  <tr className="text-muted-foreground text-left text-xs font-semibold uppercase">
                     <th className="px-3 py-2">
                       <input
                         type="checkbox"

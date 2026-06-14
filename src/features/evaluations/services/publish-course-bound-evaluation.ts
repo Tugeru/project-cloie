@@ -211,15 +211,17 @@ export async function publishCourseBoundEvaluation({
       }
 
       return {
-        assignmentCount: respondentIds.length,
-        evaluationId: evaluation.id,
-        status,
-        success: true as const,
-        targetCount: targetRows.length,
+        success: true,
+        data: {
+          assignmentCount: respondentIds.length,
+          evaluationId: evaluation.id,
+          status,
+          targetCount: targetRows.length,
+        },
       };
     });
 
-    return result;
+    return result as PublishCourseBoundEvaluationResult;
   } catch (error) {
     if (isUniqueConstraintError(error)) {
       return {

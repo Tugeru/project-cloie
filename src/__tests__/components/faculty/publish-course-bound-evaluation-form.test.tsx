@@ -127,7 +127,8 @@ describe("PublishCourseBoundEvaluationFormV2", () => {
 
   it("loads preview when assignment is selected then publishes with confirmed respondents", async () => {
     const previewAction = vi.fn().mockResolvedValue({
-      respondents: [
+      success: true,
+      data: [
         {
           email: "alice@school.edu",
           firstName: "Alice",
@@ -143,15 +144,15 @@ describe("PublishCourseBoundEvaluationFormV2", () => {
           yearLevel: YearLevel.FIRST_YEAR,
         },
       ],
-      success: true,
-      totalCount: 1,
     });
     const publishAction = vi.fn().mockResolvedValue({
-      assignmentCount: 1,
-      evaluationId: "eval-1",
-      status: "ACTIVE",
       success: true,
-      targetCount: 1,
+      data: {
+        assignmentCount: 1,
+        evaluationId: "eval-1",
+        status: "ACTIVE",
+        targetCount: 1,
+      },
     });
 
     render(

@@ -39,6 +39,8 @@
   --color-surface-muted: var(--color-surface-muted);
   --color-border: var(--color-border);
   --color-border-strong: var(--color-border-strong);
+  --color-surface-container-low: var(--muted);
+  --color-surface-container-lowest: var(--background);
 
   /* ---------- Colors — Text ---------- */
   --color-text-primary: var(--color-text-primary);

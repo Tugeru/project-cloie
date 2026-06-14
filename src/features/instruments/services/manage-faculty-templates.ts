@@ -122,8 +122,11 @@ async function resolveFacultyCourseContext(input: {
   }
 
   const contexts = await listFacultyCourseContexts();
+  if (!contexts.success) {
+    return null;
+  }
   return (
-    contexts.find(
+    contexts.data.find(
       (context) =>
         context.courseId === input.boundCourseId &&
         context.programId === input.boundProgramId &&
