@@ -13,7 +13,7 @@ export type ProfileGate =
 
 export function resolveProfileGate(input: {
   roles: Role[];
-  primaryRole: Role | null;
+  activeRole: Role | null;
   studentProfileId: string | null;
   alumniProfileId: string | null;
   industryPartnerProfileId: string | null;
@@ -27,11 +27,11 @@ export function resolveProfileGate(input: {
     return { status: "INACTIVE" };
   }
 
-  if (input.roles.length === 0 || !input.primaryRole) {
+  if (!input.activeRole) {
     return { status: "ROLE_SELECTION_REQUIRED" };
   }
 
-  const role = input.primaryRole;
+  const role = input.activeRole;
 
   if (role === ROLES.FACULTY) {
     if (!input.hasFacultyAffiliation) {
