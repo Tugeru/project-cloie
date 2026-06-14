@@ -39,7 +39,7 @@ export default async function OnboardingPage({
       resolvePostLoginDestination({
         requestedPath: "/dashboard",
         intent: null,
-        primaryRole: session.primaryRole,
+        activeRole: session.activeRole,
         profileGate: session.profileGate,
       })
     );

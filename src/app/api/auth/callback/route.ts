@@ -253,7 +253,7 @@ export async function GET(request: Request) {
   const nextUrl = resolvePostLoginDestination({
     requestedPath: searchParams.get("next") ?? "/dashboard",
     intent: intentParam,
-    primaryRole: session?.primaryRole ?? null,
+    activeRole: session?.activeRole ?? null,
     profileGate: session?.profileGate ?? { status: "ROLE_SELECTION_REQUIRED" },
   });
 
