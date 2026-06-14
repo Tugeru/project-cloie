@@ -1,12 +1,11 @@
 import type { Role } from "@/lib/constants/roles";
 import { resolveProfileGate } from "@/features/users/services/resolve-profile-gate";
-import { resolvePrimaryRole } from "./resolve-primary-role";
 
 export type AuthSessionSnapshot = {
   userId: string;
   email: string | null;
   roles: Role[];
-  primaryRole: Role | null;
+  activeRole: Role | null;
   studentProfileId: string | null;
   alumniProfileId: string | null;
   industryPartnerProfileId: string | null;
@@ -26,19 +25,19 @@ export function buildAuthSessionSnapshot(input: {
   hasActiveEnrollment?: boolean;
   hasFacultyAffiliation?: boolean;
 }): AuthSessionSnapshot {
-  const primaryRole = resolvePrimaryRole(input.roles);
+  const activeRole = input.roles[0] ?? null;
 
   return {
     userId: input.userId,
     email: input.email,
     roles: input.roles,
-    primaryRole,
+    activeRole,
     studentProfileId: input.studentProfileId,
     alumniProfileId: input.alumniProfileId ?? null,
     industryPartnerProfileId: input.industryPartnerProfileId ?? null,
     profileGate: resolveProfileGate({
       roles: input.roles,
-      primaryRole,
+      activeRole,
       studentProfileId: input.studentProfileId,
       alumniProfileId: input.alumniProfileId ?? null,
       industryPartnerProfileId: input.industryPartnerProfileId ?? null,

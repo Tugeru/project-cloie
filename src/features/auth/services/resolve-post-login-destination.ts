@@ -4,7 +4,7 @@ import type { ProfileGate } from "@/features/users/services/resolve-profile-gate
 type DestinationInput = {
   requestedPath?: string | null;
   intent?: string | null;
-  primaryRole: Role | null;
+  activeRole: Role | null;
   profileGate: ProfileGate;
 };
 
@@ -27,7 +27,7 @@ function sanitizeRequestedPath(requestedPath?: string | null): string | null {
 export function resolvePostLoginDestination({
   requestedPath,
   intent,
-  primaryRole,
+  activeRole,
   profileGate,
 }: DestinationInput): string {
   const sanitizedRequestedPath = sanitizeRequestedPath(requestedPath);
@@ -74,7 +74,7 @@ export function resolvePostLoginDestination({
     return sanitizedRequestedPath;
   }
 
-  switch (primaryRole) {
+  switch (activeRole) {
     case ROLES.ADMIN:
       return "/admin/dashboard";
     case ROLES.DEAN:
