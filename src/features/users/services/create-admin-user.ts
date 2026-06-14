@@ -2,16 +2,8 @@ import { SystemRole } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import type { CreateAdminUserInput } from "../schemas/create-user";
 
-type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
-
-function isUniqueConstraintError(error: unknown): boolean {
-  return Boolean(
-    error &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error as { code?: string }).code === "P2002"
-  );
-}
+import { type ServiceResult } from "@/lib/utils/service-result";
+import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";
 
 export async function createAdminUser(
   input: CreateAdminUserInput

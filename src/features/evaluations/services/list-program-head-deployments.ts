@@ -4,9 +4,8 @@ import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import type { DeploymentStatus, TargetStakeholder } from "@prisma/client";
 
-// ─── Types ───────────────────────────────────────────────────────────────────
-
-type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
+import { type ServiceResult } from "@/lib/utils/service-result";
+import { formatTermInstanceLabel } from "@/lib/utils/date-format";
 
 export type ProgramHeadDeploymentItem = {
   id: string;
@@ -118,15 +117,13 @@ export async function listProgramHeadDeployments(): Promise<
   // 5. Map to typed result with counts
   const deployments: ProgramHeadDeploymentItem[] = rawDeployments.map((d) => {
     // Phase 7: Build term instance label if available
-    let termInstanceLabel: string | null = null;
-    if (d.term_instance) {
-      const syCode = d.term_instance.school_year.code;
-      const semester = d.term_instance.semester;
-      const term = d.term_instance.term;
-      termInstanceLabel = term
-        ? `${syCode} — ${semester} — ${term}`
-        : `${syCode} — ${semester}`;
-    }
+    const termInstanceLabel = d.term_instance
+      ? formatTermInstanceLabel(
+          d.term_instance.school_year.code,
+          d.term_instance.semester,
+          d.term_instance.term
+        )
+      : null;
 
     return {
       id: d.id,

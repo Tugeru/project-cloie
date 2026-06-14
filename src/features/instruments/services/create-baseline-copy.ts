@@ -6,7 +6,8 @@ import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import type { TemplateStructure } from "../types";
 
-type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
+import { type ServiceResult } from "@/lib/utils/service-result";
+import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";
 
 interface CreateBaselineCopyInput {
   baselineId: string;
@@ -133,12 +134,7 @@ export async function createBaselineCopy(
 
     return { success: true, data: { id: template.id } };
   } catch (error) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error as { code?: string }).code === "P2002"
-    ) {
+    if (isUniqueConstraintError(error)) {
       return {
         success: false,
         error: `A template with code "${code}" already exists. Try a different name.`,
