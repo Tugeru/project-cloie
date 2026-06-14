@@ -170,115 +170,133 @@ export async function submitStudentCourseBoundResponse({
     structureSnapshot: assignment.course_bound.instrument.structure_snapshot,
   });
 
-  let response = await prisma.response.findUnique({
-    where: {
-      assignment_id: assignment.id,
-    },
-  });
+  try {
+    const result = await prisma.$transaction(async (tx) => {
+      let response = await tx.response.findUnique({
+        where: {
+          assignment_id: assignment.id,
+        },
+      });
 
-  if (response?.status === ResponseStatus.SUBMITTED) {
+      if (response?.status === ResponseStatus.SUBMITTED) {
+        throw new Error("ALREADY_SUBMITTED");
+      }
+
+      if (!response) {
+        response = await tx.response.create({
+          data: {
+            assignment_id: assignment.id,
+            deployment_id: assignment.course_bound_id!,
+            deployment_type: DeploymentType.COURSE_BOUND,
+            respondent_id: authSession.userId,
+            status: ResponseStatus.IN_PROGRESS,
+          },
+        });
+      }
+
+      const quantitativeItems = Object.entries(answers)
+        .map(([answerKey, value]) => {
+          const parsed = parseStudentEvaluationAnswerKey(answerKey);
+
+          if (!parsed || parsed.kind !== "quantitative" || typeof value !== "number") {
+            return null;
+          }
+
+          const ciloBinding = (assignment.course_bound?.cilo_question_bindings ?? []).find(
+            (binding) =>
+              binding.section_key === parsed.sectionKey && binding.item_key === parsed.itemKey
+          );
+
+          return {
+            cilo_question_binding_id: ciloBinding?.id ?? null,
+            item_key: parsed.itemKey,
+            rating_value: value,
+            response_id: response.id,
+            section_key: parsed.sectionKey,
+          };
+        })
+        .filter(
+          (
+            item
+          ): item is {
+            cilo_question_binding_id: string | null;
+            item_key: string;
+            rating_value: number;
+            response_id: string;
+            section_key: string;
+          } => item !== null
+        );
+
+      const qualitativeItems = Object.entries(answers)
+        .map(([answerKey, value]) => {
+          const parsed = parseStudentEvaluationAnswerKey(answerKey);
+
+          if (!parsed || parsed.kind !== "qualitative" || typeof value !== "string") {
+            return null;
+          }
+
+          return {
+            prompt_key: parsed.itemKey,
+            response_id: response.id,
+            section_key: parsed.sectionKey,
+            text_content: value,
+          };
+        })
+        .filter(
+          (
+            item
+          ): item is {
+            prompt_key: string;
+            response_id: string;
+            section_key: string;
+            text_content: string;
+          } => item !== null
+        );
+
+      await tx.quantitativeResponseItem.deleteMany({ where: { response_id: response.id } });
+      await tx.qualitativeResponseItem.deleteMany({ where: { response_id: response.id } });
+
+      if (quantitativeItems.length > 0) {
+        await tx.quantitativeResponseItem.createMany({ data: quantitativeItems });
+      }
+
+      if (qualitativeItems.length > 0) {
+        await tx.qualitativeResponseItem.createMany({ data: qualitativeItems });
+      }
+
+      const submittedAt = new Date().toISOString();
+
+      await tx.response.update({
+        data: {
+          status: ResponseStatus.SUBMITTED,
+          submitted_at: new Date(submittedAt),
+        },
+        where: {
+          id: response.id,
+        },
+      });
+
+      return {
+        responseId: response.id,
+      };
+    });
+
     return {
-      error: "This evaluation has already been submitted.",
+      responseId: result.responseId,
+      status: ResponseStatus.SUBMITTED,
+      success: true,
+    };
+  } catch (error) {
+    if (error instanceof Error && error.message === "ALREADY_SUBMITTED") {
+      return {
+        error: "This evaluation has already been submitted.",
+        success: false,
+      };
+    }
+    console.error("Failed to submit course-bound response:", error);
+    return {
+      error: "An unexpected error occurred while submitting your response.",
       success: false,
     };
   }
-
-  if (!response) {
-    response = await prisma.response.create({
-      data: {
-        assignment_id: assignment.id,
-        deployment_id: assignment.course_bound_id!,
-        deployment_type: DeploymentType.COURSE_BOUND,
-        respondent_id: authSession.userId,
-        status: ResponseStatus.IN_PROGRESS,
-      },
-    });
-  }
-
-  const quantitativeItems = Object.entries(answers)
-    .map(([answerKey, value]) => {
-      const parsed = parseStudentEvaluationAnswerKey(answerKey);
-
-      if (!parsed || parsed.kind !== "quantitative" || typeof value !== "number") {
-        return null;
-      }
-
-      const ciloBinding = (assignment.course_bound?.cilo_question_bindings ?? []).find(
-        (binding) =>
-          binding.section_key === parsed.sectionKey && binding.item_key === parsed.itemKey
-      );
-
-      return {
-        cilo_question_binding_id: ciloBinding?.id ?? null,
-        item_key: parsed.itemKey,
-        rating_value: value,
-        response_id: response.id,
-        section_key: parsed.sectionKey,
-      };
-    })
-    .filter(
-      (
-        item
-      ): item is {
-        cilo_question_binding_id: string | null;
-        item_key: string;
-        rating_value: number;
-        response_id: string;
-        section_key: string;
-      } => item !== null
-    );
-  const qualitativeItems = Object.entries(answers)
-    .map(([answerKey, value]) => {
-      const parsed = parseStudentEvaluationAnswerKey(answerKey);
-
-      if (!parsed || parsed.kind !== "qualitative" || typeof value !== "string") {
-        return null;
-      }
-
-      return {
-        prompt_key: parsed.itemKey,
-        response_id: response.id,
-        section_key: parsed.sectionKey,
-        text_content: value,
-      };
-    })
-    .filter(
-      (
-        item
-      ): item is {
-        prompt_key: string;
-        response_id: string;
-        section_key: string;
-        text_content: string;
-      } => item !== null
-    );
-
-  await prisma.quantitativeResponseItem.deleteMany({ where: { response_id: response.id } });
-  await prisma.qualitativeResponseItem.deleteMany({ where: { response_id: response.id } });
-
-  if (quantitativeItems.length > 0) {
-    await prisma.quantitativeResponseItem.createMany({ data: quantitativeItems });
-  }
-
-  if (qualitativeItems.length > 0) {
-    await prisma.qualitativeResponseItem.createMany({ data: qualitativeItems });
-  }
-
-  const submittedAt = new Date().toISOString();
-
-  await prisma.response.update({
-    data: {
-      status: ResponseStatus.SUBMITTED,
-      submitted_at: new Date(submittedAt),
-    },
-    where: {
-      id: response.id,
-    },
-  });
-
-  return {
-    responseId: response.id,
-    status: ResponseStatus.SUBMITTED,
-    success: true,
-  };
 }

@@ -9,11 +9,8 @@ const { createMock, findAssignmentMock, findResponseMock, resolveAuthSessionMock
     updateMock: vi.fn(),
   }));
 
-vi.mock("@/lib/db/prisma", () => ({
-  prisma: {
-    evaluationAssignment: {
-      findFirst: findAssignmentMock,
-    },
+vi.mock("@/lib/db/prisma", () => {
+  const mockTx = {
     qualitativeResponseItem: {
       createMany: vi.fn(),
       deleteMany: vi.fn(),
@@ -27,8 +24,18 @@ vi.mock("@/lib/db/prisma", () => ({
       findUnique: findResponseMock,
       update: updateMock,
     },
-  },
-}));
+  };
+
+  return {
+    prisma: {
+      $transaction: vi.fn((fn) => fn(mockTx)),
+      evaluationAssignment: {
+        findFirst: findAssignmentMock,
+      },
+      ...mockTx,
+    },
+  };
+});
 
 vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
