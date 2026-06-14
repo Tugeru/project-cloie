@@ -29,7 +29,7 @@ describe("manage-course-assignments", () => {
     userId: "admin-1",
     email: "admin@test.com",
     roles: [ROLES.ADMIN],
-    primaryRole: ROLES.ADMIN,
+    activeRole: ROLES.ADMIN,
     studentProfileId: null,
     profileGate: { status: "COMPLETE" as const },
   };
@@ -38,7 +38,7 @@ describe("manage-course-assignments", () => {
     userId: "ph-1",
     email: "ph@test.com",
     roles: [ROLES.PROGRAM_HEAD],
-    primaryRole: ROLES.PROGRAM_HEAD,
+    activeRole: ROLES.PROGRAM_HEAD,
     studentProfileId: null,
     profileGate: { status: "COMPLETE" as const },
   };
@@ -47,7 +47,7 @@ describe("manage-course-assignments", () => {
     userId: "faculty-1",
     email: "faculty@test.com",
     roles: [ROLES.FACULTY],
-    primaryRole: ROLES.FACULTY,
+    activeRole: ROLES.FACULTY,
     studentProfileId: null,
     profileGate: { status: "COMPLETE" as const },
   };

@@ -34,7 +34,7 @@ describe("resolveProfileGate — Faculty", () => {
   it("returns FACULTY_ONBOARDING_REQUIRED when user has FACULTY role but hasFacultyAffiliation is false", () => {
     const result = resolveProfileGate({
       roles: [ROLES.FACULTY],
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
       studentProfileId: null,
       alumniProfileId: null,
       industryPartnerProfileId: null,
@@ -46,7 +46,7 @@ describe("resolveProfileGate — Faculty", () => {
   it("returns COMPLETE when user has FACULTY role and hasFacultyAffiliation is true", () => {
     const result = resolveProfileGate({
       roles: [ROLES.FACULTY],
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
       studentProfileId: null,
       alumniProfileId: null,
       industryPartnerProfileId: null,
@@ -61,7 +61,7 @@ describe("resolvePostLoginDestination — Faculty", () => {
     const destination = resolvePostLoginDestination({
       requestedPath: "/portal",
       intent: null,
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
       profileGate: { status: "FACULTY_ONBOARDING_REQUIRED", intent: "faculty" },
     });
     expect(destination).toBe("/onboarding?intent=faculty");

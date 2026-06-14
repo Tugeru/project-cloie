@@ -148,7 +148,7 @@ describe("publishCourseBoundEvaluation", () => {
 
   it("publishes a course-bound evaluation from the saved faculty template context", async () => {
     resolveAuthSessionMock.mockResolvedValue({
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });
@@ -230,7 +230,7 @@ describe("publishCourseBoundEvaluation", () => {
 
   it("surfaces saved template validation failures", async () => {
     resolveAuthSessionMock.mockResolvedValue({
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });
@@ -254,7 +254,7 @@ describe("publishCourseBoundEvaluation", () => {
 
   it("maps duplicate course-context publishes to a user-facing error", async () => {
     resolveAuthSessionMock.mockResolvedValue({
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });

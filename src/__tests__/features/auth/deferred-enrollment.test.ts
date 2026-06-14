@@ -11,7 +11,7 @@ describe("resolveProfileGate — deferred enrollment", () => {
   it("returns DEFERRED_ENROLLMENT when student has profile but hasActiveEnrollment is false", () => {
     const result = resolveProfileGate({
       roles: [ROLES.STUDENT],
-      primaryRole: ROLES.STUDENT,
+      activeRole: ROLES.STUDENT,
       studentProfileId: "profile-uuid",
       alumniProfileId: null,
       industryPartnerProfileId: null,
@@ -23,7 +23,7 @@ describe("resolveProfileGate — deferred enrollment", () => {
   it("returns COMPLETE when student has profile and hasActiveEnrollment is true", () => {
     const result = resolveProfileGate({
       roles: [ROLES.STUDENT],
-      primaryRole: ROLES.STUDENT,
+      activeRole: ROLES.STUDENT,
       studentProfileId: "profile-uuid",
       alumniProfileId: null,
       industryPartnerProfileId: null,
@@ -35,7 +35,7 @@ describe("resolveProfileGate — deferred enrollment", () => {
   it("returns STUDENT_ONBOARDING_REQUIRED when student has no profile (regardless of enrollment flag)", () => {
     const result = resolveProfileGate({
       roles: [ROLES.STUDENT],
-      primaryRole: ROLES.STUDENT,
+      activeRole: ROLES.STUDENT,
       studentProfileId: null,
       alumniProfileId: null,
       industryPartnerProfileId: null,
@@ -53,7 +53,7 @@ describe("resolvePostLoginDestination — DEFERRED_ENROLLMENT routes to /student
     const destination = resolvePostLoginDestination({
       requestedPath: "/portal",
       intent: null,
-      primaryRole: ROLES.STUDENT,
+      activeRole: ROLES.STUDENT,
       profileGate: { status: "DEFERRED_ENROLLMENT" },
     });
     expect(destination).toBe("/student/dashboard");

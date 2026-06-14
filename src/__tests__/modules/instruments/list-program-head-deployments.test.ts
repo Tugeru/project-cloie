@@ -47,7 +47,7 @@ const PH_SESSION = {
   userId: "ph-user-1",
   email: "ph@acd.edu.ph",
   roles: [ROLES.PROGRAM_HEAD],
-  primaryRole: ROLES.PROGRAM_HEAD,
+  activeRole: ROLES.PROGRAM_HEAD,
   studentProfileId: null,
   profileGate: null,
 };

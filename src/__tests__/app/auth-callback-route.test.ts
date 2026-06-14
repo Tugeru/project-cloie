@@ -89,11 +89,11 @@ describe("auth callback route", () => {
     vi.stubEnv("NEXT_PUBLIC_SITE_URL", "https://cloie.test");
     resolvePostLoginDestinationMock.mockReturnValue("/student/dashboard");
     resolveAuthSessionMock.mockResolvedValue({
-      primaryRole: "STUDENT",
+      activeRole: "STUDENT",
       profileGate: { status: "COMPLETE" },
     });
     resolveAuthSessionFromUserMock.mockResolvedValue({
-      primaryRole: "STUDENT",
+      activeRole: "STUDENT",
       profileGate: { status: "COMPLETE" },
     });
   });
@@ -147,7 +147,7 @@ describe("auth callback route", () => {
       roles: [{ role: SystemRole.FACULTY }],
     });
     resolveAuthSessionFromUserMock.mockResolvedValue({
-      primaryRole: "FACULTY",
+      activeRole: "FACULTY",
       profileGate: { status: "COMPLETE" },
     });
     resolvePostLoginDestinationMock.mockReturnValue("/faculty/dashboard");
@@ -190,7 +190,7 @@ describe("auth callback route", () => {
       roles: [{ role: SystemRole.FACULTY }],
     });
     resolveAuthSessionFromUserMock.mockResolvedValue({
-      primaryRole: "FACULTY",
+      activeRole: "FACULTY",
       profileGate: { status: "COMPLETE" },
     });
     resolvePostLoginDestinationMock.mockReturnValue("/faculty/dashboard");
@@ -243,7 +243,7 @@ describe("auth callback route", () => {
       roles: [{ role: SystemRole.FACULTY }],
     });
     resolveAuthSessionFromUserMock.mockResolvedValue({
-      primaryRole: "FACULTY",
+      activeRole: "FACULTY",
       profileGate: { status: "COMPLETE" },
     });
     resolvePostLoginDestinationMock.mockReturnValue("/faculty/dashboard");
@@ -255,7 +255,7 @@ describe("auth callback route", () => {
     expect(resolvePostLoginDestinationMock).toHaveBeenCalledWith({
       requestedPath: "/dashboard",
       intent: "faculty",
-      primaryRole: "FACULTY",
+      activeRole: "FACULTY",
       profileGate: { status: "COMPLETE" },
     });
     expect(resolveAuthSessionFromUserMock).toHaveBeenCalledWith({
@@ -308,7 +308,7 @@ describe("auth callback route", () => {
     expect(resolvePostLoginDestinationMock).toHaveBeenCalledWith({
       requestedPath: "profile",
       intent: null,
-      primaryRole: "STUDENT",
+      activeRole: "STUDENT",
       profileGate: { status: "COMPLETE" },
     });
     expect(response.headers.get("location")).toContain("/student/dashboard");
@@ -331,7 +331,7 @@ describe("auth callback route", () => {
       role: SystemRole.STUDENT,
     });
     resolveAuthSessionFromUserMock.mockResolvedValue({
-      primaryRole: "STUDENT",
+      activeRole: "STUDENT",
       profileGate: { status: "STUDENT_ONBOARDING_REQUIRED", intent: "student" },
     });
     resolvePostLoginDestinationMock.mockReturnValue("/onboarding?intent=student");
@@ -413,7 +413,7 @@ describe("auth callback route", () => {
         roles: [{ role: SystemRole.ADMIN }],
       });
       resolveAuthSessionFromUserMock.mockResolvedValue({
-        primaryRole: "ADMIN",
+        activeRole: "ADMIN",
         profileGate: { status: "COMPLETE" },
       });
       resolvePostLoginDestinationMock.mockReturnValue("/admin/dashboard");
@@ -452,7 +452,7 @@ describe("auth callback route", () => {
         roles: [{ role: SystemRole.ADMIN }],
       });
       resolveAuthSessionFromUserMock.mockResolvedValue({
-        primaryRole: "ADMIN",
+        activeRole: "ADMIN",
         profileGate: { status: "COMPLETE" },
       });
       resolvePostLoginDestinationMock.mockReturnValue("/admin/dashboard");

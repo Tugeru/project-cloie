@@ -43,7 +43,7 @@ const PH_SESSION = {
   userId: "ph-user-1",
   email: "ph@acd.edu.ph",
   roles: [ROLES.PROGRAM_HEAD],
-  primaryRole: ROLES.PROGRAM_HEAD,
+  activeRole: ROLES.PROGRAM_HEAD,
   studentProfileId: null,
   profileGate: null,
 };
@@ -325,7 +325,7 @@ describe("manage-program-head-courses", () => {
     resolveAuthSessionMock.mockResolvedValue({
       ...PH_SESSION,
       roles: [ROLES.FACULTY],
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
     });
 
     const result = await createProgramHeadCourse({

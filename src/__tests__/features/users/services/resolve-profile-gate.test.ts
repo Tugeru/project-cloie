@@ -3,10 +3,10 @@ import { ROLES } from "@/lib/constants/roles";
 import { resolveProfileGate } from "@/features/users/services/resolve-profile-gate";
 
 describe("resolveProfileGate", () => {
-  it("returns ROLE_SELECTION_REQUIRED when roles array is empty", () => {
+  it("returns ROLE_SELECTION_REQUIRED when activeRole is null", () => {
     const result = resolveProfileGate({
       roles: [],
-      primaryRole: null,
+      activeRole: null,
       studentProfileId: null,
       alumniProfileId: null,
       industryPartnerProfileId: null,
@@ -17,7 +17,7 @@ describe("resolveProfileGate", () => {
   it("returns STUDENT_ONBOARDING_REQUIRED if user has STUDENT role but no profile", () => {
     const result = resolveProfileGate({
       roles: [ROLES.STUDENT],
-      primaryRole: ROLES.STUDENT,
+      activeRole: ROLES.STUDENT,
       studentProfileId: null,
       alumniProfileId: null,
       industryPartnerProfileId: null,
@@ -28,7 +28,7 @@ describe("resolveProfileGate", () => {
   it("returns ALUMNI_ONBOARDING_REQUIRED if user has ALUMNI role but no profile", () => {
     const result = resolveProfileGate({
       roles: [ROLES.ALUMNI],
-      primaryRole: ROLES.ALUMNI,
+      activeRole: ROLES.ALUMNI,
       studentProfileId: null,
       alumniProfileId: null,
       industryPartnerProfileId: null,
@@ -39,7 +39,7 @@ describe("resolveProfileGate", () => {
   it("returns INDUSTRY_PARTNER_ONBOARDING_REQUIRED if user has INDUSTRY_PARTNER role but no profile", () => {
     const result = resolveProfileGate({
       roles: [ROLES.INDUSTRY_PARTNER],
-      primaryRole: ROLES.INDUSTRY_PARTNER,
+      activeRole: ROLES.INDUSTRY_PARTNER,
       studentProfileId: null,
       alumniProfileId: null,
       industryPartnerProfileId: null,
@@ -53,7 +53,7 @@ describe("resolveProfileGate", () => {
   it("returns COMPLETE if all roles have their profiles", () => {
     const result1 = resolveProfileGate({
       roles: [ROLES.STUDENT],
-      primaryRole: ROLES.STUDENT,
+      activeRole: ROLES.STUDENT,
       studentProfileId: "student-prof-1",
       alumniProfileId: null,
       industryPartnerProfileId: null,
@@ -62,7 +62,7 @@ describe("resolveProfileGate", () => {
 
     const result2 = resolveProfileGate({
       roles: [ROLES.ALUMNI],
-      primaryRole: ROLES.ALUMNI,
+      activeRole: ROLES.ALUMNI,
       studentProfileId: null,
       alumniProfileId: "alumni-prof-1",
       industryPartnerProfileId: null,
@@ -71,7 +71,7 @@ describe("resolveProfileGate", () => {
 
     const result3 = resolveProfileGate({
       roles: [ROLES.INDUSTRY_PARTNER],
-      primaryRole: ROLES.INDUSTRY_PARTNER,
+      activeRole: ROLES.INDUSTRY_PARTNER,
       studentProfileId: null,
       alumniProfileId: null,
       industryPartnerProfileId: "partner-prof-1",
@@ -82,7 +82,7 @@ describe("resolveProfileGate", () => {
   it("returns INACTIVE when isActive is false", () => {
     const result = resolveProfileGate({
       roles: [ROLES.STUDENT],
-      primaryRole: ROLES.STUDENT,
+      activeRole: ROLES.STUDENT,
       studentProfileId: "student-prof-1",
       alumniProfileId: null,
       industryPartnerProfileId: null,
@@ -94,7 +94,7 @@ describe("resolveProfileGate", () => {
   it("returns REJECTED_EXTERNAL_ACCOUNT when alumni verification status is REJECTED", () => {
     const result = resolveProfileGate({
       roles: [ROLES.ALUMNI],
-      primaryRole: ROLES.ALUMNI,
+      activeRole: ROLES.ALUMNI,
       studentProfileId: null,
       alumniProfileId: "alumni-prof-1",
       industryPartnerProfileId: null,
@@ -106,7 +106,7 @@ describe("resolveProfileGate", () => {
   it("returns REJECTED_EXTERNAL_ACCOUNT when industry partner verification status is REJECTED", () => {
     const result = resolveProfileGate({
       roles: [ROLES.INDUSTRY_PARTNER],
-      primaryRole: ROLES.INDUSTRY_PARTNER,
+      activeRole: ROLES.INDUSTRY_PARTNER,
       studentProfileId: null,
       alumniProfileId: null,
       industryPartnerProfileId: "partner-prof-1",
@@ -118,34 +118,12 @@ describe("resolveProfileGate", () => {
   it("returns DEFERRED_ENROLLMENT when student does not have active enrollment", () => {
     const result = resolveProfileGate({
       roles: [ROLES.STUDENT],
-      primaryRole: ROLES.STUDENT,
+      activeRole: ROLES.STUDENT,
       studentProfileId: "student-prof-1",
       alumniProfileId: null,
       industryPartnerProfileId: null,
       hasActiveEnrollment: false,
     });
     expect(result).toEqual({ status: "DEFERRED_ENROLLMENT" });
-  });
-
-  it("gates strictly on primaryRole and ignores secondary roles", () => {
-    // Primary role ALUMNI has profile, secondary role STUDENT lacks profile -> COMPLETE
-    const resultAlumni = resolveProfileGate({
-      roles: [ROLES.STUDENT, ROLES.ALUMNI],
-      primaryRole: ROLES.ALUMNI,
-      studentProfileId: null,
-      alumniProfileId: "alumni-prof-1",
-      industryPartnerProfileId: null,
-    });
-    expect(resultAlumni).toEqual({ status: "COMPLETE" });
-
-    // Primary role STUDENT lacks profile, secondary role INDUSTRY_PARTNER has profile -> STUDENT_ONBOARDING_REQUIRED
-    const resultStudent = resolveProfileGate({
-      roles: [ROLES.STUDENT, ROLES.INDUSTRY_PARTNER],
-      primaryRole: ROLES.STUDENT,
-      studentProfileId: null,
-      alumniProfileId: null,
-      industryPartnerProfileId: "partner-prof-1",
-    });
-    expect(resultStudent).toEqual({ status: "STUDENT_ONBOARDING_REQUIRED", intent: "student" });
   });
 });

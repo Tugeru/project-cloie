@@ -108,11 +108,11 @@ describe("OnboardingPage", () => {
       error: null,
     });
     resolveAuthSessionMock.mockResolvedValue({
-      primaryRole: null,
+      activeRole: null,
       profileGate: { status: "ROLE_SELECTION_REQUIRED" },
     });
     resolveAuthSessionFromUserMock.mockResolvedValue({
-      primaryRole: null,
+      activeRole: null,
       profileGate: { status: "ROLE_SELECTION_REQUIRED" },
     });
     resolvePostLoginDestinationMock.mockReturnValue("/student/dashboard");
@@ -135,7 +135,7 @@ describe("OnboardingPage", () => {
 
   it("redirects complete users through resolvePostLoginDestination", async () => {
     resolveAuthSessionFromUserMock.mockResolvedValue({
-      primaryRole: "STUDENT",
+      activeRole: "STUDENT",
       profileGate: { status: "COMPLETE" },
     });
 
@@ -145,7 +145,7 @@ describe("OnboardingPage", () => {
     expect(resolvePostLoginDestinationMock).toHaveBeenCalledWith({
       requestedPath: "/dashboard",
       intent: null,
-      primaryRole: "STUDENT",
+      activeRole: "STUDENT",
       profileGate: { status: "COMPLETE" },
     });
     expect(resolveAuthSessionFromUserMock).toHaveBeenCalledWith({

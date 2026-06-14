@@ -70,7 +70,7 @@ vi.mock("@/features/auth/services/resolve-auth-session", () => ({
 
 function mockAuthenticatedPH() {
   resolveAuthSessionMock.mockResolvedValue({
-    primaryRole: ROLES.PROGRAM_HEAD,
+    activeRole: ROLES.PROGRAM_HEAD,
     roles: [ROLES.PROGRAM_HEAD],
     userId: "ph-user-1",
   });
@@ -156,7 +156,7 @@ describe("publishCentralDeployment", () => {
 
   it("rejects non-PROGRAM_HEAD role", async () => {
     resolveAuthSessionMock.mockResolvedValue({
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });

@@ -35,7 +35,7 @@ describe("listFacultyCourseContexts", () => {
 
   it("returns no contexts when the signed-in user is not faculty", async () => {
     resolveAuthSessionMock.mockResolvedValue({
-      primaryRole: ROLES.STUDENT,
+      activeRole: ROLES.STUDENT,
       roles: [ROLES.STUDENT],
       userId: "student-1",
     });
@@ -50,7 +50,7 @@ describe("listFacultyCourseContexts", () => {
 
   it("lists active course contexts within the faculty member's affiliated programs", async () => {
     resolveAuthSessionMock.mockResolvedValue({
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });
@@ -140,7 +140,7 @@ describe("listFacultyCourseContexts", () => {
 
   it("lists course contexts from course assignments when termInstanceId is provided", async () => {
     resolveAuthSessionMock.mockResolvedValue({
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });
@@ -237,7 +237,7 @@ describe("listFacultyCourseContexts", () => {
 
   it("returns empty array when no course assignments found for term", async () => {
     resolveAuthSessionMock.mockResolvedValue({
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });

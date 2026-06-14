@@ -9,7 +9,7 @@ describe("resolveProfileGate — Alumni and Industry Partner flows", () => {
     it("requires onboarding when ALUMNI role assigned but no profile exists", () => {
       const result = resolveProfileGate({
         roles: [ROLES.ALUMNI],
-        primaryRole: ROLES.ALUMNI,
+        activeRole: ROLES.ALUMNI,
         studentProfileId: null,
         alumniProfileId: null,
         industryPartnerProfileId: null,
@@ -23,7 +23,7 @@ describe("resolveProfileGate — Alumni and Industry Partner flows", () => {
     it("resolves to COMPLETE when ALUMNI role + alumni profile exist (PENDING verification)", () => {
       const result = resolveProfileGate({
         roles: [ROLES.ALUMNI],
-        primaryRole: ROLES.ALUMNI,
+        activeRole: ROLES.ALUMNI,
         studentProfileId: null,
         alumniProfileId: UUID,
         industryPartnerProfileId: null,
@@ -34,7 +34,7 @@ describe("resolveProfileGate — Alumni and Industry Partner flows", () => {
     it("resolves to COMPLETE for existing student adding ALUMNI role (multi-role)", () => {
       const result = resolveProfileGate({
         roles: [ROLES.STUDENT, ROLES.ALUMNI],
-        primaryRole: ROLES.ALUMNI,
+        activeRole: ROLES.ALUMNI,
         studentProfileId: UUID,
         alumniProfileId: UUID,
         industryPartnerProfileId: null,
@@ -47,7 +47,7 @@ describe("resolveProfileGate — Alumni and Industry Partner flows", () => {
     it("requires onboarding when INDUSTRY_PARTNER role assigned but no profile exists", () => {
       const result = resolveProfileGate({
         roles: [ROLES.INDUSTRY_PARTNER],
-        primaryRole: ROLES.INDUSTRY_PARTNER,
+        activeRole: ROLES.INDUSTRY_PARTNER,
         studentProfileId: null,
         alumniProfileId: null,
         industryPartnerProfileId: null,
@@ -61,7 +61,7 @@ describe("resolveProfileGate — Alumni and Industry Partner flows", () => {
     it("resolves to COMPLETE when INDUSTRY_PARTNER role + profile exist (PENDING verification)", () => {
       const result = resolveProfileGate({
         roles: [ROLES.INDUSTRY_PARTNER],
-        primaryRole: ROLES.INDUSTRY_PARTNER,
+        activeRole: ROLES.INDUSTRY_PARTNER,
         studentProfileId: null,
         alumniProfileId: null,
         industryPartnerProfileId: UUID,
@@ -74,7 +74,7 @@ describe("resolveProfileGate — Alumni and Industry Partner flows", () => {
     it("onboarding intent 'alumni' maps correctly to ALUMNI_ONBOARDING_REQUIRED gate", () => {
       const gate = resolveProfileGate({
         roles: [ROLES.ALUMNI],
-        primaryRole: ROLES.ALUMNI,
+        activeRole: ROLES.ALUMNI,
         studentProfileId: null,
         alumniProfileId: null,
         industryPartnerProfileId: null,
@@ -90,7 +90,7 @@ describe("resolveProfileGate — Alumni and Industry Partner flows", () => {
     it("onboarding intent 'industry-partner' maps correctly to INDUSTRY_PARTNER_ONBOARDING_REQUIRED gate", () => {
       const gate = resolveProfileGate({
         roles: [ROLES.INDUSTRY_PARTNER],
-        primaryRole: ROLES.INDUSTRY_PARTNER,
+        activeRole: ROLES.INDUSTRY_PARTNER,
         studentProfileId: null,
         alumniProfileId: null,
         industryPartnerProfileId: null,
@@ -107,7 +107,7 @@ describe("resolveProfileGate — Alumni and Industry Partner flows", () => {
     it("requires role selection when user has no roles at all", () => {
       const result = resolveProfileGate({
         roles: [],
-        primaryRole: null,
+        activeRole: null,
         studentProfileId: null,
         alumniProfileId: null,
         industryPartnerProfileId: null,
@@ -120,7 +120,7 @@ describe("resolveProfileGate — Alumni and Industry Partner flows", () => {
     it("bypasses student onboarding if primary role is ALUMNI and alumni profile is present", () => {
       const result = resolveProfileGate({
         roles: [ROLES.STUDENT, ROLES.ALUMNI],
-        primaryRole: ROLES.ALUMNI,
+        activeRole: ROLES.ALUMNI,
         studentProfileId: null,
         alumniProfileId: UUID,
         industryPartnerProfileId: null,
@@ -131,7 +131,7 @@ describe("resolveProfileGate — Alumni and Industry Partner flows", () => {
     it("requires alumni onboarding if primary role is ALUMNI and alumni profile is missing, ignoring student profile state", () => {
       const result = resolveProfileGate({
         roles: [ROLES.STUDENT, ROLES.ALUMNI],
-        primaryRole: ROLES.ALUMNI,
+        activeRole: ROLES.ALUMNI,
         studentProfileId: "some-student-uuid",
         alumniProfileId: null,
         industryPartnerProfileId: null,
