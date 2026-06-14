@@ -38,7 +38,7 @@ export type FacultyManagedCiloLoadResult =
     };
 
 export type FacultyManagedCiloSaveInput = FacultyManagedCiloContext & {
-  items: Array<Pick<FacultyManagedCiloItem, "description">>;
+  items: Array<{ id?: string; description: string }>;
 };
 
 export type FacultyManagedCiloSaveResult =
