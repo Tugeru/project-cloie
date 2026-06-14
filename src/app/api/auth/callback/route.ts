@@ -43,11 +43,67 @@ export async function GET(request: Request) {
   const intentParam = searchParams.get("intent");
   const authUserId = data.user.id;
 
+  let dbUser = null;
+
+  const bootstrapEmail = process.env.BOOTSTRAP_ADMIN_EMAIL?.trim().toLowerCase();
+  const isBootstrapEmail = bootstrapEmail && normalizedEmail === bootstrapEmail;
+
+  if (isBootstrapEmail) {
+    const adminExists = await prisma.userRole.findFirst({
+      where: { role: SystemRole.ADMIN },
+    });
+
+    if (!adminExists) {
+      const existingUser = await prisma.user.findUnique({
+        where: { email: normalizedEmail },
+      });
+
+      if (existingUser) {
+        dbUser = await prisma.$transaction(async (tx) => {
+          await tx.user.update({
+            where: { id: existingUser.id },
+            data: { auth_user_id: authUserId },
+          });
+          await tx.userRole.upsert({
+            where: { user_id: existingUser.id },
+            update: { role: SystemRole.ADMIN },
+            create: { user_id: existingUser.id, role: SystemRole.ADMIN },
+          });
+          return tx.user.findUnique({
+            where: { id: existingUser.id },
+            include: { roles: true },
+          });
+        });
+      } else {
+        const meta = data.user.user_metadata || {};
+        const googleFirstName = meta.given_name || meta.first_name || "System";
+        const googleLastName = meta.family_name || meta.last_name || "Admin";
+
+        dbUser = await prisma.user.create({
+          data: {
+            auth_user_id: authUserId,
+            email: normalizedEmail,
+            first_name: googleFirstName,
+            last_name: googleLastName,
+            roles: {
+              create: {
+                role: SystemRole.ADMIN,
+              },
+            },
+          },
+          include: { roles: true },
+        });
+      }
+    }
+  }
+
   // 1. Try to find an existing user by auth_user_id
-  let dbUser = await prisma.user.findUnique({
-    where: { auth_user_id: authUserId },
-    include: { roles: true },
-  });
+  if (!dbUser) {
+    dbUser = await prisma.user.findUnique({
+      where: { auth_user_id: authUserId },
+      include: { roles: true },
+    });
+  }
 
   // 2. If not found by auth_user_id, link by normalized email
   if (!dbUser && normalizedEmail) {
@@ -96,7 +152,8 @@ export async function GET(request: Request) {
       if (isInternal) {
         const isACD =
           normalizedEmail.endsWith("@acd.edu.ph") ||
-          normalizedEmail.endsWith("@acdeducation.com");
+          normalizedEmail.endsWith("@acdeducation.com") ||
+          isBootstrapEmail; // Bypass for bootstrap admin
         if (!isACD) {
           await supabase.auth.signOut();
           return NextResponse.redirect(`${siteUrl}/status/invalid-domain`);

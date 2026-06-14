@@ -14,13 +14,18 @@ export interface ValidationResult {
  */
 export function validateRoleDomain(email: string, intent: SystemRole): ValidationResult {
   const normalizedEmail = email.toLowerCase().trim();
+  const bootstrapEmail = process.env.BOOTSTRAP_ADMIN_EMAIL?.trim().toLowerCase();
+  const isBootstrap = bootstrapEmail && normalizedEmail === bootstrapEmail;
 
-  // Admin roles are invite-only and cannot sign up via self-service OAuth intents
+  // Admin roles are invite-only, unless it is the bootstrap admin user
   if (
     intent === SystemRole.ADMIN ||
     intent === SystemRole.DEAN ||
     intent === SystemRole.PROGRAM_HEAD
   ) {
+    if (intent === SystemRole.ADMIN && isBootstrap) {
+      return { valid: true };
+    }
     return {
       valid: false,
       reason: "invite-only",

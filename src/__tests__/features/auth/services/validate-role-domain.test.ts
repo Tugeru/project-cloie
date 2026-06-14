@@ -1,8 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { SystemRole } from "@prisma/client";
 import { validateRoleDomain } from "@/features/auth/services/validate-role-domain";
 
 describe("validateRoleDomain", () => {
+  beforeEach(() => {
+    vi.unstubAllEnvs();
+  });
+
   describe("Internal Roles (STUDENT, FACULTY)", () => {
     it("should allow STUDENT with @acd.edu.ph email", () => {
       const result = validateRoleDomain("student@acd.edu.ph", SystemRole.STUDENT);
@@ -66,6 +70,32 @@ describe("validateRoleDomain", () => {
 
     it("should deny PROGRAM_HEAD with 'invite-only' reason", () => {
       const result = validateRoleDomain("ph@acd.edu.ph", SystemRole.PROGRAM_HEAD);
+      expect(result).toEqual({ valid: false, reason: "invite-only" });
+    });
+  });
+
+  describe("Bootstrap Admin Path", () => {
+    beforeEach(() => {
+      vi.stubEnv("BOOTSTRAP_ADMIN_EMAIL", "bootstrap-admin@acd.edu.ph");
+    });
+
+    it("should allow ADMIN with email matching BOOTSTRAP_ADMIN_EMAIL", () => {
+      const result = validateRoleDomain("bootstrap-admin@acd.edu.ph", SystemRole.ADMIN);
+      expect(result).toEqual({ valid: true });
+    });
+
+    it("should allow ADMIN with email matching BOOTSTRAP_ADMIN_EMAIL with case/whitespace variations", () => {
+      const result = validateRoleDomain(" BOOTSTRAP-ADMIN@acd.edu.ph ", SystemRole.ADMIN);
+      expect(result).toEqual({ valid: true });
+    });
+
+    it("should deny ADMIN with non-bootstrap email", () => {
+      const result = validateRoleDomain("other-admin@acd.edu.ph", SystemRole.ADMIN);
+      expect(result).toEqual({ valid: false, reason: "invite-only" });
+    });
+
+    it("should deny DEAN even with bootstrap email", () => {
+      const result = validateRoleDomain("bootstrap-admin@acd.edu.ph", SystemRole.DEAN);
       expect(result).toEqual({ valid: false, reason: "invite-only" });
     });
   });

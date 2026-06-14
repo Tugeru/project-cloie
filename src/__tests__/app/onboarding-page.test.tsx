@@ -12,6 +12,7 @@ const {
   programFindManyMock,
   yearLevelFindManyMock,
   getActiveTermIdMock,
+  findFirstUserMock,
 } = vi.hoisted(() => ({
   redirectMock: vi.fn((path: string) => {
     throw new Error(`${REDIRECT_ERROR}:${path}`);
@@ -23,6 +24,7 @@ const {
   programFindManyMock: vi.fn(),
   yearLevelFindManyMock: vi.fn(),
   getActiveTermIdMock: vi.fn(),
+  findFirstUserMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -50,6 +52,9 @@ vi.mock("@/lib/db/prisma", () => ({
     },
     yearLevel: {
       findMany: yearLevelFindManyMock,
+    },
+    user: {
+      findFirst: findFirstUserMock,
     },
   },
 }));
@@ -114,6 +119,7 @@ describe("OnboardingPage", () => {
     programFindManyMock.mockResolvedValue([]);
     yearLevelFindManyMock.mockResolvedValue([]);
     getActiveTermIdMock.mockResolvedValue("term-uuid-123");
+    findFirstUserMock.mockResolvedValue(null);
   });
 
   it("redirects unauthenticated requests to login", async () => {

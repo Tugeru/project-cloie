@@ -49,10 +49,25 @@ export default async function OnboardingPage({
   const intent = resolvedParams?.intent as string | undefined;
   const step = resolvedParams?.step as string | undefined;
 
+  const dbUser = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { auth_user_id: user.id },
+        { email: user.email?.trim().toLowerCase() },
+      ],
+    },
+  });
+
   const meta = user.user_metadata || {};
   const nameParts: string[] = meta.full_name ? meta.full_name.trim().split(/\s+/) : [];
-  let firstNameFallback = meta.given_name ?? (nameParts.length > 1 ? nameParts.slice(0, -1).join(" ") : nameParts[0] ?? "");
-  let lastNameFallback = meta.family_name ?? (nameParts.length > 1 ? nameParts[nameParts.length - 1] : "");
+  let firstNameFallback =
+    dbUser?.first_name ||
+    meta.given_name ||
+    (nameParts.length > 1 ? nameParts.slice(0, -1).join(" ") : nameParts[0] ?? "");
+  let lastNameFallback =
+    dbUser?.last_name ||
+    meta.family_name ||
+    (nameParts.length > 1 ? nameParts[nameParts.length - 1] : "");
 
   const isPlaceholder = (name: string) => {
     const lower = name.toLowerCase();
