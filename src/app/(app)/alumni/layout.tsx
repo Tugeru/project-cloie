@@ -10,12 +10,17 @@ export default async function AlumniLayout({ children }: { children: ReactNode }
   let verificationStatus = null;
 
   if (session?.alumniProfileId) {
-    const profile = await prisma.alumniProfile.findUnique({
-      where: { id: session.alumniProfileId },
-      select: { verification_status: true },
-    });
-    if (profile) {
-      verificationStatus = profile.verification_status;
+    try {
+      const profile = await prisma.alumniProfile.findUnique({
+        where: { id: session.alumniProfileId },
+        select: { verification_status: true },
+      });
+      if (profile) {
+        verificationStatus = profile.verification_status;
+      }
+    } catch (error) {
+      console.error("[AlumniLayout] Error fetching profile:", error);
+      verificationStatus = null;
     }
   }
 

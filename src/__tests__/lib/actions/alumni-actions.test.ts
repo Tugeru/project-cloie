@@ -15,6 +15,8 @@ vi.mock("@/lib/db/prisma", () => ({
       upsert: vi.fn(),
     },
     userRole: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
       upsert: vi.fn(),
     },
     program: {
@@ -89,7 +91,7 @@ describe("Alumni Actions", () => {
     const result = await createAlumniProfile({
       graduation_year: 1900, // Too early based on schema (min 1950)
       program_id: "not-a-uuid",
-    });
+    } as any);
 
     expect(result.success).toBe(false);
     expect(result.error).toBeDefined();
@@ -146,10 +148,11 @@ describe("Alumni Actions", () => {
         major_id: null,
       },
     });
-    expect(prisma.userRole.upsert).toHaveBeenCalledWith({
+    expect(prisma.userRole.findUnique).toHaveBeenCalledWith({
       where: { user_id: "user-123" },
-      update: { role: ROLES.ALUMNI },
-      create: {
+    });
+    expect(prisma.userRole.create).toHaveBeenCalledWith({
+      data: {
         user_id: "user-123",
         role: ROLES.ALUMNI,
       },
@@ -194,10 +197,11 @@ describe("Alumni Actions", () => {
         major_id: "660e8400-e29b-41d4-a716-446655441111",
       },
     });
-    expect(prisma.userRole.upsert).toHaveBeenCalledWith({
+    expect(prisma.userRole.findUnique).toHaveBeenCalledWith({
       where: { user_id: "user-123" },
-      update: { role: ROLES.ALUMNI },
-      create: {
+    });
+    expect(prisma.userRole.create).toHaveBeenCalledWith({
+      data: {
         user_id: "user-123",
         role: ROLES.ALUMNI,
       },
@@ -326,4 +330,38 @@ describe("Alumni Actions", () => {
     expect(result.success).toBe(false);
     expect(result.error).toBe("The selected major does not belong to the selected program.");
   });
+
+  it("should check if userRole exists before creating and skip creating if it exists", async () => {
+    mockGetUser.mockResolvedValue({
+      data: {
+        user: {
+          id: "user-123",
+          email: "test@example.com",
+          user_metadata: {
+            full_name: "John Doe",
+          },
+        },
+      },
+      error: null,
+    });
+    (prisma.userRole.findUnique as any).mockResolvedValue({
+      id: "role-123",
+      user_id: "user-123",
+      role: ROLES.ALUMNI,
+    });
+
+    const result = await createAlumniProfile({
+      first_name: "John",
+      last_name: "Doe",
+      graduation_year: 2020,
+      program_id: "550e8400-e29b-41d4-a716-446655440000",
+    });
+
+    expect(result.success).toBe(true);
+    expect(prisma.userRole.findUnique).toHaveBeenCalledWith({
+      where: { user_id: "user-123" },
+    });
+    expect(prisma.userRole.create).not.toHaveBeenCalled();
+  });
 });
+

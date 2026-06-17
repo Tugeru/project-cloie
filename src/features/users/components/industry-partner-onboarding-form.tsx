@@ -244,14 +244,17 @@ export function IndustryPartnerOnboardingForm({
                 name="program_id"
                 control={control}
                 render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value || ""}>
+                  <Select
+                    onValueChange={(val) => field.onChange(val === "__none" ? "" : val)}
+                    value={field.value || "__none"}
+                  >
                     <SelectTrigger className={`w-full ${errors.program_id ? "border-danger" : ""}`}>
                       <SelectValue placeholder="Select an affiliated program (if applicable)">
                         {field.value ? getProgramLabel(field.value) : null}
                       </SelectValue>
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No specific program</SelectItem>
+                      <SelectItem value="__none">No specific program</SelectItem>
                       {programs.map((program) => (
                         <SelectItem key={program.id} value={program.id}>
                           {program.code} — {program.name}

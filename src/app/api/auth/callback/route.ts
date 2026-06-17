@@ -177,7 +177,7 @@ export async function GET(request: Request) {
         if (!validation.valid) {
           await supabase.auth.signOut();
           return NextResponse.redirect(
-            `${siteUrl}/status/invalid-domain?role=${intentParam}`
+            `${siteUrl}/status/invalid-domain?role=${encodeURIComponent(intentParam ?? "")}`
           );
         }
 
@@ -211,7 +211,7 @@ export async function GET(request: Request) {
         if (!validation.valid) {
           await supabase.auth.signOut();
           return NextResponse.redirect(
-            `${siteUrl}/status/invalid-domain?role=${intentParam}`
+            `${siteUrl}/status/invalid-domain?role=${encodeURIComponent(intentParam ?? "")}`
           );
         }
 

@@ -3,25 +3,29 @@ import "@testing-library/jest-dom";
 const RealDate = global.Date;
 const mockTime = new RealDate("2026-05-10T00:00:00.000Z").getTime();
 
-// @ts-expect-error Overriding global Date with mocked default constructor
-global.Date = class extends RealDate {
-  constructor(...args: ConstructorParameters<typeof RealDate>) {
-    if (args[0] === undefined) {
-      super(mockTime);
-    } else {
-      super(...args);
-    }
+function DateMock(...args: unknown[]) {
+  if (!new.target) {
+    return new RealDate(mockTime).toString();
   }
-
-  static now() {
-    return mockTime;
+  if (args.length === 0 || args[0] === undefined) {
+    return new RealDate(mockTime);
   }
-};
+  // @ts-expect-error Native Date constructor takes arguments dynamically
+  return new RealDate(...args);
+}
 
-// Copy static methods
+// Inherit prototype
+DateMock.prototype = RealDate.prototype;
+
+// Copy static methods and properties
+DateMock.now = () => mockTime;
+
 Object.getOwnPropertyNames(RealDate).forEach((prop) => {
   if (prop !== "now" && prop !== "length" && prop !== "name" && prop !== "prototype") {
     // @ts-expect-error Copying static methods
-    global.Date[prop] = (RealDate as Record<string, unknown>)[prop];
+    (DateMock as Record<string, unknown>)[prop] = (RealDate as Record<string, unknown>)[prop];
   }
 });
+
+global.Date = DateMock as unknown as typeof RealDate;
+

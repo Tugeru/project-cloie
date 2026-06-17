@@ -68,15 +68,18 @@ export async function createAlumniProfile(data: AlumniProfileInput) {
         },
       });
 
-      // 2. Assign Global Role (Idempotent)
-      await tx.userRole.upsert({
+      // 2. Assign Global Role (Idempotent check to prevent role-overwriting)
+      const existingRole = await tx.userRole.findUnique({
         where: { user_id: domainUser.id },
-        update: { role: ROLES.ALUMNI },
-        create: {
-          user_id: domainUser.id,
-          role: ROLES.ALUMNI,
-        },
       });
+      if (!existingRole) {
+        await tx.userRole.create({
+          data: {
+            user_id: domainUser.id,
+            role: ROLES.ALUMNI,
+          },
+        });
+      }
 
       // 3. Create or Update Alumni Profile
       await tx.alumniProfile.upsert({

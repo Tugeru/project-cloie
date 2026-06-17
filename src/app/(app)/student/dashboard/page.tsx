@@ -136,12 +136,14 @@ export default async function StudentDashboardPage() {
               Prioritize forms that are active and closing soon.
             </p>
           </div>
-          <Link
-            href="/student/evaluations"
-            className="text-primary text-label-sm font-bold hover:underline"
-          >
-            View All
-          </Link>
+          {!isDeferredEnrollment && (
+            <Link
+              href="/student/evaluations"
+              className="text-primary text-label-sm font-bold hover:underline"
+            >
+              View All
+            </Link>
+          )}
         </div>
 
         <div className="grid gap-4">

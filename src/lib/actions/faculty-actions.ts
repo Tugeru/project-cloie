@@ -49,15 +49,18 @@ export async function createFacultyProfile(data: FacultyProfileInput) {
         },
       });
 
-      // 2. Assign Global Role (Idempotent)
-      await tx.userRole.upsert({
+      // 2. Assign Global Role (Idempotent check to prevent role-overwriting)
+      const existingRole = await tx.userRole.findUnique({
         where: { user_id: domainUser.id },
-        update: { role: ROLES.FACULTY },
-        create: {
-          user_id: domainUser.id,
-          role: ROLES.FACULTY,
-        },
       });
+      if (!existingRole) {
+        await tx.userRole.create({
+          data: {
+            user_id: domainUser.id,
+            role: ROLES.FACULTY,
+          },
+        });
+      }
 
       // 3. Create or Update Faculty Program Affiliation
       await tx.facultyProgramAffiliation.upsert({
@@ -83,16 +86,9 @@ export async function createFacultyProfile(data: FacultyProfileInput) {
     return { success: true };
   } catch (error: unknown) {
     console.error("Failed to create faculty profile:", error);
-    // Handle Prisma unique constraint violation
-    if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
-      return { success: false, error: "You already have this faculty profile affiliation." };
-    }
     return {
       success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred during database persistence.",
+      error: "An unexpected error occurred while processing your request.",
     };
   }
 }

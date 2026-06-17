@@ -364,4 +364,69 @@ describe("registerStudentProfile Server Action", () => {
     expect(upsertStudentProfileMock).toHaveBeenCalled();
     expect(upsertEnrollmentForActiveTermMock).not.toHaveBeenCalled();
   });
+
+  it("should fail if the student email domain is not authorized", async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "student-123", email: "student@gmail.com" } },
+      error: null,
+    });
+
+    const result = await registerStudentProfile({
+      first_name: "Jane",
+      last_name: "Doe",
+      program_id: "550e8400-e29b-41d4-a716-446655440000",
+      major_id: "",
+      student_id_number: "2026-0001",
+      year_level: "FIRST_YEAR",
+      section: "MORNING",
+    });
+
+    expect(result.success).toBeUndefined();
+    expect(result.error).toBe("Institutional email domain is required for student registration.");
+  });
+
+  it("should return failure result if upsertEnrollmentForActiveTerm fails", async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "student-123", email: "student@acdeducation.com" } },
+      error: null,
+    });
+    upsertEnrollmentForActiveTermMock.mockResolvedValue({
+      success: false,
+      error: "Enrollment transaction failed",
+    });
+
+    const result = await registerStudentProfile({
+      first_name: "Jane",
+      last_name: "Doe",
+      program_id: "550e8400-e29b-41d4-a716-446655440000",
+      major_id: "",
+      student_id_number: "2026-0001",
+      year_level: "FIRST_YEAR",
+      section: "MORNING",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("Enrollment transaction failed");
+  });
+
+  it("should return client-safe unexpected error message if database transaction fails", async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "student-123", email: "student@acd.edu.ph" } },
+      error: null,
+    });
+    transactionMock.mockRejectedValue(new Error("Db connection lost"));
+
+    const result = await registerStudentProfile({
+      first_name: "Jane",
+      last_name: "Doe",
+      program_id: "550e8400-e29b-41d4-a716-446655440000",
+      major_id: "",
+      student_id_number: "2026-0001",
+      year_level: "FIRST_YEAR",
+      section: "MORNING",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("An unexpected error occurred while processing your request.");
+  });
 });

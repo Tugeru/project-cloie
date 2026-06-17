@@ -37,7 +37,7 @@ export const ROLE_CARDS: RoleCardConfig[] = [
     title: "Faculty",
     description: "Conduct evaluations and manage course-bound assessments.",
     iconName: "BookOpen",
-    category: "provisioned_faculty",
+    category: "self_service_internal",
   },
   {
     role: ROLES.STUDENT,

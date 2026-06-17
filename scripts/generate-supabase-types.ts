@@ -14,10 +14,28 @@ export function buildTypegenArgs() {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   loadEnvConfig(process.cwd());
-  const output = execFileSync(getSupabaseCommand(), buildTypegenArgs(), {
-    encoding: "utf8",
-    shell: process.platform === "win32",
-  });
+  let output: string;
+  try {
+    output = execFileSync(getSupabaseCommand(), buildTypegenArgs(), {
+      encoding: "utf8",
+      shell: process.platform === "win32",
+    });
+  } catch (error) {
+    const dbUrl = process.env.DIRECT_URL || process.env.DATABASE_URL;
+    if (dbUrl) {
+      console.warn("Typegen using '--linked' failed. Falling back to '--db-url'...");
+      output = execFileSync(
+        getSupabaseCommand(),
+        ["gen", "types", "typescript", "--db-url", dbUrl, "--schema", "public"],
+        {
+          encoding: "utf8",
+          shell: process.platform === "win32",
+        }
+      );
+    } else {
+      throw error;
+    }
+  }
 
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
   writeFileSync(OUTPUT_PATH, output);

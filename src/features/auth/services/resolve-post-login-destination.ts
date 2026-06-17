@@ -51,6 +51,9 @@ export function resolvePostLoginDestination({
     if (intent === "industry-partner" || intent === "industry_partner") {
       return "/onboarding?intent=industry-partner";
     }
+    if (intent === "faculty") {
+      return "/onboarding?intent=faculty";
+    }
     return "/onboarding?intent=student";
   }
 

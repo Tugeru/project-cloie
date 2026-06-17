@@ -10,12 +10,17 @@ export default async function IndustryPartnerLayout({ children }: { children: Re
   let verificationStatus = null;
 
   if (session?.industryPartnerProfileId) {
-    const profile = await prisma.industryPartnerProfile.findUnique({
-      where: { id: session.industryPartnerProfileId },
-      select: { verification_status: true },
-    });
-    if (profile) {
-      verificationStatus = profile.verification_status;
+    try {
+      const profile = await prisma.industryPartnerProfile.findUnique({
+        where: { id: session.industryPartnerProfileId },
+        select: { verification_status: true },
+      });
+      if (profile) {
+        verificationStatus = profile.verification_status;
+      }
+    } catch (error) {
+      console.error("[IndustryPartnerLayout] Error fetching profile:", error);
+      verificationStatus = null;
     }
   }
 

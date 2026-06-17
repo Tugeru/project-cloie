@@ -93,13 +93,11 @@ describe("supabase client typing", () => {
     expectTypeOf<CourseBoundEvaluationTargetRow>().toMatchTypeOf<{
       course_bound_evaluation_id: string;
       program_id: string;
-      year_level_id: string | null;
+      year_level: Database["public"]["Enums"]["year_level"] | null;
     }>();
     expectTypeOf<StudentAcademicProfileRow>().toMatchTypeOf<{
       program_id: string;
       major_id: string | null;
-      year_level_id: string;
-      academic_year: string;
     }>();
     expectTypeOf<InstrumentTemplateRow>().toMatchTypeOf<{
       program_id: string | null;
@@ -107,7 +105,7 @@ describe("supabase client typing", () => {
     }>();
     expectTypeOf<CentralDeploymentRow>().toMatchTypeOf<{
       major_id: string | null;
-      year_level_id: string | null;
+      year_level: Database["public"]["Enums"]["year_level"] | null;
     }>();
     expectTypeOf<Database["public"]["Tables"]["industry_partner_profiles"]["Row"]>().toMatchTypeOf<{
       user_id: string;
@@ -176,7 +174,7 @@ describe("supabase client typing", () => {
     expect(databaseTypes).toContain("industry_partner_profiles:");
     expect(databaseTypes).toContain("is_faculty_accessible: boolean");
     expect(databaseTypes).toContain("major_id: string | null");
-    expect(databaseTypes).toContain("year_level_id: string | null");
+    expect(databaseTypes).toContain("year_level: Database[\"public\"][\"Enums\"][\"year_level\"]");
     expect(databaseTypes).not.toContain("section_id:");
     expect(databaseTypes).not.toContain("course_types:");
     expect(databaseTypes).not.toContain("plos:");

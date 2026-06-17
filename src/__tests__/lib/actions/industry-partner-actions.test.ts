@@ -15,6 +15,8 @@ vi.mock("@/lib/db/prisma", () => ({
       upsert: vi.fn(),
     },
     userRole: {
+      findUnique: vi.fn(),
+      create: vi.fn(),
       upsert: vi.fn(),
     },
     program: {
@@ -77,7 +79,7 @@ describe("Industry Partner Actions", () => {
 
     const result = await createIndustryPartnerProfile({
       company_name: "A", // Min length is 2
-    });
+    } as any);
 
     expect(result.success).toBe(false);
     expect(result.error).toBeDefined();
@@ -133,10 +135,11 @@ describe("Industry Partner Actions", () => {
         program_id: null,
       },
     });
-    expect(prisma.userRole.upsert).toHaveBeenCalledWith({
+    expect(prisma.userRole.findUnique).toHaveBeenCalledWith({
       where: { user_id: "user-123" },
-      update: { role: ROLES.INDUSTRY_PARTNER },
-      create: {
+    });
+    expect(prisma.userRole.create).toHaveBeenCalledWith({
+      data: {
         user_id: "user-123",
         role: ROLES.INDUSTRY_PARTNER,
       },
@@ -198,7 +201,7 @@ describe("Industry Partner Actions", () => {
     });
 
     expect(result.success).toBe(false);
-    expect(result.error).toBe("You already have an industry partner profile.");
+    expect(result.error).toBe("An unexpected error occurred while processing your request.");
   });
 
   it("should fail if the program does not exist", async () => {
@@ -239,4 +242,59 @@ describe("Industry Partner Actions", () => {
     expect(result.success).toBe(false);
     expect(result.error).toBe("The selected program is archived or inactive.");
   });
+
+  it("should check if userRole exists before creating and skip creating if it exists", async () => {
+    mockGetUser.mockResolvedValue({
+      data: {
+        user: {
+          id: "user-123",
+          email: "test@example.com",
+          user_metadata: {
+            full_name: "Jane Doe",
+          },
+        },
+      },
+      error: null,
+    });
+    (prisma.userRole.findUnique as any).mockResolvedValue({
+      id: "role-123",
+      user_id: "user-123",
+      role: ROLES.INDUSTRY_PARTNER,
+    });
+
+    const result = await createIndustryPartnerProfile({
+      first_name: "Jane",
+      last_name: "Doe",
+      company_name: "Test Corp",
+    });
+
+    expect(result.success).toBe(true);
+    expect(prisma.userRole.findUnique).toHaveBeenCalledWith({
+      where: { user_id: "user-123" },
+    });
+    expect(prisma.userRole.create).not.toHaveBeenCalled();
+  });
+
+  it("should log the error and return a generic fallback string when transaction fails with a non-P2002 error", async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "user-123", email: "test@example.com" } },
+      error: null,
+    });
+
+    const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const customError = new Error("Database connection timeout");
+    (prisma.$transaction as any).mockRejectedValue(customError);
+
+    const result = await createIndustryPartnerProfile({
+      first_name: "Jane",
+      last_name: "Doe",
+      company_name: "Test Corp",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("An unexpected error occurred while processing your request.");
+    expect(consoleSpy).toHaveBeenCalledWith("Failed to create industry partner profile:", customError);
+    consoleSpy.mockRestore();
+  });
 });
+

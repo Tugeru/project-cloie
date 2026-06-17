@@ -40,7 +40,7 @@ context: |
   - Many-to-many via UserRole join table (unique on [user_id, role])
   - Primary role resolved by hierarchy: ADMIN(100) > DEAN(80) > PROGRAM_HEAD(70) > FACULTY(50) > INDUSTRY_PARTNER(30) > ALUMNI(20) > STUDENT(10)
   - Route protection via SessionGuard component in layout.tsx per role group
-  - Profile gates: ROLE_SELECTION_REQUIRED, STUDENT_ONBOARDING_REQUIRED, COMPLETE
+  - Profile gates: ROLE_SELECTION_REQUIRED, STUDENT_ONBOARDING_REQUIRED, FACULTY_ONBOARDING_REQUIRED, ALUMNI_ONBOARDING_REQUIRED, INDUSTRY_PARTNER_ONBOARDING_REQUIRED, COMPLETE
   - Scoping: ProgramHeadAssignment (program-head → program), FacultyProgramAffiliation (faculty → program)
   - Dev auth bypass: httpOnly cookie cloie_dev_auth (development/demo only)
 

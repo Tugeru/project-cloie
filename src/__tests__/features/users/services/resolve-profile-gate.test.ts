@@ -126,4 +126,28 @@ describe("resolveProfileGate", () => {
     });
     expect(result).toEqual({ status: "DEFERRED_ENROLLMENT" });
   });
+
+  it("returns FACULTY_ONBOARDING_REQUIRED if user has FACULTY role but no faculty affiliation", () => {
+    const result = resolveProfileGate({
+      roles: [ROLES.FACULTY],
+      activeRole: ROLES.FACULTY,
+      studentProfileId: null,
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
+      hasFacultyAffiliation: false,
+    });
+    expect(result).toEqual({ status: "FACULTY_ONBOARDING_REQUIRED", intent: "faculty" });
+  });
+
+  it("returns COMPLETE if user has FACULTY role and has faculty affiliation", () => {
+    const result = resolveProfileGate({
+      roles: [ROLES.FACULTY],
+      activeRole: ROLES.FACULTY,
+      studentProfileId: null,
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
+      hasFacultyAffiliation: true,
+    });
+    expect(result).toEqual({ status: "COMPLETE" });
+  });
 });

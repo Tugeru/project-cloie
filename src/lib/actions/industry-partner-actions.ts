@@ -51,15 +51,18 @@ export async function createIndustryPartnerProfile(data: IndustryPartnerProfileI
         },
       });
 
-      // 2. Assign Global Role (Idempotent)
-      await tx.userRole.upsert({
+      // 2. Assign Global Role (Idempotent check to prevent role-overwriting)
+      const existingRole = await tx.userRole.findUnique({
         where: { user_id: domainUser.id },
-        update: { role: ROLES.INDUSTRY_PARTNER },
-        create: {
-          user_id: domainUser.id,
-          role: ROLES.INDUSTRY_PARTNER,
-        },
       });
+      if (!existingRole) {
+        await tx.userRole.create({
+          data: {
+            user_id: domainUser.id,
+            role: ROLES.INDUSTRY_PARTNER,
+          },
+        });
+      }
 
       // 3. Create or Update Industry Partner Profile
       await tx.industryPartnerProfile.upsert({
@@ -81,16 +84,9 @@ export async function createIndustryPartnerProfile(data: IndustryPartnerProfileI
     return { success: true };
   } catch (error: unknown) {
     console.error("Failed to create industry partner profile:", error);
-    // Handle Prisma unique constraint violation
-    if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
-      return { success: false, error: "You already have an industry partner profile." };
-    }
     return {
       success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred during database persistence.",
+      error: "An unexpected error occurred while processing your request.",
     };
   }
 }

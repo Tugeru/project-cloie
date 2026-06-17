@@ -16,6 +16,8 @@ vi.mock("@/lib/db/prisma", () => ({
     },
     userRole: {
       upsert: vi.fn(),
+      findUnique: vi.fn(),
+      create: vi.fn(),
     },
     facultyProgramAffiliation: {
       upsert: vi.fn(),
@@ -117,6 +119,9 @@ describe("createFacultyProfile Server Action", () => {
       id: "faculty-123",
       email: "teacher@acd.edu.ph",
     });
+
+    // Mock userRole.findUnique implementation
+    (prisma.userRole.findUnique as any).mockResolvedValue(null);
   });
 
   it("should fail if user is not authenticated", async () => {
@@ -200,10 +205,11 @@ describe("createFacultyProfile Server Action", () => {
         last_name: "Smith",
       },
     });
-    expect(prisma.userRole.upsert).toHaveBeenCalledWith({
+    expect(prisma.userRole.findUnique).toHaveBeenCalledWith({
       where: { user_id: "faculty-123" },
-      update: { role: ROLES.FACULTY },
-      create: {
+    });
+    expect(prisma.userRole.create).toHaveBeenCalledWith({
+      data: {
         user_id: "faculty-123",
         role: ROLES.FACULTY,
       },
@@ -227,4 +233,54 @@ describe("createFacultyProfile Server Action", () => {
       },
     });
   });
+
+  it("should check if userRole exists before creating and skip creating if it exists", async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "faculty-123", email: "teacher@acd.edu.ph" } },
+      error: null,
+    });
+    (prisma.program.findUnique as any).mockResolvedValue({
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      is_active: true,
+    });
+    (prisma.userRole.findUnique as any).mockResolvedValue({
+      id: "role-123",
+      user_id: "faculty-123",
+      role: ROLES.FACULTY,
+    });
+
+    const result = await createFacultyProfile({
+      first_name: "Jane",
+      last_name: "Smith",
+      program_id: "550e8400-e29b-41d4-a716-446655440000",
+    });
+
+    expect(result.success).toBe(true);
+    expect(prisma.userRole.findUnique).toHaveBeenCalledWith({
+      where: { user_id: "faculty-123" },
+    });
+    expect(prisma.userRole.create).not.toHaveBeenCalled();
+  });
+
+  it("should return client-safe unexpected error message if database transaction fails", async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "faculty-123", email: "teacher@acd.edu.ph" } },
+      error: null,
+    });
+    (prisma.program.findUnique as any).mockResolvedValue({
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      is_active: true,
+    });
+    (prisma.$transaction as any).mockRejectedValue(new Error("Database connection error"));
+
+    const result = await createFacultyProfile({
+      first_name: "Jane",
+      last_name: "Smith",
+      program_id: "550e8400-e29b-41d4-a716-446655440000",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("An unexpected error occurred while processing your request.");
+  });
 });
+

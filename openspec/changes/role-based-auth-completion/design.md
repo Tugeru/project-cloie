@@ -5,14 +5,14 @@ CLOIE's RBAC infrastructure is ~60% built. The core plumbing — `SystemRole` en
 What's missing is the **public-facing entry flow**: how a new user discovers their role, authenticates with appropriate domain enforcement, completes role-specific onboarding, and gets routed to their dashboard. Currently, all users are pre-provisioned via seed data or dev-auth.
 
 ### Current Auth Flow (Incomplete)
-```
+```text
 Landing Page → /login → Google OAuth → callback → resolve session → dashboard
                                          ↑ no domain check
                                          ↑ no role intent
 ```
 
 ### Target Auth Flow
-```
+```text
 Landing Page ("Get Started") → /portal → select role
   ├─ Internal (STUDENT) → Google OAuth (@acd.edu.ph) → callback + domain check → /onboarding?intent=student → dashboard
   ├─ External (ALUMNI) → Google OAuth (any) → callback (no domain check) → /onboarding?intent=alumni → dashboard
@@ -72,7 +72,7 @@ Landing Page ("Get Started") → /portal → select role
 
 **Decision:** Add a domain validation function to the auth callback that checks the authenticated user's email domain against a role-conditional allowlist.
 
-```
+```text
 Internal roles (STUDENT, FACULTY): require @acd.edu.ph or @acdeducation.com
 External roles (ALUMNI, INDUSTRY_PARTNER): any Google account
 Admin roles (ADMIN, DEAN, PROGRAM_HEAD): N/A (invite-only, never hit self-registration)
@@ -151,7 +151,7 @@ model AlumniProfile {
 
 ### Auth Flow Sequence Diagram
 
-```
+```text
 ┌──────┐   ┌───────┐   ┌─────────┐   ┌──────────┐   ┌──────────┐   ┌─────────┐
 │ User │   │Portal │   │ Google  │   │ Callback │   │Onboarding│   │Dashboard│
 └──┬───┘   └───┬───┘   └────┬────┘   └────┬─────┘   └────┬─────┘   └────┬────┘

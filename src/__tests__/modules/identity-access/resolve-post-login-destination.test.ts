@@ -36,6 +36,17 @@ describe("resolvePostLoginDestination", () => {
     ).toBe("/onboarding?intent=industry-partner");
   });
 
+  it("sends a roleless faculty signup to faculty onboarding", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "/dashboard",
+        intent: "faculty",
+        activeRole: null,
+        profileGate: { status: "ROLE_SELECTION_REQUIRED" },
+      })
+    ).toBe("/onboarding?intent=faculty");
+  });
+
   it("sends a roleless industry partner signup to industry partner onboarding (underscore)", () => {
     expect(
       resolvePostLoginDestination({
@@ -56,6 +67,17 @@ describe("resolvePostLoginDestination", () => {
         profileGate: { status: "STUDENT_ONBOARDING_REQUIRED", intent: "student" },
       })
     ).toBe("/onboarding?intent=student");
+  });
+
+  it("sends an incomplete faculty profile back to onboarding", () => {
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "/dashboard",
+        intent: null,
+        activeRole: ROLES.FACULTY,
+        profileGate: { status: "FACULTY_ONBOARDING_REQUIRED", intent: "faculty" },
+      })
+    ).toBe("/onboarding?intent=faculty");
   });
 
   it("routes complete internal and external roles to their dashboards", () => {
@@ -85,6 +107,15 @@ describe("resolvePostLoginDestination", () => {
         profileGate: { status: "COMPLETE" },
       })
     ).toBe("/industry-partner/dashboard");
+
+    expect(
+      resolvePostLoginDestination({
+        requestedPath: "/dashboard",
+        intent: null,
+        activeRole: ROLES.FACULTY,
+        profileGate: { status: "COMPLETE" },
+      })
+    ).toBe("/faculty/dashboard");
   });
 
   it("routes inactive, rejected external accounts, and deferred enrollments correctly", () => {

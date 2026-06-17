@@ -38,9 +38,9 @@ describe("ROLE_CARDS configuration", () => {
     }
   });
 
-  it("marks FACULTY as provisioned_faculty", () => {
+  it("marks FACULTY as self_service_internal", () => {
     const facultyCard = ROLE_CARDS.find((c) => c.role === ROLES.FACULTY);
-    expect(facultyCard?.category).toBe("provisioned_faculty");
+    expect(facultyCard?.category).toBe("self_service_internal");
   });
 
   it("includes title and description for every card", () => {

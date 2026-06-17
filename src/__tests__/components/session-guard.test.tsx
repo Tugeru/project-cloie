@@ -68,6 +68,24 @@ describe("SessionGuard", () => {
     });
   });
 
+  it("redirects users with ROLE_SELECTION_REQUIRED status (where intent is absent) correctly", async () => {
+    resolveAuthSessionMock.mockResolvedValue({
+      activeRole: null,
+      profileGate: { status: "ROLE_SELECTION_REQUIRED" },
+    });
+    resolvePostLoginDestinationMock.mockReturnValue("/onboarding?intent=student");
+
+    await expect(SessionGuard({ children: <div>Protected</div> })).rejects.toThrow(
+      `${REDIRECT_ERROR}:/onboarding?intent=student`
+    );
+    expect(resolvePostLoginDestinationMock).toHaveBeenCalledWith({
+      requestedPath: "/dashboard",
+      intent: null,
+      activeRole: null,
+      profileGate: { status: "ROLE_SELECTION_REQUIRED" },
+    });
+  });
+
   it("redirects unauthorized roles to /unauthorized", async () => {
     resolveAuthSessionMock.mockResolvedValue({
       activeRole: ROLES.FACULTY,

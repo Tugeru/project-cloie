@@ -73,7 +73,7 @@ const STATUS_CONFIGS = {
 type StatusType = keyof typeof STATUS_CONFIGS;
 
 function isStatusType(type: string): type is StatusType {
-  return type in STATUS_CONFIGS;
+  return Object.hasOwn(STATUS_CONFIGS, type);
 }
 
 export default async function StatusPage({ params, searchParams }: PageProps) {

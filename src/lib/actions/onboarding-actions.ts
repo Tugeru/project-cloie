@@ -27,6 +27,15 @@ export async function registerStudentProfile(data: StudentProfileInput | Deferre
       return { error: "Authentication session invalid or missing." };
     }
 
+    // Verify student email domain is authorized
+    const studentEmail = user.email.trim().toLowerCase();
+    const isAuthorized =
+      studentEmail.endsWith("@acd.edu.ph") ||
+      studentEmail.endsWith("@acdeducation.com");
+    if (!isAuthorized) {
+      return { error: "Institutional email domain is required for student registration." };
+    }
+
     // Resolve active term for enrollment (deferred if none exists)
     const activeTermId = await getActiveTermId();
 
@@ -128,7 +137,7 @@ export async function registerStudentProfile(data: StudentProfileInput | Deferre
 
       if (!enrollmentResult.success) {
         console.error("Failed to create enrollment:", enrollmentResult.error);
-        // Don't fail the entire registration, but log the error
+        return { success: false, error: enrollmentResult.error };
       }
     }
 
@@ -136,10 +145,8 @@ export async function registerStudentProfile(data: StudentProfileInput | Deferre
   } catch (error: unknown) {
     console.error("Failed to register student profile:", error);
     return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred during database persistence.",
+      success: false,
+      error: "An unexpected error occurred while processing your request.",
     };
   }
 }
