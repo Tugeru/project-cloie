@@ -72,6 +72,9 @@ export async function createAlumniProfile(data: AlumniProfileInput) {
       const existingRole = await tx.userRole.findUnique({
         where: { user_id: domainUser.id },
       });
+      if (existingRole && existingRole.role !== ROLES.ALUMNI) {
+        throw new Error("ROLE_MISMATCH_NON_ALUMNI");
+      }
       if (!existingRole) {
         await tx.userRole.create({
           data: {
@@ -101,16 +104,16 @@ export async function createAlumniProfile(data: AlumniProfileInput) {
     return { success: true };
   } catch (error: unknown) {
     console.error("Failed to create alumni profile:", error);
+    if (error instanceof Error && error.message.startsWith("ROLE_MISMATCH")) {
+      return { success: false, error: "Your account is already registered with a different role." };
+    }
     // Handle Prisma unique constraint violation (e.g., role or profile already exists)
     if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
       return { success: false, error: "You already have an alumni profile." };
     }
     return {
       success: false,
-      error:
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred during database persistence.",
+      error: "An unexpected error occurred while processing your request.",
     };
   }
 }

@@ -363,5 +363,35 @@ describe("Alumni Actions", () => {
     });
     expect(prisma.userRole.create).not.toHaveBeenCalled();
   });
+
+  it("should fail onboarding if userRole exists and is a different role", async () => {
+    mockGetUser.mockResolvedValue({
+      data: {
+        user: {
+          id: "user-123",
+          email: "test@example.com",
+          user_metadata: {
+            full_name: "John Doe",
+          },
+        },
+      },
+      error: null,
+    });
+    (prisma.userRole.findUnique as any).mockResolvedValue({
+      id: "role-123",
+      user_id: "user-123",
+      role: ROLES.STUDENT,
+    });
+
+    const result = await createAlumniProfile({
+      first_name: "John",
+      last_name: "Doe",
+      graduation_year: 2020,
+      program_id: "550e8400-e29b-41d4-a716-446655440000",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("Your account is already registered with a different role.");
+  });
 });
 

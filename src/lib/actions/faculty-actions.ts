@@ -53,6 +53,9 @@ export async function createFacultyProfile(data: FacultyProfileInput) {
       const existingRole = await tx.userRole.findUnique({
         where: { user_id: domainUser.id },
       });
+      if (existingRole && existingRole.role !== ROLES.FACULTY) {
+        throw new Error("ROLE_MISMATCH_NON_FACULTY");
+      }
       if (!existingRole) {
         await tx.userRole.create({
           data: {
@@ -86,6 +89,9 @@ export async function createFacultyProfile(data: FacultyProfileInput) {
     return { success: true };
   } catch (error: unknown) {
     console.error("Failed to create faculty profile:", error);
+    if (error instanceof Error && error.message.startsWith("ROLE_MISMATCH")) {
+      return { success: false, error: "Your account is already registered with a different role." };
+    }
     return {
       success: false,
       error: "An unexpected error occurred while processing your request.",

@@ -282,5 +282,30 @@ describe("createFacultyProfile Server Action", () => {
     expect(result.success).toBe(false);
     expect(result.error).toBe("An unexpected error occurred while processing your request.");
   });
+
+  it("should fail onboarding if userRole exists and is a different role", async () => {
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "faculty-123", email: "teacher@acd.edu.ph" } },
+      error: null,
+    });
+    (prisma.program.findUnique as any).mockResolvedValue({
+      id: "550e8400-e29b-41d4-a716-446655440000",
+      is_active: true,
+    });
+    (prisma.userRole.findUnique as any).mockResolvedValue({
+      id: "role-123",
+      user_id: "faculty-123",
+      role: ROLES.STUDENT,
+    });
+
+    const result = await createFacultyProfile({
+      first_name: "Jane",
+      last_name: "Smith",
+      program_id: "550e8400-e29b-41d4-a716-446655440000",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("Your account is already registered with a different role.");
+  });
 });
 

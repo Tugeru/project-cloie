@@ -296,5 +296,34 @@ describe("Industry Partner Actions", () => {
     expect(consoleSpy).toHaveBeenCalledWith("Failed to create industry partner profile:", customError);
     consoleSpy.mockRestore();
   });
+
+  it("should fail onboarding if userRole exists and is a different role", async () => {
+    mockGetUser.mockResolvedValue({
+      data: {
+        user: {
+          id: "user-123",
+          email: "test@example.com",
+          user_metadata: {
+            full_name: "Jane Doe",
+          },
+        },
+      },
+      error: null,
+    });
+    (prisma.userRole.findUnique as any).mockResolvedValue({
+      id: "role-123",
+      user_id: "user-123",
+      role: ROLES.STUDENT,
+    });
+
+    const result = await createIndustryPartnerProfile({
+      first_name: "Jane",
+      last_name: "Doe",
+      company_name: "Test Corp",
+    });
+
+    expect(result.success).toBe(false);
+    expect(result.error).toBe("Your account is already registered with a different role.");
+  });
 });
 

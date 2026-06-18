@@ -55,6 +55,9 @@ export async function createIndustryPartnerProfile(data: IndustryPartnerProfileI
       const existingRole = await tx.userRole.findUnique({
         where: { user_id: domainUser.id },
       });
+      if (existingRole && existingRole.role !== ROLES.INDUSTRY_PARTNER) {
+        throw new Error("ROLE_MISMATCH_NON_INDUSTRY_PARTNER");
+      }
       if (!existingRole) {
         await tx.userRole.create({
           data: {
@@ -84,6 +87,9 @@ export async function createIndustryPartnerProfile(data: IndustryPartnerProfileI
     return { success: true };
   } catch (error: unknown) {
     console.error("Failed to create industry partner profile:", error);
+    if (error instanceof Error && error.message.startsWith("ROLE_MISMATCH")) {
+      return { success: false, error: "Your account is already registered with a different role." };
+    }
     return {
       success: false,
       error: "An unexpected error occurred while processing your request.",

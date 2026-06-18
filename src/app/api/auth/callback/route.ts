@@ -49,17 +49,17 @@ export async function GET(request: Request) {
   const isBootstrapEmail = bootstrapEmail && normalizedEmail === bootstrapEmail;
 
   if (isBootstrapEmail) {
-    const adminExists = await prisma.userRole.findFirst({
-      where: { role: SystemRole.ADMIN },
-    });
-
-    if (!adminExists) {
-      const existingUser = await prisma.user.findUnique({
-        where: { email: normalizedEmail },
+    dbUser = await prisma.$transaction(async (tx) => {
+      const adminExists = await tx.userRole.findFirst({
+        where: { role: SystemRole.ADMIN },
       });
 
-      if (existingUser) {
-        dbUser = await prisma.$transaction(async (tx) => {
+      if (!adminExists) {
+        const existingUser = await tx.user.findUnique({
+          where: { email: normalizedEmail },
+        });
+
+        if (existingUser) {
           await tx.user.update({
             where: { id: existingUser.id },
             data: { auth_user_id: authUserId },
@@ -73,28 +73,29 @@ export async function GET(request: Request) {
             where: { id: existingUser.id },
             include: { roles: true },
           });
-        });
-      } else {
-        const meta = data.user.user_metadata || {};
-        const googleFirstName = meta.given_name || meta.first_name || "System";
-        const googleLastName = meta.family_name || meta.last_name || "Admin";
+        } else {
+          const meta = data.user.user_metadata || {};
+          const googleFirstName = meta.given_name || meta.first_name || "System";
+          const googleLastName = meta.family_name || meta.last_name || "Admin";
 
-        dbUser = await prisma.user.create({
-          data: {
-            auth_user_id: authUserId,
-            email: normalizedEmail,
-            first_name: googleFirstName,
-            last_name: googleLastName,
-            roles: {
-              create: {
-                role: SystemRole.ADMIN,
+          return tx.user.create({
+            data: {
+              auth_user_id: authUserId,
+              email: normalizedEmail,
+              first_name: googleFirstName,
+              last_name: googleLastName,
+              roles: {
+                create: {
+                  role: SystemRole.ADMIN,
+                },
               },
             },
-          },
-          include: { roles: true },
-        });
+            include: { roles: true },
+          });
+        }
       }
-    }
+      return null;
+    });
   }
 
   // 1. Try to find an existing user by auth_user_id
