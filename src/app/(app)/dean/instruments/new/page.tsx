@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { AdminTemplateBuilder } from "@/features/instruments/components/admin-template-builder";
+import { ManagementTemplateBuilder } from "@/features/instruments/components/management-template-builder";
 import { createDeanTemplateAction } from "@/lib/actions/dean-template-actions";
 
 export default function DeanCreateTemplatePage() {
@@ -14,9 +14,10 @@ export default function DeanCreateTemplatePage() {
         Back to Tools
       </Link>
 
-      <AdminTemplateBuilder
+      <ManagementTemplateBuilder
         onSave={createDeanTemplateAction}
         programLabel="Institutional Baseline"
+        toolsHref="/dean/instruments"
       />
     </div>
   );

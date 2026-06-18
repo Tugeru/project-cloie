@@ -57,7 +57,7 @@ export async function runTermRollover({
   // 1. Verify admin access
   const authSession = await resolveAuthSession();
 
-  if (!authSession?.roles?.includes(ROLES.ADMIN)) {
+  if (!authSession?.roles?.includes(ROLES.SECRETARY)) {
     return { success: false, error: "Admin access required." };
   }
 
@@ -237,7 +237,7 @@ export async function previewTermRollover({
   // 1. Verify admin access
   const authSession = await resolveAuthSession();
 
-  if (!authSession?.roles?.includes(ROLES.ADMIN)) {
+  if (!authSession?.roles?.includes(ROLES.SECRETARY)) {
     return { success: false, error: "Admin access required." };
   }
 

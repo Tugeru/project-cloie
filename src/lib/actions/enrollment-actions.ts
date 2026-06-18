@@ -25,8 +25,8 @@ export async function adminUpsertEnrollmentAction(input: AdminUpsertEnrollmentIn
   const result = await adminUpsertEnrollment(parsed.data);
 
   if (result.success) {
-    revalidatePath("/admin/users");
-    revalidatePath("/admin/school-years");
+    revalidatePath("/secretary/users");
+    revalidatePath("/secretary/school-years");
   }
 
   return result;
@@ -45,8 +45,8 @@ export async function deactivateEnrollmentAction(input: DeactivateEnrollmentInpu
   const result = await deactivateEnrollment(parsed.data.enrollmentId);
 
   if (result.success) {
-    revalidatePath("/admin/users");
-    revalidatePath("/admin/school-years");
+    revalidatePath("/secretary/users");
+    revalidatePath("/secretary/school-years");
   }
 
   return result;

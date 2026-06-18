@@ -44,13 +44,13 @@ const FACULTY_NAV: NavItem[] = [
   { name: "Profile", href: "/faculty/profile", icon: UserCircle },
 ];
 
-const ADMIN_NAV: NavItem[] = [
-  { name: "Dashboard", href: "/admin/dashboard", icon: LayoutDashboard },
-  { name: "Users", href: "/admin/users", icon: Users2 },
-  { name: "School Years", href: "/admin/school-years", icon: Calendar },
-  { name: "Programs", href: "/admin/programs", icon: Building2 },
-  { name: "Courses", href: "/admin/courses", icon: BookOpen },
-  { name: "Tools", href: "/admin/instruments", icon: ClipboardList },
+const SECRETARY_NAV: NavItem[] = [
+  { name: "Dashboard", href: "/secretary/dashboard", icon: LayoutDashboard },
+  { name: "Users", href: "/secretary/users", icon: Users2 },
+  { name: "School Years", href: "/secretary/school-years", icon: Calendar },
+  { name: "Programs", href: "/secretary/programs", icon: Building2 },
+  { name: "Courses", href: "/secretary/courses", icon: BookOpen },
+  { name: "Tools", href: "/secretary/instruments", icon: ClipboardList },
 ];
 
 const PROGRAM_HEAD_NAV: NavItem[] = [
@@ -92,7 +92,7 @@ const DEFAULT_NAV: NavItem[] = [
 ];
 
 const ROLE_NAV_PRECEDENCE = [
-  ROLES.ADMIN,
+  ROLES.SECRETARY,
   ROLES.DEAN,
   ROLES.PROGRAM_HEAD,
   ROLES.FACULTY,
@@ -109,8 +109,8 @@ export function getMainNavByRoles(roles: Role[]): NavItem[] {
   const highestRole = resolveHighestNavRole(roles);
 
   switch (highestRole) {
-    case ROLES.ADMIN:
-      return ADMIN_NAV;
+    case ROLES.SECRETARY:
+      return SECRETARY_NAV;
     case ROLES.DEAN:
       return DEAN_NAV;
     case ROLES.PROGRAM_HEAD:
@@ -132,8 +132,8 @@ export function getMobileNavByRoles(roles: Role[]): NavItem[] {
   const highestRole = resolveHighestNavRole(roles);
 
   switch (highestRole) {
-    case ROLES.ADMIN:
-      return ADMIN_NAV;
+    case ROLES.SECRETARY:
+      return SECRETARY_NAV;
     case ROLES.DEAN:
       return DEAN_NAV;
     case ROLES.PROGRAM_HEAD:
@@ -165,7 +165,7 @@ export function getMobileNavMode(roles: Role[]): MobileNavMode {
   const highestRole = resolveHighestNavRole(roles);
 
   switch (highestRole) {
-    case ROLES.ADMIN:
+    case ROLES.SECRETARY:
     case ROLES.DEAN:
     case ROLES.PROGRAM_HEAD:
     case ROLES.FACULTY:

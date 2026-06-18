@@ -118,7 +118,7 @@ _Avoid_: Unrestricted self-assignment, second Faculty role
 
 **Faculty self-service account**:
 A Faculty account claimed through the role selection portal using an institutional email and completed by choosing a faculty program affiliation.
-_Avoid_: Faculty pending account, faculty invite-only account
+_Avoid_: Faculty pending account, faculty pre-provisioned account
 
 **Self-declared enrollment**:
 A Student-provided academic enrollment claim used by CLOIE to place the student in an active term, program, year level, and section.

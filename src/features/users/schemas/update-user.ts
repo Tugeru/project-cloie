@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const updateAdminUserSchema = z.object({
+export const updateUserBySecretarySchema = z.object({
   id: z.string().uuid(),
   first_name: z
     .string()
@@ -14,4 +14,4 @@ export const updateAdminUserSchema = z.object({
     .max(100, "Last name must be 100 characters or fewer."),
 });
 
-export type UpdateAdminUserInput = z.infer<typeof updateAdminUserSchema>;
+export type UpdateUserBySecretaryInput = z.infer<typeof updateUserBySecretarySchema>;

@@ -27,8 +27,8 @@ vi.mock("@/lib/db/prisma", () => ({
 describe("manage-student-enrollments", () => {
   const mockAdminSession = {
     userId: "admin-1",
-    email: "admin@test.com",
-    roles: ["ADMIN"],
+    email: "secretary@test.com",
+    roles: ["SECRETARY"],
   };
 
   const mockStudentSession = {
@@ -106,7 +106,7 @@ describe("manage-student-enrollments", () => {
         majorId: null,
         yearLevel: YearLevel.FIRST_YEAR,
         section: null,
-        source: EnrollmentSource.ADMIN,
+        source: EnrollmentSource.SECRETARY,
       });
 
       expect(result.success).toBe(false);
@@ -134,7 +134,7 @@ describe("manage-student-enrollments", () => {
         majorId: null,
         yearLevel: YearLevel.FIRST_YEAR,
         section: null,
-        source: EnrollmentSource.ADMIN,
+        source: EnrollmentSource.SECRETARY,
       });
 
       expect(result.success).toBe(true);

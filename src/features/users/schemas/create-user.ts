@@ -1,7 +1,7 @@
 import { SystemRole } from "@prisma/client";
 import { z } from "zod";
 
-export const createAdminUserSchema = z.object({
+export const createUserBySecretarySchema = z.object({
   first_name: z.string().trim().min(1, "First name is required.").max(100),
   last_name: z.string().trim().min(1, "Last name is required.").max(100),
   email: z
@@ -17,4 +17,4 @@ export const createAdminUserSchema = z.object({
   ),
 });
 
-export type CreateAdminUserInput = z.infer<typeof createAdminUserSchema>;
+export type CreateUserBySecretaryInput = z.infer<typeof createUserBySecretarySchema>;

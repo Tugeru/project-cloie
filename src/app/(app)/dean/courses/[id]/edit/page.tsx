@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CourseForm } from "@/features/academic-structure/components/course-form";
-import { updateCourseAction } from "@/lib/actions/admin-foundation-actions";
+import { updateCourseAction } from "@/lib/actions/management-foundation-actions";
 import { prisma } from "@/lib/db/prisma";
 
 interface DeanEditCoursePageProps {

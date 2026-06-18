@@ -1,0 +1,119 @@
+import { describe, expect, it } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { SecretaryUsersList } from "@/features/users/components/secretary-users-list";
+import { SystemRole, YearLevel } from "@prisma/client";
+
+describe("SecretaryUsersList", () => {
+  const mockUsers = [
+    {
+      id: "user-1",
+      firstName: "John",
+      lastName: "Doe",
+      email: "john.doe@example.com",
+      isActive: true,
+      roles: [SystemRole.STUDENT],
+      activeRole: SystemRole.STUDENT,
+      programLabel: "BSCE",
+      majorLabel: "Structural Engineering",
+      sectionLabel: "—",
+    },
+    {
+      id: "user-2",
+      firstName: "Jane",
+      lastName: "Smith",
+      email: "jane.smith@example.com",
+      isActive: true,
+      roles: [SystemRole.FACULTY],
+      activeRole: SystemRole.FACULTY,
+      programLabel: "BSEE",
+      majorLabel: "N/A",
+      sectionLabel: "—",
+    },
+  ];
+
+  const mockKPI = {
+    totalUsers: 2,
+    totalStudents: 1,
+    totalAlumni: 0,
+    totalIndustryPartners: 0,
+  };
+
+  const mockPrograms = [
+    {
+      id: "prog-1",
+      code: "BSCE",
+      name: "Bachelor of Science in Civil Engineering",
+      majors: [
+        { id: "major-1", name: "Structural Engineering" },
+        { id: "major-2", name: "Water Resources" },
+      ],
+    },
+    {
+      id: "prog-2",
+      code: "BSEE",
+      name: "Bachelor of Science in Electrical Engineering",
+      majors: [{ id: "major-3", name: "Electronics" }],
+    },
+  ];
+
+  const mockYearLevels = [YearLevel.FIRST_YEAR, YearLevel.SECOND_YEAR];
+
+  it("renders users list with KPI cards", () => {
+    render(
+      <SecretaryUsersList
+        users={mockUsers}
+        kpi={mockKPI}
+        programs={mockPrograms}
+        yearLevels={mockYearLevels}
+      />
+    );
+
+    expect(screen.getByText("User Management")).toBeInTheDocument();
+    expect(screen.getByText("Users")).toBeInTheDocument();
+    expect(screen.getByText("2 total users")).toBeInTheDocument();
+  });
+
+  it("displays user data in table", () => {
+    render(
+      <SecretaryUsersList
+        users={mockUsers}
+        kpi={mockKPI}
+        programs={mockPrograms}
+        yearLevels={mockYearLevels}
+      />
+    );
+
+    expect(screen.getAllByText("John Doe")).toHaveLength(2);
+    expect(screen.getAllByText("jane.smith@example.com")).toHaveLength(2);
+  });
+
+  it("has Add User button", () => {
+    render(
+      <SecretaryUsersList
+        users={mockUsers}
+        kpi={mockKPI}
+        programs={mockPrograms}
+        yearLevels={mockYearLevels}
+      />
+    );
+
+    expect(screen.getByText("Add User")).toBeInTheDocument();
+  });
+
+  it("filters users by search term", () => {
+    render(
+      <SecretaryUsersList
+        users={mockUsers}
+        kpi={mockKPI}
+        programs={mockPrograms}
+        yearLevels={mockYearLevels}
+      />
+    );
+
+    const searchInput = screen.getByPlaceholderText(/search by name or email/i);
+    fireEvent.change(searchInput, { target: { value: "John" } });
+
+    expect(screen.getAllByText("John Doe")).toHaveLength(2);
+    expect(screen.queryByText("Jane Smith")).not.toBeInTheDocument();
+  });
+});

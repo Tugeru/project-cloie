@@ -19,7 +19,7 @@ export async function listEnrollments(
 ): Promise<EnrollmentResult<ListEnrollmentsResult>> {
   const authSession = await resolveAuthSession();
 
-  if (!authSession?.roles?.includes(ROLES.ADMIN)) {
+  if (!authSession?.roles?.includes(ROLES.SECRETARY)) {
     // Non-admins can only view their own enrollments
     if (filter.studentUserId !== authSession?.userId) {
       return { success: false, error: "Access denied." };
@@ -125,7 +125,7 @@ export async function listEnrollmentsForTerm(
 ): Promise<EnrollmentResult<ListEnrollmentsResult>> {
   const authSession = await resolveAuthSession();
 
-  if (!authSession?.roles?.includes(ROLES.ADMIN)) {
+  if (!authSession?.roles?.includes(ROLES.SECRETARY)) {
     return { success: false, error: "Admin access required." };
   }
 

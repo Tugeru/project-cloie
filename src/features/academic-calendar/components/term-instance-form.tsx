@@ -14,7 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SemesterTermPicker } from "./term-instance-picker";
-import { addTermInstanceAction } from "@/lib/actions/admin-school-year-actions";
+import { addTermInstanceAction } from "@/lib/actions/secretary-school-year-actions";
 import { showToast } from "@/components/ui/toast";
 
 interface TermInstanceFormProps {

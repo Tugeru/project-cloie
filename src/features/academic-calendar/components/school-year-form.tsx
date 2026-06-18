@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { formatSchoolYearCode } from "@/lib/constants/academic-period";
-import { createSchoolYearAction } from "@/lib/actions/admin-school-year-actions";
+import { createSchoolYearAction } from "@/lib/actions/secretary-school-year-actions";
 import { showToast } from "@/components/ui/toast";
 
 interface SchoolYearFormProps {

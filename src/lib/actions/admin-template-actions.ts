@@ -16,7 +16,7 @@ import {
 type ActionResult = { success: true } | { success: false; error: string };
 
 function revalidateAdminTools() {
-  revalidatePath("/admin/instruments");
+  revalidatePath("/secretary/instruments");
 }
 
 export async function createAdminTemplateAction(formData: FormData): Promise<ActionResult> {

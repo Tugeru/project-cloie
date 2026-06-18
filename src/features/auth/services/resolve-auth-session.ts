@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { ROLES, type Role } from "@/lib/constants/roles";
+import { DEMO_USER_EMAIL_SET } from "@/lib/constants/demo-users";
 import { prisma } from "@/lib/db/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { readDevAuthCookie } from "./dev-auth";
@@ -32,6 +33,9 @@ async function resolveAuthSessionFromAuthenticatedUser(
   user: AuthenticatedUser,
   isDevAuth: boolean = false
 ) {
+  const isDemoAllowed =
+    process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_DEMO_MODE === "true";
+  const isDemoUser = isDevAuth && isDemoAllowed && user.email ? DEMO_USER_EMAIL_SET.has(user.email) : false;
   const dbUser: AuthSessionUserRecord = await prisma.user.findUnique({
     where: isDevAuth ? { id: user.id } : { auth_user_id: user.id },
     include: {
@@ -86,11 +90,16 @@ async function resolveAuthSessionFromAuthenticatedUser(
     industryPartnerVerificationStatus: dbUser?.industry_partner_profile?.verification_status ?? null,
     hasActiveEnrollment,
     hasFacultyAffiliation,
+    isDemoUser,
   });
 }
 
 export async function resolveAuthSessionFromUser(user: AuthenticatedUser) {
   return resolveAuthSessionFromAuthenticatedUser(user, false);
+}
+
+export async function resolveAuthSessionFromDevUser(user: AuthenticatedUser) {
+  return resolveAuthSessionFromAuthenticatedUser(user, true);
 }
 
 export const resolveAuthSession = cache(async function resolveAuthSession() {

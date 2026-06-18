@@ -4,6 +4,14 @@ import { getMainNavByRoles, getMobileNavByRoles } from "@/lib/constants/navigati
 import { ROLES } from "@/lib/constants/roles";
 
 describe("navigation helpers", () => {
+  it("secretary navigation hrefs start with /secretary/", () => {
+    const secretaryNav = getMainNavByRoles([ROLES.SECRETARY]);
+    expect(secretaryNav.length).toBeGreaterThan(0);
+    secretaryNav.forEach((item) => {
+      expect(item.href).toMatch(/^\/secretary\//);
+    });
+  });
+
   it("orders faculty navigation correctly", () => {
     expect(getMainNavByRoles([ROLES.FACULTY]).map((item) => item.name)).toEqual([
       "Dashboard",

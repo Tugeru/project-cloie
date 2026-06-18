@@ -18,7 +18,7 @@ import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";
 async function verifyAdminAccess(): Promise<ServiceResult<{ userId: string }>> {
   const session = await resolveAuthSession();
 
-  if (!session || !session.roles.includes(ROLES.ADMIN)) {
+  if (!session || !session.roles.includes(ROLES.SECRETARY)) {
     return { success: false, error: "Admin access required" };
   }
 

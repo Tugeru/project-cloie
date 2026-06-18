@@ -18,7 +18,7 @@ export function canManageCourseAssignment(
   }
 
   // Admin and Dean can manage any course
-  if (session.roles.includes(ROLES.ADMIN) || session.roles.includes(ROLES.DEAN)) {
+  if (session.roles.includes(ROLES.SECRETARY) || session.roles.includes(ROLES.DEAN)) {
     return { allowed: true };
   }
 
@@ -64,7 +64,7 @@ export function canViewCourseAssignments(
   }
 
   const allowedRoles: SystemRole[] = [
-    ROLES.ADMIN,
+    ROLES.SECRETARY,
     ROLES.DEAN,
     ROLES.PROGRAM_HEAD,
     ROLES.FACULTY,

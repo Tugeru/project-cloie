@@ -2,7 +2,7 @@ import { SystemRole } from "@prisma/client";
 
 export interface ValidationResult {
   valid: boolean;
-  reason?: "invalid_domain" | "invite-only";
+  reason?: "invalid_domain" | "pre-provisioned";
 }
 
 /**
@@ -10,25 +10,25 @@ export interface ValidationResult {
  * 
  * - Internal roles (STUDENT, FACULTY) require institutional domains (@acd.edu.ph or @acdeducation.com).
  * - External roles (ALUMNI, INDUSTRY_PARTNER) allow any domain.
- * - Admin roles (ADMIN, DEAN, PROGRAM_HEAD) are invite-only and rejected from self-service.
+ * - Pre-provisioned roles (SECRETARY, DEAN, PROGRAM_HEAD) must be provisioned by administration and are rejected from self-service.
  */
 export function validateRoleDomain(email: string, intent: SystemRole): ValidationResult {
   const normalizedEmail = email.toLowerCase().trim();
-  const bootstrapEmail = process.env.BOOTSTRAP_ADMIN_EMAIL?.trim().toLowerCase();
+  const bootstrapEmail = process.env.BOOTSTRAP_SECRETARY_EMAIL?.trim().toLowerCase();
   const isBootstrap = bootstrapEmail && normalizedEmail === bootstrapEmail;
 
-  // Admin roles are invite-only, unless it is the bootstrap admin user
+  // Pre-provisioned roles are rejected unless it is the bootstrap secretary user
   if (
-    intent === SystemRole.ADMIN ||
+    intent === SystemRole.SECRETARY ||
     intent === SystemRole.DEAN ||
     intent === SystemRole.PROGRAM_HEAD
   ) {
-    if (intent === SystemRole.ADMIN && isBootstrap) {
+    if (intent === SystemRole.SECRETARY && isBootstrap) {
       return { valid: true };
     }
     return {
       valid: false,
-      reason: "invite-only",
+      reason: "pre-provisioned",
     };
   }
 

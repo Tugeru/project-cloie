@@ -152,7 +152,7 @@ describe("resolvePostLoginDestination", () => {
       resolvePostLoginDestination({
         requestedPath: "/profile",
         intent: null,
-        activeRole: ROLES.ADMIN,
+        activeRole: ROLES.SECRETARY,
         profileGate: { status: "COMPLETE" },
       })
     ).toBe("/profile");
@@ -163,10 +163,10 @@ describe("resolvePostLoginDestination", () => {
       resolvePostLoginDestination({
         requestedPath: "profile",
         intent: null,
-        activeRole: ROLES.ADMIN,
+        activeRole: ROLES.SECRETARY,
         profileGate: { status: "COMPLETE" },
       })
-    ).toBe("/admin/dashboard");
+    ).toBe("/secretary/dashboard");
 
     expect(
       resolvePostLoginDestination({

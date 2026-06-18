@@ -1,6 +1,6 @@
 import { ROLES } from "@/lib/constants/roles";
 
-export type RoleCategory = "self_service_internal" | "self_service_external" | "invite_only_admin" | "provisioned_faculty";
+export type RoleCategory = "self_service_internal" | "self_service_external" | "pre_provisioned_admin" | "provisioned_faculty";
 
 export type RoleCardConfig = {
   role: string;
@@ -12,25 +12,25 @@ export type RoleCardConfig = {
 
 export const ROLE_CARDS: RoleCardConfig[] = [
   {
-    role: ROLES.ADMIN,
-    title: "System Admin",
-    description: "Manage system settings, users, and global configurations.",
+    role: ROLES.SECRETARY,
+    title: "Secretary",
+    description: "Manage system settings, users, academic terms, and global configurations.",
     iconName: "ShieldCheck",
-    category: "invite_only_admin",
+    category: "pre_provisioned_admin",
   },
   {
     role: ROLES.DEAN,
     title: "Dean",
     description: "Oversee program evaluations and academic alignment.",
     iconName: "Building2",
-    category: "invite_only_admin",
+    category: "pre_provisioned_admin",
   },
   {
     role: ROLES.PROGRAM_HEAD,
     title: "Program Head",
     description: "Manage curriculum maps, course assignments, and templates.",
     iconName: "UserCog",
-    category: "invite_only_admin",
+    category: "pre_provisioned_admin",
   },
   {
     role: ROLES.FACULTY,

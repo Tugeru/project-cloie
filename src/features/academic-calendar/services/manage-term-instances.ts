@@ -13,13 +13,13 @@ import { type ServiceResult } from "@/lib/utils/service-result";
 import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";
 
 /**
- * Verify admin authentication.
+ * Verify secretary access.
  */
-async function verifyAdminAccess(): Promise<ServiceResult<{ userId: string }>> {
+export async function verifySecretaryAccess(): Promise<ServiceResult<{ userId: string }>> {
   const session = await resolveAuthSession();
 
-  if (!session || !session.roles.includes(ROLES.ADMIN)) {
-    return { success: false, error: "Admin access required" };
+  if (!session || !session.roles.includes(ROLES.SECRETARY)) {
+    return { success: false, error: "Secretary access required" };
   }
 
   return { success: true, data: { userId: session.userId } };
@@ -31,7 +31,7 @@ async function verifyAdminAccess(): Promise<ServiceResult<{ userId: string }>> {
 export async function addTermInstance(
   input: CreateTermInstanceInput
 ): Promise<ServiceResult<{ id: string }>> {
-  const auth = await verifyAdminAccess();
+  const auth = await verifySecretaryAccess();
   if (!auth.success) return auth;
 
   // Validate semester-term combination
@@ -89,7 +89,7 @@ export async function addTermInstance(
 export async function updateTermInstance(
   input: UpdateTermInstanceInput
 ): Promise<ServiceResult<{ id: string }>> {
-  const auth = await verifyAdminAccess();
+  const auth = await verifySecretaryAccess();
   if (!auth.success) return auth;
 
   const existing = await prisma.academicTermInstance.findUnique({
@@ -124,7 +124,7 @@ export async function updateTermInstance(
  * Delete a Term Instance.
  */
 export async function deleteTermInstance(id: string): Promise<ServiceResult> {
-  const auth = await verifyAdminAccess();
+  const auth = await verifySecretaryAccess();
   if (!auth.success) return auth;
 
   const existing = await prisma.academicTermInstance.findUnique({
@@ -174,7 +174,7 @@ export async function deleteTermInstance(id: string): Promise<ServiceResult> {
 export async function setActiveTermInstance(
   termInstanceId: string
 ): Promise<ServiceResult<{ id: string; previousActiveId: string | null; rolloverSuggested: string | null }>> {
-  const auth = await verifyAdminAccess();
+  const auth = await verifySecretaryAccess();
   if (!auth.success) return auth;
 
   const termInstance = await prisma.academicTermInstance.findUnique({

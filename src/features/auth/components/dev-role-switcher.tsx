@@ -104,7 +104,31 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
   const [isPending, startTransition] = useTransition();
   const [isExpanded, setIsExpanded] = useState(false);
   const [search, setSearch] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const { containerRef, position, isDragging, dragHandleProps } = useDraggable();
+
+  const switchToDemoUser = async (email: string) => {
+    setError(null);
+    const response = await fetch("/api/auth/dev-login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    const data = (await response.json()) as {
+      success: boolean;
+      destination?: string;
+      error?: string;
+    };
+
+    if (!response.ok || !data.success) {
+      setError(data.error ?? "Demo login failed.");
+      return;
+    }
+
+    router.push(data.destination ?? "/dashboard");
+    router.refresh();
+  };
 
   const isDemoMode =
     process.env.NODE_ENV === "development" || process.env.NEXT_PUBLIC_DEMO_MODE === "true";
@@ -193,6 +217,11 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
       >
         <div className="min-h-0">
           <div className="grid max-h-[60vh] gap-1.5 overflow-y-auto pr-1">
+            {error && (
+              <p className="text-red-600 bg-red-50 border border-red-100 rounded-md px-2 py-1.5 text-[11px]">
+                {error}
+              </p>
+            )}
             <div className="relative mb-1">
               <Search className="text-text-muted pointer-events-none absolute top-1/2 left-2 size-3 -translate-y-1/2" />
               <input
@@ -223,17 +252,7 @@ export function DevRoleSwitcher({ activeEmail }: DevRoleSwitcherProps) {
                       ? "border-primary bg-primary-soft text-primary"
                       : "border-border bg-background hover:border-primary/40 hover:bg-primary-soft/40"
                   )}
-                  onClick={() =>
-                    startTransition(async () => {
-                      await fetch("/api/auth/dev-login", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ email: user.email }),
-                      });
-                      router.push("/dashboard");
-                      router.refresh();
-                    })
-                  }
+                  onClick={() => startTransition(() => switchToDemoUser(user.email))}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="min-w-0">

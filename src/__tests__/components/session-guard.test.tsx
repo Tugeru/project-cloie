@@ -95,11 +95,11 @@ describe("SessionGuard", () => {
     ensureRoleAccessMock.mockReturnValue("/unauthorized");
 
     await expect(
-      SessionGuard({ children: <div>Protected</div>, allowedRoles: [ROLES.ADMIN] })
+      SessionGuard({ children: <div>Protected</div>, allowedRoles: [ROLES.SECRETARY] })
     ).rejects.toThrow(`${REDIRECT_ERROR}:/unauthorized`);
     expect(ensureRoleAccessMock).toHaveBeenCalledWith({
       activeRole: ROLES.FACULTY,
-      allowedRoles: [ROLES.ADMIN],
+      allowedRoles: [ROLES.SECRETARY],
     });
   });
 
@@ -137,15 +137,15 @@ describe("SessionGuard", () => {
 
   it("renders children for an allowed complete user", async () => {
     resolveAuthSessionMock.mockResolvedValue({
-      roles: [ROLES.ADMIN],
-      activeRole: ROLES.ADMIN,
+      roles: [ROLES.SECRETARY],
+      activeRole: ROLES.SECRETARY,
       studentProfileId: null,
       profileGate: { status: "COMPLETE" },
     });
 
     const result = await SessionGuard({
       children: <div>Allowed Content</div>,
-      allowedRoles: [ROLES.ADMIN],
+      allowedRoles: [ROLES.SECRETARY],
     });
 
     render(result);
