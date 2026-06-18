@@ -1532,13 +1532,13 @@ export type Database = {
       CourseScope: "GENERAL_EDUCATION" | "PROGRAM_SPECIFIC" | "MAJOR_SPECIFIC"
       DeploymentStatus: "DRAFT" | "SCHEDULED" | "ACTIVE" | "CLOSED" | "ARCHIVED"
       DeploymentType: "COURSE_BOUND" | "CENTRAL"
-      enrollment_source: "ONBOARDING" | "ROLLOVER" | "ADMIN"
+      enrollment_source: "ONBOARDING" | "ROLLOVER" | "SECRETARY"
       EvaluationTemplateType: "PROGRAM_WIDE" | "COURSE_BOUND"
       InviteStatus: "DRAFT" | "SENT" | "ACCEPTED" | "REVOKED"
       ResponseStatus: "IN_PROGRESS" | "SUBMITTED"
       student_section: "MORNING" | "AFTERNOON" | "EVENING"
       SystemRole:
-        | "ADMIN"
+        | "SECRETARY"
         | "DEAN"
         | "PROGRAM_HEAD"
         | "FACULTY"
@@ -1680,13 +1680,13 @@ export const Constants = {
       CourseScope: ["GENERAL_EDUCATION", "PROGRAM_SPECIFIC", "MAJOR_SPECIFIC"],
       DeploymentStatus: ["DRAFT", "SCHEDULED", "ACTIVE", "CLOSED", "ARCHIVED"],
       DeploymentType: ["COURSE_BOUND", "CENTRAL"],
-      enrollment_source: ["ONBOARDING", "ROLLOVER", "ADMIN"],
+      enrollment_source: ["ONBOARDING", "ROLLOVER", "SECRETARY"],
       EvaluationTemplateType: ["PROGRAM_WIDE", "COURSE_BOUND"],
       InviteStatus: ["DRAFT", "SENT", "ACCEPTED", "REVOKED"],
       ResponseStatus: ["IN_PROGRESS", "SUBMITTED"],
       student_section: ["MORNING", "AFTERNOON", "EVENING"],
       SystemRole: [
-        "ADMIN",
+        "SECRETARY",
         "DEAN",
         "PROGRAM_HEAD",
         "FACULTY",

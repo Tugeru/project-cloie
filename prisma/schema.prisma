@@ -12,7 +12,7 @@ datasource db {
 }
 
 enum SystemRole {
-  ADMIN
+  SECRETARY
   DEAN
   PROGRAM_HEAD
   FACULTY
@@ -98,7 +98,7 @@ enum StudentSection {
 enum EnrollmentSource {
   ONBOARDING
   ROLLOVER
-  ADMIN
+  SECRETARY
 
   @@map("enrollment_source")
 }

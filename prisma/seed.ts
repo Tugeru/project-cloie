@@ -605,7 +605,7 @@ const industryEvalStructure: TemplateStructure = [
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const allUsers = [
-  { id: U.ADMIN, email: "demo-admin@cloie.test", fn: "Demo", ln: "Admin", role: SystemRole.ADMIN },
+  { id: U.ADMIN, email: "demo-admin@cloie.test", fn: "Demo", ln: "Admin", role: SystemRole.SECRETARY },
   { id: U.DEAN, email: "demo-dean@cloie.test", fn: "Demo", ln: "Dean", role: SystemRole.DEAN },
   {
     id: U.PH_BSIT,
@@ -1358,7 +1358,7 @@ async function seedUsers(
         year_level: s.ylid,
         section: s.sec,
         is_active: true,
-        source: "ADMIN",
+        source: "SECRETARY",
       },
       create: {
         student_user_id: s.uid,
@@ -1368,7 +1368,7 @@ async function seedUsers(
         year_level: s.ylid,
         section: s.sec,
         is_active: true,
-        source: "ADMIN",
+        source: "SECRETARY",
       },
     });
   }
