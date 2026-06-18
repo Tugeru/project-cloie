@@ -20,16 +20,16 @@ _Avoid_: Invite-only when the account is already created directly by an administ
 An administrator-controlled role change where the administrator must provide the target role's required institution-managed information before the role is usable.
 _Avoid_: Self-service onboarding, incomplete self-service role claim
 
-**Admin-created account**:
-A CLOIE account created by a System Admin as either the required path for pre-provisioned roles or an override path for self-service roles.
+**Secretary-created account**:
+A CLOIE account created by a Secretary as either the required path for pre-provisioned roles or an override path for self-service roles.
 _Avoid_: Seeded user, invited user when no invitation is involved
 
-**Bootstrap admin**:
-The first real System Admin account created through a one-time setup path before normal administrator-managed account creation is available.
+**Bootstrap secretary**:
+The first real Secretary account created through a one-time setup path before normal administrator-managed account creation is available.
 _Avoid_: Self-claimed admin, public admin registration
 
 **Internal role**:
-A CLOIE role for people participating from inside Assumption College of Davao: System Admin, College Dean, Program Head, Faculty Member, or Student.
+A CLOIE role for people participating from inside Assumption College of Davao: Secretary, College Dean, Program Head, Faculty Member, or Student.
 _Avoid_: Staff role, ACD role when including Students
 
 **ACD institutional email**:
