@@ -3,6 +3,8 @@ import { resolveAuthSession } from "@/features/auth/services/resolve-auth-sessio
 import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import type { FacultyCourseContext } from "../types";
+import { type ServiceResult } from "@/lib/utils/service-result";
+import { resolveFacultyCourseIds } from "./resolve-faculty-course-ids";
 
 /**
  * List faculty course contexts.
@@ -11,45 +13,17 @@ import type { FacultyCourseContext } from "../types";
  */
 export async function listFacultyCourseContexts(
   termInstanceId?: string
-): Promise<FacultyCourseContext[]> {
+): Promise<ServiceResult<FacultyCourseContext[]>> {
   const authSession = await resolveAuthSession();
 
   if (!authSession?.roles?.includes(ROLES.FACULTY)) {
-    return [];
+    return { success: false, error: "Faculty authentication is required." };
   }
 
-  let courseIds: string[] = [];
+  const courseIds = await resolveFacultyCourseIds(authSession.userId, termInstanceId);
 
-  if (termInstanceId) {
-    // Get courses from assignments for this term
-    const assignments = await prisma.courseAssignment.findMany({
-      where: {
-        faculty_id: authSession.userId,
-        term_instance_id: termInstanceId,
-        is_active: true,
-      },
-      select: { course_id: true },
-    });
-    courseIds = assignments.map((a) => a.course_id);
-
-    if (courseIds.length === 0) {
-      return [];
-    }
-  } else {
-    // All terms: return distinct courses the faculty is assigned to across all terms
-    const assignments = await prisma.courseAssignment.findMany({
-      where: {
-        faculty_id: authSession.userId,
-        is_active: true,
-      },
-      select: { course_id: true },
-      distinct: ["course_id"],
-    });
-    courseIds = assignments.map((a) => a.course_id);
-
-    if (courseIds.length === 0) {
-      return [];
-    }
+  if (courseIds.length === 0) {
+    return { success: true, data: [] };
   }
 
   // Fetch full course details
@@ -88,5 +62,5 @@ export async function listFacultyCourseContexts(
     };
   });
 
-  return contexts;
+  return { success: true, data: contexts };
 }

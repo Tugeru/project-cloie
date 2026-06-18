@@ -11,6 +11,8 @@ const {
   resolvePostLoginDestinationMock,
   programFindManyMock,
   yearLevelFindManyMock,
+  getActiveTermIdMock,
+  findFirstUserMock,
 } = vi.hoisted(() => ({
   redirectMock: vi.fn((path: string) => {
     throw new Error(`${REDIRECT_ERROR}:${path}`);
@@ -21,6 +23,8 @@ const {
   resolvePostLoginDestinationMock: vi.fn(),
   programFindManyMock: vi.fn(),
   yearLevelFindManyMock: vi.fn(),
+  getActiveTermIdMock: vi.fn(),
+  findFirstUserMock: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
@@ -49,7 +53,14 @@ vi.mock("@/lib/db/prisma", () => ({
     yearLevel: {
       findMany: yearLevelFindManyMock,
     },
+    user: {
+      findFirst: findFirstUserMock,
+    },
   },
+}));
+
+vi.mock("@/features/academic-calendar/services/resolve-active-term", () => ({
+  getActiveTermId: getActiveTermIdMock,
 }));
 
 vi.mock("@/features/auth/services/resolve-auth-session", () => ({
@@ -63,6 +74,22 @@ vi.mock("@/features/auth/services/resolve-post-login-destination", () => ({
 
 vi.mock("@/app/(public)/onboarding/student-profile-form", () => ({
   StudentProfileForm: ({ email }: { email: string }) => <div>Student form for {email}</div>,
+}));
+
+vi.mock("@/features/users/components/alumni-onboarding-form", () => ({
+  AlumniOnboardingForm: ({ initialFirstName, initialLastName }: { initialFirstName: string; initialLastName: string }) => (
+    <div data-testid="alumni-form">
+      Alumni: [{initialFirstName}] [{initialLastName}]
+    </div>
+  ),
+}));
+
+vi.mock("@/features/users/components/industry-partner-onboarding-form", () => ({
+  IndustryPartnerOnboardingForm: ({ initialFirstName, initialLastName }: { initialFirstName: string; initialLastName: string }) => (
+    <div data-testid="industry-form">
+      Industry: [{initialFirstName}] [{initialLastName}]
+    </div>
+  ),
 }));
 
 import OnboardingPage from "@/app/(public)/onboarding/page";
@@ -81,16 +108,18 @@ describe("OnboardingPage", () => {
       error: null,
     });
     resolveAuthSessionMock.mockResolvedValue({
-      primaryRole: null,
+      activeRole: null,
       profileGate: { status: "ROLE_SELECTION_REQUIRED" },
     });
     resolveAuthSessionFromUserMock.mockResolvedValue({
-      primaryRole: null,
+      activeRole: null,
       profileGate: { status: "ROLE_SELECTION_REQUIRED" },
     });
     resolvePostLoginDestinationMock.mockReturnValue("/student/dashboard");
     programFindManyMock.mockResolvedValue([]);
     yearLevelFindManyMock.mockResolvedValue([]);
+    getActiveTermIdMock.mockResolvedValue("term-uuid-123");
+    findFirstUserMock.mockResolvedValue(null);
   });
 
   it("redirects unauthenticated requests to login", async () => {
@@ -106,7 +135,7 @@ describe("OnboardingPage", () => {
 
   it("redirects complete users through resolvePostLoginDestination", async () => {
     resolveAuthSessionFromUserMock.mockResolvedValue({
-      primaryRole: "STUDENT",
+      activeRole: "STUDENT",
       profileGate: { status: "COMPLETE" },
     });
 
@@ -116,7 +145,7 @@ describe("OnboardingPage", () => {
     expect(resolvePostLoginDestinationMock).toHaveBeenCalledWith({
       requestedPath: "/dashboard",
       intent: null,
-      primaryRole: "STUDENT",
+      activeRole: "STUDENT",
       profileGate: { status: "COMPLETE" },
     });
     expect(resolveAuthSessionFromUserMock).toHaveBeenCalledWith({
@@ -137,5 +166,25 @@ describe("OnboardingPage", () => {
       id: "user-1",
       email: "student@acd.edu.ph",
     });
+  });
+
+  it("clears placeholder names in metadata to empty strings", async () => {
+    getUserMock.mockResolvedValue({
+      data: {
+        user: {
+          id: "user-1",
+          email: "alumni@example.com",
+          user_metadata: { full_name: "Alumni Member", given_name: "Alumni", family_name: "Member" },
+        },
+      },
+      error: null,
+    });
+
+    const page = await OnboardingPage({
+      searchParams: Promise.resolve({ intent: "alumni" }),
+    });
+
+    render(page);
+    expect(screen.getByTestId("alumni-form")).toHaveTextContent("Alumni: [] []");
   });
 });

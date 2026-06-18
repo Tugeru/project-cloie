@@ -9,29 +9,16 @@ import type {
   UpdateStudentAcademicContextInput,
 } from "../schemas/admin-user";
 
-type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
-
-function isUniqueConstraintError(error: unknown): boolean {
-  return Boolean(
-    error &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error as { code?: string }).code === "P2002"
-  );
-}
+import { type ServiceResult } from "@/lib/utils/service-result";
+import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";
 
 async function userHasRole(userId: string, role: SystemRole) {
   const record = await prisma.userRole.findUnique({
-    where: {
-      user_id_role: {
-        user_id: userId,
-        role,
-      },
-    },
-    select: { id: true },
+    where: { user_id: userId },
+    select: { role: true },
   });
 
-  return Boolean(record);
+  return record?.role === role;
 }
 
 async function ensureProgramMajorRelation(programId: string, majorId?: string) {
@@ -144,15 +131,10 @@ export async function assignUserRole(
 
 export async function revokeUserRole(userId: string, role: SystemRole): Promise<ServiceResult> {
   const assignedRole = await prisma.userRole.findUnique({
-    where: {
-      user_id_role: {
-        user_id: userId,
-        role,
-      },
-    },
+    where: { user_id: userId },
   });
 
-  if (!assignedRole) {
+  if (!assignedRole || assignedRole.role !== role) {
     return { success: false, error: "Role assignment not found." };
   }
 
@@ -217,12 +199,7 @@ export async function revokeUserRole(userId: string, role: SystemRole): Promise<
   }
 
   await prisma.userRole.delete({
-    where: {
-      user_id_role: {
-        user_id: userId,
-        role,
-      },
-    },
+    where: { user_id: userId },
   });
 
   return { success: true, data: undefined };

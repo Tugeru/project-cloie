@@ -2,6 +2,7 @@ import { CourseScope } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { ROLES } from "@/lib/constants/roles";
+import { type ServiceResult } from "@/lib/utils/service-result";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -22,17 +23,16 @@ export type FacultyCourseWithCiloCount = {
   ciloCount: number;
 };
 
-export type FacultyCourseWithCilosResult =
-  | {
-      success: true;
-      courses: FacultyCourseWithCiloCount[];
-      programs: Array<{ id: string; code: string; name: string }>;
-    }
-  | { success: false; error: string };
+export type FacultyCourseWithCilosResult = ServiceResult<{
+  courses: FacultyCourseWithCiloCount[];
+  programs: Array<{ id: string; code: string; name: string }>;
+}>;
 
 // ---------------------------------------------------------------------------
 // Service
 // ---------------------------------------------------------------------------
+
+import { resolveFacultyCourseIds } from "./resolve-faculty-course-ids";
 
 /**
  * List faculty courses with CILO counts.
@@ -48,38 +48,16 @@ export async function listFacultyCoursesWithCilos(
     return { success: false, error: "Faculty authentication is required." };
   }
 
-  let courseIds: string[] = [];
+  const courseIds = await resolveFacultyCourseIds(session.userId, termInstanceId);
 
-  if (termInstanceId) {
-    // Get courses from assignments for this term
-    const assignments = await prisma.courseAssignment.findMany({
-      where: {
-        faculty_id: session.userId,
-        term_instance_id: termInstanceId,
-        is_active: true,
+  if (courseIds.length === 0) {
+    return {
+      success: true,
+      data: {
+        courses: [],
+        programs: [],
       },
-      select: { course_id: true },
-    });
-    courseIds = assignments.map((a) => a.course_id);
-
-    if (courseIds.length === 0) {
-      return { success: true, courses: [], programs: [] };
-    }
-  } else {
-    // All terms: return distinct courses the faculty is assigned to across all terms
-    const assignments = await prisma.courseAssignment.findMany({
-      where: {
-        faculty_id: session.userId,
-        is_active: true,
-      },
-      select: { course_id: true },
-      distinct: ["course_id"],
-    });
-    courseIds = assignments.map((a) => a.course_id);
-
-    if (courseIds.length === 0) {
-      return { success: true, courses: [], programs: [] };
-    }
+    };
   }
 
   // Fetch full course details with CILO counts
@@ -128,5 +106,11 @@ export async function listFacultyCoursesWithCilos(
     };
   });
 
-  return { success: true, courses, programs: Array.from(programsMap.values()) };
+  return {
+    success: true,
+    data: {
+      courses,
+      programs: Array.from(programsMap.values()),
+    },
+  };
 }

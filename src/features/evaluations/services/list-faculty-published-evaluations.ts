@@ -131,7 +131,9 @@ export async function listFacultyPublishedEvaluations(): Promise<ListFacultyPubl
 
   return {
     success: true,
-    evaluations,
-    program,
+    data: {
+      evaluations,
+      program,
+    },
   };
 }

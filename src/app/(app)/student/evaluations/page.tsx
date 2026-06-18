@@ -1,11 +1,18 @@
+import { redirect } from "next/navigation";
 import { Filter, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { listStudentAssignedEvaluations } from "@/features/responses/services/list-student-assigned-evaluations";
 import { EvaluationListCard } from "@/features/users/components/evaluation-list-card";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 
 export default async function StudentEvaluationsPage() {
+  const session = await resolveAuthSession();
+  if (session?.profileGate.status === "DEFERRED_ENROLLMENT") {
+    redirect("/student/dashboard");
+  }
+
   const { active, submitted } = await listStudentAssignedEvaluations();
   const pending = active.filter((item) => item.status !== "IN_PROGRESS");
   const inProgress = active.filter((item) => item.status === "IN_PROGRESS");

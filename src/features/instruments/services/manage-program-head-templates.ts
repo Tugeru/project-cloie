@@ -10,7 +10,8 @@ import type { TemplateStructure } from "../types";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
+import { type ServiceResult } from "@/lib/utils/service-result";
+import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";
 
 export type ProgramHeadTemplateItem = {
   id: string;
@@ -41,14 +42,7 @@ export type ListProgramHeadTemplatesResult = {
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-function isUniqueConstraintError(error: unknown): boolean {
-  return Boolean(
-    error &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error as { code?: string }).code === "P2002"
-  );
-}
+
 
 async function resolveAndValidatePHScope(
   userId: string

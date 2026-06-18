@@ -40,7 +40,7 @@ export default async function FacultyCilosPage({ searchParams }: FacultyCilosPag
 
   return (
     <FacultyCilosCourseList
-      courses={JSON.parse(JSON.stringify(coursesResult.courses))}
+      courses={JSON.parse(JSON.stringify(coursesResult.data.courses))}
       termInstances={termInstances}
       selectedTermId={termInstanceId}
       loadCilosAction={loadCilosForCourseAction}

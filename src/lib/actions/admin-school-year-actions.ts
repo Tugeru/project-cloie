@@ -25,7 +25,7 @@ import {
   setActiveTermSchema,
   deleteTermInstanceSchema,
 } from "@/features/academic-calendar/schemas/term-instance";
-import type { ServiceResult } from "@/features/academic-calendar/services/manage-school-years";
+import type { ServiceResult } from "@/lib/utils/service-result";
 
 // ============================================================================
 // Authorization Helper

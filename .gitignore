@@ -55,9 +55,11 @@ prisma/*.db-journal
 .agents
 .worktrees/
 AGENTS.md
+skills-lock.json
 
-
-# project docs (kept in repo but ignored in some workflows)
+# project docs 
+cloie-prd.md
+cloie-srs.md
 
 # IDE
 .idea

@@ -142,9 +142,11 @@ describe("TemplateBuilder", () => {
             },
           ],
           loadManagedCilosAction: vi.fn().mockResolvedValue({
-            hasSavedCilos: true,
-            items: [{ description: "Apply project planning principles", id: "cilo-1" }],
             success: true,
+            data: {
+              hasSavedCilos: true,
+              items: [{ description: "Apply project planning principles", id: "cilo-1" }],
+            },
           }),
           validatePublishReadinessAction: vi.fn().mockResolvedValue({
             success: true,
@@ -348,9 +350,11 @@ describe("TemplateBuilder", () => {
           courseContexts: [],
           initialBindings: [],
           loadManagedCilosAction: vi.fn().mockResolvedValue({
-            hasSavedCilos: false,
-            items: [],
             success: true,
+            data: {
+              hasSavedCilos: false,
+              items: [],
+            },
           }),
           validatePublishReadinessAction: vi.fn().mockResolvedValue({
             success: true,

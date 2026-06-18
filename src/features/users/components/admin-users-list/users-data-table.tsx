@@ -108,9 +108,9 @@ export function UsersDataTable({
                   {user.firstName} {user.lastName}
                 </TableCell>
                 <TableCell>
-                  {user.primaryRole ? (
-                    <Badge className={getRoleBadgeClass(user.primaryRole)}>
-                      {formatRole(user.primaryRole)}
+                  {user.activeRole ? (
+                    <Badge className={getRoleBadgeClass(user.activeRole)}>
+                      {formatRole(user.activeRole)}
                     </Badge>
                   ) : (
                     <span className="text-muted-foreground">—</span>
@@ -182,9 +182,9 @@ export function UsersDataTable({
                     {user.firstName} {user.lastName}
                   </h3>
                   <div className="flex items-center gap-2 mt-1">
-                    {user.primaryRole ? (
-                      <Badge className={getRoleBadgeClass(user.primaryRole)}>
-                        {formatRole(user.primaryRole)}
+                    {user.activeRole ? (
+                      <Badge className={getRoleBadgeClass(user.activeRole)}>
+                        {formatRole(user.activeRole)}
                       </Badge>
                     ) : null}
                     <Badge variant={user.isActive ? "default" : "secondary"}>

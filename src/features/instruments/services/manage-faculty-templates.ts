@@ -6,7 +6,8 @@ import { listFacultyCourseContexts } from "@/features/evaluations/services/list-
 import type { SaveFacultyTemplateDraftInput } from "../schemas/program-head-template";
 import { listTemplateLikertQuestions, type TemplateStructure } from "../types";
 
-type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
+import { type ServiceResult } from "@/lib/utils/service-result";
+import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";
 
 export type FacultyTemplateBindingItem = {
   ciloId: string;
@@ -121,8 +122,11 @@ async function resolveFacultyCourseContext(input: {
   }
 
   const contexts = await listFacultyCourseContexts();
+  if (!contexts.success) {
+    return null;
+  }
   return (
-    contexts.find(
+    contexts.data.find(
       (context) =>
         context.courseId === input.boundCourseId &&
         context.programId === input.boundProgramId &&
@@ -327,12 +331,7 @@ export async function saveFacultyTemplateDraft(
 
     return { success: true, data: { id: savedId } };
   } catch (error) {
-    if (
-      error &&
-      typeof error === "object" &&
-      "code" in error &&
-      (error as { code?: string }).code === "P2002"
-    ) {
+    if (isUniqueConstraintError(error)) {
       return {
         success: false,
         error: "A faculty template copy could not be created. Please try again.",

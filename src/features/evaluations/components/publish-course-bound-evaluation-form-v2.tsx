@@ -153,7 +153,7 @@ export function PublishCourseBoundEvaluationFormV2({
         return;
       }
 
-      setPreviewRespondents(result.respondents);
+      setPreviewRespondents(result.data);
       setExcludedRespondentIds([]);
       setStep("preview");
     } catch {
@@ -191,7 +191,7 @@ export function PublishCourseBoundEvaluationFormV2({
         return;
       }
 
-      const toastMessage = `Evaluation published successfully! ${result.assignmentCount} assignment(s) created.`;
+      const toastMessage = `Evaluation published successfully! ${result.data.assignmentCount} assignment(s) created.`;
       router.push(`/faculty/tools?toast=${encodeURIComponent(toastMessage)}`);
       return;
     } catch {
@@ -211,29 +211,29 @@ export function PublishCourseBoundEvaluationFormV2({
     <div className="space-y-6">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Publish CILO Evaluation</h1>
-        <p className="text-text-muted text-sm">
+        <p className="text-muted-foreground text-sm">
           Select a class assignment to target the right students. The course context and
           CILO-to-question bindings come from the saved faculty template.
         </p>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
-        <section className="border-border bg-surface space-y-4 rounded-xl border p-5">
+        <section className="border-border bg-card space-y-4 rounded-xl border p-5">
           <div className="space-y-1">
-            <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
+            <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
               Template
             </p>
-            <h2 className="text-text-primary text-lg font-semibold">
+            <h2 className="text-foreground text-lg font-semibold">
               {publicationContext.template.name}
             </h2>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1">
-              <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
+              <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
                 Course
               </p>
-              <p className="text-text-primary text-sm">
+              <p className="text-foreground text-sm">
                 {publicationContext.course.code} - {publicationContext.course.title}
               </p>
             </div>
@@ -243,7 +243,7 @@ export function PublishCourseBoundEvaluationFormV2({
             <div className="flex items-center justify-between gap-3">
               <div>
                 <h3 className="text-base font-semibold">Saved CILO Bindings</h3>
-                <p className="text-text-muted text-sm">
+                <p className="text-muted-foreground text-sm">
                   These bindings were saved in the template builder and will be frozen into the
                   published evaluation.
                 </p>
@@ -261,22 +261,22 @@ export function PublishCourseBoundEvaluationFormV2({
 
                 return (
                   <li key={cilo.id} className="border-border rounded-lg border p-4">
-                    <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
+                    <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
                       CILO {index + 1}
                     </p>
-                    <p className="text-text-primary mt-2 text-sm">{cilo.description}</p>
+                    <p className="text-foreground mt-2 text-sm">{cilo.description}</p>
                     {binding && (() => {
                       const location = questionLocationMap.get(
                         `${binding.sectionKey}:${binding.itemKey}`
                       );
                       return (
-                        <div className="bg-surface-container-low mt-3 rounded-md p-3">
-                          <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
+                        <div className="bg-muted mt-3 rounded-md p-3">
+                          <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
                             {location
                               ? `Section ${location.sectionIndex}: ${location.sectionTitle} · Question ${location.questionIndex}`
                               : "Bound Likert Question"}
                           </p>
-                          <p className="text-text-primary mt-1 text-sm">
+                          <p className="text-foreground mt-1 text-sm">
                             {binding.questionPromptSnapshot}
                           </p>
                         </div>
@@ -291,7 +291,7 @@ export function PublishCourseBoundEvaluationFormV2({
 
         {step === "configure" ? (
           <form
-            className="border-border bg-surface space-y-6 rounded-xl border p-5"
+            className="border-border bg-card space-y-6 rounded-xl border p-5"
             onSubmit={handlePreview}
           >
             <div className="space-y-2">
@@ -313,15 +313,15 @@ export function PublishCourseBoundEvaluationFormV2({
             />
 
             {selectedAssignment && (
-              <Card className="bg-surface-container-low">
+              <Card className="bg-muted">
                 <CardContent className="pt-6 space-y-2">
-                  <p className="text-text-muted text-xs font-semibold tracking-wide uppercase">
+                  <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
                     Selected Class
                   </p>
-                  <p className="text-text-primary font-medium">
+                  <p className="text-foreground font-medium">
                     {selectedAssignment.courseCode} - {selectedAssignment.courseTitle}
                   </p>
-                  <p className="text-text-secondary text-sm">
+                  <p className="text-muted-foreground text-sm">
                     {selectedAssignment.programCode} — {" "}
                     {selectedAssignment.yearLevel.replace("_", " ").toLowerCase()}
                     {selectedAssignment.section ? ` — ${selectedAssignment.section}` : ""}
@@ -339,7 +339,7 @@ export function PublishCourseBoundEvaluationFormV2({
                   value={activationSchedule}
                   onChange={(event) => setActivationSchedule(event.target.value)}
                 />
-                <p className="text-text-muted text-xs">
+                <p className="text-muted-foreground text-xs">
                   Leave blank to activate immediately.
                 </p>
               </div>
@@ -352,7 +352,7 @@ export function PublishCourseBoundEvaluationFormV2({
                   value={deadline}
                   onChange={(event) => setDeadline(event.target.value)}
                 />
-                <p className="text-text-muted text-xs">
+                <p className="text-muted-foreground text-xs">
                   Optional. Respondents cannot submit after this deadline.
                 </p>
               </div>
@@ -373,10 +373,10 @@ export function PublishCourseBoundEvaluationFormV2({
             </Button>
           </form>
         ) : (
-          <div className="border-border bg-surface space-y-6 rounded-xl border p-5">
+          <div className="border-border bg-card space-y-6 rounded-xl border p-5">
             <div className="space-y-2">
               <h3 className="text-lg font-semibold">Respondent Preview</h3>
-              <p className="text-text-muted text-sm">
+              <p className="text-muted-foreground text-sm">
                 {previewRespondents.length} student(s) will receive this evaluation.
                 Uncheck any students you wish to exclude.
               </p>
@@ -386,7 +386,7 @@ export function PublishCourseBoundEvaluationFormV2({
               {previewRespondents.map((respondent) => (
                 <label
                   key={respondent.userId}
-                  className="border-border flex items-start gap-3 rounded-lg border p-3 cursor-pointer hover:bg-surface-container-low"
+                  className="border-border flex items-start gap-3 rounded-lg border p-3 cursor-pointer hover:bg-muted"
                 >
                   <input
                     type="checkbox"
@@ -400,8 +400,8 @@ export function PublishCourseBoundEvaluationFormV2({
                     <p className="font-medium">
                       {respondent.firstName} {respondent.lastName}
                     </p>
-                    <p className="text-text-secondary text-sm">{respondent.email}</p>
-                    <p className="text-text-muted text-xs">
+                    <p className="text-muted-foreground text-sm">{respondent.email}</p>
+                    <p className="text-muted-foreground text-xs">
                       {respondent.programCode} — {respondent.yearLevel.replace("_", " ").toLowerCase()}
                       {respondent.section ? ` — ${respondent.section}` : ""}
                     </p>

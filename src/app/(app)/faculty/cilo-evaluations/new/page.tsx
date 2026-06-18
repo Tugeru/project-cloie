@@ -31,8 +31,7 @@ export default async function NewFacultyCiloEvaluationPage({
   }
 
   const redirectPath = ensureRoleAccess({
-    primaryRole: session.primaryRole,
-    roles: session.roles,
+    activeRole: session.activeRole,
     allowedRoles: [ROLES.FACULTY],
   });
 

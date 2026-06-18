@@ -14,7 +14,11 @@ async function assertFacultyManagedCiloScope(
 ): Promise<{ courseId: string; majorId: string | null; programId: string } | null> {
   const availableContexts = await listFacultyCourseContexts();
 
-  const matchingContext = availableContexts.find(
+  if (!availableContexts.success) {
+    return null;
+  }
+
+  const matchingContext = availableContexts.data.find(
     (candidate) =>
       candidate.courseId === context.courseId &&
       candidate.programId === context.programId &&
@@ -65,9 +69,11 @@ export async function loadFacultyManagedCilos(
   });
 
   return {
-    hasSavedCilos: cilos.length > 0,
-    items: cilos,
     success: true,
+    data: {
+      hasSavedCilos: cilos.length > 0,
+      items: cilos,
+    },
   };
 }
 
@@ -93,24 +99,58 @@ export async function saveFacultyManagedCilos(
   }
 
   const normalizedItems = input.items
-    .map((item) => item.description.trim())
-    .filter((description) => description.length > 0)
-    .map((description) => ({
-      course_id: scopedContext.courseId,
-      created_by: authSession.userId,
-      description,
-    }));
+    .map((item) => ({ id: item.id, description: item.description.trim() }))
+    .filter((item) => item.description.length > 0);
+
+  const toUpdate = normalizedItems.filter((item) => item.id);
+  const toCreate = normalizedItems.filter((item) => !item.id);
+  const keepIds = new Set(toUpdate.map((item) => item.id!));
 
   await prisma.$transaction(async (tx) => {
-    await tx.cILO.deleteMany({
-      where: {
-        course_id: scopedContext.courseId,
-      },
+    // Fetch existing CILOs for this course
+    const existingCilos = await tx.cILO.findMany({
+      where: { course_id: scopedContext.courseId },
+      select: { id: true },
     });
 
-    if (normalizedItems.length > 0) {
+    // Delete CILOs that are absent from the input (removed by user)
+    const toDeleteIds = existingCilos
+      .filter((c) => !keepIds.has(c.id))
+      .map((c) => c.id);
+
+    if (toDeleteIds.length > 0) {
+      await tx.cILO.deleteMany({
+        where: { id: { in: toDeleteIds } },
+      });
+    }
+
+    // Update existing CILOs with new descriptions
+    for (const item of toUpdate) {
+      await tx.cILO.update({
+        where: { id: item.id! },
+        data: { description: item.description },
+      });
+    }
+
+    // Create new CILOs
+    if (toCreate.length > 0) {
       await tx.cILO.createMany({
-        data: normalizedItems,
+        data: toCreate.map((item) => ({
+          course_id: scopedContext.courseId,
+          created_by: authSession.userId,
+          description: item.description,
+        })),
+      });
+    }
+
+    // Update template binding snapshots for updated CILOs.
+    // This only affects InstrumentTemplateCiloQuestionBinding (draft/template-level).
+    // Published evaluations use a separate CourseBoundCiloQuestionBinding table whose
+    // snapshots are frozen at publish time and are NOT affected by this update.
+    for (const item of toUpdate) {
+      await tx.instrumentTemplateCiloQuestionBinding.updateMany({
+        where: { cilo_id: item.id! },
+        data: { cilo_description_snapshot: item.description },
       });
     }
   });
@@ -127,7 +167,9 @@ export async function saveFacultyManagedCilos(
   });
 
   return {
-    items,
     success: true,
+    data: {
+      items,
+    },
   };
 }

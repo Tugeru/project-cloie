@@ -33,13 +33,12 @@ export type FacultyTemplateItem = {
   versionCount: number;
 };
 
-export type ListFacultyTemplatesResult =
-  | {
-      success: true;
-      templates: FacultyTemplateItem[];
-      program: { id: string; code: string; name: string };
-    }
-  | { success: false; error: string };
+import { type ServiceResult } from "@/lib/utils/service-result";
+
+export type ListFacultyTemplatesResult = ServiceResult<{
+  templates: FacultyTemplateItem[];
+  program: { id: string; code: string; name: string };
+}>;
 
 // ---------------------------------------------------------------------------
 // Service
@@ -125,14 +124,16 @@ export async function listFacultyTemplates(): Promise<ListFacultyTemplatesResult
     versionCount: t._count.versions,
   }));
 
-  return { success: true, templates, program };
+  return { success: true, data: { templates, program } };
 }
 
-export async function getFacultyTemplate(templateId: string) {
+export async function getFacultyTemplate(
+  templateId: string
+): Promise<ServiceResult<FacultyTemplateItem>> {
   const session = await resolveAuthSession();
 
   if (!session || !session.roles.includes(ROLES.FACULTY)) {
-    return null;
+    return { success: false, error: "Faculty authentication is required." };
   }
 
   const programIds = await prisma.facultyProgramAffiliation.findMany({
@@ -176,5 +177,35 @@ export async function getFacultyTemplate(templateId: string) {
     },
   });
 
-  return template;
+  if (!template) {
+    return { success: false, error: "Template not found or unavailable." };
+  }
+
+  const mappedTemplate: FacultyTemplateItem = {
+    boundCourseId: template.bound_course_id,
+    boundMajorId: template.bound_major_id,
+    boundProgramId: template.bound_program_id,
+    id: template.id,
+    code: template.code,
+    name: template.name,
+    description: template.description,
+    is_active: template.is_active,
+    is_faculty_accessible: template.is_faculty_accessible,
+    templateType: template.template_type,
+    programCode: template.program?.code ?? null,
+    programName: template.program?.name ?? null,
+    facultyOwnerId: template.faculty_owner_id,
+    sourceTemplateId: template.source_template_id,
+    structure: template.structure,
+    templateCiloQuestionBindings: template.template_cilo_question_bindings.map((binding) => ({
+      ciloDescriptionSnapshot: binding.cilo_description_snapshot,
+      ciloId: binding.cilo_id,
+      itemKey: binding.item_key,
+      questionPromptSnapshot: binding.question_prompt_snapshot,
+      sectionKey: binding.section_key,
+    })),
+    versionCount: 0,
+  };
+
+  return { success: true, data: mappedTemplate };
 }

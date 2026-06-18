@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { ROLES } from "@/lib/constants/roles";
+import { createPrismaUniqueConstraintError } from "@/__tests__/helpers/prisma-test-helpers";
 
 const {
   instrumentTemplateFindManyMock,
@@ -64,7 +64,7 @@ const PH_SESSION = {
   userId: "ph-user-1",
   email: "ph@acd.edu.ph",
   roles: [ROLES.PROGRAM_HEAD],
-  primaryRole: ROLES.PROGRAM_HEAD,
+  activeRole: ROLES.PROGRAM_HEAD,
   studentProfileId: null,
   profileGate: null,
 };
@@ -500,7 +500,7 @@ describe("manage-program-head-templates", () => {
       code: "BSIT",
     });
 
-    transactionMock.mockRejectedValue({ code: "P2002" });
+    transactionMock.mockRejectedValue(createPrismaUniqueConstraintError());
 
     const result = await createProgramHeadTemplate({
       name: "Duplicate Template",
@@ -535,7 +535,7 @@ describe("manage-program-head-templates", () => {
     resolveAuthSessionMock.mockResolvedValue({
       ...PH_SESSION,
       roles: [ROLES.FACULTY],
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
     });
 
     const result = await createProgramHeadTemplate({

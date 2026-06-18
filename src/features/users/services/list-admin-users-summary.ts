@@ -14,7 +14,7 @@ export type AdminUserSummaryItem = {
   email: string;
   isActive: boolean;
   roles: SystemRole[];
-  primaryRole: SystemRole | null;
+  activeRole: SystemRole | null;
   programLabel: string;
   majorLabel: string;
   sectionLabel: string;
@@ -42,17 +42,6 @@ export type AdminUsersSummaryResult = {
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
-
-/**
- * Returns the highest-precedence role from a list of roles based on
- * the ROLE_LEVELS hierarchy (higher number = higher precedence).
- */
-function resolveHighestRole(roles: SystemRole[]): SystemRole | null {
-  if (roles.length === 0) return null;
-  return roles.reduce((best, role) =>
-    (ROLE_LEVELS[role] ?? 0) > (ROLE_LEVELS[best] ?? 0) ? role : best
-  );
-}
 
 /**
  * Derives the program label for a user from their various affiliations.
@@ -180,7 +169,7 @@ export async function listAdminUsersSummary(): Promise<AdminUsersSummaryResult> 
       email: u.email,
       isActive: u.is_active,
       roles: roleEnums,
-      primaryRole: resolveHighestRole(roleEnums),
+      activeRole: roleEnums[0] ?? null,
       programLabel: resolveProgramLabel(u),
       majorLabel: resolveMajorLabel(u),
       sectionLabel: resolveSectionLabel(u),

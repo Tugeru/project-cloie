@@ -275,7 +275,7 @@ export function TemplateBuilder({
           return;
         }
 
-        setLoadedCilos(result.items);
+        setLoadedCilos(result.data.items);
       })
       .catch(() => {
         if (!isStale) {

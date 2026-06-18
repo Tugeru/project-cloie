@@ -16,15 +16,18 @@ export async function SessionGuard({ children, allowedRoles = [] }: SessionGuard
   const session = await resolveAuthSession();
 
   if (!session) {
-    redirect("/login");
+    redirect("/portal");
   }
 
-  if (session.profileGate.status !== "COMPLETE") {
+  if (
+    session.profileGate.status !== "COMPLETE" &&
+    session.profileGate.status !== "DEFERRED_ENROLLMENT"
+  ) {
     redirect(
       resolvePostLoginDestination({
         requestedPath: "/dashboard",
-        intent: session.profileGate.status === "STUDENT_ONBOARDING_REQUIRED" ? "student" : null,
-        primaryRole: session.primaryRole,
+        intent: "intent" in session.profileGate ? session.profileGate.intent : null,
+        activeRole: session.activeRole,
         profileGate: session.profileGate,
       })
     );
@@ -32,8 +35,7 @@ export async function SessionGuard({ children, allowedRoles = [] }: SessionGuard
 
   if (allowedRoles.length > 0) {
     const redirectPath = ensureRoleAccess({
-      primaryRole: session.primaryRole,
-      roles: session.roles,
+      activeRole: session.activeRole,
       allowedRoles,
     });
 
@@ -49,7 +51,7 @@ export async function SessionGuard({ children, allowedRoles = [] }: SessionGuard
         resolvePostLoginDestination({
           requestedPath: "/dashboard",
           intent: "student",
-          primaryRole: ROLES.STUDENT,
+          activeRole: ROLES.STUDENT,
           profileGate: { status: "STUDENT_ONBOARDING_REQUIRED", intent: "student" },
         })
       );

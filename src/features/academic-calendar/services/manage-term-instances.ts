@@ -9,10 +9,8 @@ import type {
   CreateTermInstanceInput,
   UpdateTermInstanceInput,
 } from "../schemas/term-instance";
-
-export type ServiceResult<T = void> =
-  | { success: true; data: T }
-  | { success: false; error: string };
+import { type ServiceResult } from "@/lib/utils/service-result";
+import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";
 
 /**
  * Verify admin authentication.
@@ -290,14 +288,4 @@ async function checkHasDependentRecords(termInstanceId: string): Promise<boolean
   return enrollments + assignments + evaluations + deployments > 0;
 }
 
-/**
- * Check if an error is a unique constraint violation.
- */
-function isUniqueConstraintError(error: unknown): boolean {
-  return (
-    error !== null &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error as { code?: string }).code === "P2002"
-  );
-}
+

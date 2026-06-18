@@ -25,8 +25,8 @@ export default async function FacultyAddCiloPage() {
 
   return (
     <AddCiloForm
-      courses={JSON.parse(JSON.stringify(result.courses))}
-      programs={result.programs}
+      courses={JSON.parse(JSON.stringify(result.data.courses))}
+      programs={result.data.programs}
       addAction={addCilosToCourseAction}
     />
   );

@@ -7,6 +7,7 @@ import { StudentSection, YearLevel } from "@prisma/client";
 import { customZodResolver } from "@/lib/forms/zod-resolver";
 import {
   studentProfileSchema,
+  deferredStudentProfileSchema,
   type StudentProfileFormValues,
   type StudentProfileInput,
 } from "@/lib/schemas/student-profile";
@@ -18,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, ArrowLeft, ArrowRight, GraduationCap, Mail, UserCircle } from "lucide-react";
+import { AlertCircle, ArrowLeft, ArrowRight, CalendarDays, GraduationCap, Mail, UserCircle } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -48,6 +49,7 @@ type StudentProfileFormProps = {
   initialLastName: string;
   programs: Program[];
   yearLevels: YearLevelType[];
+  hasActiveTerm: boolean;
 };
 
 export function StudentProfileForm({
@@ -56,9 +58,14 @@ export function StudentProfileForm({
   initialLastName,
   programs,
   yearLevels,
+  hasActiveTerm,
 }: StudentProfileFormProps) {
   const router = useRouter();
   const [globalError, setGlobalError] = useState<string | null>(null);
+
+  // When there is no active academic term, enrollment fields (year_level, section)
+  // are deferred — use the relaxed schema that makes them optional.
+  const activeSchema = hasActiveTerm ? studentProfileSchema : deferredStudentProfileSchema;
 
   const {
     control,
@@ -67,7 +74,7 @@ export function StudentProfileForm({
     watch,
     formState: { errors, isSubmitting },
   } = useForm<StudentProfileFormValues>({
-    resolver: customZodResolver(studentProfileSchema) as Resolver<StudentProfileFormValues>,
+    resolver: customZodResolver(activeSchema) as Resolver<StudentProfileFormValues>,
     defaultValues: {
       first_name: initialFirstName,
       last_name: initialLastName,
@@ -154,6 +161,18 @@ export function StudentProfileForm({
             <Alert variant="destructive" className="border-danger/50 bg-danger-soft text-danger">
               <AlertCircle className="size-4" />
               <AlertDescription>{globalError}</AlertDescription>
+            </Alert>
+          )}
+
+          {/* Deferred enrollment notice — shown when no active academic term is configured */}
+          {!hasActiveTerm && (
+            <Alert className="border-warning/30 bg-warning-soft/20">
+              <CalendarDays className="size-4 text-warning" />
+              <AlertDescription className="text-text-secondary text-body-sm">
+                <span className="font-semibold text-warning">Enrollment Deferred</span> — No active
+                academic term is currently configured. Your profile will be created, but year level
+                and section information will be collected once a term becomes available.
+              </AlertDescription>
             </Alert>
           )}
 
@@ -302,8 +321,67 @@ export function StudentProfileForm({
               )}
             </div>
 
-            {/* Student ID + Year Level side by side */}
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {/* Student ID only shows when deferred; when active-term it's alongside Year Level */}
+            {hasActiveTerm ? (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="student_id_number"
+                    className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase"
+                  >
+                    School ID Number
+                  </Label>
+                  <Input
+                    id="student_id_number"
+                    placeholder="e.g., 1000571225"
+                    {...register("student_id_number")}
+                    className={
+                      errors.student_id_number ? "border-danger focus-visible:ring-danger" : ""
+                    }
+                  />
+                  {errors.student_id_number && (
+                    <p className="text-danger flex items-center gap-1 text-xs">
+                      <AlertCircle className="size-3" />
+                      Required field
+                    </p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase">
+                    Year Level
+                  </Label>
+                  <Controller
+                    name="year_level"
+                    control={control}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger
+                          className={`w-full ${errors.year_level ? "border-danger" : ""}`}
+                        >
+                          <SelectValue placeholder="Select year">
+                            {field.value ? getYearLevelLabel(field.value as YearLevel) : null}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent>
+                          {yearLevels.map((yl) => (
+                            <SelectItem key={yl} value={yl}>
+                              {getYearLevelLabel(yl)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.year_level && (
+                    <p className="text-danger flex items-center gap-1 text-xs">
+                      <AlertCircle className="size-3" />
+                      {errors.year_level.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : (
               <div className="space-y-2">
                 <Label
                   htmlFor="student_id_number"
@@ -326,80 +404,48 @@ export function StudentProfileForm({
                   </p>
                 )}
               </div>
+            )}
 
+            {/* Section — only shown when an active term exists */}
+            {hasActiveTerm && (
               <div className="space-y-2">
                 <Label className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase">
-                  Year Level
+                  Section
                 </Label>
                 <Controller
-                  name="year_level"
+                  name="section"
                   control={control}
                   render={({ field }) => (
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <SelectTrigger
-                        className={`w-full ${errors.year_level ? "border-danger" : ""}`}
-                      >
-                        <SelectValue placeholder="Select year">
-                          {field.value ? getYearLevelLabel(field.value as YearLevel) : null}
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                    >
+                      <SelectTrigger className={`w-full ${errors.section ? "border-danger" : ""}`}>
+                        <SelectValue placeholder="Select section">
+                          {field.value ? getSectionLabel(field.value) : null}
                         </SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        {yearLevels.map((yl) => (
-                          <SelectItem key={yl} value={yl}>
-                            {getYearLevelLabel(yl)}
+                        {SECTION_OPTIONS.map((option) => (
+                          <SelectItem
+                            key={option.value}
+                            value={option.value}
+                          >
+                            {option.label}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   )}
                 />
-                {errors.year_level && (
+                {errors.section && (
                   <p className="text-danger flex items-center gap-1 text-xs">
                     <AlertCircle className="size-3" />
-                    {errors.year_level.message}
+                    {errors.section.message}
                   </p>
                 )}
               </div>
-            </div>
-
-            {/* Section */}
-            <div className="space-y-2">
-              <Label className="text-label-sm text-text-secondary font-semibold tracking-wider uppercase">
-                Section
-              </Label>
-              <Controller
-                name="section"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value}
-                  >
-                    <SelectTrigger className={`w-full ${errors.section ? "border-danger" : ""}`}>
-                      <SelectValue placeholder="Select section">
-                        {field.value ? getSectionLabel(field.value) : null}
-                      </SelectValue>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {SECTION_OPTIONS.map((option) => (
-                        <SelectItem
-                          key={option.value}
-                          value={option.value}
-                        >
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.section && (
-                <p className="text-danger flex items-center gap-1 text-xs">
-                  <AlertCircle className="size-3" />
-                  {errors.section.message}
-                </p>
-              )}
-            </div>
+            )}
           </div>
         </CardContent>
 

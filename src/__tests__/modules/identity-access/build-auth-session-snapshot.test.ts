@@ -11,7 +11,7 @@ describe("buildAuthSessionSnapshot", () => {
       studentProfileId: null,
     });
 
-    expect(session.primaryRole).toBeNull();
+    expect(session.activeRole).toBeNull();
     expect(session.profileGate).toEqual({ status: "ROLE_SELECTION_REQUIRED" });
   });
 
@@ -23,7 +23,7 @@ describe("buildAuthSessionSnapshot", () => {
       studentProfileId: null,
     });
 
-    expect(session.primaryRole).toBe(ROLES.STUDENT);
+    expect(session.activeRole).toBe(ROLES.STUDENT);
     expect(session.profileGate).toEqual({
       status: "STUDENT_ONBOARDING_REQUIRED",
       intent: "student",
@@ -38,23 +38,8 @@ describe("buildAuthSessionSnapshot", () => {
       studentProfileId: "profile-1",
     });
 
-    expect(session.primaryRole).toBe(ROLES.STUDENT);
+    expect(session.activeRole).toBe(ROLES.STUDENT);
     expect(session.profileGate).toEqual({ status: "COMPLETE" });
-  });
-
-  it("requires onboarding for mixed faculty and student users when the student profile is missing", () => {
-    const session = buildAuthSessionSnapshot({
-      userId: "user-4",
-      email: "faculty@acd.edu.ph",
-      roles: [ROLES.FACULTY, ROLES.STUDENT],
-      studentProfileId: null,
-    });
-
-    expect(session.primaryRole).toBe(ROLES.FACULTY);
-    expect(session.profileGate).toEqual({
-      status: "STUDENT_ONBOARDING_REQUIRED",
-      intent: "student",
-    });
   });
 
   it("allows faculty users without student profiles", () => {
@@ -63,9 +48,39 @@ describe("buildAuthSessionSnapshot", () => {
       email: "faculty@acd.edu.ph",
       roles: [ROLES.FACULTY],
       studentProfileId: null,
+      hasFacultyAffiliation: true,
     });
 
-    expect(session.primaryRole).toBe(ROLES.FACULTY);
+    expect(session.activeRole).toBe(ROLES.FACULTY);
+    expect(session.profileGate).toEqual({ status: "COMPLETE" });
+  });
+
+  it("requires faculty onboarding when hasFacultyAffiliation is false", () => {
+    const session = buildAuthSessionSnapshot({
+      userId: "user-6",
+      email: "faculty@acd.edu.ph",
+      roles: [ROLES.FACULTY],
+      studentProfileId: null,
+      hasFacultyAffiliation: false,
+    });
+
+    expect(session.activeRole).toBe(ROLES.FACULTY);
+    expect(session.profileGate).toEqual({
+      status: "FACULTY_ONBOARDING_REQUIRED",
+      intent: "faculty",
+    });
+  });
+
+  it("regression check: uses only the first role if multiple roles are provided (ignores stack priority resolution)", () => {
+    const session = buildAuthSessionSnapshot({
+      userId: "user-regression",
+      email: "regression@acd.edu.ph",
+      roles: [ROLES.STUDENT, ROLES.FACULTY],
+      studentProfileId: "profile-1",
+    });
+
+    // It should select STUDENT (roles[0]) as the activeRole, even though FACULTY used to have higher priority in resolution
+    expect(session.activeRole).toBe(ROLES.STUDENT);
     expect(session.profileGate).toEqual({ status: "COMPLETE" });
   });
 });

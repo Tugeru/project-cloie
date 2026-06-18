@@ -16,7 +16,7 @@ export default async function DashboardPage() {
     resolvePostLoginDestination({
       requestedPath: "/dashboard",
       intent: null,
-      primaryRole: session.primaryRole,
+      activeRole: session.activeRole,
       profileGate: session.profileGate,
     })
   );

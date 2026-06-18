@@ -6,13 +6,14 @@ import type { PublishCentralDeploymentInput } from "../schemas/central-deploymen
 import {
   DeploymentStatus,
   EvaluationTemplateType,
-  type AcademicSemester,
   type TargetStakeholder,
 } from "@prisma/client";
+import { type ServiceResult } from "@/lib/utils/service-result";
+import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
+
 
 export type PublishCentralDeploymentResult = ServiceResult<{
   deploymentId: string;
@@ -30,14 +31,7 @@ function computeDeploymentStatus(activationAt: Date | undefined): "ACTIVE" | "SC
   return DeploymentStatus.ACTIVE;
 }
 
-function isUniqueConstraintError(error: unknown): boolean {
-  return Boolean(
-    error &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error as { code?: string }).code === "P2002"
-  );
-}
+
 
 // ─── Main Service ────────────────────────────────────────────────────────────
 

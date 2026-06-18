@@ -1,18 +1,15 @@
 import type { Role } from "@/lib/constants/roles";
 
 export function ensureRoleAccess(input: {
-  primaryRole: Role | null;
-  roles?: Role[];
+  activeRole: Role | null;
   allowedRoles: Role[];
   unauthorizedPath?: string;
 }): string | null {
-  if (!input.primaryRole) {
-    return "/login";
+  if (!input.activeRole) {
+    return "/portal";
   }
 
-  const rolesToCheck = input.roles && input.roles.length > 0 ? input.roles : [input.primaryRole];
-
-  if (rolesToCheck.some((role) => input.allowedRoles.includes(role))) {
+  if (input.allowedRoles.includes(input.activeRole)) {
     return null;
   }
 

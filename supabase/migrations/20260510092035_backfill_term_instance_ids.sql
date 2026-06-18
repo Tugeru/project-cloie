@@ -1,5 +1,5 @@
 -- DropIndex
-DROP INDEX "course_bound_evaluations_course_id_faculty_id_academic_year_idx";
+DROP INDEX IF EXISTS "course_bound_evaluations_course_id_faculty_id_academic_year_idx";
 
 -- AlterTable
 ALTER TABLE "central_deployments" DROP COLUMN "academic_year",

@@ -1,4 +1,5 @@
-import { DeploymentStatus, EvaluationTemplateType, YearLevel } from "@prisma/client";
+import { DeploymentStatus, EvaluationTemplateType } from "@prisma/client";
+import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { getFacultyTemplatePublicationContext } from "@/features/instruments/services/manage-faculty-templates";
 import { listStudentsForClass } from "@/features/enrollments/services/list-students-for-class";
@@ -21,41 +22,7 @@ function toUniqueValues(values: string[]) {
   return [...new Set(values.filter((value) => value.trim().length > 0))];
 }
 
-function isUniqueConstraintError(error: unknown) {
-  return Boolean(
-    error &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error as { code?: string }).code === "P2002"
-  );
-}
 
-function isCourseContextDuplicatePublishError(error: unknown) {
-  if (
-    !isUniqueConstraintError(error) ||
-    !error ||
-    typeof error !== "object" ||
-    !("meta" in error)
-  ) {
-    return false;
-  }
-
-  const target = (error as { meta?: { target?: string[] | string } }).meta?.target;
-
-  // Phase 9: Updated for new unique constraint: term_instance_id + course_id + faculty_id + section
-  if (typeof target === "string") {
-    return target.includes("course_bound_evaluations_term_instance_id_course_id_faculty_id_section_key");
-  }
-
-  if (Array.isArray(target)) {
-    const targetSet = new Set(target);
-    return ["term_instance_id", "course_id", "faculty_id", "section"].every((field) =>
-      targetSet.has(field)
-    );
-  }
-
-  return false;
-}
 
 /**
  * Phase 9: Publish course-bound evaluation using course assignment ID.
@@ -244,15 +211,17 @@ export async function publishCourseBoundEvaluation({
       }
 
       return {
-        assignmentCount: respondentIds.length,
-        evaluationId: evaluation.id,
-        status,
-        success: true as const,
-        targetCount: targetRows.length,
+        success: true,
+        data: {
+          assignmentCount: respondentIds.length,
+          evaluationId: evaluation.id,
+          status,
+          targetCount: targetRows.length,
+        },
       };
     });
 
-    return result;
+    return result as PublishCourseBoundEvaluationResult;
   } catch (error) {
     if (isUniqueConstraintError(error)) {
       return {

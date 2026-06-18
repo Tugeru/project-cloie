@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { publishCourseBoundEvaluation } from "@/features/evaluations/services/publish-course-bound-evaluation";
 import { ROLES } from "@/lib/constants/roles";
+import { createPrismaUniqueConstraintError } from "@/__tests__/helpers/prisma-test-helpers";
 
 const {
   assignmentCreateManyMock,
@@ -148,7 +149,7 @@ describe("publishCourseBoundEvaluation", () => {
 
   it("publishes a course-bound evaluation from the saved faculty template context", async () => {
     resolveAuthSessionMock.mockResolvedValue({
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });
@@ -170,11 +171,13 @@ describe("publishCourseBoundEvaluation", () => {
         templateId: "template-1",
       })
     ).resolves.toEqual({
-      assignmentCount: 2,
-      evaluationId: "evaluation-1",
-      status: "ACTIVE",
       success: true,
-      targetCount: 1,
+      data: {
+        assignmentCount: 2,
+        evaluationId: "evaluation-1",
+        status: "ACTIVE",
+        targetCount: 1,
+      },
     });
 
     expect(courseAssignmentFindUniqueMock).toHaveBeenCalledWith(
@@ -228,7 +231,7 @@ describe("publishCourseBoundEvaluation", () => {
 
   it("surfaces saved template validation failures", async () => {
     resolveAuthSessionMock.mockResolvedValue({
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });
@@ -252,19 +255,14 @@ describe("publishCourseBoundEvaluation", () => {
 
   it("maps duplicate course-context publishes to a user-facing error", async () => {
     resolveAuthSessionMock.mockResolvedValue({
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });
     courseAssignmentFindUniqueMock.mockResolvedValue(MOCK_ASSIGNMENT);
     getFacultyTemplatePublicationContextMock.mockResolvedValue(MOCK_PUBLICATION_CONTEXT);
     instrumentVersionFindFirstMock.mockResolvedValue({ id: "version-1" });
-    transactionMock.mockRejectedValue({
-      code: "P2002",
-      meta: {
-        target: ["term_instance_id", "course_id", "faculty_id", "section"],
-      },
-    });
+    transactionMock.mockRejectedValue(createPrismaUniqueConstraintError());
 
     await expect(
       publishCourseBoundEvaluation({

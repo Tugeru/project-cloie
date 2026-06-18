@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { ROLES } from "@/lib/constants/roles";
+import { createPrismaUniqueConstraintError } from "@/__tests__/helpers/prisma-test-helpers";
 
 const {
   goAggregateMock,
@@ -59,7 +59,7 @@ const PH_SESSION = {
   userId: "ph-user-1",
   email: "ph@acd.edu.ph",
   roles: [ROLES.PROGRAM_HEAD],
-  primaryRole: ROLES.PROGRAM_HEAD,
+  activeRole: ROLES.PROGRAM_HEAD,
   studentProfileId: null,
   profileGate: null,
 };
@@ -174,7 +174,7 @@ describe("manage-program-head-outcomes", () => {
 
   it("unique constraint error on duplicate GO code within program", async () => {
     goAggregateMock.mockResolvedValue({ _max: { order: null } });
-    goCreateMock.mockRejectedValue({ code: "P2002" });
+    goCreateMock.mockRejectedValue(createPrismaUniqueConstraintError());
 
     const result = await createGO({
       code: "GO-1",
@@ -313,7 +313,7 @@ describe("manage-program-head-outcomes", () => {
     resolveAuthSessionMock.mockResolvedValue({
       ...PH_SESSION,
       roles: [ROLES.FACULTY],
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
     });
 
     const result = await createGO({

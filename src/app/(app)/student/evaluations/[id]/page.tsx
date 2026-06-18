@@ -6,9 +6,17 @@ import {
   submitStudentEvaluationResponseAction,
 } from "@/lib/actions/student-evaluation-actions";
 import { notFound, redirect } from "next/navigation";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 
 export default async function EvaluationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+
+  // Deferred enrollment students cannot access evaluation detail pages.
+  const authSession = await resolveAuthSession();
+  if (authSession?.profileGate.status === "DEFERRED_ENROLLMENT") {
+    redirect("/student/dashboard");
+  }
+
   const session = await getStudentAssignedEvaluationSession(id);
 
   if (!session) {

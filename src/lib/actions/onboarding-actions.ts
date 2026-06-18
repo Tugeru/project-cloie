@@ -4,11 +4,18 @@ import { EnrollmentSource } from "@prisma/client";
 import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { studentProfileSchema, type StudentProfileInput } from "@/lib/schemas/student-profile";
+import {
+  studentProfileSchema,
+  deferredStudentProfileSchema,
+  type StudentProfileInput,
+  type DeferredStudentProfileInput,
+} from "@/lib/schemas/student-profile";
 import { getActiveTermId } from "@/features/academic-calendar/services/resolve-active-term";
 import { upsertEnrollmentForActiveTerm } from "@/features/enrollments/services/manage-student-enrollments";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { redirect } from "next/navigation";
 
-export async function registerStudentProfile(data: StudentProfileInput) {
+export async function registerStudentProfile(data: StudentProfileInput | DeferredStudentProfileInput) {
   try {
     const supabase = await createClient();
     const {
@@ -20,44 +27,76 @@ export async function registerStudentProfile(data: StudentProfileInput) {
       return { error: "Authentication session invalid or missing." };
     }
 
-    const validatedData = studentProfileSchema.parse(data);
-
-    // Resolve active term for enrollment
-    const activeTermId = await getActiveTermId();
-    if (!activeTermId) {
-      return { error: "No active academic term is configured. Please contact an administrator." };
+    // Verify student email domain is authorized
+    const studentEmail = user.email.trim().toLowerCase();
+    const isAuthorized =
+      studentEmail.endsWith("@acd.edu.ph") ||
+      studentEmail.endsWith("@acdeducation.com");
+    if (!isAuthorized) {
+      return { error: "Institutional email domain is required for student registration." };
     }
 
-    // Get school year code from active term
-    const activeTerm = await prisma.academicTermInstance.findUnique({
-      where: { id: activeTermId },
-      include: { school_year: true },
+    // Resolve active term for enrollment (deferred if none exists)
+    const activeTermId = await getActiveTermId();
+
+    // Choose validation schema based on whether there is an active term.
+    // If no active term exists, year_level and section are not yet known.
+    const schema = activeTermId ? studentProfileSchema : deferredStudentProfileSchema;
+    const validatedData = schema.parse(data);
+
+    // Verify program exists and is active
+    const program = await prisma.program.findUnique({
+      where: { id: validatedData.program_id },
     });
-    const academicYear = activeTerm?.school_year?.code ?? `${new Date().getFullYear()}-${new Date().getFullYear() + 1}`;
+    if (!program) {
+      return { error: "The selected program does not exist." };
+    }
+    if (!program.is_active) {
+      return { error: "The selected program is archived or inactive." };
+    }
+
+    // Verify major exists, is active, and belongs to program
+    if (validatedData.major_id) {
+      const major = await prisma.major.findUnique({
+        where: { id: validatedData.major_id },
+      });
+      if (!major) {
+        return { error: "The selected major does not exist." };
+      }
+      if (!major.is_active) {
+        return { error: "The selected major is archived or inactive." };
+      }
+      if (major.program_id !== validatedData.program_id) {
+        return { error: "The selected major does not belong to the selected program." };
+      }
+    }
+
+    let domainUserId = user.id;
 
     // Execute atomic transaction
     await prisma.$transaction(async (tx) => {
-      // 1. Create or Update User syncing the exact UUID from Supabase
-      await tx.user.upsert({
-        where: { id: user.id },
+      // 1. Find or Create domain User by Supabase auth_user_id
+      const domainUser = await tx.user.upsert({
+        where: { auth_user_id: user.id },
         update: {
           first_name: validatedData.first_name,
           last_name: validatedData.last_name,
         },
         create: {
-          id: user.id,
+          auth_user_id: user.id,
           email: user.email!,
           first_name: validatedData.first_name,
           last_name: validatedData.last_name,
         },
       });
+      domainUserId = domainUser.id;
 
       // 2. Assign Global Role (Idempotent)
       await tx.userRole.upsert({
-        where: { user_id_role: { user_id: user.id, role: ROLES.STUDENT } },
-        update: {},
+        where: { user_id: domainUserId },
+        update: { role: ROLES.STUDENT },
         create: {
-          user_id: user.id,
+          user_id: domainUserId,
           role: ROLES.STUDENT,
         },
       });
@@ -65,14 +104,14 @@ export async function registerStudentProfile(data: StudentProfileInput) {
       // 3. Construct Academic Profile parameters (Idempotent)
       // Phase 9: Profile only holds static cohort fields - enrollment data is in StudentEnrollment
       await tx.studentAcademicProfile.upsert({
-        where: { user_id: user.id },
+        where: { user_id: domainUserId },
         update: {
           program_id: validatedData.program_id,
           major_id: validatedData.major_id || null,
           student_id_number: validatedData.student_id_number,
         },
         create: {
-          user_id: user.id,
+          user_id: domainUserId,
           program_id: validatedData.program_id,
           major_id: validatedData.major_id || null,
           student_id_number: validatedData.student_id_number,
@@ -82,30 +121,44 @@ export async function registerStudentProfile(data: StudentProfileInput) {
       // 4. Create enrollment for active term (outside transaction since it uses its own transaction)
     });
 
-    // Create enrollment for active term (separate transaction)
-    const enrollmentResult = await upsertEnrollmentForActiveTerm({
-      studentUserId: user.id,
-      termInstanceId: activeTermId,
-      programId: validatedData.program_id,
-      majorId: validatedData.major_id || null,
-      yearLevel: validatedData.year_level,
-      section: validatedData.section || null,
-      source: EnrollmentSource.ONBOARDING,
-    });
+    // Create enrollment for active term (separate transaction) if active term exists.
+    // When activeTermId is set we used studentProfileSchema which requires year_level and section.
+    if (activeTermId) {
+      const fullData = validatedData as StudentProfileInput;
+      const enrollmentResult = await upsertEnrollmentForActiveTerm({
+        studentUserId: domainUserId,
+        termInstanceId: activeTermId,
+        programId: fullData.program_id,
+        majorId: fullData.major_id || null,
+        yearLevel: fullData.year_level,
+        section: fullData.section || null,
+        source: EnrollmentSource.ONBOARDING,
+      });
 
-    if (!enrollmentResult.success) {
-      console.error("Failed to create enrollment:", enrollmentResult.error);
-      // Don't fail the entire registration, but log the error
+      if (!enrollmentResult.success) {
+        console.error("Failed to create enrollment:", enrollmentResult.error);
+        return { success: false, error: enrollmentResult.error };
+      }
     }
 
     return { success: true };
   } catch (error: unknown) {
     console.error("Failed to register student profile:", error);
     return {
-      error:
-        error instanceof Error
-          ? error.message
-          : "An unexpected error occurred during database persistence.",
+      success: false,
+      error: "An unexpected error occurred while processing your request.",
     };
   }
+}
+
+export async function resetIncompleteRoleClaim() {
+  const session = await resolveAuthSession();
+
+  if (session && session.profileGate.status !== "COMPLETE") {
+    await prisma.userRole.deleteMany({
+      where: { user_id: session.userId },
+    });
+  }
+
+  redirect("/portal");
 }

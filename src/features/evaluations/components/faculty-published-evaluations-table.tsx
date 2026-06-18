@@ -109,7 +109,7 @@ export function FacultyPublishedEvaluationsTable({
       showToast(result.error, "error");
       return;
     }
-    setSelectedDetail(result.detail);
+    setSelectedDetail(result.data);
     setDetailDialogOpen(true);
   }
 

@@ -1,7 +1,6 @@
 import { prisma } from "@/lib/db/prisma";
 import type { UpdateAdminUserInput } from "../schemas/update-user";
-
-type ServiceResult = { success: true } | { success: false; error: string };
+import { type ServiceResult } from "@/lib/utils/service-result";
 
 export async function updateAdminUser(input: UpdateAdminUserInput): Promise<ServiceResult> {
   const { id, first_name, last_name } = input;
@@ -23,5 +22,5 @@ export async function updateAdminUser(input: UpdateAdminUserInput): Promise<Serv
     },
   });
 
-  return { success: true };
+  return { success: true, data: undefined };
 }

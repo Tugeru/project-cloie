@@ -1,9 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { ROLES } from "@/lib/constants/roles";
 
-const { getUserMock, findUniqueMock } = vi.hoisted(() => ({
+const { getUserMock, findUniqueMock, findFirstTermInstanceMock, findUniqueStudentEnrollmentMock, findFirstFacultyAffiliationMock } = vi.hoisted(() => ({
   getUserMock: vi.fn(),
   findUniqueMock: vi.fn(),
+  findFirstTermInstanceMock: vi.fn(),
+  findUniqueStudentEnrollmentMock: vi.fn(),
+  findFirstFacultyAffiliationMock: vi.fn(),
 }));
 
 vi.mock("next/headers", () => ({
@@ -31,6 +34,15 @@ vi.mock("@/lib/db/prisma", () => ({
     user: {
       findUnique: findUniqueMock,
     },
+    academicTermInstance: {
+      findFirst: findFirstTermInstanceMock,
+    },
+    studentEnrollment: {
+      findUnique: findUniqueStudentEnrollmentMock,
+    },
+    facultyProgramAffiliation: {
+      findFirst: findFirstFacultyAffiliationMock,
+    },
   },
 }));
 
@@ -38,6 +50,9 @@ describe("resolveAuthSession", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.resetModules();
+    findFirstTermInstanceMock.mockResolvedValue({ id: "term-1" });
+    findUniqueStudentEnrollmentMock.mockResolvedValue({ is_active: true });
+    findFirstFacultyAffiliationMock.mockResolvedValue({ id: "affiliation-1" });
   });
 
   it("returns null when Supabase returns an auth error", async () => {
@@ -66,8 +81,10 @@ describe("resolveAuthSession", () => {
       userId: "user-1",
       email: "user@acd.edu.ph",
       roles: [],
-      primaryRole: null,
+      activeRole: null,
       studentProfileId: null,
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
       profileGate: { status: "ROLE_SELECTION_REQUIRED" },
     });
   });
@@ -87,8 +104,10 @@ describe("resolveAuthSession", () => {
       userId: "user-2",
       email: "student@acd.edu.ph",
       roles: [ROLES.STUDENT],
-      primaryRole: ROLES.STUDENT,
+      activeRole: ROLES.STUDENT,
       studentProfileId: null,
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
       profileGate: {
         status: "STUDENT_ONBOARDING_REQUIRED",
         intent: "student",
@@ -111,13 +130,15 @@ describe("resolveAuthSession", () => {
       userId: "user-3",
       email: "student@acd.edu.ph",
       roles: [ROLES.STUDENT],
-      primaryRole: ROLES.STUDENT,
+      activeRole: ROLES.STUDENT,
       studentProfileId: "profile-1",
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
       profileGate: { status: "COMPLETE" },
     });
   });
 
-  it("requires onboarding for mixed faculty and student users when the student profile is missing", async () => {
+  it("requires onboarding for mixed faculty and student users when the faculty affiliation is missing", async () => {
     const { resolveAuthSession } = await import("@/features/auth/services/resolve-auth-session");
     getUserMock.mockResolvedValue({
       data: { user: { id: "user-4", email: "faculty@acd.edu.ph" } },
@@ -127,16 +148,19 @@ describe("resolveAuthSession", () => {
       roles: [{ role: ROLES.FACULTY }, { role: ROLES.STUDENT }],
       student_profile: null,
     });
+    findFirstFacultyAffiliationMock.mockResolvedValue(null);
 
     await expect(resolveAuthSession()).resolves.toEqual({
       userId: "user-4",
       email: "faculty@acd.edu.ph",
       roles: [ROLES.FACULTY, ROLES.STUDENT],
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
       studentProfileId: null,
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
       profileGate: {
-        status: "STUDENT_ONBOARDING_REQUIRED",
-        intent: "student",
+        status: "FACULTY_ONBOARDING_REQUIRED",
+        intent: "faculty",
       },
     });
   });
@@ -156,9 +180,62 @@ describe("resolveAuthSession", () => {
       userId: "user-5",
       email: "unknown@acd.edu.ph",
       roles: [],
-      primaryRole: null,
+      activeRole: null,
       studentProfileId: null,
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
       profileGate: { status: "ROLE_SELECTION_REQUIRED" },
+    });
+  });
+
+  it("returns onboarding-required state for a faculty user without a program affiliation", async () => {
+    const { resolveAuthSession } = await import("@/features/auth/services/resolve-auth-session");
+    getUserMock.mockResolvedValue({
+      data: { user: { id: "user-6", email: "faculty@acd.edu.ph" } },
+      error: null,
+    });
+    findUniqueMock.mockResolvedValue({
+      roles: [{ role: ROLES.FACULTY }],
+      student_profile: null,
+    });
+    findFirstFacultyAffiliationMock.mockResolvedValue(null);
+
+    await expect(resolveAuthSession()).resolves.toEqual({
+      userId: "user-6",
+      email: "faculty@acd.edu.ph",
+      roles: [ROLES.FACULTY],
+      activeRole: ROLES.FACULTY,
+      studentProfileId: null,
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
+      profileGate: {
+        status: "FACULTY_ONBOARDING_REQUIRED",
+        intent: "faculty",
+      },
+    });
+  });
+
+  it("returns complete state for a faculty user with an active program affiliation", async () => {
+    const { resolveAuthSession } = await import("@/features/auth/services/resolve-auth-session");
+    getUserMock.mockResolvedValue({
+      data: { user: { id: "user-7", email: "faculty@acd.edu.ph" } },
+      error: null,
+    });
+    findUniqueMock.mockResolvedValue({
+      roles: [{ role: ROLES.FACULTY }],
+      student_profile: null,
+    });
+    findFirstFacultyAffiliationMock.mockResolvedValue({ id: "affiliation-1" });
+
+    await expect(resolveAuthSession()).resolves.toEqual({
+      userId: "user-7",
+      email: "faculty@acd.edu.ph",
+      roles: [ROLES.FACULTY],
+      activeRole: ROLES.FACULTY,
+      studentProfileId: null,
+      alumniProfileId: null,
+      industryPartnerProfileId: null,
+      profileGate: { status: "COMPLETE" },
     });
   });
 });

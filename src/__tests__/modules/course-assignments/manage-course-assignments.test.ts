@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { YearLevel } from "@prisma/client";
 import { ROLES } from "@/lib/constants/roles";
+import { createPrismaUniqueConstraintError } from "@/__tests__/helpers/prisma-test-helpers";
 import {
   createCourseAssignment,
   updateCourseAssignment,
@@ -29,7 +30,7 @@ describe("manage-course-assignments", () => {
     userId: "admin-1",
     email: "admin@test.com",
     roles: [ROLES.ADMIN],
-    primaryRole: ROLES.ADMIN,
+    activeRole: ROLES.ADMIN,
     studentProfileId: null,
     profileGate: { status: "COMPLETE" as const },
   };
@@ -38,7 +39,7 @@ describe("manage-course-assignments", () => {
     userId: "ph-1",
     email: "ph@test.com",
     roles: [ROLES.PROGRAM_HEAD],
-    primaryRole: ROLES.PROGRAM_HEAD,
+    activeRole: ROLES.PROGRAM_HEAD,
     studentProfileId: null,
     profileGate: { status: "COMPLETE" as const },
   };
@@ -47,7 +48,7 @@ describe("manage-course-assignments", () => {
     userId: "faculty-1",
     email: "faculty@test.com",
     roles: [ROLES.FACULTY],
-    primaryRole: ROLES.FACULTY,
+    activeRole: ROLES.FACULTY,
     studentProfileId: null,
     profileGate: { status: "COMPLETE" as const },
   };
@@ -106,9 +107,9 @@ describe("manage-course-assignments", () => {
         program_id: "program-1",
       } as never);
       vi.mocked(prisma.courseAssignment.findFirst).mockResolvedValue(null as never);
-      vi.mocked(prisma.courseAssignment.create).mockRejectedValue({
-        code: "P2002",
-      } as never);
+      vi.mocked(prisma.courseAssignment.create).mockRejectedValue(
+        createPrismaUniqueConstraintError()
+      );
 
       const result = await createCourseAssignment({
         termInstanceId: "term-1",
@@ -178,7 +179,7 @@ describe("manage-course-assignments", () => {
       });
       vi.mocked(prisma.courseAssignment.create).mockImplementation(() => {
         if (callCount === 2) {
-          return Promise.reject({ code: "P2002" } as never);
+          return Promise.reject(createPrismaUniqueConstraintError());
         }
         return Promise.resolve({ id: `assignment-${callCount}` } as never);
       });

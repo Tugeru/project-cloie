@@ -229,7 +229,7 @@ export function PublishCourseBoundEvaluationForm({
         return;
       }
 
-      setPreviewRespondents(result.respondents);
+      setPreviewRespondents(result.data);
       setExcludedRespondentIds([]);
       setStep("preview");
     } catch {
@@ -267,7 +267,7 @@ export function PublishCourseBoundEvaluationForm({
         return;
       }
 
-      const toastMessage = `Evaluation published successfully! ${result.assignmentCount} assignment(s) created.`;
+      const toastMessage = `Evaluation published successfully! ${result.data.assignmentCount} assignment(s) created.`;
       router.push(`/faculty/tools?toast=${encodeURIComponent(toastMessage)}`);
       return;
     } catch {

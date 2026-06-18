@@ -17,7 +17,7 @@ describe("list-course-assignments-for-faculty", () => {
     userId: "faculty-1",
     email: "faculty@test.com",
     roles: [SystemRole.FACULTY],
-    primaryRole: SystemRole.FACULTY,
+    activeRole: SystemRole.FACULTY,
     studentProfileId: null,
     profileGate: { status: "COMPLETE" } as const,
   };
@@ -26,7 +26,7 @@ describe("list-course-assignments-for-faculty", () => {
     userId: "student-1",
     email: "student@test.com",
     roles: [SystemRole.STUDENT],
-    primaryRole: SystemRole.STUDENT,
+    activeRole: SystemRole.STUDENT,
     studentProfileId: null,
     profileGate: { status: "COMPLETE" } as const,
   };

@@ -20,15 +20,18 @@ interface FacultyEditTemplatePageProps {
 export default async function FacultyEditTemplatePage({ params }: FacultyEditTemplatePageProps) {
   const { id } = await params;
 
-  const template = await getFacultyTemplate(id);
-  const courseContexts = await listFacultyCourseContextsAction();
+  const templateResult = await getFacultyTemplate(id);
+  const courseContextsResult = await listFacultyCourseContextsAction();
 
-  if (!template) {
+  if (!templateResult.success) {
     notFound();
   }
 
-  const programLabel = template.program
-    ? `${template.program.code} — ${template.program.name}`
+  const template = templateResult.data;
+  const courseContexts = courseContextsResult.success ? courseContextsResult.data : [];
+
+  const programLabel = template.programCode && template.programName
+    ? `${template.programCode} — ${template.programName}`
     : "Institutional Template";
 
   return (
@@ -47,24 +50,24 @@ export default async function FacultyEditTemplatePage({ params }: FacultyEditTem
           id: template.id,
           name: template.name,
           description: template.description ?? "",
-          template_type: template.template_type,
+          template_type: template.templateType,
           is_active: template.is_active,
           is_faculty_accessible: template.is_faculty_accessible,
-          bound_course_id: template.bound_course_id,
-          bound_major_id: template.bound_major_id,
-          bound_program_id: template.bound_program_id,
+          bound_course_id: template.boundCourseId,
+          bound_major_id: template.boundMajorId,
+          bound_program_id: template.boundProgramId,
           structure: template.structure as unknown as TemplateStructure,
         }}
         facultyConfig={{
           courseContexts,
-          initialBindings: template.template_cilo_question_bindings
-            .filter((binding) => binding.cilo_id)
+          initialBindings: template.templateCiloQuestionBindings
+            .filter((binding) => binding.ciloId)
             .map((binding) => ({
-              ciloDescriptionSnapshot: binding.cilo_description_snapshot,
-              ciloId: binding.cilo_id!,
-              itemKey: binding.item_key,
-              questionPromptSnapshot: binding.question_prompt_snapshot,
-              sectionKey: binding.section_key,
+              ciloDescriptionSnapshot: binding.ciloDescriptionSnapshot,
+              ciloId: binding.ciloId!,
+              itemKey: binding.itemKey,
+              questionPromptSnapshot: binding.questionPromptSnapshot,
+              sectionKey: binding.sectionKey,
             })),
           loadManagedCilosAction: loadFacultyManagedCilosAction,
           validatePublishReadinessAction: validateFacultyTemplatePublishReadinessAction,

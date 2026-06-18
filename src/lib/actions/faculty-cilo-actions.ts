@@ -54,23 +54,60 @@ export async function saveCilosForCourseAction(
   }
 
   // Filter out empty descriptions
-  const validCilos = cilos.filter((c) => c.description.trim().length > 0);
+  const validCilos = cilos
+    .map((c) => ({ id: c.id, description: c.description.trim() }))
+    .filter((c) => c.description.length > 0);
+
+  const toUpdate = validCilos.filter((c) => c.id);
+  const toCreate = validCilos.filter((c) => !c.id);
+  const keepIds = new Set(toUpdate.map((c) => c.id!));
 
   try {
     await prisma.$transaction(async (tx) => {
-      // Delete all existing CILOs for this course
-      await tx.cILO.deleteMany({
+      // Fetch existing CILOs for this course
+      const existingCilos = await tx.cILO.findMany({
         where: { course_id: courseId },
+        select: { id: true },
       });
 
+      // Delete CILOs that are absent from the input (removed by user)
+      const toDeleteIds = existingCilos
+        .filter((c) => !keepIds.has(c.id))
+        .map((c) => c.id);
+
+      if (toDeleteIds.length > 0) {
+        await tx.cILO.deleteMany({
+          where: { id: { in: toDeleteIds } },
+        });
+      }
+
+      // Update existing CILOs with new descriptions
+      for (const item of toUpdate) {
+        await tx.cILO.update({
+          where: { id: item.id! },
+          data: { description: item.description },
+        });
+      }
+
       // Create new CILOs
-      if (validCilos.length > 0) {
+      if (toCreate.length > 0) {
         await tx.cILO.createMany({
-          data: validCilos.map((c) => ({
+          data: toCreate.map((item) => ({
             course_id: courseId,
-            description: c.description.trim(),
+            description: item.description,
             created_by: session.userId,
           })),
+        });
+      }
+
+      // Update template binding snapshots for updated CILOs.
+      // This only affects InstrumentTemplateCiloQuestionBinding (draft/template-level).
+      // Published evaluations use a separate CourseBoundCiloQuestionBinding table whose
+      // snapshots are frozen at publish time and are NOT affected by this update.
+      for (const item of toUpdate) {
+        await tx.instrumentTemplateCiloQuestionBinding.updateMany({
+          where: { cilo_id: item.id! },
+          data: { cilo_description_snapshot: item.description },
         });
       }
     });

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CourseScope } from "@prisma/client";
-
 import { ROLES } from "@/lib/constants/roles";
+import { createPrismaUniqueConstraintError } from "@/__tests__/helpers/prisma-test-helpers";
 
 const {
   courseCreateMock,
@@ -43,7 +43,7 @@ const PH_SESSION = {
   userId: "ph-user-1",
   email: "ph@acd.edu.ph",
   roles: [ROLES.PROGRAM_HEAD],
-  primaryRole: ROLES.PROGRAM_HEAD,
+  activeRole: ROLES.PROGRAM_HEAD,
   studentProfileId: null,
   profileGate: null,
 };
@@ -205,7 +205,7 @@ describe("manage-program-head-courses", () => {
   });
 
   it("Unique constraint error on duplicate course code", async () => {
-    courseCreateMock.mockRejectedValue({ code: "P2002" });
+    courseCreateMock.mockRejectedValue(createPrismaUniqueConstraintError());
 
     const result = await createProgramHeadCourse({
       code: "IT-301",
@@ -325,7 +325,7 @@ describe("manage-program-head-courses", () => {
     resolveAuthSessionMock.mockResolvedValue({
       ...PH_SESSION,
       roles: [ROLES.FACULTY],
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
     });
 
     const result = await createProgramHeadCourse({

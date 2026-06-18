@@ -6,16 +6,8 @@ import type {
   UpdateProgramInput,
 } from "../schemas/program";
 
-type ServiceResult<T = void> = { success: true; data: T } | { success: false; error: string };
-
-function isUniqueConstraintError(error: unknown): boolean {
-  return Boolean(
-    error &&
-    typeof error === "object" &&
-    "code" in error &&
-    (error as { code?: string }).code === "P2002"
-  );
-}
+import { type ServiceResult } from "@/lib/utils/service-result";
+import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";
 
 async function listPrograms() {
   return prisma.program.findMany({

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ROLES } from "@/lib/constants/roles";
 import { publishCentralDeployment } from "@/features/evaluations/services/publish-central-deployment";
+import { createPrismaUniqueConstraintError } from "@/__tests__/helpers/prisma-test-helpers";
 
 const {
   assignmentCreateManyMock,
@@ -70,7 +71,7 @@ vi.mock("@/features/auth/services/resolve-auth-session", () => ({
 
 function mockAuthenticatedPH() {
   resolveAuthSessionMock.mockResolvedValue({
-    primaryRole: ROLES.PROGRAM_HEAD,
+    activeRole: ROLES.PROGRAM_HEAD,
     roles: [ROLES.PROGRAM_HEAD],
     userId: "ph-user-1",
   });
@@ -156,7 +157,7 @@ describe("publishCentralDeployment", () => {
 
   it("rejects non-PROGRAM_HEAD role", async () => {
     resolveAuthSessionMock.mockResolvedValue({
-      primaryRole: ROLES.FACULTY,
+      activeRole: ROLES.FACULTY,
       roles: [ROLES.FACULTY],
       userId: "faculty-1",
     });
@@ -542,10 +543,7 @@ describe("publishCentralDeployment", () => {
     mockNoDuplicate();
     mockTermInstance();
 
-    transactionMock.mockRejectedValue({
-      code: "P2002",
-      meta: { target: ["instrument_version_id", "program_id"] },
-    });
+    transactionMock.mockRejectedValue(createPrismaUniqueConstraintError());
 
     const result = await publishCentralDeployment(baseInput);
 
