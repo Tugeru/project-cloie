@@ -1,5 +1,5 @@
 import { describe, expect, test, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { ManagementCoursesList } from "@/features/academic-structure/components/management-courses-list";
 import type {
   ManagementCourseSummaryItem,
@@ -103,11 +103,11 @@ describe("ManagementCoursesList", () => {
       />
     );
 
-    expect(screen.getByText("2")).toBeInTheDocument();
+    expect(screen.getAllByText("2").length).toBeGreaterThan(0);
     expect(screen.getByText("Total Courses")).toBeInTheDocument();
     expect(screen.getByText("Active Courses")).toBeInTheDocument();
-    expect(screen.getByText("General Education")).toBeInTheDocument();
-    expect(screen.getByText("Program-Specific")).toBeInTheDocument();
+    expect(screen.getAllByText("General Education").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Program-Specific").length).toBeGreaterThan(0);
   });
 
   test("displays scope badges correctly", () => {
@@ -120,8 +120,8 @@ describe("ManagementCoursesList", () => {
       />
     );
 
-    expect(screen.getByText("General Education")).toBeInTheDocument();
-    expect(screen.getByText("Program-Specific")).toBeInTheDocument();
+    expect(screen.getAllByText("General Education").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Program-Specific").length).toBeGreaterThan(0);
   });
 
   test("shows program and major information when available", () => {
@@ -147,13 +147,15 @@ describe("ManagementCoursesList", () => {
       />
     );
 
-    expect(screen.getByText("3")).toBeInTheDocument();
-    expect(screen.getByText("5")).toBeInTheDocument();
-    expect(screen.getByText("2")).toBeInTheDocument();
-    expect(screen.getByText("3")).toBeInTheDocument();
+    // "2" appears in KPI (totalCourses) and table (course-1 evaluationCount).
+    // "3" appears in table for course-1 ciloCount and course-2 evaluationCount.
+    // "5" appears in table for course-2 ciloCount.
+    expect(screen.getAllByText("2").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("3").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("5").length).toBeGreaterThan(0);
   });
 
-  test("shows Edit link with correct basePath for Secretary", () => {
+  test("shows Edit link with correct basePath for Secretary", async () => {
     const { container } = render(
       <ManagementCoursesList
         courses={mockCourses}
@@ -163,11 +165,18 @@ describe("ManagementCoursesList", () => {
       />
     );
 
-    const editLinks = container.querySelectorAll('a[href="/secretary/courses/course-1/edit"]');
-    expect(editLinks).toHaveLength(1);
+    // DropdownMenuContent renders via Portal only after the trigger opens it.
+    const trigger = container.querySelector(
+      '[data-slot="dropdown-menu-trigger"]'
+    ) as HTMLElement;
+    expect(trigger).toBeTruthy();
+    fireEvent.click(trigger);
+
+    const editLink = await screen.findByText("Edit");
+    expect(editLink).toHaveAttribute("href", "/secretary/courses/course-1/edit");
   });
 
-  test("shows Edit link with correct basePath for Dean", () => {
+  test("shows Edit link with correct basePath for Dean", async () => {
     const { container } = render(
       <ManagementCoursesList
         courses={mockCourses}
@@ -177,7 +186,13 @@ describe("ManagementCoursesList", () => {
       />
     );
 
-    const editLinks = container.querySelectorAll('a[href="/dean/courses/course-1/edit"]');
-    expect(editLinks).toHaveLength(1);
+    const trigger = container.querySelector(
+      '[data-slot="dropdown-menu-trigger"]'
+    ) as HTMLElement;
+    expect(trigger).toBeTruthy();
+    fireEvent.click(trigger);
+
+    const editLink = await screen.findByText("Edit");
+    expect(editLink).toHaveAttribute("href", "/dean/courses/course-1/edit");
   });
 });

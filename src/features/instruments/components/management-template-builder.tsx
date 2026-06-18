@@ -16,8 +16,11 @@ import type { TemplateBuilderProps } from "./template-builder";
 
 type ManagementTemplateBuilderProps = Omit<
   TemplateBuilderProps,
-  "onSaveResult" | "saveSuccessConfig" | "toolsHref"
->;
+  "onSaveResult" | "saveSuccessConfig"
+> & {
+  /** Post-save navigation target (e.g. "/secretary/instruments" or "/dean/instruments"). */
+  toolsHref: string;
+};
 
 export function ManagementTemplateBuilder(props: ManagementTemplateBuilderProps) {
   const router = useRouter();
@@ -38,12 +41,12 @@ export function ManagementTemplateBuilder(props: ManagementTemplateBuilderProps)
 
   const handleSuccessContinue = () => {
     setSuccessModalOpen(false);
-    router.push("/secretary/instruments");
+    router.push(props.toolsHref);
   };
 
   return (
     <>
-      <TemplateBuilder {...props} onSaveResult={handleSaveResult} toolsHref="/secretary/instruments" />
+      <TemplateBuilder {...props} onSaveResult={handleSaveResult} />
 
       {/* Success Modal */}
       <Dialog open={successModalOpen} onOpenChange={setSuccessModalOpen}>

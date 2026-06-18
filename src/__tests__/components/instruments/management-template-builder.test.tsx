@@ -17,11 +17,12 @@ describe("ManagementTemplateBuilder", () => {
     vi.clearAllMocks();
   });
 
-  test("renders template builder for Secretary with admin/instruments redirect", () => {
+  test("renders template builder for Secretary with secretary/instruments redirect", () => {
     render(
       <ManagementTemplateBuilder
         programLabel="Institutional Baseline"
         onSave={vi.fn().mockResolvedValue({ success: true })}
+        toolsHref="/secretary/instruments"
       />
     );
 
@@ -29,13 +30,14 @@ describe("ManagementTemplateBuilder", () => {
     expect(screen.queryByText("CILO Binding")).not.toBeInTheDocument();
   });
 
-  test("shows success modal and redirects to admin/instruments on save", async () => {
+  test("shows success modal and redirects to toolsHref on save", async () => {
     const { fireEvent } = await import("@testing-library/react");
     
     render(
       <ManagementTemplateBuilder
         programLabel="Institutional Baseline"
         onSave={vi.fn().mockResolvedValue({ success: true })}
+        toolsHref="/secretary/instruments"
       />
     );
 
@@ -48,5 +50,27 @@ describe("ManagementTemplateBuilder", () => {
     fireEvent.click(screen.getByRole("button", { name: "Go to Tools" }));
 
     expect(pushMock).toHaveBeenCalledWith("/secretary/instruments");
+  });
+
+  test("redirects Dean save to /dean/instruments via toolsHref prop", async () => {
+    const { fireEvent } = await import("@testing-library/react");
+    
+    render(
+      <ManagementTemplateBuilder
+        programLabel="Institutional Baseline"
+        onSave={vi.fn().mockResolvedValue({ success: true })}
+        toolsHref="/dean/instruments"
+      />
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: /save template/i }));
+
+    await vi.waitFor(() => {
+      expect(screen.getByText("Template Saved Successfully")).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Go to Tools" }));
+
+    expect(pushMock).toHaveBeenCalledWith("/dean/instruments");
   });
 });

@@ -17,6 +17,7 @@ export default function DeanCreateTemplatePage() {
       <ManagementTemplateBuilder
         onSave={createDeanTemplateAction}
         programLabel="Institutional Baseline"
+        toolsHref="/dean/instruments"
       />
     </div>
   );

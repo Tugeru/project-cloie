@@ -42,6 +42,7 @@ export default async function SecretaryEditTemplatePage({ params }: SecretaryEdi
         }}
         onSave={updateAdminTemplateAction}
         programLabel="Institutional Baseline"
+        toolsHref="/secretary/instruments"
       />
     </div>
   );

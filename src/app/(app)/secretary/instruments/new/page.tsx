@@ -18,6 +18,7 @@ export default function SecretaryCreateTemplatePage() {
       <ManagementTemplateBuilder
         onSave={createAdminTemplateAction}
         programLabel="Institutional Baseline"
+        toolsHref="/secretary/instruments"
       />
     </div>
   );

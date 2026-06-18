@@ -41,6 +41,7 @@ export default async function DeanEditTemplatePage({ params }: DeanEditTemplateP
         }}
         onSave={updateDeanTemplateAction}
         programLabel="Institutional Baseline"
+        toolsHref="/dean/instruments"
       />
     </div>
   );
