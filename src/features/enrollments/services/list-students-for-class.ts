@@ -18,7 +18,7 @@ export async function listStudentsForClass(
   const authSession = await resolveAuthSession();
 
   // PH and Faculty can view class rosters
-  const allowedRoles: SystemRole[] = [ROLES.ADMIN, ROLES.DEAN, ROLES.PROGRAM_HEAD, ROLES.FACULTY];
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD, ROLES.FACULTY];
   if (!authSession?.roles?.some((r) => allowedRoles.includes(r))) {
     return { success: false, error: "Access denied." };
   }

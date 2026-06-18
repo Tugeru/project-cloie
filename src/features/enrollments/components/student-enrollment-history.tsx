@@ -18,7 +18,7 @@ interface StudentEnrollmentHistoryProps {
 const sourceLabels: Record<EnrollmentSource, string> = {
   [EnrollmentSource.ONBOARDING]: "Onboarding",
   [EnrollmentSource.ROLLOVER]: "Rollover",
-  [EnrollmentSource.ADMIN]: "Admin",
+  [EnrollmentSource.SECRETARY]: "Secretary",
 };
 
 export function StudentEnrollmentHistory({ userId, onEdit }: StudentEnrollmentHistoryProps) {

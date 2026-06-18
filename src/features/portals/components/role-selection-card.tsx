@@ -64,7 +64,7 @@ export function RoleSelectionCard({ config }: RoleSelectionCardProps) {
   };
 
   const isSelfService = config.category === "self_service_internal" || config.category === "self_service_external";
-  const needsAcdEmail = config.category === "self_service_internal" || config.category === "provisioned_faculty" || config.category === "invite_only_admin";
+  const needsAcdEmail = config.category === "self_service_internal" || config.category === "provisioned_faculty" || config.category === "pre_provisioned_admin";
 
   return (
     <div className="flex flex-col h-full bg-surface border border-border rounded-2xl p-6 shadow-sm transition-all hover:shadow-md">
@@ -74,10 +74,10 @@ export function RoleSelectionCard({ config }: RoleSelectionCardProps) {
         </div>
         <div>
           <h3 className="text-title-md font-semibold text-text-primary">{config.title}</h3>
-          {!isSelfService && config.category === "invite_only_admin" && (
+          {!isSelfService && config.category === "pre_provisioned_admin" && (
             <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-full bg-orange-100 text-orange-800 text-[10px] font-medium tracking-wide uppercase">
               <Lock className="size-3" />
-              Invite Only
+              Pre-Provisioned
             </span>
           )}
         </div>

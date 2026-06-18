@@ -22,7 +22,7 @@ async function resolvePHProgramScope(
   if (
     !session ||
     !session.roles.includes(ROLES.PROGRAM_HEAD) ||
-    session.roles.includes(ROLES.ADMIN) ||
+    session.roles.includes(ROLES.SECRETARY) ||
     session.roles.includes(ROLES.DEAN)
   ) {
     return [];
@@ -266,7 +266,7 @@ export async function bulkCreateCourseAssignments(
 ): Promise<BulkCreateResult> {
   const authSession = await resolveAuthSession();
 
-  const allowedRoles: SystemRole[] = [ROLES.ADMIN, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
   if (!authSession?.roles?.some((r) => allowedRoles.includes(r))) {
     return { success: false, created: 0, errors: [{ index: -1, error: "Insufficient permissions." }] };
   }

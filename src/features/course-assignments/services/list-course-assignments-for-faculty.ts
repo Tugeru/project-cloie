@@ -34,7 +34,7 @@ export async function listCourseAssignmentsForFaculty(
   }
 
   // Check if user has faculty or admin roles
-  const allowedRoles: SystemRole[] = [ROLES.FACULTY, ROLES.ADMIN, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+  const allowedRoles: SystemRole[] = [ROLES.FACULTY, ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
   const hasAllowedRole = authSession.roles.some((r) => allowedRoles.includes(r));
   if (!hasAllowedRole) {
     return { success: false, error: "Access denied." };
@@ -46,7 +46,7 @@ export async function listCourseAssignmentsForFaculty(
   // Check if user can view this faculty's assignments
   if (targetFacultyId !== authSession.userId) {
     // Only admin, dean, or program head can view other faculty's assignments
-    const adminRoles: SystemRole[] = [ROLES.ADMIN, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+    const adminRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
     const hasAccess = authSession.roles.some((r) => adminRoles.includes(r));
     if (!hasAccess) {
       return { success: false, error: "Access denied." };

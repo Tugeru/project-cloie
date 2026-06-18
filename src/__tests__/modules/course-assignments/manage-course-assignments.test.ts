@@ -28,9 +28,9 @@ vi.mock("@/lib/db/prisma", () => ({
 describe("manage-course-assignments", () => {
   const mockAdminSession = {
     userId: "admin-1",
-    email: "admin@test.com",
-    roles: [ROLES.ADMIN],
-    activeRole: ROLES.ADMIN,
+    email: "secretary@test.com",
+    roles: [ROLES.SECRETARY],
+    activeRole: ROLES.SECRETARY,
     studentProfileId: null,
     profileGate: { status: "COMPLETE" as const },
   };

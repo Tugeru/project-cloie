@@ -57,46 +57,46 @@ describe("validateRoleDomain", () => {
     });
   });
 
-  describe("Admin and Management Roles (ADMIN, DEAN, PROGRAM_HEAD)", () => {
-    it("should deny ADMIN with 'invite-only' reason", () => {
-      const result = validateRoleDomain("admin@acd.edu.ph", SystemRole.ADMIN);
-      expect(result).toEqual({ valid: false, reason: "invite-only" });
+  describe("Pre-provisioned Roles (ADMIN, DEAN, PROGRAM_HEAD)", () => {
+    it("should deny ADMIN with 'pre-provisioned' reason", () => {
+      const result = validateRoleDomain("admin@acd.edu.ph", SystemRole.SECRETARY);
+      expect(result).toEqual({ valid: false, reason: "pre-provisioned" });
     });
 
-    it("should deny DEAN with 'invite-only' reason", () => {
+    it("should deny DEAN with 'pre-provisioned' reason", () => {
       const result = validateRoleDomain("dean@acd.edu.ph", SystemRole.DEAN);
-      expect(result).toEqual({ valid: false, reason: "invite-only" });
+      expect(result).toEqual({ valid: false, reason: "pre-provisioned" });
     });
 
-    it("should deny PROGRAM_HEAD with 'invite-only' reason", () => {
+    it("should deny PROGRAM_HEAD with 'pre-provisioned' reason", () => {
       const result = validateRoleDomain("ph@acd.edu.ph", SystemRole.PROGRAM_HEAD);
-      expect(result).toEqual({ valid: false, reason: "invite-only" });
+      expect(result).toEqual({ valid: false, reason: "pre-provisioned" });
     });
   });
 
-  describe("Bootstrap Admin Path", () => {
+  describe("Bootstrap Secretary Path", () => {
     beforeEach(() => {
-      vi.stubEnv("BOOTSTRAP_ADMIN_EMAIL", "bootstrap-admin@acd.edu.ph");
+      vi.stubEnv("BOOTSTRAP_SECRETARY_EMAIL", "bootstrap-secretary@acd.edu.ph");
     });
 
-    it("should allow ADMIN with email matching BOOTSTRAP_ADMIN_EMAIL", () => {
-      const result = validateRoleDomain("bootstrap-admin@acd.edu.ph", SystemRole.ADMIN);
+    it("should allow ADMIN with email matching BOOTSTRAP_SECRETARY_EMAIL", () => {
+      const result = validateRoleDomain("bootstrap-secretary@acd.edu.ph", SystemRole.SECRETARY);
       expect(result).toEqual({ valid: true });
     });
 
-    it("should allow ADMIN with email matching BOOTSTRAP_ADMIN_EMAIL with case/whitespace variations", () => {
-      const result = validateRoleDomain(" BOOTSTRAP-ADMIN@acd.edu.ph ", SystemRole.ADMIN);
+    it("should allow ADMIN with email matching BOOTSTRAP_SECRETARY_EMAIL with case/whitespace variations", () => {
+      const result = validateRoleDomain(" BOOTSTRAP-SECRETARY@acd.edu.ph ", SystemRole.SECRETARY);
       expect(result).toEqual({ valid: true });
     });
 
     it("should deny ADMIN with non-bootstrap email", () => {
-      const result = validateRoleDomain("other-admin@acd.edu.ph", SystemRole.ADMIN);
-      expect(result).toEqual({ valid: false, reason: "invite-only" });
+      const result = validateRoleDomain("other-admin@acd.edu.ph", SystemRole.SECRETARY);
+      expect(result).toEqual({ valid: false, reason: "pre-provisioned" });
     });
 
     it("should deny DEAN even with bootstrap email", () => {
-      const result = validateRoleDomain("bootstrap-admin@acd.edu.ph", SystemRole.DEAN);
-      expect(result).toEqual({ valid: false, reason: "invite-only" });
+      const result = validateRoleDomain("bootstrap-secretary@acd.edu.ph", SystemRole.DEAN);
+      expect(result).toEqual({ valid: false, reason: "pre-provisioned" });
     });
   });
 });

@@ -31,7 +31,7 @@ const STATUS_CONFIGS = {
   "pre-provisioning-required": {
     title: "Account Provisioning Required",
     description: "Your account is not yet provisioned for this role.",
-    details: "Access for System Administrators, College Deans, and Program Heads must be configured by the administration in the database before you can enter. Please contact the IT Support team or system administrator to provision your account.",
+    details: "Access for the administration (Secretary, College Dean, and Program Head roles) must be configured in the database before you can enter. Please contact the IT Support team or system administrator to provision your account.",
     icon: FileKey,
     color: "warning",
     showRetry: true,

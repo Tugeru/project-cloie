@@ -6,7 +6,7 @@ export type Role = SystemRole;
 
 // Hierarchy for simple role-based UI access where logical
 export const ROLE_LEVELS: Record<Role, number> = {
-  [SystemRole.ADMIN]: 100,
+  [SystemRole.SECRETARY]: 100,
   [SystemRole.DEAN]: 80,
   [SystemRole.PROGRAM_HEAD]: 70,
   [SystemRole.FACULTY]: 50,

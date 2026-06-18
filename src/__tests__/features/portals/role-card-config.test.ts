@@ -5,7 +5,7 @@ import { ROLES } from "@/lib/constants/roles";
 describe("ROLE_CARDS configuration", () => {
   it("contains all 7 system roles", () => {
     const roles = ROLE_CARDS.map((c) => c.role);
-    expect(roles).toContain(ROLES.ADMIN);
+    expect(roles).toContain(ROLES.SECRETARY);
     expect(roles).toContain(ROLES.DEAN);
     expect(roles).toContain(ROLES.PROGRAM_HEAD);
     expect(roles).toContain(ROLES.FACULTY);
@@ -30,11 +30,11 @@ describe("ROLE_CARDS configuration", () => {
     expect(ipCard?.category).toBe("self_service_external");
   });
 
-  it("marks ADMIN, DEAN, PROGRAM_HEAD as invite_only_admin", () => {
-    const adminRoles = [ROLES.ADMIN, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+  it("marks ADMIN, DEAN, PROGRAM_HEAD as pre_provisioned_admin", () => {
+    const adminRoles = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
     for (const role of adminRoles) {
       const card = ROLE_CARDS.find((c) => c.role === role);
-      expect(card?.category).toBe("invite_only_admin");
+      expect(card?.category).toBe("pre_provisioned_admin");
     }
   });
 

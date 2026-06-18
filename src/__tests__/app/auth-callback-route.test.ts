@@ -362,7 +362,7 @@ describe("auth callback route", () => {
     });
 
     const response = await GET(
-      new Request("https://cloie.test/api/auth/callback?code=abc&intent=admin")
+      new Request("https://cloie.test/api/auth/callback?code=abc&intent=secretary")
     );
 
     expect(signOutMock).toHaveBeenCalledTimes(1);
@@ -389,15 +389,15 @@ describe("auth callback route", () => {
     expect(response.headers.get("location")).toContain("/status/invalid-domain");
   });
 
-  describe("Bootstrap Admin Path", () => {
+  describe("Bootstrap Secretary Path", () => {
     beforeEach(() => {
-      vi.stubEnv("BOOTSTRAP_ADMIN_EMAIL", "bootstrap-admin@acd.edu.ph");
+      vi.stubEnv("BOOTSTRAP_SECRETARY_EMAIL", "bootstrap-secretary@acd.edu.ph");
     });
 
-    it("automatically provisions new user as ADMIN when email matches bootstrap email and no admin exists", async () => {
+    it("automatically provisions new user as SECRETARY when email matches bootstrap email and no admin exists", async () => {
       exchangeCodeForSessionMock.mockResolvedValue({
         error: null,
-        data: { user: { id: VALID_UUID_1, email: "bootstrap-admin@acd.edu.ph" } },
+        data: { user: { id: VALID_UUID_1, email: "bootstrap-secretary@acd.edu.ph" } },
       });
       // No admin exists in the database
       findFirstUserRoleMock.mockResolvedValue(null);
@@ -405,31 +405,31 @@ describe("auth callback route", () => {
       findUniqueUserMock.mockResolvedValue(null);
       // Mock user creation
       createUserMock.mockResolvedValue({
-        id: "new-admin-user-id",
+        id: "new-secretary-user-id",
         auth_user_id: VALID_UUID_1,
-        email: "bootstrap-admin@acd.edu.ph",
+        email: "bootstrap-secretary@acd.edu.ph",
         first_name: "System",
-        last_name: "Admin",
-        roles: [{ role: SystemRole.ADMIN }],
+        last_name: "Secretary",
+        roles: [{ role: SystemRole.SECRETARY }],
       });
       resolveAuthSessionFromUserMock.mockResolvedValue({
-        activeRole: "ADMIN",
+        activeRole: "SECRETARY",
         profileGate: { status: "COMPLETE" },
       });
-      resolvePostLoginDestinationMock.mockReturnValue("/admin/dashboard");
+      resolvePostLoginDestinationMock.mockReturnValue("/secretary/dashboard");
 
       const response = await GET(
-        new Request("https://cloie.test/api/auth/callback?code=abc&intent=admin")
+        new Request("https://cloie.test/api/auth/callback?code=abc&intent=secretary")
       );
 
       expect(createUserMock).toHaveBeenCalled();
-      expect(response.headers.get("location")).toBe("https://cloie.test/admin/dashboard");
+      expect(response.headers.get("location")).toBe("https://cloie.test/secretary/dashboard");
     });
 
-    it("automatically promotes existing user to ADMIN when email matches bootstrap email and no admin exists", async () => {
+    it("automatically promotes existing user to SECRETARY when email matches bootstrap email and no admin exists", async () => {
       exchangeCodeForSessionMock.mockResolvedValue({
         error: null,
-        data: { user: { id: VALID_UUID_1, email: "bootstrap-admin@acd.edu.ph" } },
+        data: { user: { id: VALID_UUID_1, email: "bootstrap-secretary@acd.edu.ph" } },
       });
       // No admin exists in the database
       findFirstUserRoleMock.mockResolvedValue(null);
@@ -437,47 +437,47 @@ describe("auth callback route", () => {
       findUniqueUserMock
         .mockResolvedValueOnce({
           id: "existing-user-id",
-          email: "bootstrap-admin@acd.edu.ph",
+          email: "bootstrap-secretary@acd.edu.ph",
         })
         .mockResolvedValueOnce({
           id: "existing-user-id",
-          email: "bootstrap-admin@acd.edu.ph",
-          roles: [{ role: SystemRole.ADMIN }],
+          email: "bootstrap-secretary@acd.edu.ph",
+          roles: [{ role: SystemRole.SECRETARY }],
         });
       // Mock update and upsert role inside transaction
       updateUserMock.mockResolvedValue({
         id: "existing-user-id",
         auth_user_id: VALID_UUID_1,
-        email: "bootstrap-admin@acd.edu.ph",
-        roles: [{ role: SystemRole.ADMIN }],
+        email: "bootstrap-secretary@acd.edu.ph",
+        roles: [{ role: SystemRole.SECRETARY }],
       });
       resolveAuthSessionFromUserMock.mockResolvedValue({
-        activeRole: "ADMIN",
+        activeRole: "SECRETARY",
         profileGate: { status: "COMPLETE" },
       });
-      resolvePostLoginDestinationMock.mockReturnValue("/admin/dashboard");
+      resolvePostLoginDestinationMock.mockReturnValue("/secretary/dashboard");
 
       const response = await GET(
-        new Request("https://cloie.test/api/auth/callback?code=abc&intent=admin")
+        new Request("https://cloie.test/api/auth/callback?code=abc&intent=secretary")
       );
 
       expect(updateUserMock).toHaveBeenCalled();
       expect(upsertUserRoleMock).toHaveBeenCalled();
-      expect(response.headers.get("location")).toBe("https://cloie.test/admin/dashboard");
+      expect(response.headers.get("location")).toBe("https://cloie.test/secretary/dashboard");
     });
 
     it("does not bootstrap user if an admin already exists in the database", async () => {
       exchangeCodeForSessionMock.mockResolvedValue({
         error: null,
-        data: { user: { id: VALID_UUID_1, email: "bootstrap-admin@acd.edu.ph" } },
+        data: { user: { id: VALID_UUID_1, email: "bootstrap-secretary@acd.edu.ph" } },
       });
       // An admin already exists in the database
-      findFirstUserRoleMock.mockResolvedValue({ id: "admin-role-id", role: SystemRole.ADMIN });
+      findFirstUserRoleMock.mockResolvedValue({ id: "admin-role-id", role: SystemRole.SECRETARY });
       // Normal signup logic falls through, which will block new admin signup
       findUniqueUserMock.mockResolvedValue(null);
 
       const response = await GET(
-        new Request("https://cloie.test/api/auth/callback?code=abc&intent=admin")
+        new Request("https://cloie.test/api/auth/callback?code=abc&intent=secretary")
       );
 
       expect(signOutMock).toHaveBeenCalled();

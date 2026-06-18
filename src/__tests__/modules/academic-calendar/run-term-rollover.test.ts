@@ -49,8 +49,8 @@ vi.mock("@/features/auth/services/resolve-auth-session", () => ({
 
 function mockAuthenticatedAdmin() {
   resolveAuthSessionMock.mockResolvedValue({
-    activeRole: ROLES.ADMIN,
-    roles: [ROLES.ADMIN],
+    activeRole: ROLES.SECRETARY,
+    roles: [ROLES.SECRETARY],
     userId: "admin-1",
   });
 }

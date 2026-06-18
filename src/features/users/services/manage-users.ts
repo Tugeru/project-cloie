@@ -7,7 +7,7 @@ import type {
   CreateProgramHeadAssignmentInput,
   UpdateIndustryPartnerProfileInput,
   UpdateStudentAcademicContextInput,
-} from "../schemas/admin-user";
+} from "../schemas/secretary-user";
 
 import { type ServiceResult } from "@/lib/utils/service-result";
 import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";

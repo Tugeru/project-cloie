@@ -24,8 +24,8 @@ describe("listCourseAssignmentsForProgramHead – PH scope enforcement", () => {
 
   const mockAdminSession = {
     userId: "admin-1",
-    email: "admin@test.com",
-    roles: ["ADMIN"],
+    email: "secretary@test.com",
+    roles: ["SECRETARY"],
   };
 
   let prisma: Awaited<typeof import("@/lib/db/prisma")>["prisma"];

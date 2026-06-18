@@ -1,8 +1,8 @@
 import { SystemRole } from "@prisma/client";
 
-export const DEMO_USERS = [
+ export const DEMO_USERS = [
   // ── Existing 8 users ──────────────────────────────────────────────────────
-  { email: "demo-admin@cloie.test", label: "Admin", role: SystemRole.ADMIN },
+  { email: "demo-secretary@cloie.test", label: "Secretary", role: SystemRole.SECRETARY },
   { email: "demo-dean@cloie.test", label: "Dean", role: SystemRole.DEAN },
   { email: "demo-ph@cloie.test", label: "Program Head (BSIT)", role: SystemRole.PROGRAM_HEAD },
   { email: "demo-faculty@cloie.test", label: "Faculty (BSIT)", role: SystemRole.FACULTY },

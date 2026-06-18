@@ -16,7 +16,7 @@ const VALID_SELF_SERVICE_INTENTS: Record<string, SystemRole> = {
 
 const VALID_INTENTS: Record<string, SystemRole> = {
   ...VALID_SELF_SERVICE_INTENTS,
-  admin: SystemRole.ADMIN,
+  secretary: SystemRole.SECRETARY,
   dean: SystemRole.DEAN,
   "program-head": SystemRole.PROGRAM_HEAD,
   "program_head": SystemRole.PROGRAM_HEAD,
@@ -45,13 +45,13 @@ export async function GET(request: Request) {
 
   let dbUser = null;
 
-  const bootstrapEmail = process.env.BOOTSTRAP_ADMIN_EMAIL?.trim().toLowerCase();
+  const bootstrapEmail = process.env.BOOTSTRAP_SECRETARY_EMAIL?.trim().toLowerCase();
   const isBootstrapEmail = bootstrapEmail && normalizedEmail === bootstrapEmail;
 
   if (isBootstrapEmail) {
     dbUser = await prisma.$transaction(async (tx) => {
       const adminExists = await tx.userRole.findFirst({
-        where: { role: SystemRole.ADMIN },
+        where: { role: SystemRole.SECRETARY },
       });
 
       if (!adminExists) {
@@ -66,8 +66,8 @@ export async function GET(request: Request) {
           });
           await tx.userRole.upsert({
             where: { user_id: existingUser.id },
-            update: { role: SystemRole.ADMIN },
-            create: { user_id: existingUser.id, role: SystemRole.ADMIN },
+            update: { role: SystemRole.SECRETARY },
+            create: { user_id: existingUser.id, role: SystemRole.SECRETARY },
           });
           return tx.user.findUnique({
             where: { id: existingUser.id },
@@ -86,7 +86,7 @@ export async function GET(request: Request) {
               last_name: googleLastName,
               roles: {
                 create: {
-                  role: SystemRole.ADMIN,
+                  role: SystemRole.SECRETARY,
                 },
               },
             },
@@ -147,7 +147,7 @@ export async function GET(request: Request) {
       const isInternal =
         userRole === SystemRole.STUDENT ||
         userRole === SystemRole.FACULTY ||
-        userRole === SystemRole.ADMIN ||
+        userRole === SystemRole.SECRETARY ||
         userRole === SystemRole.DEAN ||
         userRole === SystemRole.PROGRAM_HEAD;
       if (isInternal) {
@@ -165,7 +165,7 @@ export async function GET(request: Request) {
       if (targetRole) {
         // Pre-provisioned roles cannot be self-claimed
         const isPreProvisioned =
-          targetRole === SystemRole.ADMIN ||
+          targetRole === SystemRole.SECRETARY ||
           targetRole === SystemRole.DEAN ||
           targetRole === SystemRole.PROGRAM_HEAD;
         if (isPreProvisioned) {
@@ -199,7 +199,7 @@ export async function GET(request: Request) {
       if (targetRole) {
         // Pre-provisioned roles cannot be self-claimed
         const isPreProvisioned =
-          targetRole === SystemRole.ADMIN ||
+          targetRole === SystemRole.SECRETARY ||
           targetRole === SystemRole.DEAN ||
           targetRole === SystemRole.PROGRAM_HEAD;
         if (isPreProvisioned) {

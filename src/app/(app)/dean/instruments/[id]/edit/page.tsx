@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { AdminTemplateBuilder } from "@/features/instruments/components/admin-template-builder";
+import { ManagementTemplateBuilder } from "@/features/instruments/components/management-template-builder";
 import { updateDeanTemplateAction } from "@/lib/actions/dean-template-actions";
 import { getBaselineTemplate } from "@/features/instruments/services/manage-instruments";
 import type { TemplateStructure } from "@/features/instruments/types";
@@ -29,7 +29,7 @@ export default async function DeanEditTemplatePage({ params }: DeanEditTemplateP
         Back to Tools
       </Link>
 
-      <AdminTemplateBuilder
+      <ManagementTemplateBuilder
         initialData={{
           id: template.id,
           name: template.name,

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { deleteTermInstance } from "@/features/academic-calendar/services/manage-term-instances";
+import { deleteTermInstance, verifySecretaryAccess } from "@/features/academic-calendar/services/manage-term-instances";
 import * as authModule from "@/features/auth/services/resolve-auth-session";
 
 vi.mock("@/features/auth/services/resolve-auth-session");
@@ -17,11 +17,58 @@ vi.mock("@/lib/db/prisma", () => ({
   },
 }));
 
+describe("manage-term-instances / verifySecretaryAccess", () => {
+  const mockSecretarySession = {
+    userId: "sec-1",
+    email: "secretary@test.com",
+    roles: ["SECRETARY"],
+  };
+
+  const mockFacultySession = {
+    userId: "faculty-1",
+    email: "faculty@test.com",
+    roles: ["FACULTY"],
+  };
+
+  it("should allow secretary access", async () => {
+    vi.mocked(authModule.resolveAuthSession).mockResolvedValue(mockSecretarySession);
+
+    const result = await verifySecretaryAccess();
+
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.userId).toBe("sec-1");
+    }
+  });
+
+  it("should deny non-secretary access", async () => {
+    vi.mocked(authModule.resolveAuthSession).mockResolvedValue(mockFacultySession);
+
+    const result = await verifySecretaryAccess();
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain("Secretary access required");
+    }
+  });
+
+  it("should deny unauthenticated access", async () => {
+    vi.mocked(authModule.resolveAuthSession).mockResolvedValue(null as never);
+
+    const result = await verifySecretaryAccess();
+
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      expect(result.error).toContain("Secretary access required");
+    }
+  });
+});
+
 describe("manage-term-instances / deleteTermInstance", () => {
   const mockAdminSession = {
     userId: "admin-1",
-    email: "admin@test.com",
-    roles: ["ADMIN"],
+    email: "secretary@test.com",
+    roles: ["SECRETARY"],
   };
 
   const mockFacultySession = {
@@ -37,14 +84,14 @@ describe("manage-term-instances / deleteTermInstance", () => {
     prisma = (await import("@/lib/db/prisma")).prisma;
   });
 
-  it("should deny non-admin access", async () => {
+  it("should deny non-secretary access", async () => {
     vi.mocked(authModule.resolveAuthSession).mockResolvedValue(mockFacultySession);
 
     const result = await deleteTermInstance("ti-1");
 
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toContain("Admin access required");
+      expect(result.error).toContain("Secretary access required");
     }
   });
 

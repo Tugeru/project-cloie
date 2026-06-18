@@ -79,7 +79,7 @@ export function EnrollmentEditorDialog({
       majorId: data.majorId || null,
       yearLevel: data.yearLevel,
       section: data.section || null,
-      source: existingEnrollment ? EnrollmentSource.ADMIN : EnrollmentSource.ADMIN,
+      source: existingEnrollment ? EnrollmentSource.SECRETARY : EnrollmentSource.SECRETARY,
     });
 
     setIsSubmitting(false);

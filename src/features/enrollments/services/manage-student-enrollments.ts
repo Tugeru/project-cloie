@@ -69,7 +69,7 @@ export async function adminUpsertEnrollment(
 ): Promise<EnrollmentResult<{ id: string; isNew: boolean }>> {
   const authSession = await resolveAuthSession();
 
-  if (!authSession?.roles?.includes(ROLES.ADMIN)) {
+  if (!authSession?.roles?.includes(ROLES.SECRETARY)) {
     return { success: false, error: "Admin access required." };
   }
 
@@ -127,7 +127,7 @@ export async function deactivateEnrollment(
 ): Promise<EnrollmentResult> {
   const authSession = await resolveAuthSession();
 
-  if (!authSession?.roles?.includes(ROLES.ADMIN)) {
+  if (!authSession?.roles?.includes(ROLES.SECRETARY)) {
     return { success: false, error: "Admin access required." };
   }
 
@@ -151,7 +151,7 @@ export async function deactivateEnrollmentsForUser(
 ): Promise<EnrollmentResult> {
   const authSession = await resolveAuthSession();
 
-  if (!authSession?.roles?.includes(ROLES.ADMIN)) {
+  if (!authSession?.roles?.includes(ROLES.SECRETARY)) {
     return { success: false, error: "Admin access required." };
   }
 

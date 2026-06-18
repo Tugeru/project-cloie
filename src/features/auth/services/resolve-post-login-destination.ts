@@ -78,8 +78,8 @@ export function resolvePostLoginDestination({
   }
 
   switch (activeRole) {
-    case ROLES.ADMIN:
-      return "/admin/dashboard";
+    case ROLES.SECRETARY:
+      return "/secretary/dashboard";
     case ROLES.DEAN:
       return "/dean/dashboard";
     case ROLES.PROGRAM_HEAD:

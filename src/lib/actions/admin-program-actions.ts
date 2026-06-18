@@ -36,7 +36,7 @@ export async function createProgramAction(formData: FormData): Promise<ActionRes
     return { success: false, error: result.error };
   }
 
-  revalidatePath("/admin/programs");
+  revalidatePath("/secretary/programs");
   return { success: true };
 }
 
@@ -58,7 +58,7 @@ export async function updateProgramAction(formData: FormData): Promise<ActionRes
     return { success: false, error: result.error };
   }
 
-  revalidatePath("/admin/programs");
+  revalidatePath("/secretary/programs");
   return { success: true };
 }
 
@@ -72,7 +72,7 @@ export async function toggleProgramActiveAction(
     return { success: false, error: result.error };
   }
 
-  revalidatePath("/admin/programs");
+  revalidatePath("/secretary/programs");
   return { success: true };
 }
 
@@ -92,7 +92,7 @@ export async function createMajorAction(formData: FormData): Promise<ActionResul
     return { success: false, error: result.error };
   }
 
-  revalidatePath("/admin/programs");
+  revalidatePath("/secretary/programs");
   return { success: true };
 }
 
@@ -112,7 +112,7 @@ async function updateMajorAction(formData: FormData): Promise<ActionResult> {
     return { success: false, error: result.error };
   }
 
-  revalidatePath("/admin/programs");
+  revalidatePath("/secretary/programs");
   return { success: true };
 }
 
@@ -126,7 +126,7 @@ export async function toggleMajorActiveAction(
     return { success: false, error: result.error };
   }
 
-  revalidatePath("/admin/programs");
+  revalidatePath("/secretary/programs");
   return { success: true };
 }
 
@@ -137,6 +137,6 @@ export async function deleteMajorAction(id: string): Promise<ActionResult> {
     return { success: false, error: result.error };
   }
 
-  revalidatePath("/admin/programs");
+  revalidatePath("/secretary/programs");
   return { success: true };
 }

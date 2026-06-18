@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { formatTermInstanceLabel } from "@/lib/utils/date-format";
-import { setActiveTermInstanceAction } from "@/lib/actions/admin-school-year-actions";
+import { setActiveTermInstanceAction } from "@/lib/actions/secretary-school-year-actions";
 import { showToast } from "@/components/ui/toast";
 import type { TermInstanceItem } from "../types";
 
