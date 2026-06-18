@@ -143,7 +143,10 @@ export async function saveFacultyManagedCilos(
       });
     }
 
-    // Update template binding snapshots for updated CILOs (draft templates only)
+    // Update template binding snapshots for updated CILOs.
+    // This only affects InstrumentTemplateCiloQuestionBinding (draft/template-level).
+    // Published evaluations use a separate CourseBoundCiloQuestionBinding table whose
+    // snapshots are frozen at publish time and are NOT affected by this update.
     for (const item of toUpdate) {
       await tx.instrumentTemplateCiloQuestionBinding.updateMany({
         where: { cilo_id: item.id! },

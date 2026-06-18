@@ -4,6 +4,7 @@ import { createAlumniProfile } from "@/lib/actions/alumni-actions";
 import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import { createClient } from "@/lib/supabase/server";
+import { createPrismaUniqueConstraintError } from "@/__tests__/helpers/prisma-test-helpers";
 
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
@@ -214,7 +215,7 @@ describe("Alumni Actions", () => {
       error: null,
     });
 
-    (prisma.$transaction as any).mockRejectedValue({ code: "P2002" });
+    (prisma.$transaction as any).mockRejectedValue(createPrismaUniqueConstraintError());
 
     const result = await createAlumniProfile({
       first_name: "John",

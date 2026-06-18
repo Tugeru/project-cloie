@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { CourseScope } from "@prisma/client";
-
 import { ROLES } from "@/lib/constants/roles";
+import { createPrismaUniqueConstraintError } from "@/__tests__/helpers/prisma-test-helpers";
 
 const {
   courseCreateMock,
@@ -205,7 +205,7 @@ describe("manage-program-head-courses", () => {
   });
 
   it("Unique constraint error on duplicate course code", async () => {
-    courseCreateMock.mockRejectedValue({ code: "P2002" });
+    courseCreateMock.mockRejectedValue(createPrismaUniqueConstraintError());
 
     const result = await createProgramHeadCourse({
       code: "IT-301",

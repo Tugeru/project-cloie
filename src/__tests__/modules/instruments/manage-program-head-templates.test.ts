@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { ROLES } from "@/lib/constants/roles";
+import { createPrismaUniqueConstraintError } from "@/__tests__/helpers/prisma-test-helpers";
 
 const {
   instrumentTemplateFindManyMock,
@@ -500,7 +500,7 @@ describe("manage-program-head-templates", () => {
       code: "BSIT",
     });
 
-    transactionMock.mockRejectedValue({ code: "P2002" });
+    transactionMock.mockRejectedValue(createPrismaUniqueConstraintError());
 
     const result = await createProgramHeadTemplate({
       name: "Duplicate Template",

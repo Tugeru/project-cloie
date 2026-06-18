@@ -4,6 +4,7 @@ import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { alumniProfileSchema, type AlumniProfileInput } from "@/lib/schemas/alumni-profile";
+import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";
 
 export async function createAlumniProfile(data: AlumniProfileInput) {
   try {
@@ -108,7 +109,7 @@ export async function createAlumniProfile(data: AlumniProfileInput) {
       return { success: false, error: "Your account is already registered with a different role." };
     }
     // Handle Prisma unique constraint violation (e.g., role or profile already exists)
-    if (error && typeof error === "object" && "code" in error && error.code === "P2002") {
+    if (isUniqueConstraintError(error)) {
       return { success: false, error: "You already have an alumni profile." };
     }
     return {

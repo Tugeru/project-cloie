@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ROLES } from "@/lib/constants/roles";
 import { publishCentralDeployment } from "@/features/evaluations/services/publish-central-deployment";
+import { createPrismaUniqueConstraintError } from "@/__tests__/helpers/prisma-test-helpers";
 
 const {
   assignmentCreateManyMock,
@@ -542,10 +543,7 @@ describe("publishCentralDeployment", () => {
     mockNoDuplicate();
     mockTermInstance();
 
-    transactionMock.mockRejectedValue({
-      code: "P2002",
-      meta: { target: ["instrument_version_id", "program_id"] },
-    });
+    transactionMock.mockRejectedValue(createPrismaUniqueConstraintError());
 
     const result = await publishCentralDeployment(baseInput);
 

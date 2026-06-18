@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { publishCourseBoundEvaluation } from "@/features/evaluations/services/publish-course-bound-evaluation";
 import { ROLES } from "@/lib/constants/roles";
+import { createPrismaUniqueConstraintError } from "@/__tests__/helpers/prisma-test-helpers";
 
 const {
   assignmentCreateManyMock,
@@ -261,12 +262,7 @@ describe("publishCourseBoundEvaluation", () => {
     courseAssignmentFindUniqueMock.mockResolvedValue(MOCK_ASSIGNMENT);
     getFacultyTemplatePublicationContextMock.mockResolvedValue(MOCK_PUBLICATION_CONTEXT);
     instrumentVersionFindFirstMock.mockResolvedValue({ id: "version-1" });
-    transactionMock.mockRejectedValue({
-      code: "P2002",
-      meta: {
-        target: ["term_instance_id", "course_id", "faculty_id", "section"],
-      },
-    });
+    transactionMock.mockRejectedValue(createPrismaUniqueConstraintError());
 
     await expect(
       publishCourseBoundEvaluation({

@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
 import { ROLES } from "@/lib/constants/roles";
+import { createPrismaUniqueConstraintError } from "@/__tests__/helpers/prisma-test-helpers";
 
 const {
   goAggregateMock,
@@ -174,7 +174,7 @@ describe("manage-program-head-outcomes", () => {
 
   it("unique constraint error on duplicate GO code within program", async () => {
     goAggregateMock.mockResolvedValue({ _max: { order: null } });
-    goCreateMock.mockRejectedValue({ code: "P2002" });
+    goCreateMock.mockRejectedValue(createPrismaUniqueConstraintError());
 
     const result = await createGO({
       code: "GO-1",
