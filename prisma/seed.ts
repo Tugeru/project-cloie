@@ -605,7 +605,7 @@ const industryEvalStructure: TemplateStructure = [
 // ═══════════════════════════════════════════════════════════════════════════════
 
 const allUsers = [
-  { id: U.ADMIN, email: "demo-admin@cloie.test", fn: "Demo", ln: "Admin", role: SystemRole.SECRETARY },
+  { id: U.ADMIN, email: "demo-secretary@cloie.test", fn: "Demo", ln: "Admin", role: SystemRole.SECRETARY },
   { id: U.DEAN, email: "demo-dean@cloie.test", fn: "Demo", ln: "Dean", role: SystemRole.DEAN },
   {
     id: U.PH_BSIT,
@@ -1266,8 +1266,8 @@ async function seedUsers(
   console.log("  → Users & roles...");
   for (const u of allUsers) {
     await prisma.user.upsert({
-      where: { email: u.email },
-      update: { first_name: u.fn, last_name: u.ln, is_active: true },
+      where: { id: u.id },
+      update: { email: u.email, first_name: u.fn, last_name: u.ln, is_active: true },
       create: { id: u.id, email: u.email, first_name: u.fn, last_name: u.ln, is_active: true },
     });
     await prisma.userRole.upsert({

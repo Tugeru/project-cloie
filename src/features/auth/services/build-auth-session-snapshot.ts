@@ -24,6 +24,7 @@ export function buildAuthSessionSnapshot(input: {
   industryPartnerVerificationStatus?: string | null;
   hasActiveEnrollment?: boolean;
   hasFacultyAffiliation?: boolean;
+  isDemoUser?: boolean;
 }): AuthSessionSnapshot {
   const activeRole = input.roles[0] ?? null;
 
@@ -35,17 +36,19 @@ export function buildAuthSessionSnapshot(input: {
     studentProfileId: input.studentProfileId,
     alumniProfileId: input.alumniProfileId ?? null,
     industryPartnerProfileId: input.industryPartnerProfileId ?? null,
-    profileGate: resolveProfileGate({
-      roles: input.roles,
-      activeRole,
-      studentProfileId: input.studentProfileId,
-      alumniProfileId: input.alumniProfileId ?? null,
-      industryPartnerProfileId: input.industryPartnerProfileId ?? null,
-      isActive: input.isActive,
-      alumniVerificationStatus: input.alumniVerificationStatus,
-      industryPartnerVerificationStatus: input.industryPartnerVerificationStatus,
-      hasActiveEnrollment: input.hasActiveEnrollment,
-      hasFacultyAffiliation: input.hasFacultyAffiliation,
-    }),
+    profileGate: input.isDemoUser
+      ? { status: "COMPLETE" }
+      : resolveProfileGate({
+          roles: input.roles,
+          activeRole,
+          studentProfileId: input.studentProfileId,
+          alumniProfileId: input.alumniProfileId ?? null,
+          industryPartnerProfileId: input.industryPartnerProfileId ?? null,
+          isActive: input.isActive,
+          alumniVerificationStatus: input.alumniVerificationStatus,
+          industryPartnerVerificationStatus: input.industryPartnerVerificationStatus,
+          hasActiveEnrollment: input.hasActiveEnrollment,
+          hasFacultyAffiliation: input.hasFacultyAffiliation,
+        }),
   };
 }

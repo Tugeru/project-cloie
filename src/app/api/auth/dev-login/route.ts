@@ -2,6 +2,8 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/prisma";
 import { DEV_AUTH_COOKIE_NAME } from "@/features/auth/services/dev-auth";
+import { resolveAuthSessionFromDevUser } from "@/features/auth/services/resolve-auth-session";
+import { resolvePostLoginDestination } from "@/features/auth/services/resolve-post-login-destination";
 
 export async function POST(request: Request) {
   const isDemoAllowed =
@@ -42,5 +44,17 @@ export async function POST(request: Request) {
     }
   );
 
-  return NextResponse.json({ success: true });
+  const session = await resolveAuthSessionFromDevUser({
+    id: user.id,
+    email: user.email,
+  });
+
+  const destination = resolvePostLoginDestination({
+    requestedPath: "/dashboard",
+    intent: null,
+    activeRole: session.activeRole,
+    profileGate: session.profileGate,
+  });
+
+  return NextResponse.json({ success: true, destination });
 }
