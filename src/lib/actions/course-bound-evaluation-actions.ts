@@ -1,5 +1,6 @@
 "use server";
 
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { listFacultyCourseContexts } from "@/features/evaluations/services/list-faculty-course-contexts";
 import {
   loadFacultyManagedCilos,
@@ -21,7 +22,12 @@ export async function listFacultyCourseContextsAction() {
 export async function publishCourseBoundEvaluationAction(
   payload: PublishCourseBoundEvaluationInput
 ) {
-  return await publishCourseBoundEvaluation(payload);
+  const session = await resolveAuthSession();
+  const payloadWithDeployer = {
+    ...payload,
+    deployerId: session?.userId,
+  };
+  return await publishCourseBoundEvaluation(payloadWithDeployer);
 }
 
 export async function previewCourseBoundRespondentsAction(

@@ -14,6 +14,7 @@ import type { TermInstanceItem } from "@/features/academic-calendar/types";
 
 /**
  * Faculty course assignment with display info.
+ * Issue #43: facultyId/facultyName for on-behalf deployment banner.
  */
 export type AssignmentOption = {
   id: string;
@@ -27,6 +28,8 @@ export type AssignmentOption = {
   termInstanceId: string;
   termInstanceLabel?: string;
   isActive: boolean;
+  facultyId?: string;
+  facultyName?: string;
 };
 
 interface AssignmentPickerProps {

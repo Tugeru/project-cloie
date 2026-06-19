@@ -34,31 +34,50 @@ export async function listFacultyPublishedEvaluations(): Promise<ListFacultyPubl
   // Use first affiliation's program
   const program = affiliations[0].program;
 
-  // Fetch all course-bound evaluations created by this faculty
-  const rawEvaluations = await prisma.courseBoundEvaluation.findMany({
+  // Find course assignments for this faculty member
+  const facultyAssignments = await prisma.courseAssignment.findMany({
     where: {
       faculty_id: session.userId,
+      is_active: true,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (facultyAssignments.length === 0) {
+    return {
+      success: true,
+      data: { evaluations: [], program },
+    };
+  }
+
+  // Fetch evaluations for those assignments via course_assignment relation
+  const rawEvaluations = await prisma.courseBoundEvaluation.findMany({
+    where: {
+      course_assignment_id: {
+        in: facultyAssignments.map((a) => a.id),
+      },
     },
     include: {
-      course: {
+      course_assignment: {
         select: {
-          id: true,
-          code: true,
-          title: true,
-          course_scope: true,
-        },
-      },
-      program: {
-        select: {
-          id: true,
-          code: true,
-          name: true,
-        },
-      },
-      major: {
-        select: {
-          id: true,
-          name: true,
+          course: {
+            select: {
+              id: true,
+              code: true,
+              title: true,
+              course_scope: true,
+              major: { select: { id: true, name: true } },
+            },
+          },
+          program: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+            },
+          },
         },
       },
       targets: true,
@@ -104,21 +123,23 @@ export async function listFacultyPublishedEvaluations(): Promise<ListFacultyPubl
       ? `${ti.school_year.code} — ${ti.semester} — ${termLabel}`
       : `${ti.school_year.code} — ${ti.semester}`;
 
+    const ca = evalItem.course_assignment;
+
     return {
       termInstanceLabel,
       activationAt: evalItem.activation_at,
-      courseCode: courseInfoSnapshot?.courseCode ?? evalItem.course.code,
-      courseId: evalItem.course.id,
-      courseScope: evalItem.course.course_scope,
-      courseTitle: courseInfoSnapshot?.courseTitle ?? evalItem.course.title,
+      courseCode: courseInfoSnapshot?.courseCode ?? ca.course.code,
+      courseId: ca.course.id,
+      courseScope: courseInfoSnapshot?.courseScope ?? ca.course.course_scope,
+      courseTitle: courseInfoSnapshot?.courseTitle ?? ca.course.title,
       deadlineAt: evalItem.deadline_at,
       deploymentName: evalItem.deployment_name,
       evaluationId: evalItem.id,
-      majorId: evalItem.major_id,
-      majorName: courseInfoSnapshot?.majorName ?? evalItem.major?.name ?? null,
-      programCode: courseInfoSnapshot?.programCode ?? evalItem.program.code,
-      programId: evalItem.program.id,
-      programName: courseInfoSnapshot?.programName ?? evalItem.program.name,
+      majorId: ca.course.major_id,
+      majorName: courseInfoSnapshot?.majorName ?? ca.course.major?.name ?? null,
+      programCode: courseInfoSnapshot?.programCode ?? ca.program.code,
+      programId: ca.program.id,
+      programName: courseInfoSnapshot?.programName ?? ca.program.name,
       publishedAt: evalItem.published_at,
       responseCount: evalItem.assignments.length,
       status: evalItem.status,

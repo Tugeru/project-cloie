@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getSiteUrl } from "@/lib/utils/site-url";
 import { resolveAuthSessionFromUser } from "@/features/auth/services/resolve-auth-session";
 import { resolvePostLoginDestination } from "@/features/auth/services/resolve-post-login-destination";
 import { validateRoleDomain } from "@/features/auth/services/validate-role-domain";
@@ -25,7 +26,7 @@ const VALID_INTENTS: Record<string, SystemRole> = {
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || origin;
+  const siteUrl = getSiteUrl(origin);
 
   if (!code) {
     return NextResponse.redirect(`${siteUrl}/login?error=auth-failure`);

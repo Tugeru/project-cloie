@@ -69,7 +69,7 @@ export function AddClassesForFacultyDialog({
       id: "1",
       programId: availablePrograms[0]?.id ?? "",
       yearLevel: YearLevel.FIRST_YEAR,
-      section: null,
+      section: StudentSection.MORNING,
     },
   ]);
 
@@ -80,7 +80,7 @@ export function AddClassesForFacultyDialog({
         id: String(classConfigs.length + 1),
         programId: availablePrograms[0]?.id ?? "",
         yearLevel: YearLevel.FIRST_YEAR,
-        section: null,
+        section: StudentSection.MORNING,
       },
     ]);
   };
@@ -101,6 +101,13 @@ export function AddClassesForFacultyDialog({
       return;
     }
 
+    // Validate that all sections are set
+    const hasNullSection = classConfigs.some((c) => !c.section);
+    if (hasNullSection) {
+      showToast("Please select a section for all classes.", "error");
+      return;
+    }
+
     setIsSubmitting(true);
 
     const assignments = classConfigs.map((config) => ({
@@ -109,7 +116,7 @@ export function AddClassesForFacultyDialog({
       courseId,
       programId: config.programId,
       yearLevel: config.yearLevel,
-      section: config.section,
+      section: config.section!, // Safe after validation
     }));
 
     const result = await bulkCreateCourseAssignmentsAction({ assignments });
@@ -139,7 +146,7 @@ export function AddClassesForFacultyDialog({
         id: "1",
         programId: availablePrograms[0]?.id ?? "",
         yearLevel: YearLevel.FIRST_YEAR,
-        section: null,
+        section: StudentSection.MORNING,
       },
     ]);
   };

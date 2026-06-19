@@ -1,12 +1,14 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition } from "react";
-import { CourseScope } from "@prisma/client";
+import { useMemo, useRef, useState, useTransition, useEffect, useCallback } from "react";
+import { AcademicSemester, AcademicTerm, CourseScope, YearLevel } from "@prisma/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { YEAR_LEVEL_OPTIONS } from "@/lib/constants/year-levels";
+import { SEMESTER_OPTIONS, TERM_OPTIONS } from "@/lib/constants/academic";
 
 type ProgramOption = {
   id: string;
@@ -33,6 +35,9 @@ type CourseFormProps = {
     course_scope?: CourseScope;
     program_id?: string | null;
     major_id?: string | null;
+    default_year_level?: YearLevel | null;
+    default_semester?: AcademicSemester | null;
+    default_term?: AcademicTerm | null;
   };
   submitLabel?: string;
   onSuccess?: () => void;
@@ -53,6 +58,23 @@ export function CourseForm({
     defaultValues?.course_scope ?? CourseScope.PROGRAM_SPECIFIC
   );
   const [programId, setProgramId] = useState(defaultValues?.program_id ?? "");
+  const [yearLevel, setYearLevel] = useState<YearLevel | "">(
+    defaultValues?.default_year_level ?? ""
+  );
+  const [semester, setSemester] = useState<AcademicSemester | "">(
+    defaultValues?.default_semester ?? ""
+  );
+  const [term, setTerm] = useState<AcademicTerm | "">(
+    defaultValues?.default_term ?? ""
+  );
+
+  const isSummer = semester === AcademicSemester.SUMMER;
+
+  useEffect(() => {
+    if (isSummer && term !== "") {
+      setTerm("");
+    }
+  }, [isSummer, term]);
 
   const filteredMajors = useMemo(() => {
     if (!programId) {
@@ -62,8 +84,16 @@ export function CourseForm({
     return majors.filter((major) => major.program_id === programId);
   }, [majors, programId]);
 
-  function handleSubmit(formData: FormData) {
+  async function handleSubmit(formData: FormData) {
     setError(null);
+    
+    // Wait one tick to ensure state is flushed (React batching issue with form submissions)
+    await Promise.resolve();
+    
+    formData.set("default_year_level", yearLevel);
+    formData.set("default_semester", semester);
+    formData.set("default_term", isSummer ? "" : term);
+
     startTransition(async () => {
       const result = await action(formData);
 
@@ -73,9 +103,9 @@ export function CourseForm({
       }
 
       if (!defaultValues?.id) {
-        formRef.current?.reset();
-        setScope(CourseScope.PROGRAM_SPECIFIC);
-        setProgramId("");
+        setYearLevel("");
+        setSemester("");
+        setTerm("");
       }
 
       onSuccess?.();
@@ -182,6 +212,72 @@ export function CourseForm({
               </option>
             ))}
           </select>
+        </div>
+      </div>
+
+      <div className="border-border-muted bg-surface-alt grid gap-4 rounded-lg border p-4 md:grid-cols-3">
+        <div className="space-y-2">
+          <Label htmlFor={`year-level-${defaultValues?.id ?? "new"}`}>
+            Year Level <span className="text-text-muted text-xs font-normal">(default)</span>
+          </Label>
+          <select
+            id={`year-level-${defaultValues?.id ?? "new"}`}
+            value={yearLevel}
+            onChange={(e) => setYearLevel(e.target.value as YearLevel)}
+            className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm"
+          >
+            <option value="">None</option>
+            {YEAR_LEVEL_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor={`semester-${defaultValues?.id ?? "new"}`}>
+            Semester <span className="text-text-muted text-xs font-normal">(default)</span>
+          </Label>
+          <select
+            id={`semester-${defaultValues?.id ?? "new"}`}
+            value={semester}
+            onChange={(e) => setSemester(e.target.value as AcademicSemester)}
+            className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm"
+          >
+            <option value="">None</option>
+            {SEMESTER_OPTIONS.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor={`term-${defaultValues?.id ?? "new"}`}>
+            Term <span className="text-text-muted text-xs font-normal">(default)</span>
+          </Label>
+          <select
+            id={`term-${defaultValues?.id ?? "new"}`}
+            value={term}
+            onChange={(e) => setTerm(e.target.value as AcademicTerm)}
+            disabled={isSummer}
+            className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm disabled:opacity-60"
+          >
+            {isSummer ? (
+              <option value="">N/A</option>
+            ) : (
+              <>
+                <option value="">Select term</option>
+                <option value={AcademicTerm.FIRST_TERM}>1st Term</option>
+                <option value={AcademicTerm.SECOND_TERM}>2nd Term</option>
+              </>
+            )}
+          </select>
+          {isSummer && (
+            <p className="text-muted-foreground text-xs">Summer semester has no terms</p>
+          )}
         </div>
       </div>
 

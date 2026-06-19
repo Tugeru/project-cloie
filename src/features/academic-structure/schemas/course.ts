@@ -1,5 +1,6 @@
-import { CourseScope } from "@prisma/client";
+import { AcademicSemester, AcademicTerm, CourseScope, YearLevel } from "@prisma/client";
 import { z } from "zod";
+import { assertValidSemesterTerm } from "@/lib/constants/academic-period";
 
 const optionalUuidField = z.preprocess(
   (value) => (value === "" || value == null ? undefined : value),
@@ -31,10 +32,29 @@ const courseFields = {
   course_scope: z.nativeEnum(CourseScope),
   program_id: optionalUuidField,
   major_id: optionalUuidField,
+  default_year_level: z.nativeEnum(YearLevel).optional(),
+  default_semester: z.nativeEnum(AcademicSemester).optional(),
+  default_term: z.nativeEnum(AcademicTerm).nullable().optional(),
 };
 
+function validateSemesterTerm(
+  data: { default_semester?: AcademicSemester; default_term?: AcademicTerm | null },
+  context: z.RefinementCtx
+) {
+  if (data.default_semester !== undefined) {
+    const result = assertValidSemesterTerm(data.default_semester, data.default_term ?? null);
+    if (!result.valid) {
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: result.error,
+        path: ["default_semester"],
+      });
+    }
+  }
+}
+
 function validateCourseRelationships(
-  data: Pick<CreateCourseInput, "course_scope" | "program_id" | "major_id">,
+  data: { course_scope: CourseScope; program_id?: string | null; major_id?: string | null },
   context: z.RefinementCtx
 ) {
   if (data.course_scope === CourseScope.GENERAL_EDUCATION) {
@@ -68,14 +88,16 @@ function validateCourseRelationships(
 
 export const createCourseSchema = z
   .object(courseFields)
-  .superRefine((data, context) => validateCourseRelationships(data, context));
+  .superRefine(validateSemesterTerm)
+  .superRefine(validateCourseRelationships);
 
 export const updateCourseSchema = z
   .object({
     id: z.string().uuid(),
     ...courseFields,
   })
-  .superRefine((data, context) => validateCourseRelationships(data, context));
+  .superRefine(validateSemesterTerm)
+  .superRefine(validateCourseRelationships);
 
 export type CreateCourseInput = z.infer<typeof createCourseSchema>;
 export type UpdateCourseInput = z.infer<typeof updateCourseSchema>;

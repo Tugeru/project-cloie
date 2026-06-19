@@ -24,6 +24,9 @@ export default async function DeanEditCoursePage({ params }: DeanEditCoursePageP
         course_scope: true,
         program_id: true,
         major_id: true,
+        default_year_level: true,
+        default_semester: true,
+        default_term: true,
       },
     }),
     prisma.program.findMany({
@@ -88,6 +91,9 @@ export default async function DeanEditCoursePage({ params }: DeanEditCoursePageP
               course_scope: course.course_scope,
               program_id: course.program_id,
               major_id: course.major_id,
+              default_year_level: course.default_year_level,
+              default_semester: course.default_semester,
+              default_term: course.default_term,
             }}
             submitLabel="Update Course"
           />

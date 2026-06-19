@@ -219,6 +219,7 @@ model User {
   roles                UserRole[]
   student_profile      StudentAcademicProfile?
   course_evaluations   CourseBoundEvaluation[]
+  deployed_evaluations CourseBoundEvaluation[] @relation("CourseBoundEvaluationDeployer")
   evaluation_assignments  EvaluationAssignment[]
   responses            Response[]
   created_cilos        CILO[]
@@ -300,24 +301,28 @@ model Major {
 }
 
 model Course {
-  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  code         String      @unique
-  title        String
-  description  String?
-  program_id   String?     @db.Uuid
-  major_id     String?     @db.Uuid
-  course_scope CourseScope @default(PROGRAM_SPECIFIC)
-  is_active    Boolean     @default(true)
-  created_at   DateTime    @default(now())
-  updated_at   DateTime   @updatedAt
+  id                 String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code               String      @unique
+  title              String
+  description        String?
+  program_id         String?     @db.Uuid
+  major_id           String?     @db.Uuid
+  course_scope       CourseScope @default(PROGRAM_SPECIFIC)
+  default_year_level YearLevel?
+  default_semester   AcademicSemester?
+  default_term       AcademicTerm?
+  is_active          Boolean     @default(true)
+  created_at         DateTime    @default(now())
+  updated_at         DateTime    @updatedAt
 
   program      Program?    @relation(fields: [program_id], references: [id], onDelete: SetNull)
   major        Major?      @relation(fields: [major_id], references: [id], onDelete: SetNull)
   cilos        CILO[]
-  evaluations  CourseBoundEvaluation[]
+  course_bound_evaluations CourseBoundEvaluation[]
   bound_instrument_templates InstrumentTemplate[] @relation("BoundInstrumentTemplateCourse")
   course_assignments CourseAssignment[]
 
+  @@index([default_semester, default_term])
   @@map("courses")
 }
 
@@ -464,6 +469,10 @@ model CourseBoundEvaluation {
   term_instance_id      String   @db.Uuid
   course_assignment_id  String?  @db.Uuid
 
+  // Issue #43: Track who deployed (for on-behalf deployments)
+  deployed_by           String?  @db.Uuid
+  deployer              User?    @relation("CourseBoundEvaluationDeployer", fields: [deployed_by], references: [id], onDelete: SetNull)
+
   instrument            InstrumentVersion @relation(fields: [instrument_version_id], references: [id], onDelete: Restrict)
   course                Course            @relation(fields: [course_id], references: [id], onDelete: Restrict)
   program               Program           @relation(fields: [program_id], references: [id], onDelete: Restrict)
@@ -479,6 +488,7 @@ model CourseBoundEvaluation {
   // The actual constraint is managed via Supabase migration.
   @@index([term_instance_id, course_id, faculty_id, section])
   @@index([course_assignment_id])
+  @@index([deployed_by])
   @@map("course_bound_evaluations")
 }
 

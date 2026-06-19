@@ -1,10 +1,11 @@
-import { DeploymentStatus, EvaluationTemplateType } from "@prisma/client";
+import { DeploymentStatus, EvaluationTemplateType, CourseScope } from "@prisma/client";
 import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { getFacultyTemplatePublicationContext } from "@/features/instruments/services/manage-faculty-templates";
 import { listStudentsForClass } from "@/features/enrollments/services/list-students-for-class";
 import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
+import { canDeployCourseBoundEvaluation } from "../policies";
 import type {
   PublishCourseBoundEvaluationInput,
   PublishCourseBoundEvaluationResult,
@@ -27,6 +28,7 @@ function toUniqueValues(values: string[]) {
 /**
  * Phase 9: Publish course-bound evaluation using course assignment ID.
  * Resolves class identity from assignment and creates deployment with term/course FKs.
+ * Issue #43: Supports on-behalf deployment by PH/Dean/Secretary with policy-based authorization.
  */
 export async function publishCourseBoundEvaluation({
   assignmentId,
@@ -35,29 +37,22 @@ export async function publishCourseBoundEvaluation({
   deploymentName,
   respondentIds: providedRespondentIds,
   templateId,
+  deployerId,
 }: PublishCourseBoundEvaluationInput): Promise<PublishCourseBoundEvaluationResult> {
   const authSession = await resolveAuthSession();
 
-  if (!authSession?.roles?.includes(ROLES.FACULTY)) {
-    return {
-      error: "Faculty authentication is required.",
-      success: false,
-    };
+  if (!authSession) {
+    return { error: "Authentication required.", success: false };
   }
 
   if (!deploymentName.trim()) {
     return { error: "Deployment name is required.", success: false };
   }
 
-  // Lookup the assignment and verify faculty ownership
+  // Lookup the assignment (needed for policy check)
   const assignment = await prisma.courseAssignment.findUnique({
     where: { id: assignmentId },
     include: {
-      term_instance: {
-        include: {
-          school_year: true,
-        },
-      },
       course: {
         include: {
           major: true,
@@ -71,15 +66,60 @@ export async function publishCourseBoundEvaluation({
     return { error: "Course assignment not found.", success: false };
   }
 
-  if (assignment.faculty_id !== authSession.userId) {
-    return { error: "You do not have access to this course assignment.", success: false };
+  // Get PH scope if user is PH
+  let phProgramScope: string[] = [];
+  if (authSession.roles.includes(ROLES.PROGRAM_HEAD)) {
+    const headProfile = await prisma.programHead.findFirst({
+      where: { user_id: authSession.userId },
+      select: { program_id: true },
+    });
+    phProgramScope = headProfile?.program_id ? [headProfile.program_id] : [];
+  }
+
+  // Call policy for authorization
+  const authCheck = canDeployCourseBoundEvaluation(
+    authSession,
+    {
+      faculty_id: assignment.faculty_id,
+      program_id: assignment.program_id,
+      course_scope: assignment.course.course_scope as CourseScope,
+    },
+    phProgramScope
+  );
+
+  if (!authCheck.allowed) {
+    return { error: (authCheck as { allowed: false; reason: string }).reason, success: false };
   }
 
   if (!assignment.is_active) {
     return { error: "This course assignment is inactive.", success: false };
   }
 
-  const publicationContext = await getFacultyTemplatePublicationContext(templateId);
+  // Determine effective template ID (force bound template for on-behalf)
+  let effectiveTemplateId = templateId;
+  const isOnBehalf = deployerId && deployerId !== assignment.faculty_id;
+
+  if (isOnBehalf) {
+    // Force bound template for on-behalf deployments
+    const boundTemplate = await prisma.instrumentTemplate.findFirst({
+      where: {
+        bound_course_id: assignment.course_id,
+        is_active: true,
+      },
+      orderBy: { created_at: "desc" },
+    });
+
+    if (!boundTemplate) {
+      return {
+        error: "On-behalf deployment requires a course-bound template. Please create one first.",
+        success: false,
+      };
+    }
+
+    effectiveTemplateId = boundTemplate.id;
+  }
+
+  const publicationContext = await getFacultyTemplatePublicationContext(effectiveTemplateId);
 
   if (!publicationContext.success) {
     return publicationContext;
@@ -96,10 +136,10 @@ export async function publishCourseBoundEvaluation({
   const latestVersion = await prisma.instrumentVersion.findFirst({
     where: {
       is_active: true,
-      template_id: templateId,
+      template_id: effectiveTemplateId,
       template: {
         faculty_owner_id: authSession.userId,
-        id: templateId,
+        id: effectiveTemplateId,
         is_active: true,
         template_type: EvaluationTemplateType.COURSE_BOUND,
       },
@@ -131,13 +171,13 @@ export async function publishCourseBoundEvaluation({
 
       const evaluation = await tx.courseBoundEvaluation.create({
         data: {
-          // Phase 9: term_instance_id is now the source of truth
-          term_instance_id: assignment.term_instance_id,
+          // Source of truth for class identity (Issue #39)
           course_assignment_id: assignment.id,
-          section: assignment.section,
+          term_instance_id: assignment.term_instance_id,
+          // On-behalf deployment tracking (Issue #43)
+          deployed_by: authSession.userId,
           activation_at: activationAt,
           cilos_snapshot: ciloSnapshots,
-          course_id: assignment.course_id,
           course_info_snapshot: {
             courseCode: assignment.course.code,
             courseScope: publicationContext.data.course.courseType,
@@ -148,10 +188,7 @@ export async function publishCourseBoundEvaluation({
           },
           deadline_at: deadlineAt,
           deployment_name: deploymentName.trim(),
-          faculty_id: authSession.userId,
           instrument_version_id: latestVersion.id,
-          major_id: assignment.course.major_id,
-          program_id: assignment.program_id,
           published_at: new Date(),
           status,
         },
@@ -225,7 +262,7 @@ export async function publishCourseBoundEvaluation({
   } catch (error) {
     if (isUniqueConstraintError(error)) {
       return {
-        error: `An evaluation is already published for ${assignment.course.code} - ${assignment.year_level}${assignment.section ? ` - ${assignment.section}` : ""}.`,
+        error: "This course assignment already has a deployed evaluation.",
         success: false,
       };
     }

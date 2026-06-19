@@ -56,7 +56,7 @@ export function AddCoursesForClassDialog({
   const [termInstanceId, setTermInstanceId] = useState<string | null>(null);
   const [programId, setProgramId] = useState<string>(availablePrograms[0]?.id ?? "");
   const [yearLevel, setYearLevel] = useState<YearLevel>(YearLevel.FIRST_YEAR);
-  const [section, setSection] = useState<StudentSection | null>(null);
+  const [section, setSection] = useState<StudentSection>(StudentSection.MORNING);
   const [selectedFaculty, setSelectedFaculty] = useState<FacultySearchResult | null>(null);
   const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set());
 
@@ -109,7 +109,7 @@ export function AddCoursesForClassDialog({
     setTermInstanceId(null);
     setProgramId(availablePrograms[0]?.id ?? "");
     setYearLevel(YearLevel.FIRST_YEAR);
-    setSection(null);
+    setSection(StudentSection.MORNING);
     setSelectedFaculty(null);
     setSelectedCourses(new Set());
   };
@@ -153,7 +153,7 @@ export function AddCoursesForClassDialog({
               availablePrograms={availablePrograms}
               onProgramChange={setProgramId}
               onYearLevelChange={setYearLevel}
-              onSectionChange={setSection}
+              onSectionChange={(value) => value && setSection(value)}
             />
           </div>
         )}

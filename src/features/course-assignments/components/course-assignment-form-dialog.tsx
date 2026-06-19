@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { YearLevel, StudentSection } from "@prisma/client";
 import {
   Dialog,
@@ -28,6 +28,7 @@ interface Course {
   id: string;
   code: string;
   title: string;
+  default_year_level?: YearLevel | null;
 }
 
 interface Program {
@@ -67,12 +68,32 @@ export function CourseAssignmentFormDialog({
   const [courseId, setCourseId] = useState<string | null>(defaultCourseId ?? null);
   const [programId, setProgramId] = useState<string>(availablePrograms[0]?.id ?? "");
   const [yearLevel, setYearLevel] = useState<YearLevel>(YearLevel.FIRST_YEAR);
-  const [section, setSection] = useState<StudentSection | null>(StudentSection.MORNING);
+  const [section, setSection] = useState<StudentSection>(StudentSection.MORNING);
   const [selectedFaculty, setSelectedFaculty] = useState<FacultySearchResult | null>(null);
   const [showCrossProgramWarning, setShowCrossProgramWarning] = useState(false);
+  const [hasTouchedYearLevel, setHasTouchedYearLevel] = useState(false);
+
+  const previousCourseId = useRef<string | null>(null);
 
   const selectedCourse = availableCourses.find((c) => c.id === courseId);
   const selectedProgram = availablePrograms.find((p) => p.id === programId);
+
+  // Pre-fill year level from course default when course changes (only if user hasn't touched it)
+  useEffect(() => {
+    if (courseId && courseId !== previousCourseId.current && !hasTouchedYearLevel) {
+      const course = availableCourses.find((c) => c.id === courseId);
+      if (course?.default_year_level) {
+        setYearLevel(course.default_year_level);
+      }
+    }
+    previousCourseId.current = courseId;
+  }, [courseId, hasTouchedYearLevel, availableCourses]);
+  // Note: setYearLevel in effect is safe - guarded by hasTouchedYearLevel and course existence checks
+
+  const handleYearLevelChange = (value: YearLevel) => {
+    setHasTouchedYearLevel(true);
+    setYearLevel(value);
+  };
 
   const handleNext = () => {
     if (step === "term") setStep("course");
@@ -275,8 +296,9 @@ export function CourseAssignmentFormDialog({
               section={section}
               availablePrograms={availablePrograms}
               onProgramChange={setProgramId}
-              onYearLevelChange={setYearLevel}
-              onSectionChange={setSection}
+              onYearLevelChange={handleYearLevelChange}
+              onSectionChange={(value) => value && setSection(value)}
+              suggestedYearLevel={selectedCourse?.default_year_level ?? null}
             />
           </div>
         )}

@@ -10,7 +10,9 @@ const {
   courseAssignmentFindUniqueMock,
   getFacultyTemplatePublicationContextMock,
   instrumentVersionFindFirstMock,
+  instrumentTemplateFindFirstMock,
   listStudentsForClassMock,
+  programHeadFindFirstMock,
   resolveAuthSessionMock,
   targetCreateManyMock,
   transactionMock,
@@ -21,7 +23,9 @@ const {
   courseAssignmentFindUniqueMock: vi.fn(),
   getFacultyTemplatePublicationContextMock: vi.fn(),
   instrumentVersionFindFirstMock: vi.fn(),
+  instrumentTemplateFindFirstMock: vi.fn(),
   listStudentsForClassMock: vi.fn(),
+  programHeadFindFirstMock: vi.fn(),
   resolveAuthSessionMock: vi.fn(),
   targetCreateManyMock: vi.fn(),
   transactionMock: vi.fn(),
@@ -35,6 +39,12 @@ vi.mock("@/lib/db/prisma", () => ({
     },
     instrumentVersion: {
       findFirst: instrumentVersionFindFirstMock,
+    },
+    instrumentTemplate: {
+      findFirst: instrumentTemplateFindFirstMock,
+    },
+    programHead: {
+      findFirst: programHeadFindFirstMock,
     },
   },
 }));
@@ -132,7 +142,7 @@ describe("publishCourseBoundEvaluation", () => {
     );
   });
 
-  it("rejects publication when no faculty user is signed in", async () => {
+  it("rejects publication when no user is signed in", async () => {
     resolveAuthSessionMock.mockResolvedValue(null);
 
     await expect(
@@ -142,7 +152,7 @@ describe("publishCourseBoundEvaluation", () => {
         templateId: "template-1",
       })
     ).resolves.toEqual({
-      error: "Faculty authentication is required.",
+      error: "Authentication required.",
       success: false,
     });
   });
@@ -186,13 +196,11 @@ describe("publishCourseBoundEvaluation", () => {
     expect(getFacultyTemplatePublicationContextMock).toHaveBeenCalledWith("template-1");
     expect(courseBoundEvaluationCreateMock).toHaveBeenCalledWith({
       data: expect.objectContaining({
+        course_assignment_id: "assignment-1",
         term_instance_id: "term-instance-1",
-        course_id: "course-1",
+        deployed_by: "faculty-1",
         deployment_name: "Capstone CILO Evaluation",
-        faculty_id: "faculty-1",
         instrument_version_id: "version-1",
-        major_id: null,
-        program_id: "program-1",
       }),
     });
     expect(bindingCreateManyMock).toHaveBeenCalledWith({
@@ -271,8 +279,176 @@ describe("publishCourseBoundEvaluation", () => {
         templateId: "template-1",
       })
     ).resolves.toEqual({
-      error: expect.stringContaining("already published"),
+      error: expect.stringContaining("already has a deployed evaluation"),
       success: false,
+    });
+  });
+
+  describe("Issue #43: On-behalf deployment", () => {
+    it("stores deployed_by as deployer (not faculty_id) for on-behalf deployment by Program Head", async () => {
+      const phUserId = "ph-user-1";
+      resolveAuthSessionMock.mockResolvedValue({
+        activeRole: ROLES.PROGRAM_HEAD,
+        roles: [ROLES.FACULTY, ROLES.PROGRAM_HEAD],
+        userId: phUserId,
+      });
+      programHeadFindFirstMock.mockResolvedValue({ program_id: "program-1" });
+      courseAssignmentFindUniqueMock.mockResolvedValue(MOCK_ASSIGNMENT);
+      instrumentTemplateFindFirstMock.mockResolvedValue({ id: "bound-template-1" });
+      getFacultyTemplatePublicationContextMock.mockResolvedValue(MOCK_PUBLICATION_CONTEXT);
+      instrumentVersionFindFirstMock.mockResolvedValue({ id: "version-1" });
+      courseBoundEvaluationCreateMock.mockResolvedValue({ id: "evaluation-1" });
+      listStudentsForClassMock.mockResolvedValue({
+        success: true,
+        data: [{ userId: "student-1" }],
+      });
+
+      await publishCourseBoundEvaluation({
+        assignmentId: "assignment-1",
+        deploymentName: "PH On-Behalf Evaluation",
+        templateId: "template-1",
+        deployerId: phUserId,
+      });
+
+      expect(courseBoundEvaluationCreateMock).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          course_assignment_id: "assignment-1",
+          deployed_by: phUserId,
+          deployment_name: "PH On-Behalf Evaluation",
+        }),
+      });
+    });
+
+    it("rejects on-behalf deployment when course has no bound template", async () => {
+      const deanUserId = "dean-user-1";
+      resolveAuthSessionMock.mockResolvedValue({
+        activeRole: ROLES.DEAN,
+        roles: [ROLES.FACULTY, ROLES.DEAN],
+        userId: deanUserId,
+      });
+      courseAssignmentFindUniqueMock.mockResolvedValue(MOCK_ASSIGNMENT);
+      instrumentTemplateFindFirstMock.mockResolvedValue(null);
+
+      await expect(
+        publishCourseBoundEvaluation({
+          assignmentId: "assignment-1",
+          deploymentName: "Dean On-Behalf Evaluation",
+          templateId: "template-1",
+          deployerId: deanUserId,
+        })
+      ).resolves.toEqual({
+        error: "On-behalf deployment requires a course-bound template. Please create one first.",
+        success: false,
+      });
+    });
+
+    it("denies faculty member from deploying another faculty's assignment", async () => {
+      const otherFacultyId = "faculty-2";
+      resolveAuthSessionMock.mockResolvedValue({
+        activeRole: ROLES.FACULTY,
+        roles: [ROLES.FACULTY],
+        userId: otherFacultyId,
+      });
+      courseAssignmentFindUniqueMock.mockResolvedValue(MOCK_ASSIGNMENT);
+
+      await expect(
+        publishCourseBoundEvaluation({
+          assignmentId: "assignment-1",
+          deploymentName: "Unauthorized Evaluation",
+          templateId: "template-1",
+          deployerId: otherFacultyId,
+        })
+      ).resolves.toEqual({
+        error: "Only the assigned faculty member can deploy this evaluation.",
+        success: false,
+      });
+    });
+
+    it("allows Dean to deploy on-behalf for any assignment with bound template", async () => {
+      const deanUserId = "dean-user-1";
+      resolveAuthSessionMock.mockResolvedValue({
+        activeRole: ROLES.DEAN,
+        roles: [ROLES.FACULTY, ROLES.DEAN],
+        userId: deanUserId,
+      });
+      courseAssignmentFindUniqueMock.mockResolvedValue(MOCK_ASSIGNMENT);
+      instrumentTemplateFindFirstMock.mockResolvedValue({ id: "bound-template-1" });
+      getFacultyTemplatePublicationContextMock.mockResolvedValue(MOCK_PUBLICATION_CONTEXT);
+      instrumentVersionFindFirstMock.mockResolvedValue({ id: "version-1" });
+      courseBoundEvaluationCreateMock.mockResolvedValue({ id: "evaluation-1" });
+      listStudentsForClassMock.mockResolvedValue({
+        success: true,
+        data: [{ userId: "student-1" }],
+      });
+
+      const result = await publishCourseBoundEvaluation({
+        assignmentId: "assignment-1",
+        deploymentName: "Dean On-Behalf Evaluation",
+        templateId: "template-1",
+        deployerId: deanUserId,
+      });
+
+      expect(result.success).toBe(true);
+      expect(courseBoundEvaluationCreateMock).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          deployed_by: deanUserId,
+        }),
+      });
+    });
+
+    it("allows Secretary to deploy on-behalf for any assignment with bound template", async () => {
+      const secretaryUserId = "secretary-user-1";
+      resolveAuthSessionMock.mockResolvedValue({
+        activeRole: ROLES.SECRETARY,
+        roles: [ROLES.FACULTY, ROLES.SECRETARY],
+        userId: secretaryUserId,
+      });
+      courseAssignmentFindUniqueMock.mockResolvedValue(MOCK_ASSIGNMENT);
+      instrumentTemplateFindFirstMock.mockResolvedValue({ id: "bound-template-1" });
+      getFacultyTemplatePublicationContextMock.mockResolvedValue(MOCK_PUBLICATION_CONTEXT);
+      instrumentVersionFindFirstMock.mockResolvedValue({ id: "version-1" });
+      courseBoundEvaluationCreateMock.mockResolvedValue({ id: "evaluation-1" });
+      listStudentsForClassMock.mockResolvedValue({
+        success: true,
+        data: [{ userId: "student-1" }],
+      });
+
+      const result = await publishCourseBoundEvaluation({
+        assignmentId: "assignment-1",
+        deploymentName: "Secretary On-Behalf Evaluation",
+        templateId: "template-1",
+        deployerId: secretaryUserId,
+      });
+
+      expect(result.success).toBe(true);
+    });
+
+    it("allows Program Head to deploy on-behalf for assignment in their program scope", async () => {
+      const phUserId = "ph-user-1";
+      resolveAuthSessionMock.mockResolvedValue({
+        activeRole: ROLES.PROGRAM_HEAD,
+        roles: [ROLES.FACULTY, ROLES.PROGRAM_HEAD],
+        userId: phUserId,
+      });
+      programHeadFindFirstMock.mockResolvedValue({ program_id: "program-1" });
+      courseAssignmentFindUniqueMock.mockResolvedValue(MOCK_ASSIGNMENT);
+      instrumentTemplateFindFirstMock.mockResolvedValue({ id: "bound-template-1" });
+      getFacultyTemplatePublicationContextMock.mockResolvedValue(MOCK_PUBLICATION_CONTEXT);
+      instrumentVersionFindFirstMock.mockResolvedValue({ id: "version-1" });
+      courseBoundEvaluationCreateMock.mockResolvedValue({ id: "evaluation-1" });
+      listStudentsForClassMock.mockResolvedValue({
+        success: true,
+        data: [{ userId: "student-1" }],
+      });
+
+      const result = await publishCourseBoundEvaluation({
+        assignmentId: "assignment-1",
+        deploymentName: "PH In-Scope Evaluation",
+        templateId: "template-1",
+        deployerId: phUserId,
+      });
+
+      expect(result.success).toBe(true);
     });
   });
 });

@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { CourseScope } from "@prisma/client";
+import { AcademicSemester, AcademicTerm, CourseScope, YearLevel } from "@prisma/client";
 import { Archive, Edit, Plus, Search, Users } from "lucide-react";
 import { TermInstancePicker } from "@/features/academic-calendar/components/term-instance-picker";
 import { CourseRowAssignmentsSheet } from "@/features/course-assignments/components/course-row-assignments-sheet";
@@ -33,6 +33,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { YEAR_LEVEL_OPTIONS } from "@/lib/constants/year-levels";
+import { SEMESTER_OPTIONS, TERM_OPTIONS } from "@/lib/constants/academic";
 import {
   createProgramHeadCourseAction,
   toggleProgramHeadCourseActiveAction,
@@ -195,6 +197,32 @@ function CourseFormDialog({
   const [scopeType, setScopeType] = useState<"program-wide" | "major-specific">(
     course?.major_id ? "major-specific" : "program-wide"
   );
+  const [yearLevel, setYearLevel] = useState<YearLevel | "">(
+    course?.default_year_level ?? ""
+  );
+  const [semester, setSemester] = useState<AcademicSemester | "">(
+    course?.default_semester ?? ""
+  );
+  const [term, setTerm] = useState<AcademicTerm | "">(
+    course?.default_term ?? ""
+  );
+
+  const isSummer = semester === AcademicSemester.SUMMER;
+
+  useEffect(() => {
+    if (isSummer && term !== "") {
+      setTerm("");
+    }
+  }, [isSummer, term]);
+
+  useEffect(() => {
+    if (open) {
+      setYearLevel(course?.default_year_level ?? "");
+      setSemester(course?.default_semester ?? "");
+      setTerm(course?.default_term ?? "");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -206,6 +234,11 @@ function CourseFormDialog({
     if (scopeType === "program-wide") {
       formData.delete("major_id");
     }
+
+    // Append temporal fields
+    formData.set("default_year_level", yearLevel);
+    formData.set("default_semester", semester);
+    formData.set("default_term", isSummer ? "" : term);
 
     startTransition(async () => {
       const action =
@@ -299,6 +332,84 @@ function CourseFormDialog({
               defaultValue={course?.description ?? ""}
               rows={3}
             />
+          </div>
+
+          <div className="border-border-muted bg-surface-alt grid gap-4 rounded-lg border p-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <Label htmlFor="year-level">
+                Year Level <span className="text-text-muted text-xs font-normal">(default)</span>
+              </Label>
+              <Select value={yearLevel} onValueChange={(v) => setYearLevel(v as YearLevel)}>
+                <SelectTrigger id="year-level">
+                  <SelectValue placeholder="Select year level">
+                    {yearLevel
+                      ? (YEAR_LEVEL_OPTIONS.find((o) => o.value === yearLevel)?.label ?? "Select year level")
+                      : "Select year level"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {YEAR_LEVEL_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="semester">
+                Semester <span className="text-text-muted text-xs font-normal">(default)</span>
+              </Label>
+              <Select value={semester} onValueChange={(v) => setSemester(v as AcademicSemester)}>
+                <SelectTrigger id="semester">
+                  <SelectValue placeholder="Select semester">
+                    {semester
+                      ? (SEMESTER_OPTIONS.find((o) => o.value === semester)?.label ?? "Select semester")
+                      : "Select semester"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {SEMESTER_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="term">
+                Term <span className="text-text-muted text-xs font-normal">(default)</span>
+              </Label>
+              <Select
+                value={term}
+                onValueChange={(v) => setTerm(v as AcademicTerm)}
+                disabled={isSummer}
+              >
+                <SelectTrigger id="term">
+                  <SelectValue placeholder={isSummer ? "N/A" : "Select term"}>
+                    {term
+                      ? (TERM_OPTIONS.find((o) => o.value === term)?.label ?? "Select term")
+                      : null}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {!isSummer && (
+                    <>
+                      <SelectItem value={AcademicTerm.FIRST_TERM}>1st Term</SelectItem>
+                      <SelectItem value={AcademicTerm.SECOND_TERM}>2nd Term</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+              {isSummer && (
+                <p className="text-muted-foreground text-xs">Summer semester has no terms</p>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-end gap-2 pt-2">

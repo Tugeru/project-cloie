@@ -69,7 +69,7 @@ export async function createCourseAssignment(
         course_id: input.courseId,
         program_id: input.programId,
         year_level: input.yearLevel,
-        section: input.section ?? null,
+        section: input.section,
         is_active: true,
         ...(authSession?.userId ? { assigned_by: authSession.userId } : {}),
       },
@@ -116,7 +116,7 @@ export async function updateCourseAssignment(
       data: {
         ...(input.programId && { program_id: input.programId }),
         ...(input.yearLevel && { year_level: input.yearLevel }),
-        ...(input.section !== undefined && { section: input.section ?? null }),
+        ...(input.section && { section: input.section }),
       },
     });
 

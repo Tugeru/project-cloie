@@ -275,7 +275,7 @@ export type Database = {
           id: string
           is_active: boolean
           program_id: string
-          section: Database["public"]["Enums"]["student_section"] | null
+          section: Database["public"]["Enums"]["student_section"]
           term_instance_id: string
           updated_at: string
           year_level: Database["public"]["Enums"]["year_level"]
@@ -288,7 +288,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           program_id: string
-          section?: Database["public"]["Enums"]["student_section"] | null
+          section: Database["public"]["Enums"]["student_section"]
           term_instance_id: string
           updated_at: string
           year_level: Database["public"]["Enums"]["year_level"]
@@ -301,7 +301,7 @@ export type Database = {
           id?: string
           is_active?: boolean
           program_id?: string
-          section?: Database["public"]["Enums"]["student_section"] | null
+          section?: Database["public"]["Enums"]["student_section"]
           term_instance_id?: string
           updated_at?: string
           year_level?: Database["public"]["Enums"]["year_level"]
@@ -441,7 +441,7 @@ export type Database = {
         Row: {
           activation_at: string | null
           cilos_snapshot: Json
-          course_assignment_id: string | null
+          course_assignment_id: string
           course_id: string
           course_info_snapshot: Json
           created_at: string
@@ -461,7 +461,7 @@ export type Database = {
         Insert: {
           activation_at?: string | null
           cilos_snapshot: Json
-          course_assignment_id?: string | null
+          course_assignment_id: string
           course_id: string
           course_info_snapshot: Json
           created_at?: string
@@ -481,7 +481,7 @@ export type Database = {
         Update: {
           activation_at?: string | null
           cilos_snapshot?: Json
-          course_assignment_id?: string | null
+          course_assignment_id?: string
           course_id?: string
           course_info_snapshot?: Json
           created_at?: string
@@ -555,6 +555,11 @@ export type Database = {
           code: string
           course_scope: Database["public"]["Enums"]["CourseScope"]
           created_at: string
+          default_semester:
+            | Database["public"]["Enums"]["academic_semester"]
+            | null
+          default_term: Database["public"]["Enums"]["academic_term"] | null
+          default_year_level: Database["public"]["Enums"]["year_level"] | null
           description: string | null
           id: string
           is_active: boolean
@@ -567,6 +572,11 @@ export type Database = {
           code: string
           course_scope?: Database["public"]["Enums"]["CourseScope"]
           created_at?: string
+          default_semester?:
+            | Database["public"]["Enums"]["academic_semester"]
+            | null
+          default_term?: Database["public"]["Enums"]["academic_term"] | null
+          default_year_level?: Database["public"]["Enums"]["year_level"] | null
           description?: string | null
           id?: string
           is_active?: boolean
@@ -579,6 +589,11 @@ export type Database = {
           code?: string
           course_scope?: Database["public"]["Enums"]["CourseScope"]
           created_at?: string
+          default_semester?:
+            | Database["public"]["Enums"]["academic_semester"]
+            | null
+          default_term?: Database["public"]["Enums"]["academic_term"] | null
+          default_year_level?: Database["public"]["Enums"]["year_level"] | null
           description?: string | null
           id?: string
           is_active?: boolean
@@ -1529,7 +1544,7 @@ export type Database = {
     Enums: {
       academic_semester: "1ST" | "2ND" | "SUMMER"
       academic_term: "FIRST_TERM" | "SECOND_TERM"
-      CourseScope: "GENERAL_EDUCATION" | "PROGRAM_SPECIFIC" | "MAJOR_SPECIFIC"
+      CourseScope: "GENERAL_EDUCATION" | "PROGRAM_SPECIFIC"
       DeploymentStatus: "DRAFT" | "SCHEDULED" | "ACTIVE" | "CLOSED" | "ARCHIVED"
       DeploymentType: "COURSE_BOUND" | "CENTRAL"
       enrollment_source: "ONBOARDING" | "ROLLOVER" | "SECRETARY"
@@ -1677,7 +1692,7 @@ export const Constants = {
     Enums: {
       academic_semester: ["1ST", "2ND", "SUMMER"],
       academic_term: ["FIRST_TERM", "SECOND_TERM"],
-      CourseScope: ["GENERAL_EDUCATION", "PROGRAM_SPECIFIC", "MAJOR_SPECIFIC"],
+      CourseScope: ["GENERAL_EDUCATION", "PROGRAM_SPECIFIC"],
       DeploymentStatus: ["DRAFT", "SCHEDULED", "ACTIVE", "CLOSED", "ARCHIVED"],
       DeploymentType: ["COURSE_BOUND", "CENTRAL"],
       enrollment_source: ["ONBOARDING", "ROLLOVER", "SECRETARY"],

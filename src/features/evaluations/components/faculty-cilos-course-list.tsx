@@ -319,7 +319,7 @@ export function FacultyCilosCourseList({
     } else if (typeFilter === "general_education") {
       result = result.filter((c) => c.courseScope === "GENERAL_EDUCATION");
     } else if (typeFilter === "major_specific") {
-      result = result.filter((c) => c.courseScope === "MAJOR_SPECIFIC" || c.majorId !== null);
+      result = result.filter((c) => c.majorId !== null);
     }
 
     if (searchTerm.trim()) {

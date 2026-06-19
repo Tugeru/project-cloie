@@ -57,8 +57,6 @@ function getCourseScopeBadgeClass(scope: CourseScope): string {
   switch (scope) {
     case CourseScope.GENERAL_EDUCATION:
       return "bg-emerald-100 text-emerald-700";
-    case CourseScope.MAJOR_SPECIFIC:
-      return "bg-indigo-100 text-indigo-700";
     case CourseScope.PROGRAM_SPECIFIC:
     default:
       return "bg-blue-100 text-blue-700";
