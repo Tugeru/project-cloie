@@ -88,14 +88,21 @@ export async function getStudentCourseBoundEvaluationSession(
     include: {
       course_bound: {
         include: {
-          course: true,
+          course_assignment: {
+            include: {
+              course: {
+                include: {
+                  major: true,
+                },
+              },
+              program: true,
+            },
+          },
           instrument: {
             include: {
               template: true,
             },
           },
-          major: true,
-          program: true,
         },
       },
       response: {
@@ -127,13 +134,15 @@ export async function getStudentCourseBoundEvaluationSession(
     : {};
   const answeredItems = response ? response.qual_items.length + response.quant_items.length : 0;
 
+  const ca = assignment.course_bound.course_assignment;
+
   return {
     assignmentId: assignment.id,
-    courseTitle: assignment.course_bound.course.title,
+    courseTitle: ca.course.title,
     deadlineAt: assignment.course_bound.deadline_at,
     evaluationTitle:
       assignment.course_bound.deployment_name ?? assignment.course_bound.instrument.template.name,
-    programLabel: assignment.course_bound.major?.name ?? assignment.course_bound.program.name,
+    programLabel: ca.course.major?.name ?? ca.program.name,
     savedAnswers,
     sections,
     session: {

@@ -83,14 +83,21 @@ export async function getStudentAssignedEvaluationSession(
       },
       course_bound: {
         include: {
-          course: true,
+          course_assignment: {
+            include: {
+              course: {
+                include: {
+                  major: true,
+                },
+              },
+              program: true,
+            },
+          },
           instrument: {
             include: {
               template: true,
             },
           },
-          major: true,
-          program: true,
         },
       },
       response: {
@@ -113,6 +120,8 @@ export async function getStudentAssignedEvaluationSession(
       return null;
     }
 
+    const ca = evaluation.course_assignment;
+
     const sections = mapStructureSnapshotToSections(evaluation.instrument.structure_snapshot);
     const response = assignment.response ?? null;
     const savedAnswers = response
@@ -125,11 +134,11 @@ export async function getStudentAssignedEvaluationSession(
 
     return {
       assignmentId: assignment.id,
-      courseTitle: evaluation.course.title,
+      courseTitle: ca.course.title,
       deadlineAt: evaluation.deadline_at,
       deploymentType: "COURSE_BOUND",
       evaluationTitle: evaluation.deployment_name ?? evaluation.instrument.template.name,
-      programLabel: evaluation.major?.name ?? evaluation.program.name,
+      programLabel: ca.course.major?.name ?? ca.program.name,
       savedAnswers,
       sections,
       session: {

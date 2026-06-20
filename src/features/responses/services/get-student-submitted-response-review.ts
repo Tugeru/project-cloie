@@ -183,14 +183,21 @@ export async function getStudentSubmittedResponseReview(
           },
           course_bound: {
             include: {
-              course: true,
+              course_assignment: {
+                include: {
+                  course: {
+                    include: {
+                      major: true,
+                    },
+                  },
+                  program: true,
+                },
+              },
               instrument: {
                 include: {
                   template: true,
                 },
               },
-              major: true,
-              program: true,
             },
           },
         },
@@ -217,14 +224,16 @@ export async function getStudentSubmittedResponseReview(
   }
 
   if (response.assignment.course_bound) {
+    const ca = response.assignment.course_bound.course_assignment;
+
     return {
-      courseTitle: response.assignment.course_bound.course.title,
+      courseTitle: ca.course.title,
       evaluationTitle:
         response.assignment.course_bound.deployment_name ??
         response.assignment.course_bound.instrument.template.name,
       programLabel:
-        response.assignment.course_bound.major?.name ??
-        response.assignment.course_bound.program?.name ??
+        ca.course.major?.name ??
+        ca.program?.name ??
         "Program context unavailable",
       responseId: response.id,
       sections: buildSubmittedResponseSections({
