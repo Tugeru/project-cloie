@@ -60,14 +60,21 @@ export async function listCourseBoundReviewItems(): Promise<CourseBoundReviewLis
           },
         },
       },
-      course: true,
+      course_assignment: {
+        include: {
+          course: {
+            include: {
+              major: true,
+            },
+          },
+          program: true,
+        },
+      },
       instrument: {
         include: {
           template: true,
         },
       },
-      major: true,
-      program: true,
       term_instance: {
         include: {
           school_year: true,
@@ -93,14 +100,16 @@ export async function listCourseBoundReviewItems(): Promise<CourseBoundReviewLis
       ? `${ti.school_year.code} — ${ti.semester} — ${termLabel}`
       : `${ti.school_year.code} — ${ti.semester}`;
 
+    const ca = evaluation.course_assignment;
+
     return {
       termInstanceLabel,
-      courseTitle: evaluation.course.title,
+      courseTitle: ca.course.title,
       deadlineAt: evaluation.deadline_at,
       evaluationId: evaluation.id,
       evaluationTitle: evaluation.deployment_name ?? evaluation.instrument.template.name,
       overallMean: mean(quantRatings),
-      programLabel: evaluation.major?.name ?? evaluation.program.name,
+      programLabel: ca.course.major?.name ?? ca.program.name,
       responseCount: submittedResponses.length,
       reviewerRole,
     };

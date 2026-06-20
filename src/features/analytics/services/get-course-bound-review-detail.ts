@@ -98,7 +98,16 @@ export async function getCourseBoundReviewDetail(
           },
         },
       },
-      course: true,
+      course_assignment: {
+        include: {
+          course: {
+            include: {
+              major: true,
+            },
+          },
+          program: true,
+        },
+      },
       cilo_question_bindings: {
         orderBy: [{ created_at: "asc" }],
       },
@@ -107,8 +116,6 @@ export async function getCourseBoundReviewDetail(
           template: true,
         },
       },
-      major: true,
-      program: true,
       term_instance: {
         include: {
           school_year: true,
@@ -209,15 +216,17 @@ export async function getCourseBoundReviewDetail(
     ? `${ti.school_year.code} — ${ti.semester} — ${termLabel}`
     : `${ti.school_year.code} — ${ti.semester}`;
 
+  const ca = evaluation.course_assignment;
+
   return {
     termInstanceLabel,
     ciloMetrics,
-    courseTitle: evaluation.course.title,
+    courseTitle: ca.course.title,
     deadlineAt: evaluation.deadline_at,
     evaluationId: evaluation.id,
     evaluationTitle: evaluation.deployment_name ?? evaluation.instrument.template.name,
     overallMean: mean(allQuantRatings),
-    programLabel: evaluation.major?.name ?? evaluation.program.name,
+    programLabel: ca.course.major?.name ?? ca.program.name,
     responseCards,
     responseCount: submittedResponses.length,
     reviewerRole,

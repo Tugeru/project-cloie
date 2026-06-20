@@ -10,10 +10,19 @@ export function buildReviewerEvaluationScope({
   reviewerId: string;
   reviewerRole: ReviewerRole;
 }) {
-  return {
-    ...(programScope ? { program_id: { in: programScope } } : {}),
-    ...(reviewerRole === ROLES.FACULTY ? { faculty_id: reviewerId } : {}),
-  };
+  const courseAssignmentWhere: Record<string, unknown> = {};
+
+  if (programScope) {
+    courseAssignmentWhere.program_id = { in: programScope };
+  }
+
+  if (reviewerRole === ROLES.FACULTY) {
+    courseAssignmentWhere.faculty_id = reviewerId;
+  }
+
+  return Object.keys(courseAssignmentWhere).length > 0
+    ? { course_assignment: courseAssignmentWhere }
+    : {};
 }
 
 export function pickReviewerRole(roles: string[] | undefined): ReviewerRole | null {

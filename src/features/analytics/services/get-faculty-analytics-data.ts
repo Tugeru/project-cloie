@@ -73,17 +73,21 @@ export async function getFacultyAnalyticsData(
     const evaluations = await prisma.courseBoundEvaluation.findMany({
       where: {
         id: { in: evaluationIds },
-        faculty_id: session.userId, // Ensure faculty owns these evaluations
+        course_assignment: { faculty_id: session.userId },
       },
       include: {
-        course: {
+        course_assignment: {
           select: {
-            title: true,
-          },
-        },
-        program: {
-          select: {
-            name: true,
+            course: {
+              select: {
+                title: true,
+              },
+            },
+            program: {
+              select: {
+                name: true,
+              },
+            },
           },
         },
         assignments: {
@@ -201,11 +205,13 @@ export async function getFacultyAnalyticsData(
         ? `${ti.school_year.code} — ${ti.semester} — ${termLabel}`
         : `${ti.school_year.code} — ${ti.semester}`;
 
+      const ca = evaluation.course_assignment;
+
       return {
         evaluationId: evaluation.id,
         deploymentName: evaluation.deployment_name,
-        courseTitle: evaluation.course.title,
-        programName: evaluation.program.name,
+        courseTitle: ca.course.title,
+        programName: ca.program.name,
         termInstanceLabel,
         status: evaluation.status,
         overallMean: mean(allQuantRatings),
