@@ -55,7 +55,6 @@ enum InviteStatus {
 enum CourseScope {
   GENERAL_EDUCATION
   PROGRAM_SPECIFIC
-  MAJOR_SPECIFIC
 }
 
 enum DeploymentStatus {
@@ -180,7 +179,7 @@ model CourseAssignment {
   course_id         String   @db.Uuid
   program_id        String   @db.Uuid
   year_level        YearLevel
-  section           StudentSection?
+  section           StudentSection
   assigned_by       String?  @db.Uuid
   is_active         Boolean  @default(true)
   created_at        DateTime @default(now())
@@ -218,7 +217,6 @@ model User {
 
   roles                UserRole[]
   student_profile      StudentAcademicProfile?
-  course_evaluations   CourseBoundEvaluation[]
   deployed_evaluations CourseBoundEvaluation[] @relation("CourseBoundEvaluationDeployer")
   evaluation_assignments  EvaluationAssignment[]
   responses            Response[]
@@ -262,7 +260,6 @@ model Program {
   courses              Course[]
   student_profiles     StudentAcademicProfile[]
   gos                  GO[]
-  course_evaluations   CourseBoundEvaluation[]
   faculty_program_affiliations FacultyProgramAffiliation[]
   program_head_assignments ProgramHeadAssignment[]
   course_bound_targets CourseBoundEvaluationTarget[]
@@ -290,7 +287,6 @@ model Major {
   courses              Course[]
   student_profiles     StudentAcademicProfile[]
   alumni_profiles      AlumniProfile[]
-  course_evaluations   CourseBoundEvaluation[]
   central_deployments  CentralDeployment[]
   bound_instrument_templates InstrumentTemplate[] @relation("BoundInstrumentTemplateMajor")
   student_enrollments    StudentEnrollment[]
@@ -318,7 +314,6 @@ model Course {
   program      Program?    @relation(fields: [program_id], references: [id], onDelete: SetNull)
   major        Major?      @relation(fields: [major_id], references: [id], onDelete: SetNull)
   cilos        CILO[]
-  course_bound_evaluations CourseBoundEvaluation[]
   bound_instrument_templates InstrumentTemplate[] @relation("BoundInstrumentTemplateCourse")
   course_assignments CourseAssignment[]
 
@@ -451,11 +446,6 @@ model CourseBoundEvaluation {
   id                    String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   instrument_version_id String   @db.Uuid
   deployment_name       String
-  course_id             String   @db.Uuid
-  program_id            String   @db.Uuid
-  major_id              String?  @db.Uuid
-  faculty_id            String   @db.Uuid
-  section               StudentSection?
   cilos_snapshot        Json     // Snapshot of CILOs at time of publishing
   course_info_snapshot  Json     // Snapshot of course info at time of publishing
   activation_at         DateTime?
@@ -465,29 +455,23 @@ model CourseBoundEvaluation {
   created_at            DateTime @default(now())
   updated_at            DateTime @updatedAt
 
-  // Phase 9: term_instance_id is now the source of truth
+  // Phase 9: term_instance_id is the source of truth
   term_instance_id      String   @db.Uuid
-  course_assignment_id  String?  @db.Uuid
+
+  // Issue #39: course_assignment_id is the source of truth for class identity
+  course_assignment_id  String   @unique @db.Uuid
 
   // Issue #43: Track who deployed (for on-behalf deployments)
   deployed_by           String?  @db.Uuid
   deployer              User?    @relation("CourseBoundEvaluationDeployer", fields: [deployed_by], references: [id], onDelete: SetNull)
 
   instrument            InstrumentVersion @relation(fields: [instrument_version_id], references: [id], onDelete: Restrict)
-  course                Course            @relation(fields: [course_id], references: [id], onDelete: Restrict)
-  program               Program           @relation(fields: [program_id], references: [id], onDelete: Restrict)
-  major                 Major?            @relation(fields: [major_id], references: [id], onDelete: SetNull)
-  faculty               User              @relation(fields: [faculty_id], references: [id], onDelete: Restrict)
   term_instance         AcademicTermInstance @relation(fields: [term_instance_id], references: [id], onDelete: Restrict)
-  course_assignment     CourseAssignment?    @relation(fields: [course_assignment_id], references: [id], onDelete: SetNull)
+  course_assignment     CourseAssignment @relation(fields: [course_assignment_id], references: [id], onDelete: Restrict)
   assignments           EvaluationAssignment[] @relation("CourseBoundAssignments")
   targets               CourseBoundEvaluationTarget[]
   cilo_question_bindings CourseBoundCiloQuestionBinding[]
 
-  // Phase 9: Unique constraint on term_instance + course + faculty + section (NULLS NOT DISTINCT in SQL)
-  // The actual constraint is managed via Supabase migration.
-  @@index([term_instance_id, course_id, faculty_id, section])
-  @@index([course_assignment_id])
   @@index([deployed_by])
   @@map("course_bound_evaluations")
 }
