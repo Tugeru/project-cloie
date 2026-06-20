@@ -83,6 +83,7 @@ export function CourseAssignmentFormDialog({
     if (courseId && courseId !== previousCourseId.current && !hasTouchedYearLevel) {
       const course = availableCourses.find((c) => c.id === courseId);
       if (course?.default_year_level) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- controlled prefill of default year level when course changes and user has not manually edited it
         setYearLevel(course.default_year_level);
       }
     }

@@ -79,6 +79,7 @@ export function AddMergedClassesDialog({
     if (courseId && !hasTouchedYearLevel) {
       const course = availableCourses.find((c) => c.id === courseId);
       if (course?.default_year_level) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect -- controlled prefill of default year level when course changes and user has not manually edited it
         setYearLevel(course.default_year_level);
       }
     }
@@ -129,16 +130,16 @@ export function AddMergedClassesDialog({
 
     setIsSubmitting(false);
 
-    if (result.success) {
+      if (result.success) {
       showToast(`Created ${result.created} merged class assignments successfully.`, "success");
       if (result.errors.length > 0) {
-        showToast(`${result.errors.length} assignments failed to create.`, "warning");
+        showToast(`${result.errors.length} assignments failed to create.`, "error");
       }
       resetForm();
       onOpenChange(false);
       onSuccess?.();
     } else {
-      showToast(result.error || "Failed to create merged classes.", "error");
+      showToast(result.errors[0]?.error || "Failed to create merged classes.", "error");
     }
   };
 
@@ -313,8 +314,8 @@ export function AddMergedClassesDialog({
                     ? `${selectedFaculty.firstName} ${selectedFaculty.lastName}`
                     : null
                 }
-                targetProgramId={null} // Can be any faculty
-                targetProgramName={null}
+                targetProgramId={undefined} // Can be any faculty
+                targetProgramName={undefined}
                 onSelect={setSelectedFaculty}
               />
             </div>
