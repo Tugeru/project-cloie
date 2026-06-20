@@ -16,7 +16,9 @@ export async function closeFacultyEvaluation(
   const evaluation = await prisma.courseBoundEvaluation.findFirst({
     where: {
       id: evaluationId,
-      faculty_id: session.userId,
+      course_assignment: {
+        faculty_id: session.userId,
+      },
     },
     select: {
       id: true,

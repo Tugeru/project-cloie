@@ -15,28 +15,35 @@ export async function getFacultyEvaluationDetail(
   const evaluation = await prisma.courseBoundEvaluation.findFirst({
     where: {
       id: evaluationId,
-      faculty_id: session.userId,
+      course_assignment: {
+        faculty_id: session.userId,
+      },
     },
     include: {
-      course: {
+      course_assignment: {
         select: {
-          id: true,
-          code: true,
-          title: true,
-          course_scope: true,
-        },
-      },
-      program: {
-        select: {
-          id: true,
-          code: true,
-          name: true,
-        },
-      },
-      major: {
-        select: {
-          id: true,
-          name: true,
+          course: {
+            select: {
+              id: true,
+              code: true,
+              title: true,
+              course_scope: true,
+              major_id: true,
+              major: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          program: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+            },
+          },
         },
       },
       targets: {
@@ -109,6 +116,8 @@ export async function getFacultyEvaluationDetail(
     ? `${ti.school_year.code} — ${ti.semester} — ${termLabel}`
     : `${ti.school_year.code} — ${ti.semester}`;
 
+  const ca = evaluation.course_assignment;
+
   const detail: FacultyEvaluationDetail = {
     termInstanceLabel,
     activationAt: evaluation.activation_at,
@@ -119,14 +128,14 @@ export async function getFacultyEvaluationDetail(
         label: cilo.label,
       })) ?? [],
     courseInfo: {
-      courseCode: courseInfoSnapshot?.courseCode ?? evaluation.course.code,
+      courseCode: courseInfoSnapshot?.courseCode ?? ca.course.code,
       courseScope:
         courseInfoSnapshot?.courseScope ??
-        evaluation.course.course_scope.replace(/_/g, " ").toLowerCase(),
-      courseTitle: courseInfoSnapshot?.courseTitle ?? evaluation.course.title,
-      majorName: courseInfoSnapshot?.majorName ?? evaluation.major?.name ?? null,
-      programCode: courseInfoSnapshot?.programCode ?? evaluation.program.code,
-      programName: courseInfoSnapshot?.programName ?? evaluation.program.name,
+        ca.course.course_scope.replace(/_/g, " ").toLowerCase(),
+      courseTitle: courseInfoSnapshot?.courseTitle ?? ca.course.title,
+      majorName: courseInfoSnapshot?.majorName ?? ca.course.major?.name ?? null,
+      programCode: courseInfoSnapshot?.programCode ?? ca.program.code,
+      programName: courseInfoSnapshot?.programName ?? ca.program.name,
     },
     deadlineAt: evaluation.deadline_at,
     deploymentName: evaluation.deployment_name,

@@ -1,3 +1,4 @@
+import { CourseScope } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { ROLES } from "@/lib/constants/roles";
@@ -68,6 +69,7 @@ export async function listFacultyPublishedEvaluations(): Promise<ListFacultyPubl
               code: true,
               title: true,
               course_scope: true,
+              major_id: true,
               major: { select: { id: true, name: true } },
             },
           },
@@ -130,7 +132,8 @@ export async function listFacultyPublishedEvaluations(): Promise<ListFacultyPubl
       activationAt: evalItem.activation_at,
       courseCode: courseInfoSnapshot?.courseCode ?? ca.course.code,
       courseId: ca.course.id,
-      courseScope: courseInfoSnapshot?.courseScope ?? ca.course.course_scope,
+      courseScope:
+        (courseInfoSnapshot?.courseScope as CourseScope | undefined) ?? ca.course.course_scope,
       courseTitle: courseInfoSnapshot?.courseTitle ?? ca.course.title,
       deadlineAt: evalItem.deadline_at,
       deploymentName: evalItem.deployment_name,

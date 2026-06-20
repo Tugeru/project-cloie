@@ -69,8 +69,8 @@ export async function publishCourseBoundEvaluation({
   // Get PH scope if user is PH
   let phProgramScope: string[] = [];
   if (authSession.roles.includes(ROLES.PROGRAM_HEAD)) {
-    const headProfile = await prisma.programHead.findFirst({
-      where: { user_id: authSession.userId },
+    const headProfile = await prisma.programHeadAssignment.findFirst({
+      where: { program_head_id: authSession.userId, is_active: true },
       select: { program_id: true },
     });
     phProgramScope = headProfile?.program_id ? [headProfile.program_id] : [];
