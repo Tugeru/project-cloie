@@ -927,14 +927,14 @@ async function seedFoundation() {
     {
       code: "ENG201",
       title: "Language Across the Curriculum",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSED",
       mk: "BSED:English",
     },
     {
       code: "MATH201",
       title: "Mathematics in the Modern World",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSED",
       mk: "BSED:Mathematics",
     },
@@ -959,21 +959,21 @@ async function seedFoundation() {
     {
       code: "MKT301",
       title: "Strategic Marketing",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSBA",
       mk: "BSBA:Marketing Management",
     },
     {
       code: "HRDM302",
       title: "People Development and Training",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSBA",
       mk: "BSBA:Human Resource Development Management",
     },
     {
       code: "FIN303",
       title: "Financial Analysis and Planning",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSBA",
       mk: "BSBA:Financial Management",
     },
@@ -1031,14 +1031,14 @@ async function seedFoundation() {
     {
       code: "FIN101",
       title: "Financial Accounting",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSBA",
       mk: "BSBA:Financial Management",
     },
     {
       code: "HRDM201",
       title: "Organizational Behavior and Management",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSBA",
       mk: "BSBA:Human Resource Development Management",
     },
@@ -1052,7 +1052,7 @@ async function seedFoundation() {
     {
       code: "SCI201",
       title: "Science and Technology in Society",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSED",
       mk: "BSED:Science",
     },
@@ -2015,6 +2015,9 @@ async function seedEvaluations(
   };
 
   const cbEval1AssignmentId = assignmentMap.get("IT-OD-401");
+  if (!cbEval1AssignmentId) {
+    throw new Error("Missing course assignment for IT-OD-401");
+  }
 
   const existingCbEval1 = await prisma.courseBoundEvaluation.findFirst({
     where: {
@@ -2024,12 +2027,8 @@ async function seedEvaluations(
   });
 
   const cbEval1Data = {
-    course_id: itCourse.id,
     deployment_name: "IT-OD-401 Post-Term CILO Evaluation",
     instrument_version_id: ciloVer.id,
-    program_id: bsit.id,
-    major_id: null,
-    faculty_id: U.FAC_BSIT,
     cilos_snapshot: ciloSnap1,
     course_info_snapshot: courseSnap1,
     activation_at: new Date("2026-04-01T08:00:00Z"),
@@ -2091,7 +2090,6 @@ async function seedEvaluations(
     description: c.description,
     order: c.order,
   }));
-  const mktMajor = await prisma.major.findFirst({ where: { name: "Marketing Management" } });
   const courseSnap2: Prisma.InputJsonValue = {
     courseCode: mktCourse.code,
     courseTitle: mktCourse.title,
@@ -2100,6 +2098,9 @@ async function seedEvaluations(
   };
 
   const cbEval2AssignmentId = assignmentMap.get("MKT301");
+  if (!cbEval2AssignmentId) {
+    throw new Error("Missing course assignment for MKT301");
+  }
 
   const existingCbEval2 = await prisma.courseBoundEvaluation.findFirst({
     where: {
@@ -2109,12 +2110,8 @@ async function seedEvaluations(
   });
 
   const cbEval2Data = {
-    course_id: mktCourse.id,
     deployment_name: "MKT301 Post-Term CILO Evaluation",
     instrument_version_id: ciloVer.id,
-    program_id: bsba.id,
-    major_id: mktMajor?.id ?? null,
-    faculty_id: U.FAC_BSBA,
     cilos_snapshot: ciloSnap2,
     course_info_snapshot: courseSnap2,
     activation_at: new Date("2026-04-01T08:00:00Z"),
@@ -2177,8 +2174,6 @@ async function seedEvaluations(
       progId: bsit.id,
       progCode: "BSIT",
       progName: "Bachelor of Science in Information Technology",
-      majorId: null as string | null,
-      facultyId: U.FAC_BSIT,
       ylId: y4,
       respondents: [U.STU_BSIT, U.GRAD_BSIT],
     },
@@ -2189,8 +2184,6 @@ async function seedEvaluations(
       progId: bsba.id,
       progCode: "BSBA",
       progName: "Bachelor of Science in Business Administration",
-      majorId: (await prisma.major.findFirst({ where: { name: "Financial Management" } }))?.id ?? null,
-      facultyId: U.FAC_BSBA,
       ylId: y4,
       respondents: [U.STU_BSBA_G, U.STU_BSBA],
     },
@@ -2201,8 +2194,6 @@ async function seedEvaluations(
       progId: bsed.id,
       progCode: "BSED",
       progName: "Bachelor of Secondary Education",
-      majorId: null,
-      facultyId: U.FAC_BSED,
       ylId: y3,
       respondents: [U.STU_BSED],
     },
@@ -2213,8 +2204,6 @@ async function seedEvaluations(
       progId: bshm.id,
       progCode: "BSHM",
       progName: "Bachelor of Science in Hospitality Management",
-      majorId: null,
-      facultyId: U.FAC_BSHM,
       ylId: y4,
       respondents: [U.STU_BSHM_G, U.STU_BSHM],
     },
@@ -2225,8 +2214,6 @@ async function seedEvaluations(
       progId: beed.id,
       progCode: "BEED",
       progName: "Bachelor of Elementary Education",
-      majorId: null,
-      facultyId: U.FAC_BSED,
       ylId: y4,
       respondents: [U.STU_BEED],
     },
@@ -2237,8 +2224,6 @@ async function seedEvaluations(
       progId: bssw.id,
       progCode: "BSSW",
       progName: "Bachelor of Science in Social Work",
-      majorId: null,
-      facultyId: U.FAC_BSED,
       ylId: y4,
       respondents: [] as string[],
     },
@@ -2260,6 +2245,9 @@ async function seedEvaluations(
     };
 
     const cbAssignmentId = assignmentMap.get(def.courseCode);
+    if (!cbAssignmentId) {
+      throw new Error(`Missing course assignment for ${def.courseCode}`);
+    }
 
     const existingCb = await prisma.courseBoundEvaluation.findFirst({
       where: {
@@ -2269,12 +2257,8 @@ async function seedEvaluations(
     });
 
     const cbData = {
-      course_id: course.id,
       deployment_name: def.deployName,
       instrument_version_id: ciloVer.id,
-      program_id: def.progId,
-      major_id: def.majorId,
-      faculty_id: def.facultyId,
       cilos_snapshot: ciloSnap,
       course_info_snapshot: courseSnap,
       activation_at: new Date("2026-04-10T08:00:00Z"),
