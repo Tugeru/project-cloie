@@ -68,6 +68,15 @@ async function ensureCourseScopeContext(input: {
   };
 }
 
+function countCourseEvaluations(course: {
+  course_assignments: Array<{ _count: { course_bound_evaluations: number } }>;
+}) {
+  return course.course_assignments.reduce(
+    (sum, assignment) => sum + assignment._count.course_bound_evaluations,
+    0
+  );
+}
+
 async function listCourses() {
   return prisma.course.findMany({
     include: {
@@ -84,10 +93,18 @@ async function listCourses() {
           name: true,
         },
       },
+      course_assignments: {
+        select: {
+          _count: {
+            select: {
+              course_bound_evaluations: true,
+            },
+          },
+        },
+      },
       _count: {
         select: {
           cilos: true,
-          evaluations: true,
         },
       },
     },
@@ -175,10 +192,18 @@ export async function deleteCourse(id: string): Promise<ServiceResult> {
   const course = await prisma.course.findUnique({
     where: { id },
     include: {
+      course_assignments: {
+        select: {
+          _count: {
+            select: {
+              course_bound_evaluations: true,
+            },
+          },
+        },
+      },
       _count: {
         select: {
           cilos: true,
-          evaluations: true,
         },
       },
     },
@@ -188,7 +213,7 @@ export async function deleteCourse(id: string): Promise<ServiceResult> {
     return { success: false, error: "Course not found." };
   }
 
-  const dependentCount = course._count.cilos + course._count.evaluations;
+  const dependentCount = course._count.cilos + countCourseEvaluations(course);
 
   if (dependentCount > 0) {
     return {

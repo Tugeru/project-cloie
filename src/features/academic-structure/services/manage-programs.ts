@@ -170,7 +170,6 @@ export async function deleteMajor(id: string): Promise<ServiceResult> {
       _count: {
         select: {
           courses: true,
-          course_evaluations: true,
           student_profiles: true,
         },
       },
@@ -182,7 +181,7 @@ export async function deleteMajor(id: string): Promise<ServiceResult> {
   }
 
   const totalDependents =
-    major._count.courses + major._count.course_evaluations + major._count.student_profiles;
+    major._count.courses + major._count.student_profiles;
 
   if (totalDependents > 0) {
     return {

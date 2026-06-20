@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState, useTransition, useEffect, useCallback } from "react";
+import { useMemo, useRef, useState, useTransition } from "react";
 import { AcademicSemester, AcademicTerm, CourseScope, YearLevel } from "@prisma/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -65,16 +65,12 @@ export function CourseForm({
     defaultValues?.default_semester ?? ""
   );
   const [term, setTerm] = useState<AcademicTerm | "">(
-    defaultValues?.default_term ?? ""
+    defaultValues?.default_semester === AcademicSemester.SUMMER
+      ? ""
+      : (defaultValues?.default_term ?? "")
   );
 
   const isSummer = semester === AcademicSemester.SUMMER;
-
-  useEffect(() => {
-    if (isSummer && term !== "") {
-      setTerm("");
-    }
-  }, [isSummer, term]);
 
   const filteredMajors = useMemo(() => {
     if (!programId) {
@@ -242,7 +238,13 @@ export function CourseForm({
           <select
             id={`semester-${defaultValues?.id ?? "new"}`}
             value={semester}
-            onChange={(e) => setSemester(e.target.value as AcademicSemester)}
+            onChange={(e) => {
+              const nextSemester = e.target.value as AcademicSemester;
+              setSemester(nextSemester);
+              if (nextSemester === AcademicSemester.SUMMER) {
+                setTerm("");
+              }
+            }}
             className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm"
           >
             <option value="">None</option>
@@ -260,7 +262,7 @@ export function CourseForm({
           </Label>
           <select
             id={`term-${defaultValues?.id ?? "new"}`}
-            value={term}
+            value={isSummer ? "" : term}
             onChange={(e) => setTerm(e.target.value as AcademicTerm)}
             disabled={isSummer}
             className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm disabled:opacity-60"

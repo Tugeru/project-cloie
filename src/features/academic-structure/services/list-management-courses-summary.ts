@@ -41,6 +41,15 @@ export type ProgramFilterOption = {
   majors: MajorFilterOption[];
 };
 
+function countCourseEvaluations(course: {
+  course_assignments: Array<{ _count: { course_bound_evaluations: number } }>;
+}) {
+  return course.course_assignments.reduce(
+    (sum, assignment) => sum + assignment._count.course_bound_evaluations,
+    0
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Main service function
 // ---------------------------------------------------------------------------
@@ -55,10 +64,18 @@ export async function listManagementCoursesSummary(): Promise<{
       include: {
         program: { select: { id: true, code: true, name: true } },
         major: { select: { id: true, name: true } },
+        course_assignments: {
+          select: {
+            _count: {
+              select: {
+                course_bound_evaluations: true,
+              },
+            },
+          },
+        },
         _count: {
           select: {
             cilos: true,
-            evaluations: true,
           },
         },
       },
@@ -102,9 +119,7 @@ export async function listManagementCoursesSummary(): Promise<{
       courseScopeLabel:
         c.course_scope === CourseScope.GENERAL_EDUCATION
           ? "General Education"
-          : c.course_scope === CourseScope.MAJOR_SPECIFIC
-            ? "Major-Specific"
-            : "Program-Specific",
+          : "Program-Specific",
       isActive: c.is_active,
       programId: c.program?.id ?? null,
       programCode: c.program?.code ?? null,
@@ -112,7 +127,7 @@ export async function listManagementCoursesSummary(): Promise<{
       majorId: c.major?.id ?? null,
       majorName: c.major?.name ?? null,
       ciloCount: c._count.cilos,
-      evaluationCount: c._count.evaluations,
+      evaluationCount: countCourseEvaluations(c),
     };
   });
 

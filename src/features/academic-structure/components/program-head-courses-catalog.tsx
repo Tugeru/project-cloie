@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useEffect } from "react";
+import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { AcademicSemester, AcademicTerm, CourseScope, YearLevel } from "@prisma/client";
 import { Archive, Edit, Plus, Search, Users } from "lucide-react";
@@ -204,25 +204,12 @@ function CourseFormDialog({
     course?.default_semester ?? ""
   );
   const [term, setTerm] = useState<AcademicTerm | "">(
-    course?.default_term ?? ""
+    course?.default_semester === AcademicSemester.SUMMER
+      ? ""
+      : (course?.default_term ?? "")
   );
 
   const isSummer = semester === AcademicSemester.SUMMER;
-
-  useEffect(() => {
-    if (isSummer && term !== "") {
-      setTerm("");
-    }
-  }, [isSummer, term]);
-
-  useEffect(() => {
-    if (open) {
-      setYearLevel(course?.default_year_level ?? "");
-      setSemester(course?.default_semester ?? "");
-      setTerm(course?.default_term ?? "");
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -362,7 +349,16 @@ function CourseFormDialog({
               <Label htmlFor="semester">
                 Semester <span className="text-text-muted text-xs font-normal">(default)</span>
               </Label>
-              <Select value={semester} onValueChange={(v) => setSemester(v as AcademicSemester)}>
+              <Select
+                value={semester}
+                onValueChange={(v) => {
+                  const nextSemester = v as AcademicSemester;
+                  setSemester(nextSemester);
+                  if (nextSemester === AcademicSemester.SUMMER) {
+                    setTerm("");
+                  }
+                }}
+              >
                 <SelectTrigger id="semester">
                   <SelectValue placeholder="Select semester">
                     {semester
@@ -386,7 +382,7 @@ function CourseFormDialog({
                 Term <span className="text-text-muted text-xs font-normal">(default)</span>
               </Label>
               <Select
-                value={term}
+                value={isSummer ? "" : term}
                 onValueChange={(v) => setTerm(v as AcademicTerm)}
                 disabled={isSummer}
               >
@@ -440,6 +436,7 @@ export function ProgramHeadCoursesCatalog({
   const [majorFilter, setMajorFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createDialogKey, setCreateDialogKey] = useState(0);
   const [editingCourse, setEditingCourse] = useState<ProgramHeadCourseItem | null>(null);
   const [selectedTermId, setSelectedTermId] = useState<string | null>(null);
 
@@ -734,15 +731,20 @@ export function ProgramHeadCoursesCatalog({
 
       {/* Create Dialog */}
       <CourseFormDialog
+        key={`create-${createDialogKey}`}
         mode="create"
         majors={majors}
         open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+        onOpenChange={(open) => {
+          if (open) setCreateDialogKey((k) => k + 1);
+          setCreateDialogOpen(open);
+        }}
       />
 
       {/* Edit Dialog */}
       {editingCourse && (
         <CourseFormDialog
+          key={editingCourse.id}
           mode="edit"
           majors={majors}
           course={editingCourse}
