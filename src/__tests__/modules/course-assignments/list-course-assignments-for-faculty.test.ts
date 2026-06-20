@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { listCourseAssignmentsForFaculty } from "@/features/course-assignments/services/list-course-assignments-for-faculty";
 import * as authModule from "@/features/auth/services/resolve-auth-session";
-import { SystemRole } from "@prisma/client";
+import { ROLES } from "@/lib/constants/roles";
+import { createAuthSessionSnapshot } from "@/__tests__/helpers/auth-session";
 
 vi.mock("@/features/auth/services/resolve-auth-session");
 vi.mock("@/lib/db/prisma", () => ({
@@ -13,23 +14,17 @@ vi.mock("@/lib/db/prisma", () => ({
 }));
 
 describe("list-course-assignments-for-faculty", () => {
-  const mockFacultySession = {
+  const mockFacultySession = createAuthSessionSnapshot({
     userId: "faculty-1",
     email: "faculty@test.com",
-    roles: [SystemRole.FACULTY],
-    activeRole: SystemRole.FACULTY,
-    studentProfileId: null,
-    profileGate: { status: "COMPLETE" } as const,
-  };
+    roles: [ROLES.FACULTY],
+  });
 
-  const mockStudentSession = {
+  const mockStudentSession = createAuthSessionSnapshot({
     userId: "student-1",
     email: "student@test.com",
-    roles: [SystemRole.STUDENT],
-    activeRole: SystemRole.STUDENT,
-    studentProfileId: null,
-    profileGate: { status: "COMPLETE" } as const,
-  };
+    roles: [ROLES.STUDENT],
+  });
 
   it("should return assignments grouped by course", async () => {
     vi.mocked(authModule.resolveAuthSession).mockResolvedValue(mockFacultySession);

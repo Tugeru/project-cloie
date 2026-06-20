@@ -44,8 +44,6 @@ describe("getCourseBoundResponseReview", () => {
     responseFindFirstMock.mockResolvedValue({
       assignment: {
         course_bound: {
-          term_instance: { semester: "SECOND", term: "FIRST_TERM", school_year: { code: "2025-2026" } },
-          course: { title: "Capstone 2" },
           id: "eval-1",
           instrument: {
             structure_snapshot: [
@@ -65,8 +63,15 @@ describe("getCourseBoundResponseReview", () => {
             ],
             template: { name: "Post-Term CILO Evaluation Tool" },
           },
-          major: null,
-          program: { id: "program-1", name: "BSIT" },
+          course_assignment: {
+            course: { title: "Capstone 2", major: null },
+            program: { id: "program-1", name: "BSIT" },
+            term_instance: {
+              semester: "SECOND",
+              term: "FIRST_TERM",
+              school_year: { code: "2025-2026" },
+            },
+          },
         },
       },
       id: "response-1",
@@ -107,12 +112,10 @@ describe("getCourseBoundResponseReview", () => {
           id: "response-1",
           status: "SUBMITTED",
           assignment: {
-            is: {
-              course_bound: {
-                is: {
-                  faculty_id: "faculty-1",
-                  program_id: { in: ["program-1"] },
-                },
+            course_bound: {
+              course_assignment: {
+                faculty_id: "faculty-1",
+                program_id: { in: ["program-1"] },
               },
             },
           },
@@ -139,11 +142,7 @@ describe("getCourseBoundResponseReview", () => {
       expect.objectContaining({
         where: expect.objectContaining({
           assignment: {
-            is: {
-              course_bound: {
-                is: expect.not.objectContaining({ program_id: expect.anything() }),
-              },
-            },
+            course_bound: {},
           },
         }),
       })
@@ -156,8 +155,6 @@ describe("getCourseBoundResponseReview", () => {
     responseFindFirstMock.mockResolvedValue({
       assignment: {
         course_bound: {
-          term_instance: { semester: "SECOND", term: null, school_year: { code: "2025-2026" } },
-          course: { title: "Capstone 2" },
           id: "eval-1",
           instrument: {
             structure_snapshot: [
@@ -176,8 +173,15 @@ describe("getCourseBoundResponseReview", () => {
             ],
             template: { name: "Post-Term CILO Evaluation Tool" },
           },
-          major: null,
-          program: { id: "program-1", name: "BSIT" },
+          course_assignment: {
+            course: { title: "Capstone 2", major: null },
+            program: { id: "program-1", name: "BSIT" },
+            term_instance: {
+              semester: "SECOND",
+              term: null,
+              school_year: { code: "2025-2026" },
+            },
+          },
         },
       },
       id: "response-1",

@@ -196,7 +196,10 @@ describe("getStudentSubmittedResponseReview", () => {
     findFirstMock.mockResolvedValue({
       assignment: {
         course_bound: {
-          course: { title: "Capstone 1" },
+          course_assignment: {
+            course: { title: "Capstone 1" },
+            program: { name: "BSIT", id: "program-1" },
+          },
           instrument: {
             structure_snapshot: [
               {

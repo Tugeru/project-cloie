@@ -24,7 +24,9 @@ describe("CourseForm temporal fields", () => {
     { id: "major-2", name: "English", program_id: "prog-2", program_code: "BSED" },
   ];
 
-  const renderCourseForm = (defaultValues?: any) => {
+  type CourseFormDefaultValues = Parameters<typeof CourseForm>[0]["defaultValues"];
+
+  const renderCourseForm = (defaultValues?: CourseFormDefaultValues) => {
     return render(
       <CourseForm
         action={mockAction}

@@ -1,18 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { ROLES } from "@/lib/constants/roles";
-import { SystemRole, CourseScope } from "@prisma/client";
+import { CourseScope } from "@prisma/client";
 import { canDeployCourseBoundEvaluation } from "@/features/evaluations/policies";
+import { createAuthSessionSnapshot } from "@/__tests__/helpers/auth-session";
 
 describe("canDeployCourseBoundEvaluation policy", () => {
-  const makeSession = (roles: SystemRole[], userId = "user-1") => ({
-    roles,
-    userId,
-  });
+  const makeSession = (roles: (typeof ROLES)[keyof typeof ROLES][], userId = "user-1") =>
+    createAuthSessionSnapshot({ userId, roles });
 
   const baseAssignment = {
     faculty_id: "faculty-1",
     program_id: "prog-1",
-    course_scope: CourseScope.PROGRAM_SPECIFIC as const,
+    course_scope: CourseScope.PROGRAM_SPECIFIC,
   };
 
   describe("Faculty self-deploy", () => {
@@ -28,7 +27,9 @@ describe("canDeployCourseBoundEvaluation policy", () => {
       const result = canDeployCourseBoundEvaluation(session, baseAssignment);
 
       expect(result.allowed).toBe(false);
-      expect(result.reason).toContain("Only the assigned faculty member");
+      if (!result.allowed) {
+        expect(result.reason).toContain("Only the assigned faculty member");
+      }
     });
   });
 
@@ -39,7 +40,7 @@ describe("canDeployCourseBoundEvaluation policy", () => {
       const assignment = {
         faculty_id: "faculty-1",
         program_id: "prog-1",
-        course_scope: CourseScope.PROGRAM_SPECIFIC as const,
+        course_scope: CourseScope.PROGRAM_SPECIFIC,
       };
 
       const result = canDeployCourseBoundEvaluation(phSession, assignment, ["prog-1"]);
@@ -51,7 +52,7 @@ describe("canDeployCourseBoundEvaluation policy", () => {
       const assignment = {
         faculty_id: "faculty-1",
         program_id: null,
-        course_scope: CourseScope.GENERAL_EDUCATION as const,
+        course_scope: CourseScope.GENERAL_EDUCATION,
       };
 
       const result = canDeployCourseBoundEvaluation(phSession, assignment, ["prog-1"]);
@@ -63,13 +64,15 @@ describe("canDeployCourseBoundEvaluation policy", () => {
       const assignment = {
         faculty_id: "faculty-1",
         program_id: "prog-2",
-        course_scope: CourseScope.PROGRAM_SPECIFIC as const,
+        course_scope: CourseScope.PROGRAM_SPECIFIC,
       };
 
       const result = canDeployCourseBoundEvaluation(phSession, assignment, ["prog-1"]);
 
       expect(result.allowed).toBe(false);
-      expect(result.reason).toContain("program scope");
+      if (!result.allowed) {
+        expect(result.reason).toContain("program scope");
+      }
     });
   });
 
@@ -79,7 +82,7 @@ describe("canDeployCourseBoundEvaluation policy", () => {
       const assignment = {
         faculty_id: "faculty-1",
         program_id: "prog-1",
-        course_scope: CourseScope.PROGRAM_SPECIFIC as const,
+        course_scope: CourseScope.PROGRAM_SPECIFIC,
       };
 
       const result = canDeployCourseBoundEvaluation(session, assignment, []);
@@ -92,7 +95,7 @@ describe("canDeployCourseBoundEvaluation policy", () => {
       const assignment = {
         faculty_id: "faculty-1",
         program_id: "prog-1",
-        course_scope: CourseScope.PROGRAM_SPECIFIC as const,
+        course_scope: CourseScope.PROGRAM_SPECIFIC,
       };
 
       const result = canDeployCourseBoundEvaluation(session, assignment, []);

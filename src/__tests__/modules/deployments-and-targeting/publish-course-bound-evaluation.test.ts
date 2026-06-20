@@ -12,7 +12,7 @@ const {
   instrumentVersionFindFirstMock,
   instrumentTemplateFindFirstMock,
   listStudentsForClassMock,
-  programHeadFindFirstMock,
+  programHeadAssignmentFindFirstMock,
   resolveAuthSessionMock,
   targetCreateManyMock,
   transactionMock,
@@ -25,7 +25,7 @@ const {
   instrumentVersionFindFirstMock: vi.fn(),
   instrumentTemplateFindFirstMock: vi.fn(),
   listStudentsForClassMock: vi.fn(),
-  programHeadFindFirstMock: vi.fn(),
+  programHeadAssignmentFindFirstMock: vi.fn(),
   resolveAuthSessionMock: vi.fn(),
   targetCreateManyMock: vi.fn(),
   transactionMock: vi.fn(),
@@ -43,8 +43,8 @@ vi.mock("@/lib/db/prisma", () => ({
     instrumentTemplate: {
       findFirst: instrumentTemplateFindFirstMock,
     },
-    programHead: {
-      findFirst: programHeadFindFirstMock,
+    programHeadAssignment: {
+      findFirst: programHeadAssignmentFindFirstMock,
     },
   },
 }));
@@ -292,7 +292,7 @@ describe("publishCourseBoundEvaluation", () => {
         roles: [ROLES.FACULTY, ROLES.PROGRAM_HEAD],
         userId: phUserId,
       });
-      programHeadFindFirstMock.mockResolvedValue({ program_id: "program-1" });
+      programHeadAssignmentFindFirstMock.mockResolvedValue({ program_id: "program-1" });
       courseAssignmentFindUniqueMock.mockResolvedValue(MOCK_ASSIGNMENT);
       instrumentTemplateFindFirstMock.mockResolvedValue({ id: "bound-template-1" });
       getFacultyTemplatePublicationContextMock.mockResolvedValue(MOCK_PUBLICATION_CONTEXT);
@@ -430,7 +430,7 @@ describe("publishCourseBoundEvaluation", () => {
         roles: [ROLES.FACULTY, ROLES.PROGRAM_HEAD],
         userId: phUserId,
       });
-      programHeadFindFirstMock.mockResolvedValue({ program_id: "program-1" });
+      programHeadAssignmentFindFirstMock.mockResolvedValue({ program_id: "program-1" });
       courseAssignmentFindUniqueMock.mockResolvedValue(MOCK_ASSIGNMENT);
       instrumentTemplateFindFirstMock.mockResolvedValue({ id: "bound-template-1" });
       getFacultyTemplatePublicationContextMock.mockResolvedValue(MOCK_PUBLICATION_CONTEXT);

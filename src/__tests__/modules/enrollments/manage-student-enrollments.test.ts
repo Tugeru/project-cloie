@@ -6,6 +6,8 @@ import {
   deactivateEnrollment,
 } from "@/features/enrollments/services/manage-student-enrollments";
 import * as authModule from "@/features/auth/services/resolve-auth-session";
+import { ROLES } from "@/lib/constants/roles";
+import { createAuthSessionSnapshot } from "@/__tests__/helpers/auth-session";
 
 vi.mock("@/features/auth/services/resolve-auth-session");
 vi.mock("@/lib/db/prisma", () => ({
@@ -25,17 +27,17 @@ vi.mock("@/lib/db/prisma", () => ({
 }));
 
 describe("manage-student-enrollments", () => {
-  const mockAdminSession = {
+  const mockAdminSession = createAuthSessionSnapshot({
     userId: "admin-1",
     email: "secretary@test.com",
-    roles: ["SECRETARY"],
-  };
+    roles: [ROLES.SECRETARY],
+  });
 
-  const mockStudentSession = {
+  const mockStudentSession = createAuthSessionSnapshot({
     userId: "student-1",
     email: "student@test.com",
-    roles: ["STUDENT"],
-  };
+    roles: [ROLES.STUDENT],
+  });
 
   beforeEach(() => {
     vi.resetAllMocks();

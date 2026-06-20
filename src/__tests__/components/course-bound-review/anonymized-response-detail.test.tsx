@@ -4,9 +4,9 @@ import { AnonymizedResponseDetail } from "@/features/analytics/components/anonym
 import type { CourseBoundResponseReview } from "@/features/analytics/types";
 
 const response: CourseBoundResponseReview = {
-  academicYear: "2025-2026",
   courseTitle: "Capstone 2",
   evaluationId: "eval-1",
+  termInstanceLabel: "2025-2026 2nd Semester",
   evaluationTitle: "Post-Term CILO Evaluation Tool",
   overallMean: 4,
   programLabel: "BSIT",

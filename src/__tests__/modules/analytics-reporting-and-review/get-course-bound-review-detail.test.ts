@@ -82,7 +82,9 @@ describe("getCourseBoundReviewDetail", () => {
       expect.objectContaining({
         where: expect.objectContaining({
           id: "eval-1",
-          program_id: { in: ["program-2"] },
+          course_assignment: {
+            program_id: { in: ["program-2"] },
+          },
         }),
       })
     );
@@ -98,9 +100,11 @@ describe("getCourseBoundReviewDetail", () => {
     expect(courseBoundEvaluationFindFirstMock).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          faculty_id: "faculty-1",
           id: "eval-1",
-          program_id: { in: ["program-1"] },
+          course_assignment: {
+            faculty_id: "faculty-1",
+            program_id: { in: ["program-1"] },
+          },
         }),
       })
     );
@@ -110,6 +114,7 @@ describe("getCourseBoundReviewDetail", () => {
     resolveAuthSessionMock.mockResolvedValue({ roles: [ROLES.DEAN], userId: "dean-1" });
     resolveReviewerProgramScopeMock.mockResolvedValue(null);
     courseBoundEvaluationFindFirstMock.mockResolvedValue({
+      id: "eval-1",
       term_instance: { semester: "SECOND", term: "FIRST_TERM", school_year: { code: "2025-2026" } },
       assignments: [
         {
@@ -143,14 +148,11 @@ describe("getCourseBoundReviewDetail", () => {
         },
       ],
       cilo_question_bindings: [],
-      course: { title: "Capstone 2" },
       deadline_at: new Date("2026-01-10T00:00:00.000Z"),
-      id: "eval-1",
       instrument: {
         structure_snapshot: [
           {
-            items: [
-              { key: "clarity", kind: "quantitative", prompt: "Clarity", scale: [1, 2, 3, 4, 5] },
+            items: [{ key: "clarity", kind: "quantitative", prompt: "Clarity", scale: [1, 2, 3, 4, 5] },
               {
                 key: "preparedness",
                 kind: "quantitative",
@@ -165,8 +167,10 @@ describe("getCourseBoundReviewDetail", () => {
         ],
         template: { name: "Post-Term CILO Evaluation Tool" },
       },
-      major: null,
-      program: { name: "BSIT" },
+      course_assignment: {
+        course: { title: "Capstone 2", major: null },
+        program: { name: "BSIT" },
+      },
     });
 
     await expect(getCourseBoundReviewDetail("eval-1")).resolves.toEqual({
@@ -232,7 +236,7 @@ describe("getCourseBoundReviewDetail", () => {
     await expect(getCourseBoundReviewDetail("eval-1")).resolves.toBeNull();
     expect(courseBoundEvaluationFindFirstMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.not.objectContaining({ program_id: expect.anything() }),
+        where: expect.not.objectContaining({ course_assignment: expect.anything() }),
       })
     );
   });
@@ -241,6 +245,7 @@ describe("getCourseBoundReviewDetail", () => {
     resolveAuthSessionMock.mockResolvedValue({ roles: [ROLES.DEAN], userId: "dean-1" });
     resolveReviewerProgramScopeMock.mockResolvedValue(null);
     courseBoundEvaluationFindFirstMock.mockResolvedValue({
+      id: "eval-1",
       term_instance: { semester: "SECOND", term: null, school_year: { code: "2025-2026" } },
       assignments: [
         {
@@ -255,9 +260,7 @@ describe("getCourseBoundReviewDetail", () => {
         },
       ],
       cilo_question_bindings: [],
-      course: { title: "Capstone 2" },
       deadline_at: null,
-      id: "eval-1",
       instrument: {
         structure_snapshot: [
           {
@@ -271,8 +274,10 @@ describe("getCourseBoundReviewDetail", () => {
         ],
         template: { name: "Post-Term CILO Evaluation Tool" },
       },
-      major: null,
-      program: { name: "BSIT" },
+      course_assignment: {
+        course: { title: "Capstone 2", major: null },
+        program: { name: "BSIT" },
+      },
     });
 
     await expect(getCourseBoundReviewDetail("eval-1")).resolves.toEqual(

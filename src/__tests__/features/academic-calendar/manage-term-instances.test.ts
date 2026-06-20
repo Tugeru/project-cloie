@@ -1,6 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { deleteTermInstance, verifySecretaryAccess } from "@/features/academic-calendar/services/manage-term-instances";
 import * as authModule from "@/features/auth/services/resolve-auth-session";
+import { ROLES } from "@/lib/constants/roles";
+import { createAuthSessionSnapshot } from "@/__tests__/helpers/auth-session";
 
 vi.mock("@/features/auth/services/resolve-auth-session");
 vi.mock("@/lib/db/prisma", () => ({
@@ -18,17 +20,17 @@ vi.mock("@/lib/db/prisma", () => ({
 }));
 
 describe("manage-term-instances / verifySecretaryAccess", () => {
-  const mockSecretarySession = {
+  const mockSecretarySession = createAuthSessionSnapshot({
     userId: "sec-1",
     email: "secretary@test.com",
-    roles: ["SECRETARY"],
-  };
+    roles: [ROLES.SECRETARY],
+  });
 
-  const mockFacultySession = {
+  const mockFacultySession = createAuthSessionSnapshot({
     userId: "faculty-1",
     email: "faculty@test.com",
-    roles: ["FACULTY"],
-  };
+    roles: [ROLES.FACULTY],
+  });
 
   it("should allow secretary access", async () => {
     vi.mocked(authModule.resolveAuthSession).mockResolvedValue(mockSecretarySession);
@@ -65,17 +67,17 @@ describe("manage-term-instances / verifySecretaryAccess", () => {
 });
 
 describe("manage-term-instances / deleteTermInstance", () => {
-  const mockAdminSession = {
+  const mockAdminSession = createAuthSessionSnapshot({
     userId: "admin-1",
     email: "secretary@test.com",
-    roles: ["SECRETARY"],
-  };
+    roles: [ROLES.SECRETARY],
+  });
 
-  const mockFacultySession = {
+  const mockFacultySession = createAuthSessionSnapshot({
     userId: "faculty-1",
     email: "faculty@test.com",
-    roles: ["FACULTY"],
-  };
+    roles: [ROLES.FACULTY],
+  });
 
   let prisma: Awaited<typeof import("@/lib/db/prisma")>["prisma"];
 

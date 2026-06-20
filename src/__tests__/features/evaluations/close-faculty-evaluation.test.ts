@@ -53,7 +53,9 @@ describe("closeFacultyEvaluation", () => {
     expect(findFirstEvaluationMock).toHaveBeenCalledWith({
       where: {
         id: "eval-1",
-        faculty_id: "faculty-1",
+        course_assignment: {
+          faculty_id: "faculty-1",
+        },
       },
       select: {
         id: true,

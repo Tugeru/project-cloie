@@ -35,9 +35,6 @@ vi.mock("@/lib/db/prisma", () => {
   return {
     prisma: {
       $transaction: vi.fn((fn) => fn(mockTx)),
-      cILO: {
-        findMany: findManyCilosMock,
-      },
       ...mockTx,
     },
   };

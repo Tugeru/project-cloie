@@ -55,7 +55,7 @@ describe("CourseAssignment.section NOT NULL constraint", () => {
         course_id: course.id,
         program_id: program.id,
         year_level: YearLevel.FIRST_YEAR,
-        section: null, // This should violate NOT NULL constraint
+        section: null as unknown as StudentSection, // This should violate NOT NULL constraint
       },
     });
 

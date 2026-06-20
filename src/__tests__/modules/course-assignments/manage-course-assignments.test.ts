@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { YearLevel } from "@prisma/client";
+import { StudentSection, YearLevel } from "@prisma/client";
 import { ROLES } from "@/lib/constants/roles";
 import { createPrismaUniqueConstraintError } from "@/__tests__/helpers/prisma-test-helpers";
+import { createAuthSessionSnapshot } from "@/__tests__/helpers/auth-session";
 import {
   createCourseAssignment,
   updateCourseAssignment,
@@ -26,32 +27,23 @@ vi.mock("@/lib/db/prisma", () => ({
 }));
 
 describe("manage-course-assignments", () => {
-  const mockAdminSession = {
+  const mockAdminSession = createAuthSessionSnapshot({
     userId: "admin-1",
     email: "secretary@test.com",
     roles: [ROLES.SECRETARY],
-    activeRole: ROLES.SECRETARY,
-    studentProfileId: null,
-    profileGate: { status: "COMPLETE" as const },
-  };
+  });
 
-  const mockProgramHeadSession = {
+  const mockProgramHeadSession = createAuthSessionSnapshot({
     userId: "ph-1",
     email: "ph@test.com",
     roles: [ROLES.PROGRAM_HEAD],
-    activeRole: ROLES.PROGRAM_HEAD,
-    studentProfileId: null,
-    profileGate: { status: "COMPLETE" as const },
-  };
+  });
 
-  const mockFacultySession = {
+  const mockFacultySession = createAuthSessionSnapshot({
     userId: "faculty-1",
     email: "faculty@test.com",
     roles: [ROLES.FACULTY],
-    activeRole: ROLES.FACULTY,
-    studentProfileId: null,
-    profileGate: { status: "COMPLETE" as const },
-  };
+  });
 
   describe("createCourseAssignment", () => {
     it("should allow admin to create assignment", async () => {
@@ -71,7 +63,7 @@ describe("manage-course-assignments", () => {
         courseId: "course-1",
         programId: "program-1",
         yearLevel: YearLevel.FIRST_YEAR,
-        section: null,
+        section: StudentSection.MORNING,
       });
 
       expect(result.success).toBe(true);
@@ -92,7 +84,7 @@ describe("manage-course-assignments", () => {
         courseId: "course-1",
         programId: "program-1",
         yearLevel: YearLevel.FIRST_YEAR,
-        section: null,
+        section: StudentSection.MORNING,
       });
 
       expect(result.success).toBe(false);
@@ -117,7 +109,7 @@ describe("manage-course-assignments", () => {
         courseId: "course-1",
         programId: "program-1",
         yearLevel: YearLevel.FIRST_YEAR,
-        section: null,
+        section: StudentSection.MORNING,
       });
 
       expect(result.success).toBe(false);
@@ -169,20 +161,14 @@ describe("manage-course-assignments", () => {
       vi.mocked(authModule.resolveAuthSession).mockResolvedValue(mockAdminSession);
 
       const { prisma } = await import("@/lib/db/prisma");
-      let callCount = 0;
-      vi.mocked(prisma.course.findUnique).mockImplementation(() => {
-        callCount++;
-        return Promise.resolve({
-          id: `course-${callCount}`,
-          program_id: "program-1",
-        } as never);
-      });
-      vi.mocked(prisma.courseAssignment.create).mockImplementation(() => {
-        if (callCount === 2) {
-          return Promise.reject(createPrismaUniqueConstraintError());
-        }
-        return Promise.resolve({ id: `assignment-${callCount}` } as never);
-      });
+      vi.mocked(prisma.course.findUnique)
+        .mockResolvedValueOnce({ id: "course-1", program_id: "program-1" } as never)
+        .mockResolvedValueOnce({ id: "course-2", program_id: "program-1" } as never)
+        .mockResolvedValueOnce({ id: "course-3", program_id: "program-1" } as never);
+      vi.mocked(prisma.courseAssignment.create)
+        .mockResolvedValueOnce({ id: "assignment-1" } as never)
+        .mockRejectedValueOnce(createPrismaUniqueConstraintError())
+        .mockResolvedValueOnce({ id: "assignment-3" } as never);
 
       const result = await bulkCreateCourseAssignments([
         {
@@ -191,7 +177,7 @@ describe("manage-course-assignments", () => {
           courseId: "course-1",
           programId: "program-1",
           yearLevel: YearLevel.FIRST_YEAR,
-          section: null,
+          section: StudentSection.MORNING,
         },
         {
           termInstanceId: "term-1",
@@ -199,7 +185,7 @@ describe("manage-course-assignments", () => {
           courseId: "course-2",
           programId: "program-1",
           yearLevel: YearLevel.FIRST_YEAR,
-          section: null,
+          section: StudentSection.MORNING,
         },
         {
           termInstanceId: "term-1",
@@ -207,7 +193,7 @@ describe("manage-course-assignments", () => {
           courseId: "course-3",
           programId: "program-1",
           yearLevel: YearLevel.FIRST_YEAR,
-          section: null,
+          section: StudentSection.MORNING,
         },
       ]);
 

@@ -1,6 +1,8 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { listCourseAssignmentsForProgramHead } from "@/features/course-assignments/services/list-course-assignments-for-program-head";
 import * as authModule from "@/features/auth/services/resolve-auth-session";
+import { ROLES } from "@/lib/constants/roles";
+import { createAuthSessionSnapshot } from "@/__tests__/helpers/auth-session";
 
 vi.mock("@/features/auth/services/resolve-auth-session");
 vi.mock("@/lib/db/prisma", () => ({
@@ -16,17 +18,17 @@ vi.mock("@/lib/db/prisma", () => ({
 }));
 
 describe("listCourseAssignmentsForProgramHead – PH scope enforcement", () => {
-  const mockPHSession = {
+  const mockPHSession = createAuthSessionSnapshot({
     userId: "ph-1",
     email: "ph@test.com",
-    roles: ["PROGRAM_HEAD"],
-  };
+    roles: [ROLES.PROGRAM_HEAD],
+  });
 
-  const mockAdminSession = {
+  const mockAdminSession = createAuthSessionSnapshot({
     userId: "admin-1",
     email: "secretary@test.com",
-    roles: ["SECRETARY"],
-  };
+    roles: [ROLES.SECRETARY],
+  });
 
   let prisma: Awaited<typeof import("@/lib/db/prisma")>["prisma"];
 
