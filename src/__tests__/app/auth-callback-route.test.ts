@@ -211,6 +211,90 @@ describe("auth callback route", () => {
     expect(response.headers.get("location")).toBe("https://cloie.test/faculty/dashboard");
   });
 
+  it("parses full_name into first and last names when given_name is absent (Supabase Google OAuth)", async () => {
+    exchangeCodeForSessionMock.mockResolvedValue({
+      error: null,
+      data: {
+        user: {
+          id: VALID_UUID_1,
+          email: "jane@example.com",
+          user_metadata: { full_name: "Jane Doe", name: "Jane Doe" },
+        },
+      },
+    });
+    findUniqueUserMock.mockResolvedValue(null);
+    createUserMock.mockResolvedValue({
+      id: "new-user-id",
+      auth_user_id: VALID_UUID_1,
+      email: "jane@example.com",
+      first_name: "Jane",
+      last_name: "Doe",
+      roles: [{ role: SystemRole.ALUMNI }],
+    });
+    resolveAuthSessionFromUserMock.mockResolvedValue({
+      activeRole: "ALUMNI",
+      profileGate: { status: "ALUMNI_ONBOARDING_REQUIRED", intent: "alumni" },
+    });
+    resolvePostLoginDestinationMock.mockReturnValue("/onboarding?intent=alumni");
+
+    const response = await GET(
+      new Request("https://cloie.test/api/auth/callback?code=abc&intent=alumni")
+    );
+
+    expect(createUserMock).toHaveBeenCalledWith({
+      data: {
+        auth_user_id: VALID_UUID_1,
+        email: "jane@example.com",
+        first_name: "Jane",
+        last_name: "Doe",
+        roles: { create: { role: SystemRole.ALUMNI } },
+      },
+      include: { roles: true },
+    });
+    expect(response.headers.get("location")).toBe("https://cloie.test/onboarding?intent=alumni");
+  });
+
+  it("handles single-word full_name by putting it all in first_name and leaving last_name empty", async () => {
+    exchangeCodeForSessionMock.mockResolvedValue({
+      error: null,
+      data: {
+        user: {
+          id: VALID_UUID_1,
+          email: "madonna@example.com",
+          user_metadata: { full_name: "Madonna" },
+        },
+      },
+    });
+    findUniqueUserMock.mockResolvedValue(null);
+    createUserMock.mockResolvedValue({
+      id: "new-user-id",
+      auth_user_id: VALID_UUID_1,
+      email: "madonna@example.com",
+      first_name: "Madonna",
+      last_name: "",
+      roles: [{ role: SystemRole.ALUMNI }],
+    });
+    resolveAuthSessionFromUserMock.mockResolvedValue({
+      activeRole: "ALUMNI",
+      profileGate: { status: "ALUMNI_ONBOARDING_REQUIRED", intent: "alumni" },
+    });
+    resolvePostLoginDestinationMock.mockReturnValue("/onboarding?intent=alumni");
+
+    const response = await GET(
+      new Request("https://cloie.test/api/auth/callback?code=abc&intent=alumni")
+    );
+
+    expect(createUserMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          first_name: "Madonna",
+          last_name: "",
+        }),
+      })
+    );
+    expect(response.headers.get("location")).toBe("https://cloie.test/onboarding?intent=alumni");
+  });
+
   it("redirects to role mismatch page when the intent does not match the stored role", async () => {
     exchangeCodeForSessionMock.mockResolvedValue({
       error: null,

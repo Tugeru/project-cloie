@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, LogOut } from "lucide-react";
 
 export const metadata = {
-  title: "Portal | CLOIE",
+  title: "Portal | System CLOIE",
   description: "Select your role to sign in to CLOIE",
 };
 
@@ -37,7 +37,7 @@ export default async function PortalPage() {
       <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-2xl text-center mb-16">
           <h1 className="text-display-sm text-text-primary mb-4">
-            Welcome to CLOIE
+            Welcome to System CLOIE
           </h1>
           <p className="text-body-lg text-text-secondary">
             Select your role to access your personalized dashboard and tools.
