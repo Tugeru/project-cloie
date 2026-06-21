@@ -194,10 +194,10 @@ export function EvaluationDetailDialog({
               <p className="text-muted-foreground text-sm">No CILOs mapped.</p>
             ) : (
               <ol className="space-y-3">
-                {detail.cilos.map((cilo) => {
+                {detail.cilos.map((cilo, index) => {
                   const binding = bindingByCiloId.get(cilo.id);
                   return (
-                    <li key={cilo.id} className="rounded-lg border p-4">
+                    <li key={cilo.id ?? `cilo-${index}`} className="rounded-lg border p-4">
                       <p className="text-muted-foreground text-xs font-semibold tracking-wide uppercase">
                         {cilo.label}
                       </p>
