@@ -11,8 +11,17 @@ vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
 }));
 
+import type { RoleCardConfig } from "@/features/portals/lib/role-card-config";
+
+interface MockPortalShellProps {
+  title: string;
+  subtitle: string;
+  cards: RoleCardConfig[];
+  backLink?: { label: string; href: string };
+}
+
 vi.mock("@/features/portals", () => ({
-  PortalShell: ({ title, subtitle, cards, backLink }: any) => (
+  PortalShell: ({ title, subtitle, cards, backLink }: MockPortalShellProps) => (
     <div data-testid="portal-shell">
       <h1>{title}</h1>
       <p>{subtitle}</p>
