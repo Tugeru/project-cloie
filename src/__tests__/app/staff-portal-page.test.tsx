@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import StaffPortalPage from "@/app/(public)/portal/staff/page";
+import type { RoleCardConfig } from "@/features/portals/lib/role-card-config";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 
 const { resolveAuthSessionMock } = vi.hoisted(() => ({
@@ -11,20 +12,20 @@ vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
 }));
 
-import type { RoleCardConfig } from "@/features/portals/lib/role-card-config";
-
 interface MockPortalShellProps {
   title: string;
   subtitle: string;
   cards: RoleCardConfig[];
+  session?: { email: string; isComplete: boolean } | null;
   backLink?: { label: string; href: string };
 }
 
 vi.mock("@/features/portals", () => ({
-  PortalShell: ({ title, subtitle, cards, backLink }: MockPortalShellProps) => (
+  PortalShell: ({ title, subtitle, cards, session, backLink }: MockPortalShellProps) => (
     <div data-testid="portal-shell">
       <h1>{title}</h1>
       <p>{subtitle}</p>
+      {session && <p>Signed in as {session.email}</p>}
       <span data-testid="card-count">{cards.length}</span>
       {backLink && <a href={backLink.href}>{backLink.label}</a>}
     </div>
@@ -60,5 +61,6 @@ describe("StaffPortalPage", () => {
 
     expect(screen.getByText("ACD Staff & Faculty Portal")).toBeInTheDocument();
     expect(screen.getByTestId("card-count").textContent).toBe("4");
+    expect(screen.getByText(/Signed in as staff@acd.edu.ph/)).toBeInTheDocument();
   });
 });
