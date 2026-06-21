@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { YearLevel, StudentSection, CourseScope } from "@prisma/client";
+import { useState, useEffect, useRef } from "react";
+import { YearLevel, StudentSection } from "@prisma/client";
 import {
   Dialog,
   DialogContent,
@@ -13,6 +13,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { showToast } from "@/components/ui/toast";
 import { TermInstancePicker } from "@/features/academic-calendar/components/term-instance-picker";
@@ -65,7 +72,9 @@ export function AddMergedClassesDialog({
   const [hasTouchedYearLevel, setHasTouchedYearLevel] = useState(false);
   const [section, setSection] = useState<StudentSection>(StudentSection.MORNING);
   const [selectedFaculty, setSelectedFaculty] = useState<FacultySearchResult | null>(null);
+  const previousCourseId = useRef<string | null>(null);
   const [selectedPrograms, setSelectedPrograms] = useState<Set<string>>(new Set());
+  const [itemErrors, setItemErrors] = useState<Record<string, string>>({});
 
   // Filter programs based on PH scope
   const filteredPrograms = phProgramScope
@@ -74,15 +83,16 @@ export function AddMergedClassesDialog({
 
   const selectedCourse = availableCourses.find((c) => c.id === courseId);
 
-  // Pre-fill year level from course default (only if user hasn't touched it)
+  // Pre-fill year level from course default (only if user hasn't touched it and course actually changed)
   useEffect(() => {
-    if (courseId && !hasTouchedYearLevel) {
+    if (courseId && courseId !== previousCourseId.current && !hasTouchedYearLevel) {
       const course = availableCourses.find((c) => c.id === courseId);
       if (course?.default_year_level) {
         // eslint-disable-next-line react-hooks/set-state-in-effect -- controlled prefill of default year level when course changes and user has not manually edited it
         setYearLevel(course.default_year_level);
       }
     }
+    previousCourseId.current = courseId;
   }, [courseId, hasTouchedYearLevel, availableCourses]);
 
   const handleYearLevelChange = (value: YearLevel) => {
@@ -115,9 +125,11 @@ export function AddMergedClassesDialog({
     }
 
     setIsSubmitting(true);
+    setItemErrors({});
 
     // Build N assignments (one per program) with same course/faculty/term/year/section
-    const assignments = Array.from(selectedPrograms).map((programId) => ({
+    const selectedProgramIds = Array.from(selectedPrograms);
+    const assignments = selectedProgramIds.map((programId) => ({
       termInstanceId,
       facultyId: selectedFaculty.id,
       courseId,
@@ -130,14 +142,26 @@ export function AddMergedClassesDialog({
 
     setIsSubmitting(false);
 
-      if (result.success) {
-      showToast(`Created ${result.created} merged class assignments successfully.`, "success");
-      if (result.errors.length > 0) {
-        showToast(`${result.errors.length} assignments failed to create.`, "warning");
+    const errorMap: Record<string, string> = {};
+    result.errors.forEach(({ index, error }) => {
+      const programId = selectedProgramIds[index];
+      if (programId) {
+        errorMap[programId] = error;
       }
+    });
+    setItemErrors(errorMap);
+
+    if (result.success && result.errors.length === 0) {
+      showToast(`Created ${result.created} merged class assignments successfully.`, "success");
       resetForm();
       onOpenChange(false);
       onSuccess?.();
+    } else if (result.success) {
+      showToast(`Created ${result.created} merged class assignments successfully.`, "success");
+      showToast(
+        `${result.errors.length} assignment(s) failed to create. Review the errors below.`,
+        "warning"
+      );
     } else {
       showToast(result.errors[0]?.error || "Failed to create merged classes.", "error");
     }
@@ -147,11 +171,13 @@ export function AddMergedClassesDialog({
     setStep(defaultTermInstanceId ? "course" : "term");
     setTermInstanceId(defaultTermInstanceId ?? null);
     setCourseId(null);
+    previousCourseId.current = null;
     setYearLevel(YearLevel.FIRST_YEAR);
     setHasTouchedYearLevel(false);
     setSection(StudentSection.MORNING);
     setSelectedFaculty(null);
     setSelectedPrograms(new Set());
+    setItemErrors({});
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -260,18 +286,18 @@ export function AddMergedClassesDialog({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>General Education Course</Label>
-              <select
-                value={courseId ?? ""}
-                onChange={(e) => setCourseId(e.target.value || null)}
-                className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm"
-              >
-                <option value="">Select a GE course...</option>
-                {availableCourses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.code} — {course.title}
-                  </option>
-                ))}
-              </select>
+              <Select value={courseId ?? ""} onValueChange={(value) => setCourseId(value || null)}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a GE course..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableCourses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.code} — {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             {selectedCourse && selectedCourse.default_year_level && (
               <div className="flex items-center gap-2">
@@ -352,18 +378,25 @@ export function AddMergedClassesDialog({
             <div className="max-h-[300px] overflow-y-auto rounded-lg border">
               <div className="divide-y">
                 {filteredPrograms.map((program) => (
-                  <div key={program.id} className="flex items-center gap-3 p-3 hover:bg-muted/50">
-                    <Checkbox
-                      id={program.id}
-                      checked={selectedPrograms.has(program.id)}
-                      onCheckedChange={() => handleToggleProgram(program.id)}
-                    />
-                    <Label htmlFor={program.id} className="flex-1 cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{program.code}</span>
-                        <span className="text-sm text-muted-foreground">{program.name}</span>
-                      </div>
-                    </Label>
+                  <div key={program.id} className="flex flex-col gap-1 p-3 hover:bg-muted/50">
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        id={program.id}
+                        checked={selectedPrograms.has(program.id)}
+                        onCheckedChange={() => handleToggleProgram(program.id)}
+                      />
+                      <Label htmlFor={program.id} className="flex-1 cursor-pointer">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{program.code}</span>
+                          <span className="text-sm text-muted-foreground">{program.name}</span>
+                        </div>
+                      </Label>
+                    </div>
+                    {itemErrors[program.id] && (
+                      <p className="text-sm text-destructive pl-8" role="alert">
+                        {itemErrors[program.id]}
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>

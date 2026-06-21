@@ -1,8 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { YearLevel } from "@prisma/client";
 
-import { AddMergedClassesDialog } from "@/features/course-assignments/components/bulk-helpers/add-merged-classes-dialog";
+import { AddClassesForFacultyDialog } from "@/features/course-assignments/components/bulk-helpers/add-classes-for-faculty-dialog";
 import { bulkCreateCourseAssignmentsAction } from "@/lib/actions/course-assignment-actions";
 import type { TermInstanceItem } from "@/features/academic-calendar/types";
 
@@ -51,9 +50,8 @@ function clickSelectByPlaceholder(placeholder: string) {
 const mockCourses = [
   {
     id: "course-1",
-    code: "GE101",
-    title: "General Education Course",
-    default_year_level: YearLevel.FIRST_YEAR,
+    code: "CS101",
+    title: "Intro to Computing",
   },
 ];
 
@@ -76,7 +74,7 @@ const mockTermInstances = [
   },
 ] as unknown as TermInstanceItem[];
 
-describe("AddMergedClassesDialog", () => {
+describe("AddClassesForFacultyDialog", () => {
   let toastMessages: Array<{ kind: string; message: string }> = [];
   const toastListener = ((event: Event) => {
     const detail = (event as CustomEvent).detail;
@@ -104,7 +102,7 @@ describe("AddMergedClassesDialog", () => {
     const onOpenChange = vi.fn();
 
     render(
-      <AddMergedClassesDialog
+      <AddClassesForFacultyDialog
         open={true}
         onOpenChange={onOpenChange}
         availableCourses={mockCourses}
@@ -120,20 +118,16 @@ describe("AddMergedClassesDialog", () => {
     fireEvent.click(screen.getByRole("button", { name: /next/i }));
 
     // Course step
-    clickSelectByPlaceholder("Select a GE course...");
-    fireEvent.click(await screen.findByRole("option", { name: /ge101 — general education course/i }));
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
-
-    // Class step: defaults are valid, proceed
+    clickSelectByPlaceholder("Select a course...");
+    fireEvent.click(await screen.findByRole("option", { name: /cs101 — intro to computing/i }));
     fireEvent.click(screen.getByRole("button", { name: /next/i }));
 
     // Faculty step
     fireEvent.click(screen.getByRole("button", { name: /pick faculty/i }));
     fireEvent.click(screen.getByRole("button", { name: /next/i }));
 
-    // Programs step
-    fireEvent.click(screen.getByRole("checkbox"));
-    fireEvent.click(screen.getByRole("button", { name: /create 1 assignment/i }));
+    // Classes step
+    fireEvent.click(screen.getByRole("button", { name: /create 1 assignments/i }));
 
     await waitFor(() => {
       expect(bulkCreateCourseAssignmentsAction).toHaveBeenCalled();
@@ -156,7 +150,7 @@ describe("AddMergedClassesDialog", () => {
     const onOpenChange = vi.fn();
 
     render(
-      <AddMergedClassesDialog
+      <AddClassesForFacultyDialog
         open={true}
         onOpenChange={onOpenChange}
         availableCourses={mockCourses}
@@ -170,14 +164,13 @@ describe("AddMergedClassesDialog", () => {
     fireEvent.click(await screen.findByRole("option", { name: /2025-2026 — 1st Semester — 1st Term/i }));
     fireEvent.click(screen.getByRole("button", { name: /next/i }));
 
-    clickSelectByPlaceholder("Select a GE course...");
-    fireEvent.click(await screen.findByRole("option", { name: /ge101 — general education course/i }));
+    clickSelectByPlaceholder("Select a course...");
+    fireEvent.click(await screen.findByRole("option", { name: /cs101 — intro to computing/i }));
     fireEvent.click(screen.getByRole("button", { name: /next/i }));
-    fireEvent.click(screen.getByRole("button", { name: /next/i }));
+
     fireEvent.click(screen.getByRole("button", { name: /pick faculty/i }));
     fireEvent.click(screen.getByRole("button", { name: /next/i }));
-    fireEvent.click(screen.getByRole("checkbox"));
-    fireEvent.click(screen.getByRole("button", { name: /create 1 assignment/i }));
+    fireEvent.click(screen.getByRole("button", { name: /create 1 assignments/i }));
 
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalled();

@@ -12,6 +12,13 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { showToast } from "@/components/ui/toast";
 import { TermInstancePicker } from "@/features/academic-calendar/components/term-instance-picker";
 import { ClassIdentityFields } from "../shared/class-identity-fields";
@@ -64,6 +71,7 @@ export function AddClassesForFacultyDialog({
   const [termInstanceId, setTermInstanceId] = useState<string | null>(null);
   const [courseId, setCourseId] = useState<string>(defaultCourseId ?? "");
   const [selectedFaculty, setSelectedFaculty] = useState<FacultySearchResult | null>(null);
+  const [itemErrors, setItemErrors] = useState<Record<number, string>>({});
   const [classConfigs, setClassConfigs] = useState<ClassConfig[]>([
     {
       id: "1",
@@ -109,6 +117,7 @@ export function AddClassesForFacultyDialog({
     }
 
     setIsSubmitting(true);
+    setItemErrors({});
 
     const assignments = classConfigs.map((config) => ({
       termInstanceId,
@@ -123,20 +132,28 @@ export function AddClassesForFacultyDialog({
 
     setIsSubmitting(false);
 
-    if (result.success) {
-      showToast(`Created ${result.created} class assignments successfully.`, "success");
-      if (result.errors.length > 0) {
-        showToast(`${result.errors.length} assignments failed to create.`, "warning");
+    const errorMap: Record<number, string> = {};
+    result.errors.forEach(({ index, error }) => {
+      if (index >= 0) {
+        errorMap[index] = error;
       }
+    });
+    setItemErrors(errorMap);
+
+    if (result.success && result.errors.length === 0) {
+      showToast(`Created ${result.created} class assignments successfully.`, "success");
       resetForm();
       onOpenChange(false);
       onSuccess?.();
-    } else {
-      const firstError = result.errors[0]?.error;
+    } else if (result.success) {
+      showToast(`Created ${result.created} class assignments successfully.`, "success");
       showToast(
-        firstError
-          ? `Failed to create class assignments: ${firstError}`
-          : "Failed to create class assignments.",
+        `${result.errors.length} assignment(s) failed to create. Review the errors below.`,
+        "warning"
+      );
+    } else {
+      showToast(
+        result.errors[0]?.error || "Failed to create class assignments.",
         "error"
       );
     }
@@ -147,6 +164,7 @@ export function AddClassesForFacultyDialog({
     setTermInstanceId(null);
     setCourseId(defaultCourseId ?? "");
     setSelectedFaculty(null);
+    setItemErrors({});
     setClassConfigs([
       {
         id: "1",
@@ -182,7 +200,7 @@ export function AddClassesForFacultyDialog({
               <Label>Academic Term</Label>
               <TermInstancePicker
                 termInstances={termInstances}
-                value={termInstanceId ?? undefined}
+                value={termInstanceId ?? ""}
                 onChange={setTermInstanceId}
               />
             </div>
@@ -193,18 +211,18 @@ export function AddClassesForFacultyDialog({
           <div className="space-y-4">
             <div className="space-y-2">
               <Label>Course</Label>
-              <select
-                value={courseId}
-                onChange={(e) => setCourseId(e.target.value)}
-                className="w-full rounded-md border border-input bg-background px-3 py-2"
-              >
-                <option value="">Select a course...</option>
-                {availableCourses.map((course) => (
-                  <option key={course.id} value={course.id}>
-                    {course.code} — {course.title}
-                  </option>
-                ))}
-              </select>
+              <Select value={courseId} onValueChange={(value) => setCourseId(value ?? "")}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a course..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableCourses.map((course) => (
+                    <SelectItem key={course.id} value={course.id}>
+                      {course.code} — {course.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         )}
@@ -263,6 +281,11 @@ export function AddClassesForFacultyDialog({
                       updateClassConfig(config.id, { section: value })
                     }
                   />
+                  {itemErrors[index] && (
+                    <p className="text-sm text-destructive" role="alert">
+                      {itemErrors[index]}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>

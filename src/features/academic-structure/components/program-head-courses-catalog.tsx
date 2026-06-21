@@ -711,6 +711,7 @@ export function ProgramHeadCoursesCatalog({
               <Button
                 variant="outline"
                 size="sm"
+                aria-label="Go to previous page"
                 disabled={safePage <= 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               >
@@ -719,6 +720,7 @@ export function ProgramHeadCoursesCatalog({
               <Button
                 variant="outline"
                 size="sm"
+                aria-label="Go to next page"
                 disabled={safePage >= totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               >

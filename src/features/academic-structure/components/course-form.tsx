@@ -6,6 +6,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { YEAR_LEVEL_OPTIONS } from "@/lib/constants/year-levels";
 import { SEMESTER_OPTIONS, TERM_OPTIONS } from "@/lib/constants/academic";
@@ -58,6 +65,7 @@ export function CourseForm({
     defaultValues?.course_scope ?? CourseScope.PROGRAM_SPECIFIC
   );
   const [programId, setProgramId] = useState(defaultValues?.program_id ?? "");
+  const [majorId, setMajorId] = useState(defaultValues?.major_id ?? "");
   const [yearLevel, setYearLevel] = useState<YearLevel | "">(
     defaultValues?.default_year_level ?? ""
   );
@@ -102,6 +110,7 @@ export function CourseForm({
         setYearLevel("");
         setSemester("");
         setTerm("");
+        setMajorId("");
       }
 
       onSuccess?.();
@@ -111,6 +120,9 @@ export function CourseForm({
   return (
     <form ref={formRef} action={handleSubmit} className="space-y-4">
       {defaultValues?.id && <input type="hidden" name="id" value={defaultValues.id} />}
+      <input type="hidden" name="course_scope" value={scope} />
+      <input type="hidden" name="program_id" value={programId} />
+      <input type="hidden" name="major_id" value={majorId} />
 
       {error && (
         <Alert variant="destructive">
@@ -155,59 +167,78 @@ export function CourseForm({
       <div className="grid gap-4 md:grid-cols-3">
         <div className="space-y-2">
           <Label htmlFor={`course-scope-${defaultValues?.id ?? "new"}`}>Course Scope</Label>
-          <select
-            id={`course-scope-${defaultValues?.id ?? "new"}`}
-            name="course_scope"
-            className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm"
+          <Select
             value={scope}
-            onChange={(event) => {
-              const nextScope = event.target.value as CourseScope;
+            onValueChange={(value) => {
+              const nextScope = value as CourseScope;
               setScope(nextScope);
               if (nextScope === CourseScope.GENERAL_EDUCATION) {
                 setProgramId("");
+                setMajorId("");
               }
             }}
           >
-            <option value={CourseScope.GENERAL_EDUCATION}>General Education</option>
-            <option value={CourseScope.PROGRAM_SPECIFIC}>Program-Specific</option>
-          </select>
+            <SelectTrigger id={`course-scope-${defaultValues?.id ?? "new"}`} className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={CourseScope.GENERAL_EDUCATION}>General Education</SelectItem>
+              <SelectItem value={CourseScope.PROGRAM_SPECIFIC}>Program-Specific</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor={`course-program-${defaultValues?.id ?? "new"}`}>Program</Label>
-          <select
-            id={`course-program-${defaultValues?.id ?? "new"}`}
-            name="program_id"
-            className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm disabled:opacity-60"
+          <Select
             value={programId}
-            onChange={(event) => setProgramId(event.target.value)}
+            onValueChange={(value) => {
+              setProgramId(value ?? "");
+              setMajorId("");
+            }}
             disabled={scope === CourseScope.GENERAL_EDUCATION}
           >
-            <option value="">No program</option>
-            {programs.map((program) => (
-              <option key={program.id} value={program.id}>
-                {program.code} - {program.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger id={`course-program-${defaultValues?.id ?? "new"}`} className="w-full">
+              <SelectValue>
+                {programId
+                  ? programs.find((p) => p.id === programId)?.code ?? "No program"
+                  : "No program"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">No program</SelectItem>
+              {programs.map((program) => (
+                <SelectItem key={program.id} value={program.id}>
+                  {program.code} - {program.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor={`course-major-${defaultValues?.id ?? "new"}`}>Major</Label>
-          <select
-            id={`course-major-${defaultValues?.id ?? "new"}`}
-            name="major_id"
-            className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm disabled:opacity-60"
-            defaultValue={defaultValues?.major_id ?? ""}
+          <Select
+            value={majorId}
+            onValueChange={(value) => setMajorId(value ?? "")}
             disabled={scope === CourseScope.GENERAL_EDUCATION || !programId}
           >
-            <option value="">Program-wide / none</option>
-            {filteredMajors.map((major) => (
-              <option key={major.id} value={major.id}>
-                {major.program_code} - {major.name}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger id={`course-major-${defaultValues?.id ?? "new"}`} className="w-full">
+              <SelectValue>
+                {majorId
+                  ? filteredMajors.find((m) => m.id === majorId)?.name ?? "Program-wide / none"
+                  : "Program-wide / none"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Program-wide / none</SelectItem>
+              {filteredMajors.map((major) => (
+                <SelectItem key={major.id} value={major.id}>
+                  {major.program_code} - {major.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -216,67 +247,87 @@ export function CourseForm({
           <Label htmlFor={`year-level-${defaultValues?.id ?? "new"}`}>
             Year Level <span className="text-text-muted text-xs font-normal">(default)</span>
           </Label>
-          <select
-            id={`year-level-${defaultValues?.id ?? "new"}`}
-            value={yearLevel}
-            onChange={(e) => setYearLevel(e.target.value as YearLevel)}
-            className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm"
-          >
-            <option value="">None</option>
-            {YEAR_LEVEL_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+          <Select value={yearLevel} onValueChange={(value) => setYearLevel(value as YearLevel)}>
+            <SelectTrigger id={`year-level-${defaultValues?.id ?? "new"}`} className="w-full">
+              <SelectValue>
+                {yearLevel
+                  ? (YEAR_LEVEL_OPTIONS.find((o) => o.value === yearLevel)?.label ?? "None")
+                  : "None"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">None</SelectItem>
+              {YEAR_LEVEL_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor={`semester-${defaultValues?.id ?? "new"}`}>
             Semester <span className="text-text-muted text-xs font-normal">(default)</span>
           </Label>
-          <select
-            id={`semester-${defaultValues?.id ?? "new"}`}
+          <Select
             value={semester}
-            onChange={(e) => {
-              const nextSemester = e.target.value as AcademicSemester;
+            onValueChange={(value) => {
+              const nextSemester = value as AcademicSemester;
               setSemester(nextSemester);
               if (nextSemester === AcademicSemester.SUMMER) {
                 setTerm("");
               }
             }}
-            className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm"
           >
-            <option value="">None</option>
-            {SEMESTER_OPTIONS.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger id={`semester-${defaultValues?.id ?? "new"}`} className="w-full">
+              <SelectValue>
+                {semester
+                  ? (SEMESTER_OPTIONS.find((o) => o.value === semester)?.label ?? "None")
+                  : "None"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">None</SelectItem>
+              {SEMESTER_OPTIONS.map((option) => (
+                <SelectItem key={option.value} value={option.value}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="space-y-2">
           <Label htmlFor={`term-${defaultValues?.id ?? "new"}`}>
             Term <span className="text-text-muted text-xs font-normal">(default)</span>
           </Label>
-          <select
-            id={`term-${defaultValues?.id ?? "new"}`}
+          <Select
             value={isSummer ? "" : term}
-            onChange={(e) => setTerm(e.target.value as AcademicTerm)}
+            onValueChange={(value) => setTerm(value as AcademicTerm)}
             disabled={isSummer}
-            className="border-input h-10 w-full rounded-lg border bg-transparent px-3 text-sm disabled:opacity-60"
           >
-            {isSummer ? (
-              <option value="">N/A</option>
-            ) : (
-              <>
-                <option value="">Select term</option>
-                <option value={AcademicTerm.FIRST_TERM}>1st Term</option>
-                <option value={AcademicTerm.SECOND_TERM}>2nd Term</option>
-              </>
-            )}
-          </select>
+            <SelectTrigger id={`term-${defaultValues?.id ?? "new"}`} className="w-full">
+              <SelectValue>
+                {isSummer
+                  ? "N/A"
+                  : term
+                    ? (TERM_OPTIONS.find((o) => o.value === term)?.label ?? "Select term")
+                    : "Select term"}
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {isSummer ? (
+                <SelectItem value="">N/A</SelectItem>
+              ) : (
+                <>
+                  <SelectItem value="">Select term</SelectItem>
+                  <SelectItem value={AcademicTerm.FIRST_TERM}>1st Term</SelectItem>
+                  <SelectItem value={AcademicTerm.SECOND_TERM}>2nd Term</SelectItem>
+                </>
+              )}
+            </SelectContent>
+          </Select>
           {isSummer && (
             <p className="text-muted-foreground text-xs">Summer semester has no terms</p>
           )}

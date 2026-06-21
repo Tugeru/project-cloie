@@ -4,6 +4,7 @@ import { YearLevel, StudentSection } from "@prisma/client";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { YEAR_LEVEL_OPTIONS, STUDENT_SECTION_OPTIONS } from "@/lib/constants/academic";
 import { getYearLevelDisplay } from "@/lib/constants/year-levels";
 
@@ -30,7 +31,8 @@ export function ClassIdentityFields({
   disabled = false,
   suggestedYearLevel,
 }: ClassIdentityFieldsProps) {
-  const showsHint = suggestedYearLevel != null && yearLevel === suggestedYearLevel;
+  const hasHint = suggestedYearLevel != null;
+  const hintMatches = hasHint && yearLevel === suggestedYearLevel;
 
   return (
     <div className="space-y-4">
@@ -61,9 +63,20 @@ export function ClassIdentityFields({
         <div className="space-y-2">
           <div className="flex items-center gap-2">
             <Label htmlFor="year-level">Year Level</Label>
-            {showsHint && (
-              <Badge variant="secondary" className="text-xs">
-                Course default: {getYearLevelDisplay(suggestedYearLevel)}
+            {hasHint && (
+              <Badge
+                variant={hintMatches ? "secondary" : "outline"}
+                className={cn(
+                  "text-xs",
+                  !hintMatches &&
+                    "border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-200 hover:bg-amber-50"
+                )}
+              >
+                {hintMatches
+                  ? `Course default: ${getYearLevelDisplay(suggestedYearLevel)}`
+                  : `Course default: ${getYearLevelDisplay(
+                      suggestedYearLevel
+                    )} (selected: ${getYearLevelDisplay(yearLevel)})`}
               </Badge>
             )}
           </div>

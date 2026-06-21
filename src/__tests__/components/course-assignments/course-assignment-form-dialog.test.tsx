@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { renderHook, act } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { YearLevel, StudentSection } from "@prisma/client";
@@ -33,7 +33,7 @@ describe("ClassIdentityFields - Hint chip", () => {
     expect(screen.getByText(/course default: 1st year/i)).toBeInTheDocument();
   });
 
-  it("does not show hint chip when yearLevel differs from suggestedYearLevel", () => {
+  it("shows warning hint chip when yearLevel differs from suggestedYearLevel", () => {
     render(
       <ClassIdentityFields
         {...defaultProps}
@@ -42,7 +42,8 @@ describe("ClassIdentityFields - Hint chip", () => {
       />
     );
 
-    expect(screen.queryByText(/course default:/i)).not.toBeInTheDocument();
+    expect(screen.getByText(/course default: 1st year/i)).toBeInTheDocument();
+    expect(screen.getByText(/selected: 2nd year/i)).toBeInTheDocument();
   });
 
   it("does not show hint chip when no suggestedYearLevel", () => {
@@ -152,7 +153,7 @@ describe("CourseAssignment pre-fill logic", () => {
     const { result } = renderHook(() => {
       const [courseId, setCourseId] = useState<string | null>(null);
       const [yearLevel, setYearLevel] = useState<YearLevel>(YearLevel.FIRST_YEAR);
-      const [hasTouchedYearLevel, setHasTouchedYearLevel] = useState(false);
+      const [hasTouchedYearLevel] = useState(false);
 
       useEffect(() => {
         if (courseId && !hasTouchedYearLevel) {

@@ -17,6 +17,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -92,6 +102,7 @@ export function ManagementCoursesList({
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isPending, startTransition] = useTransition();
+  const [courseToDelete, setCourseToDelete] = useState<{ id: string; code: string } | null>(null);
 
   // ---- Derived: majors for selected program --------------------------------
   const selectedProgram = programs.find((p) => p.id === programFilter);
@@ -163,10 +174,10 @@ export function ManagementCoursesList({
     });
   };
 
-  const handleDelete = (courseId: string, courseCode: string) => {
-    if (!window.confirm(`Delete course "${courseCode}"? This cannot be undone.`)) {
-      return;
-    }
+  const confirmDelete = () => {
+    if (!courseToDelete) return;
+    const courseId = courseToDelete.id;
+    setCourseToDelete(null);
     startTransition(async () => {
       await deleteCourseAction(courseId);
     });
@@ -360,7 +371,7 @@ export function ManagementCoursesList({
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         disabled={isPending}
-                        onClick={() => handleDelete(course.id, course.code)}
+                        onClick={() => setCourseToDelete({ id: course.id, code: course.code })}
                         className="text-destructive focus:text-destructive"
                       >
                         Delete
@@ -380,6 +391,7 @@ export function ManagementCoursesList({
           <Button
             variant="outline"
             size="sm"
+            aria-label="Go to previous page"
             disabled={safePage <= 1}
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
           >
@@ -396,6 +408,8 @@ export function ManagementCoursesList({
                 key={page}
                 variant={page === safePage ? "default" : "outline"}
                 size="sm"
+                aria-label={`Go to page ${page}`}
+                aria-current={page === safePage ? "page" : undefined}
                 onClick={() => setCurrentPage(page)}
               >
                 {page}
@@ -406,6 +420,7 @@ export function ManagementCoursesList({
           <Button
             variant="outline"
             size="sm"
+            aria-label="Go to next page"
             disabled={safePage >= totalPages}
             onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
           >
@@ -420,6 +435,27 @@ export function ManagementCoursesList({
         {Math.min(safePage * PAGE_SIZE, filteredCourses.length)} of {filteredCourses.length} course
         {filteredCourses.length !== 1 ? "s" : ""}
       </p>
+
+      <AlertDialog open={!!courseToDelete} onOpenChange={() => setCourseToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete course?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <span className="font-medium">{courseToDelete?.code}</span>. This cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              disabled={isPending}
+              onClick={confirmDelete}
+            >
+              {isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

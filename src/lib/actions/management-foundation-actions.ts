@@ -78,7 +78,7 @@ export async function createCourseAction(formData: FormData): Promise<ActionResu
   if (!session || !session.activeRole) {
     return { error: "Authentication required.", success: false };
   }
-  const allowedRoles = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
   if (!allowedRoles.includes(session.activeRole)) {
     return { error: "Insufficient permissions.", success: false };
   }
@@ -114,7 +114,7 @@ export async function updateCourseAction(formData: FormData): Promise<ActionResu
   if (!session || !session.activeRole) {
     return { error: "Authentication required.", success: false };
   }
-  const allowedRoles = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
   if (!allowedRoles.includes(session.activeRole)) {
     return { error: "Insufficient permissions.", success: false };
   }
@@ -154,7 +154,7 @@ export async function toggleCourseActiveAction(
   if (!session || !session.activeRole) {
     return { error: "Authentication required.", success: false };
   }
-  const allowedRoles = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
   if (!allowedRoles.includes(session.activeRole)) {
     return { error: "Insufficient permissions.", success: false };
   }
@@ -174,7 +174,7 @@ export async function deleteCourseAction(id: string): Promise<ActionResult> {
   if (!session || !session.activeRole) {
     return { error: "Authentication required.", success: false };
   }
-  const allowedRoles = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
   if (!allowedRoles.includes(session.activeRole)) {
     return { error: "Insufficient permissions.", success: false };
   }

@@ -38,6 +38,15 @@ describe("CourseForm temporal fields", () => {
     );
   };
 
+  async function openAndSelect(label: RegExp, optionText: string) {
+    const trigger = screen.getByLabelText(label);
+    fireEvent.click(trigger);
+    const option = await screen.findByRole("option", { name: optionText });
+    fireEvent.focus(option);
+    fireEvent.keyDown(option, { key: "Enter" });
+    fireEvent.keyUp(option, { key: "Enter" });
+  }
+
   describe("temporal field rendering", () => {
     it("renders Year Level, Semester, and Term selects after course scope/program/major block", () => {
       renderCourseForm();
@@ -50,14 +59,14 @@ describe("CourseForm temporal fields", () => {
     it("labels temporal fields as optional/default", () => {
       renderCourseForm();
 
-      const yearLevelLabel = screen.getByLabelText(/year level/i);
-      const semesterLabel = screen.getByLabelText(/semester/i);
-      const termLabel = screen.getByLabelText(/term/i);
+      const yearLevelTrigger = screen.getByLabelText(/year level/i);
+      const semesterTrigger = screen.getByLabelText(/semester/i);
+      const termTrigger = screen.getByLabelText(/term/i);
 
-      // Fields should be optional (not have required attribute)
-      expect(yearLevelLabel).not.toHaveAttribute("required");
-      expect(semesterLabel).not.toHaveAttribute("required");
-      expect(termLabel).not.toHaveAttribute("required");
+      // Trigger buttons should not be required
+      expect(yearLevelTrigger).not.toHaveAttribute("required");
+      expect(semesterTrigger).not.toHaveAttribute("required");
+      expect(termTrigger).not.toHaveAttribute("required");
     });
   });
 
@@ -65,47 +74,36 @@ describe("CourseForm temporal fields", () => {
     it("disables Term select when Summer semester is selected", async () => {
       renderCourseForm();
 
-      const semesterSelect = screen.getByLabelText(/semester/i);
-      const termSelect = screen.getByLabelText(/term/i);
+      const termTrigger = screen.getByLabelText(/term/i);
 
-      // Select Summer semester
-      fireEvent.change(semesterSelect, { target: { value: AcademicSemester.SUMMER } });
+      await openAndSelect(/semester/i, "Summer");
 
-      // Wait for Term to be disabled
       await waitFor(() => {
-        expect(termSelect).toBeDisabled();
+        expect(termTrigger).toBeDisabled();
       });
-
-      // Term should show N/A or be empty
-      expect(termSelect).toHaveValue("");
     });
 
     it("enables Term select when changing from Summer to regular semester", async () => {
       renderCourseForm();
 
-      const semesterSelect = screen.getByLabelText(/semester/i);
-      const termSelect = screen.getByLabelText(/term/i);
+      const termTrigger = screen.getByLabelText(/term/i);
 
-      // First set to Summer
-      fireEvent.change(semesterSelect, { target: { value: AcademicSemester.SUMMER } });
+      await openAndSelect(/semester/i, "Summer");
       await waitFor(() => {
-        expect(termSelect).toBeDisabled();
+        expect(termTrigger).toBeDisabled();
       });
 
-      // Change to First semester
-      fireEvent.change(semesterSelect, { target: { value: AcademicSemester.FIRST } });
+      await openAndSelect(/semester/i, "1st Semester");
 
-      // Term should be enabled now
       await waitFor(() => {
-        expect(termSelect).not.toBeDisabled();
+        expect(termTrigger).not.toBeDisabled();
       });
     });
 
-    it("shows helper text that Summer has no terms", () => {
+    it("shows helper text that Summer has no terms", async () => {
       renderCourseForm();
 
-      const semesterSelect = screen.getByLabelText(/semester/i);
-      fireEvent.change(semesterSelect, { target: { value: AcademicSemester.SUMMER } });
+      await openAndSelect(/semester/i, "Summer");
 
       expect(screen.getByText(/summer semester has no terms/i)).toBeInTheDocument();
     });
@@ -125,12 +123,12 @@ describe("CourseForm temporal fields", () => {
         default_term: AcademicTerm.FIRST_TERM,
       });
 
-      expect(screen.getByLabelText(/year level/i)).toHaveValue(YearLevel.FIRST_YEAR);
-      expect(screen.getByLabelText(/semester/i)).toHaveValue(AcademicSemester.FIRST);
-      expect(screen.getByLabelText(/term/i)).toHaveValue(AcademicTerm.FIRST_TERM);
+      expect(screen.getByLabelText(/year level/i)).toHaveTextContent("1st Year");
+      expect(screen.getByLabelText(/semester/i)).toHaveTextContent("1st Semester");
+      expect(screen.getByLabelText(/term/i)).toHaveTextContent("1st Term");
     });
 
-    it("allows clearing temporal defaults to empty values", () => {
+    it("allows clearing temporal defaults to empty values", async () => {
       renderCourseForm({
         id: "course-1",
         code: "TEST101",
@@ -143,9 +141,8 @@ describe("CourseForm temporal fields", () => {
         default_term: AcademicTerm.SECOND_TERM,
       });
 
-      const yearLevelSelect = screen.getByLabelText(/year level/i);
-      fireEvent.change(yearLevelSelect, { target: { value: "" } });
-      expect(yearLevelSelect).toHaveValue("");
+      await openAndSelect(/year level/i, "None");
+      expect(screen.getByLabelText(/year level/i)).toHaveTextContent("None");
     });
   });
 
@@ -153,14 +150,11 @@ describe("CourseForm temporal fields", () => {
     it("submits temporal field values in FormData", async () => {
       renderCourseForm();
 
-      const yearLevelSelect = screen.getByLabelText(/year level/i);
-      const semesterSelect = screen.getByLabelText(/semester/i);
-      const termSelect = screen.getByLabelText(/term/i);
       const submitButton = screen.getByRole("button", { name: /save course/i });
 
-      fireEvent.change(yearLevelSelect, { target: { value: YearLevel.FIRST_YEAR } });
-      fireEvent.change(semesterSelect, { target: { value: AcademicSemester.FIRST } });
-      fireEvent.change(termSelect, { target: { value: AcademicTerm.FIRST_TERM } });
+      await openAndSelect(/year level/i, "1st Year");
+      await openAndSelect(/semester/i, "1st Semester");
+      await openAndSelect(/term/i, "1st Term");
 
       // Fill in required fields
       fireEvent.change(screen.getByLabelText(/course code/i), {
@@ -185,13 +179,9 @@ describe("CourseForm temporal fields", () => {
     it("submits null/empty term when Summer is selected", async () => {
       renderCourseForm();
 
-      const semesterSelect = screen.getByLabelText(/semester/i) as HTMLSelectElement;
       const submitButton = screen.getByRole("button", { name: /save course/i });
 
-      fireEvent.change(semesterSelect, { target: { value: AcademicSemester.SUMMER } });
-      
-      // Verify the select value changed
-      expect(semesterSelect.value).toBe(AcademicSemester.SUMMER);
+      await openAndSelect(/semester/i, "Summer");
 
       // Fill in required fields
       fireEvent.change(screen.getByLabelText(/course code/i), {
@@ -216,7 +206,7 @@ describe("CourseForm temporal fields", () => {
   });
 });
 
-  describe("CourseForm Zod validation for temporal fields", () => {
+describe("CourseForm Zod validation for temporal fields", () => {
   const validUuid = "550e8400-e29b-41d4-a716-446655440000";
 
   it("rejects Summer semester with non-null term via superRefine", async () => {

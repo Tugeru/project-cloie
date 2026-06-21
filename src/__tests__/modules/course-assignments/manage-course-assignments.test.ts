@@ -157,7 +157,7 @@ describe("manage-course-assignments", () => {
   });
 
   describe("bulkCreateCourseAssignments", () => {
-    it("should create multiple assignments with some errors", async () => {
+    it("should return success=true when some assignments are created despite errors", async () => {
       vi.mocked(authModule.resolveAuthSession).mockResolvedValue(mockAdminSession);
 
       const { prisma } = await import("@/lib/db/prisma");
@@ -197,9 +197,44 @@ describe("manage-course-assignments", () => {
         },
       ]);
 
-      expect(result.success).toBe(false);
+      expect(result.success).toBe(true);
       expect(result.created).toBe(2);
       expect(result.errors).toHaveLength(1);
+    });
+
+    it("should return success=false when every assignment fails", async () => {
+      vi.mocked(authModule.resolveAuthSession).mockResolvedValue(mockAdminSession);
+
+      const { prisma } = await import("@/lib/db/prisma");
+      vi.mocked(prisma.course.findUnique)
+        .mockResolvedValueOnce({ id: "course-1", program_id: "program-1" } as never)
+        .mockResolvedValueOnce({ id: "course-2", program_id: "program-1" } as never);
+      vi.mocked(prisma.courseAssignment.create)
+        .mockRejectedValueOnce(createPrismaUniqueConstraintError())
+        .mockRejectedValueOnce(createPrismaUniqueConstraintError());
+
+      const result = await bulkCreateCourseAssignments([
+        {
+          termInstanceId: "term-1",
+          facultyId: "faculty-1",
+          courseId: "course-1",
+          programId: "program-1",
+          yearLevel: YearLevel.FIRST_YEAR,
+          section: StudentSection.MORNING,
+        },
+        {
+          termInstanceId: "term-1",
+          facultyId: "faculty-2",
+          courseId: "course-2",
+          programId: "program-1",
+          yearLevel: YearLevel.FIRST_YEAR,
+          section: StudentSection.MORNING,
+        },
+      ]);
+
+      expect(result.success).toBe(false);
+      expect(result.created).toBe(0);
+      expect(result.errors).toHaveLength(2);
     });
   });
 });
