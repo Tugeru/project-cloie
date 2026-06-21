@@ -21,7 +21,6 @@ export async function publishCentralDeploymentAction(formData: FormData): Promis
     template_id: formData.get("template_id"),
     target_stakeholder: formData.get("target_stakeholder"),
     term_instance_id: formData.get("term_instance_id"),
-    term: formData.get("term"),
   };
 
   const majorId = formData.get("major_id");
