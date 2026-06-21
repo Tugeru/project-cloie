@@ -173,4 +173,51 @@ describe("CourseAssignment pre-fill logic", () => {
     // Should remain at initial default
     expect(result.current.yearLevel).toBe(YearLevel.FIRST_YEAR);
   });
+
+  it("resets hasTouchedYearLevel on resetForm equivalent", () => {
+    const mockCourses = [
+      { id: "course-1", code: "CS101", title: "Intro", default_year_level: YearLevel.SECOND_YEAR },
+    ];
+
+    const { result } = renderHook(() => {
+      const [courseId, setCourseId] = useState<string | null>(null);
+      const [yearLevel, setYearLevel] = useState<YearLevel>(YearLevel.FIRST_YEAR);
+      const [hasTouchedYearLevel, setHasTouchedYearLevel] = useState(false);
+
+      useEffect(() => {
+        if (courseId && !hasTouchedYearLevel) {
+          const course = mockCourses.find((c) => c.id === courseId);
+          if (course?.default_year_level) {
+            setYearLevel(course.default_year_level);
+          }
+        }
+      }, [courseId, hasTouchedYearLevel]);
+
+      const resetForm = () => {
+        setCourseId(null);
+        setYearLevel(YearLevel.FIRST_YEAR);
+        setHasTouchedYearLevel(false);
+      };
+
+      return { courseId, yearLevel, setCourseId, setYearLevel, setHasTouchedYearLevel, resetForm };
+    });
+
+    // Touch and change it
+    act(() => {
+      result.current.setHasTouchedYearLevel(true);
+      result.current.setYearLevel(YearLevel.THIRD_YEAR);
+    });
+
+    // Reset
+    act(() => {
+      result.current.resetForm();
+    });
+
+    // Now select course - should pre-fill because hasTouchedYearLevel is reset to false
+    act(() => {
+      result.current.setCourseId("course-1");
+    });
+
+    expect(result.current.yearLevel).toBe(YearLevel.SECOND_YEAR);
+  });
 });

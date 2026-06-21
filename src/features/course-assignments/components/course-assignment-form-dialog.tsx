@@ -163,6 +163,7 @@ export function CourseAssignmentFormDialog({
     setSection(StudentSection.MORNING);
     setSelectedFaculty(null);
     setShowCrossProgramWarning(false);
+    setHasTouchedYearLevel(false);
   };
 
   const handleOpenChange = (open: boolean) => {
