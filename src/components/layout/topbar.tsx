@@ -29,7 +29,6 @@ export function Topbar({ user, mobileNavMode = "bottom-nav", roles }: TopbarProp
 
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "GET" });
-    router.push("/login");
     router.refresh();
   };
 
