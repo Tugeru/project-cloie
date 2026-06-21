@@ -2,6 +2,8 @@
 
 import { InviteStatus, SystemRole } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { ROLES } from "@/lib/constants/roles";
 import type { ZodType } from "zod";
 import {
   createCourseSchema,
@@ -72,6 +74,15 @@ function revalidateAdminFoundation() {
 }
 
 export async function createCourseAction(formData: FormData): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
+
   const parsed = parseWithSchema(createCourseSchema, {
     code: formData.get("code"),
     title: formData.get("title"),
@@ -99,6 +110,15 @@ export async function createCourseAction(formData: FormData): Promise<ActionResu
 }
 
 export async function updateCourseAction(formData: FormData): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
+
   const parsed = parseWithSchema(updateCourseSchema, {
     id: formData.get("id"),
     code: formData.get("code"),
@@ -130,6 +150,15 @@ export async function toggleCourseActiveAction(
   id: string,
   is_active: boolean
 ): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
+
   const result = await toggleCourseActive(id, is_active);
 
   if (!result.success) {
@@ -141,6 +170,15 @@ export async function toggleCourseActiveAction(
 }
 
 export async function deleteCourseAction(id: string): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles = [ROLES.SECRETARY, ROLES.DEAN, ROLES.PROGRAM_HEAD];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
+
   const result = await deleteCourse(id);
 
   if (!result.success) {
