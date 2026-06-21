@@ -9,6 +9,8 @@ import type {
   UpdateStudentAcademicContextInput,
 } from "../schemas/secretary-user";
 
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { ROLES } from "@/lib/constants/roles";
 import { type ServiceResult } from "@/lib/utils/service-result";
 import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";
 
@@ -97,6 +99,16 @@ async function listExternalStakeholderInvites() {
 }
 
 export async function toggleUserActive(id: string, is_active: boolean): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+  if (id === session.userId) return { success: false, error: "Cannot modify own account." };
+
   await prisma.user.update({
     where: { id },
     data: { is_active },
@@ -108,6 +120,16 @@ export async function toggleUserActive(id: string, is_active: boolean): Promise<
 export async function assignUserRole(
   input: AssignRoleInput
 ): Promise<ServiceResult<{ id: string }>> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+  if (input.user_id === session.userId) return { success: false, error: "Cannot modify own account." };
+
   try {
     const role = await prisma.userRole.create({
       data: {
@@ -130,6 +152,16 @@ export async function assignUserRole(
 }
 
 export async function revokeUserRole(userId: string, role: SystemRole): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+  if (userId === session.userId) return { success: false, error: "Cannot modify own account." };
+
   const assignedRole = await prisma.userRole.findUnique({
     where: { user_id: userId },
   });
@@ -208,6 +240,15 @@ export async function revokeUserRole(userId: string, role: SystemRole): Promise<
 export async function upsertStudentAcademicContext(
   input: UpdateStudentAcademicContextInput
 ): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   const hasStudentRole = await userHasRole(input.user_id, SystemRole.STUDENT);
 
   if (!hasStudentRole) {
@@ -243,6 +284,15 @@ export async function upsertStudentAcademicContext(
 }
 
 export async function deleteStudentAcademicContext(userId: string): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   const profile = await prisma.studentAcademicProfile.findUnique({
     where: { user_id: userId },
     select: { id: true },
@@ -262,6 +312,18 @@ export async function deleteStudentAcademicContext(userId: string): Promise<Serv
 export async function createFacultyProgramAffiliation(
   input: CreateFacultyAffiliationInput
 ): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+  if (input.faculty_id === session.userId) {
+    return { success: false, error: "Cannot modify own account." };
+  }
+
   const hasFacultyRole = await userHasRole(input.faculty_id, SystemRole.FACULTY);
 
   if (!hasFacultyRole) {
@@ -303,6 +365,15 @@ export async function createFacultyProgramAffiliation(
 }
 
 export async function deactivateFacultyProgramAffiliation(id: string): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   await prisma.facultyProgramAffiliation.update({
     where: { id },
     data: {
@@ -316,6 +387,16 @@ export async function deactivateFacultyProgramAffiliation(id: string): Promise<S
 export async function createProgramHeadAssignment(
   input: CreateProgramHeadAssignmentInput
 ): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+  if (input.program_head_id === session.userId) return { success: false, error: "Cannot modify own account." };
+
   const hasProgramHeadRole = await userHasRole(input.program_head_id, SystemRole.PROGRAM_HEAD);
 
   if (!hasProgramHeadRole) {
@@ -357,6 +438,15 @@ export async function createProgramHeadAssignment(
 }
 
 export async function deactivateProgramHeadAssignment(id: string): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   await prisma.programHeadAssignment.update({
     where: { id },
     data: {
@@ -370,6 +460,15 @@ export async function deactivateProgramHeadAssignment(id: string): Promise<Servi
 export async function upsertIndustryPartnerProfile(
   input: UpdateIndustryPartnerProfileInput
 ): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   const hasIndustryRole = await userHasRole(input.user_id, SystemRole.INDUSTRY_PARTNER);
 
   if (!hasIndustryRole) {
@@ -398,6 +497,15 @@ export async function upsertIndustryPartnerProfile(
 }
 
 export async function deleteIndustryPartnerProfile(userId: string): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   const profile = await prisma.industryPartnerProfile.findUnique({
     where: { user_id: userId },
     select: { id: true },
@@ -417,6 +525,15 @@ export async function deleteIndustryPartnerProfile(userId: string): Promise<Serv
 export async function createExternalInviteDraft(
   input: CreateExternalInviteDraftInput
 ): Promise<ServiceResult<{ id: string }>> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   try {
     const invite = await prisma.externalStakeholderInvite.create({
       data: {
@@ -447,6 +564,15 @@ export async function updateExternalInviteStatus(
   id: string,
   status: InviteStatus
 ): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   const invite = await prisma.externalStakeholderInvite.findUnique({
     where: { id },
     select: { status: true },

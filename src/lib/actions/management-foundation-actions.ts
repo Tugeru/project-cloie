@@ -193,6 +193,17 @@ export async function toggleUserActiveAction(
   id: string,
   is_active: boolean
 ): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
+  if (id === session.userId) {
+    return { error: "Cannot modify own account.", success: false };
+  }
   const result = await toggleUserActive(id, is_active);
 
   if (!result.success) {
@@ -204,6 +215,14 @@ export async function toggleUserActiveAction(
 }
 
 export async function assignUserRoleAction(formData: FormData): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
   const parsed = parseWithSchema(assignRoleSchema, {
     user_id: formData.get("user_id"),
     role: formData.get("role"),
@@ -213,6 +232,9 @@ export async function assignUserRoleAction(formData: FormData): Promise<ActionRe
     return parsed;
   }
 
+  if (parsed.data.user_id === session.userId) {
+    return { error: "Cannot modify own account.", success: false };
+  }
   const result = await assignUserRole(parsed.data);
 
   if (!result.success) {
@@ -227,6 +249,17 @@ export async function revokeUserRoleAction(
   userId: string,
   role: SystemRole
 ): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
+  if (userId === session.userId) {
+    return { error: "Cannot modify own account.", success: false };
+  }
   const result = await revokeUserRole(userId, role);
 
   if (!result.success) {
@@ -240,6 +273,14 @@ export async function revokeUserRoleAction(
 export async function updateStudentAcademicContextAction(
   formData: FormData
 ): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
   const parsed = parseWithSchema(updateStudentAcademicContextSchema, {
     user_id: formData.get("user_id"),
     program_id: formData.get("program_id"),
@@ -265,6 +306,17 @@ export async function updateStudentAcademicContextAction(
 }
 
 export async function deleteStudentAcademicContextAction(userId: string): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
+  if (userId === session.userId) {
+    return { error: "Cannot modify own account.", success: false };
+  }
   const result = await deleteStudentAcademicContext(userId);
 
   if (!result.success) {
@@ -278,6 +330,14 @@ export async function deleteStudentAcademicContextAction(userId: string): Promis
 export async function createFacultyProgramAffiliationAction(
   formData: FormData
 ): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
   const parsed = parseWithSchema(createFacultyAffiliationSchema, {
     faculty_id: formData.get("faculty_id"),
     program_id: formData.get("program_id"),
@@ -287,6 +347,9 @@ export async function createFacultyProgramAffiliationAction(
     return parsed;
   }
 
+  if (parsed.data.faculty_id === session.userId) {
+    return { error: "Cannot modify own account.", success: false };
+  }
   const result = await createFacultyProgramAffiliation(parsed.data);
 
   if (!result.success) {
@@ -298,6 +361,14 @@ export async function createFacultyProgramAffiliationAction(
 }
 
 export async function deactivateFacultyProgramAffiliationAction(id: string): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
   const result = await deactivateFacultyProgramAffiliation(id);
 
   if (!result.success) {
@@ -309,6 +380,14 @@ export async function deactivateFacultyProgramAffiliationAction(id: string): Pro
 }
 
 export async function createProgramHeadAssignmentAction(formData: FormData): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
   const parsed = parseWithSchema(createProgramHeadAssignmentSchema, {
     program_head_id: formData.get("program_head_id"),
     program_id: formData.get("program_id"),
@@ -318,6 +397,9 @@ export async function createProgramHeadAssignmentAction(formData: FormData): Pro
     return parsed;
   }
 
+  if (parsed.data.program_head_id === session.userId) {
+    return { error: "Cannot modify own account.", success: false };
+  }
   const result = await createProgramHeadAssignment(parsed.data);
 
   if (!result.success) {
@@ -329,6 +411,14 @@ export async function createProgramHeadAssignmentAction(formData: FormData): Pro
 }
 
 export async function deactivateProgramHeadAssignmentAction(id: string): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
   const result = await deactivateProgramHeadAssignment(id);
 
   if (!result.success) {
@@ -342,6 +432,14 @@ export async function deactivateProgramHeadAssignmentAction(id: string): Promise
 export async function upsertIndustryPartnerProfileAction(
   formData: FormData
 ): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
   const parsed = parseWithSchema(updateIndustryPartnerProfileSchema, {
     user_id: formData.get("user_id"),
     company_name: formData.get("company_name"),
@@ -364,6 +462,17 @@ export async function upsertIndustryPartnerProfileAction(
 }
 
 export async function deleteIndustryPartnerProfileAction(userId: string): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
+  if (userId === session.userId) {
+    return { error: "Cannot modify own account.", success: false };
+  }
   const result = await deleteIndustryPartnerProfile(userId);
 
   if (!result.success) {
@@ -375,6 +484,14 @@ export async function deleteIndustryPartnerProfileAction(userId: string): Promis
 }
 
 export async function createExternalInviteDraftAction(formData: FormData): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
   const parsed = parseWithSchema(createExternalInviteDraftSchema, {
     email: formData.get("email"),
     role: formData.get("role"),
@@ -399,6 +516,14 @@ export async function createExternalInviteDraftAction(formData: FormData): Promi
 }
 
 export async function revokeExternalInviteAction(id: string): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
   const result = await updateExternalInviteStatus(id, InviteStatus.REVOKED);
 
   if (!result.success) {
@@ -410,6 +535,14 @@ export async function revokeExternalInviteAction(id: string): Promise<ActionResu
 }
 
 export async function createBaselineTemplateAction(formData: FormData): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
   const parsed = parseWithSchema(createBaselineTemplateSchema, {
     code: formData.get("code"),
     name: formData.get("name"),
@@ -432,6 +565,14 @@ export async function createBaselineTemplateAction(formData: FormData): Promise<
 }
 
 export async function updateBaselineTemplateAction(formData: FormData): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
   const parsed = parseWithSchema(updateBaselineTemplateSchema, {
     id: formData.get("id"),
     code: formData.get("code"),
@@ -458,6 +599,14 @@ export async function toggleBaselineTemplateActiveAction(
   id: string,
   is_active: boolean
 ): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
   const result = await toggleBaselineTemplateActive(id, is_active);
 
   if (!result.success) {
