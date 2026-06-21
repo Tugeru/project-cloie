@@ -12,7 +12,8 @@ const {
   instrumentVersionFindFirstMock,
   instrumentTemplateFindFirstMock,
   listStudentsForClassMock,
-  programHeadAssignmentFindFirstMock,
+  programHeadAssignmentFindManyMock,
+  ciloFindManyMock,
   resolveAuthSessionMock,
   targetCreateManyMock,
   transactionMock,
@@ -25,7 +26,8 @@ const {
   instrumentVersionFindFirstMock: vi.fn(),
   instrumentTemplateFindFirstMock: vi.fn(),
   listStudentsForClassMock: vi.fn(),
-  programHeadAssignmentFindFirstMock: vi.fn(),
+  programHeadAssignmentFindManyMock: vi.fn(),
+  ciloFindManyMock: vi.fn(),
   resolveAuthSessionMock: vi.fn(),
   targetCreateManyMock: vi.fn(),
   transactionMock: vi.fn(),
@@ -36,6 +38,7 @@ vi.mock("@/lib/db/prisma", () => ({
     $transaction: transactionMock,
     courseAssignment: {
       findUnique: courseAssignmentFindUniqueMock,
+      findFirst: courseAssignmentFindUniqueMock,
     },
     instrumentVersion: {
       findFirst: instrumentVersionFindFirstMock,
@@ -44,7 +47,10 @@ vi.mock("@/lib/db/prisma", () => ({
       findFirst: instrumentTemplateFindFirstMock,
     },
     programHeadAssignment: {
-      findFirst: programHeadAssignmentFindFirstMock,
+      findMany: programHeadAssignmentFindManyMock,
+    },
+    cILO: {
+      findMany: ciloFindManyMock,
     },
   },
 }));
@@ -128,6 +134,47 @@ const MOCK_PUBLICATION_CONTEXT = {
   },
 };
 
+const MOCK_BOUND_TEMPLATE = {
+  id: "bound-template-1",
+  bound_course_id: "course-1",
+  bound_course: {
+    id: "course-1",
+    code: "IT-401",
+    title: "Capstone 1",
+    course_scope: "PROGRAM_SPECIFIC",
+    program_id: "program-1",
+  },
+  template_cilo_question_bindings: [
+    {
+      cilo_id: "cilo-1",
+      section_key: "outcomes",
+      item_key: "q1",
+    },
+    {
+      cilo_id: "cilo-2",
+      section_key: "outcomes",
+      item_key: "q2",
+    },
+  ],
+  structure: [
+    {
+      key: "outcomes",
+      questions: [
+        {
+          key: "q1",
+          question_type: "LIKERT",
+          prompt: "I achieved outcome one.",
+        },
+        {
+          key: "q2",
+          question_type: "LIKERT",
+          prompt: "I achieved outcome two.",
+        },
+      ],
+    },
+  ],
+};
+
 describe("publishCourseBoundEvaluation", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -140,6 +187,55 @@ describe("publishCourseBoundEvaluation", () => {
         evaluationAssignment: { createMany: assignmentCreateManyMock },
       })
     );
+
+    // Default mocks for on-behalf template lookup
+    instrumentTemplateFindFirstMock.mockResolvedValue({
+      id: "bound-template-1",
+      bound_course_id: "course-1",
+      bound_course: {
+        id: "course-1",
+        code: "IT-401",
+        title: "Capstone 1",
+        course_scope: "PROGRAM_SPECIFIC",
+        program_id: "program-1",
+      },
+      template_cilo_question_bindings: [
+        {
+          cilo_id: "cilo-1",
+          section_key: "outcomes",
+          item_key: "q1",
+        },
+        {
+          cilo_id: "cilo-2",
+          section_key: "outcomes",
+          item_key: "q2",
+        },
+      ],
+      structure: [
+        {
+          key: "outcomes",
+          questions: [
+            {
+              key: "q1",
+              question_type: "LIKERT",
+              prompt: "I achieved outcome one.",
+            },
+            {
+              key: "q2",
+              question_type: "LIKERT",
+              prompt: "I achieved outcome two.",
+            },
+          ],
+        },
+      ],
+    });
+
+    ciloFindManyMock.mockResolvedValue([
+      { description: "Apply capstone planning fundamentals.", id: "cilo-1" },
+      { description: "Produce a proposal-aligned outline defense artifact.", id: "cilo-2" },
+    ]);
+
+    programHeadAssignmentFindManyMock.mockResolvedValue([{ program_id: "program-1" }]);
   });
 
   it("rejects publication when no user is signed in", async () => {
@@ -191,7 +287,7 @@ describe("publishCourseBoundEvaluation", () => {
     });
 
     expect(courseAssignmentFindUniqueMock).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: "assignment-1" } })
+      expect.objectContaining({ where: { id: "assignment-1", is_active: true } })
     );
     expect(getFacultyTemplatePublicationContextMock).toHaveBeenCalledWith("template-1");
     expect(courseBoundEvaluationCreateMock).toHaveBeenCalledWith({
@@ -292,9 +388,9 @@ describe("publishCourseBoundEvaluation", () => {
         roles: [ROLES.FACULTY, ROLES.PROGRAM_HEAD],
         userId: phUserId,
       });
-      programHeadAssignmentFindFirstMock.mockResolvedValue({ program_id: "program-1" });
+      programHeadAssignmentFindManyMock.mockResolvedValue([{ program_id: "program-1" }]);
       courseAssignmentFindUniqueMock.mockResolvedValue(MOCK_ASSIGNMENT);
-      instrumentTemplateFindFirstMock.mockResolvedValue({ id: "bound-template-1" });
+      instrumentTemplateFindFirstMock.mockResolvedValue(MOCK_BOUND_TEMPLATE);
       getFacultyTemplatePublicationContextMock.mockResolvedValue(MOCK_PUBLICATION_CONTEXT);
       instrumentVersionFindFirstMock.mockResolvedValue({ id: "version-1" });
       courseBoundEvaluationCreateMock.mockResolvedValue({ id: "evaluation-1" });
@@ -372,7 +468,7 @@ describe("publishCourseBoundEvaluation", () => {
         userId: deanUserId,
       });
       courseAssignmentFindUniqueMock.mockResolvedValue(MOCK_ASSIGNMENT);
-      instrumentTemplateFindFirstMock.mockResolvedValue({ id: "bound-template-1" });
+      instrumentTemplateFindFirstMock.mockResolvedValue(MOCK_BOUND_TEMPLATE);
       getFacultyTemplatePublicationContextMock.mockResolvedValue(MOCK_PUBLICATION_CONTEXT);
       instrumentVersionFindFirstMock.mockResolvedValue({ id: "version-1" });
       courseBoundEvaluationCreateMock.mockResolvedValue({ id: "evaluation-1" });
@@ -404,7 +500,7 @@ describe("publishCourseBoundEvaluation", () => {
         userId: secretaryUserId,
       });
       courseAssignmentFindUniqueMock.mockResolvedValue(MOCK_ASSIGNMENT);
-      instrumentTemplateFindFirstMock.mockResolvedValue({ id: "bound-template-1" });
+      instrumentTemplateFindFirstMock.mockResolvedValue(MOCK_BOUND_TEMPLATE);
       getFacultyTemplatePublicationContextMock.mockResolvedValue(MOCK_PUBLICATION_CONTEXT);
       instrumentVersionFindFirstMock.mockResolvedValue({ id: "version-1" });
       courseBoundEvaluationCreateMock.mockResolvedValue({ id: "evaluation-1" });
@@ -430,17 +526,8 @@ describe("publishCourseBoundEvaluation", () => {
         roles: [ROLES.FACULTY, ROLES.PROGRAM_HEAD],
         userId: phUserId,
       });
-      programHeadAssignmentFindFirstMock.mockResolvedValue({ program_id: "program-1" });
+      programHeadAssignmentFindManyMock.mockResolvedValue([{ program_id: "program-1" }]);
       courseAssignmentFindUniqueMock.mockResolvedValue(MOCK_ASSIGNMENT);
-      instrumentTemplateFindFirstMock.mockResolvedValue({ id: "bound-template-1" });
-      getFacultyTemplatePublicationContextMock.mockResolvedValue(MOCK_PUBLICATION_CONTEXT);
-      instrumentVersionFindFirstMock.mockResolvedValue({ id: "version-1" });
-      courseBoundEvaluationCreateMock.mockResolvedValue({ id: "evaluation-1" });
-      listStudentsForClassMock.mockResolvedValue({
-        success: true,
-        data: [{ userId: "student-1" }],
-      });
-
       const result = await publishCourseBoundEvaluation({
         assignmentId: "assignment-1",
         deploymentName: "PH In-Scope Evaluation",
