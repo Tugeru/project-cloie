@@ -126,13 +126,19 @@ export function AddClassesForFacultyDialog({
     if (result.success) {
       showToast(`Created ${result.created} class assignments successfully.`, "success");
       if (result.errors.length > 0) {
-        showToast(`${result.errors.length} assignments failed to create.`, "error");
+        showToast(`${result.errors.length} assignments failed to create.`, "warning");
       }
       resetForm();
       onOpenChange(false);
       onSuccess?.();
     } else {
-      showToast("Failed to create class assignments.", "error");
+      const firstError = result.errors[0]?.error;
+      showToast(
+        firstError
+          ? `Failed to create class assignments: ${firstError}`
+          : "Failed to create class assignments.",
+        "error"
+      );
     }
   };
 

@@ -133,7 +133,7 @@ export function AddMergedClassesDialog({
       if (result.success) {
       showToast(`Created ${result.created} merged class assignments successfully.`, "success");
       if (result.errors.length > 0) {
-        showToast(`${result.errors.length} assignments failed to create.`, "error");
+        showToast(`${result.errors.length} assignments failed to create.`, "warning");
       }
       resetForm();
       onOpenChange(false);
