@@ -79,6 +79,9 @@ export async function createCourseAction(formData: FormData): Promise<ActionResu
     course_scope: formData.get("course_scope"),
     program_id: formData.get("program_id"),
     major_id: formData.get("major_id"),
+    default_year_level: formData.get("default_year_level"),
+    default_semester: formData.get("default_semester"),
+    default_term: formData.get("default_term"),
   });
 
   if (!parsed.success) {
@@ -104,6 +107,9 @@ export async function updateCourseAction(formData: FormData): Promise<ActionResu
     course_scope: formData.get("course_scope"),
     program_id: formData.get("program_id"),
     major_id: formData.get("major_id"),
+    default_year_level: formData.get("default_year_level"),
+    default_semester: formData.get("default_semester"),
+    default_term: formData.get("default_term"),
   });
 
   if (!parsed.success) {

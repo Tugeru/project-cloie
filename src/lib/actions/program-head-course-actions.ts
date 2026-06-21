@@ -41,6 +41,9 @@ export async function createProgramHeadCourseAction(formData: FormData): Promise
     description: formData.get("description"),
     course_scope: formData.get("course_scope"),
     major_id: formData.get("major_id"),
+    default_year_level: formData.get("default_year_level"),
+    default_semester: formData.get("default_semester"),
+    default_term: formData.get("default_term"),
   });
 
   if (!parsed.success) {
@@ -65,6 +68,9 @@ export async function updateProgramHeadCourseAction(formData: FormData): Promise
     description: formData.get("description"),
     course_scope: formData.get("course_scope"),
     major_id: formData.get("major_id"),
+    default_year_level: formData.get("default_year_level"),
+    default_semester: formData.get("default_semester"),
+    default_term: formData.get("default_term"),
   });
 
   if (!parsed.success) {

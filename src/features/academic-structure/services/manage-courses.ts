@@ -128,6 +128,9 @@ export async function createCourse(
         title: input.title,
         description: input.description ?? null,
         course_scope: input.course_scope,
+        default_year_level: input.default_year_level ?? null,
+        default_semester: input.default_semester ?? null,
+        default_term: input.default_term ?? null,
         ...scopeContext.data,
       },
     });
@@ -162,6 +165,9 @@ export async function updateCourse(
         title: input.title,
         description: input.description ?? null,
         course_scope: input.course_scope,
+        default_year_level: input.default_year_level ?? null,
+        default_semester: input.default_semester ?? null,
+        default_term: input.default_term ?? null,
         ...scopeContext.data,
       },
     });
