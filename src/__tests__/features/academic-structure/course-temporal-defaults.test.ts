@@ -152,6 +152,39 @@ describe("Course temporal defaults schema", () => {
     });
   });
 
+  describe("course_scope enum rejection", () => {
+    it("should reject MAJOR_SPECIFIC value (legacy enum removed)", () => {
+      const result = createCourseSchema.safeParse({
+        ...baseCourseData,
+        course_scope: "MAJOR_SPECIFIC" as unknown as CourseScope,
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const hasEnumError = result.error.issues.some((issue) =>
+          issue.message.includes("Invalid option")
+        );
+        expect(hasEnumError).toBe(true);
+      }
+    });
+
+    it("should reject MAJOR_SPECIFIC value on update (legacy enum removed)", () => {
+      const result = updateCourseSchema.safeParse({
+        id: "12345678-1234-4234-8234-123456789012",
+        ...baseCourseData,
+        course_scope: "MAJOR_SPECIFIC" as unknown as CourseScope,
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const hasEnumError = result.error.issues.some((issue) =>
+          issue.message.includes("Invalid option")
+        );
+        expect(hasEnumError).toBe(true);
+      }
+    });
+  });
+
   describe("update schema validates temporal defaults", () => {
     it("should accept valid semester-term pair on update", () => {
       const result = updateCourseSchema.safeParse({
