@@ -2,6 +2,8 @@ import { resolveAuthSession } from "@/features/auth/services/resolve-auth-sessio
 import { ROLES } from "@/lib/constants/roles";
 import { prisma } from "@/lib/db/prisma";
 import { listStudentsForClass } from "@/features/enrollments/services/list-students-for-class";
+import { CourseScope } from "@prisma/client";
+import { canDeployCourseBoundEvaluation } from "../policies";
 import type {
   PreviewCourseBoundRespondentsInput,
   PreviewCourseBoundRespondentsResult,
@@ -17,17 +19,17 @@ export async function previewCourseBoundRespondents({
 }: PreviewCourseBoundRespondentsInput): Promise<PreviewCourseBoundRespondentsResult> {
   const authSession = await resolveAuthSession();
 
-  if (!authSession?.roles?.includes(ROLES.FACULTY)) {
+  if (!authSession) {
     return {
-      error: "Faculty authentication is required.",
+      error: "Authentication required.",
       success: false,
     };
   }
 
   try {
-    // Lookup the assignment and verify faculty ownership
-    const assignment = await prisma.courseAssignment.findUnique({
-      where: { id: assignmentId },
+    // Lookup the assignment. Filters inactive at SQL level.
+    const assignment = await prisma.courseAssignment.findFirst({
+      where: { id: assignmentId, is_active: true },
       include: {
         term_instance: {
           include: {
@@ -46,6 +48,7 @@ export async function previewCourseBoundRespondents({
             id: true,
             code: true,
             title: true,
+            course_scope: true,
           },
         },
       },
@@ -58,16 +61,37 @@ export async function previewCourseBoundRespondents({
       };
     }
 
-    if (assignment.faculty_id !== authSession.userId) {
+    if (!assignment.is_active) {
       return {
-        error: "You do not have access to this course assignment.",
+        error: "This course assignment is inactive.",
         success: false,
       };
     }
 
-    if (!assignment.is_active) {
+    // Get PH scope if user is PH - resolves multiple program head assignments
+    let phProgramScope: string[] = [];
+    if (authSession.roles.includes(ROLES.PROGRAM_HEAD)) {
+      const headAssignments = await prisma.programHeadAssignment.findMany({
+        where: { program_head_id: authSession.userId, is_active: true },
+        select: { program_id: true },
+      });
+      phProgramScope = headAssignments.map((a) => a.program_id).filter(Boolean) as string[];
+    }
+
+    // Call policy for authorization
+    const authCheck = canDeployCourseBoundEvaluation(
+      authSession,
+      {
+        faculty_id: assignment.faculty_id,
+        program_id: assignment.program_id,
+        course_scope: assignment.course.course_scope as CourseScope,
+      },
+      phProgramScope
+    );
+
+    if (!authCheck.allowed) {
       return {
-        error: "This course assignment is inactive.",
+        error: authCheck.reason,
         success: false,
       };
     }
