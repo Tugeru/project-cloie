@@ -96,7 +96,7 @@ export function ManagementToolsPage({ templates, basePath = "/secretary/instrume
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <h1 className="text-heading-lg">Evaluation Tools</h1>
           <p className="text-body-md text-text-secondary">
@@ -104,7 +104,7 @@ export function ManagementToolsPage({ templates, basePath = "/secretary/instrume
             program heads for their programs.
           </p>
         </div>
-        <Button render={<Link href={`${basePath}/new`} />}>
+        <Button render={<Link href={`${basePath}/new`} />} className="shrink-0">
           <Plus className="mr-2 size-4" />
           Create Template
         </Button>
@@ -125,50 +125,52 @@ export function ManagementToolsPage({ templates, basePath = "/secretary/instrume
           {templates.map((template) => (
             <Card key={template.id} className="relative">
               <CardHeader>
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0 space-y-1">
-                    <CardTitle className="truncate text-base font-bold">{template.name}</CardTitle>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1">
-                    <Badge variant={template.is_active ? "default" : "outline"}>
-                      {template.is_active ? "Active" : "Inactive"}
-                    </Badge>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-8 items-center justify-center rounded-md transition-colors">
-                        <MoreVertical className="size-4" />
-                        <span className="sr-only">Actions</span>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem
-                          render={<Link href={`${basePath}/${template.id}/edit`} />}
-                        >
-                          <Pencil className="mr-2 size-4" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          disabled={isPending}
-                          onClick={() => handleDuplicate(template.id)}
-                        >
-                          <Copy className="mr-2 size-4" />
-                          Duplicate
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          disabled={isPending}
-                          onClick={() => handleToggleActive(template.id, template.is_active)}
-                        >
-                          {template.is_active ? "Deactivate" : "Activate"}
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          disabled={isPending}
-                          onClick={() => setDeleteTarget(template)}
-                          className="text-destructive focus:text-destructive"
-                        >
-                          <Trash2 className="mr-2 size-4" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 space-y-1">
+                      <CardTitle className="line-clamp-2 text-base font-bold">{template.name}</CardTitle>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-1">
+                      <Badge variant={template.is_active ? "default" : "outline"}>
+                        {template.is_active ? "Active" : "Inactive"}
+                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="text-text-muted hover:bg-surface-muted hover:text-text-primary inline-flex size-8 items-center justify-center rounded-md transition-colors">
+                          <MoreVertical className="size-4" />
+                          <span className="sr-only">Actions</span>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            render={<Link href={`${basePath}/${template.id}/edit`} />}
+                          >
+                            <Pencil className="mr-2 size-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={isPending}
+                            onClick={() => handleDuplicate(template.id)}
+                          >
+                            <Copy className="mr-2 size-4" />
+                            Duplicate
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            disabled={isPending}
+                            onClick={() => handleToggleActive(template.id, template.is_active)}
+                          >
+                            {template.is_active ? "Deactivate" : "Activate"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            disabled={isPending}
+                            onClick={() => setDeleteTarget(template)}
+                            className="text-destructive focus:text-destructive"
+                          >
+                            <Trash2 className="mr-2 size-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
@@ -176,21 +178,23 @@ export function ManagementToolsPage({ templates, basePath = "/secretary/instrume
                 {template.description && (
                   <p className="text-text-secondary line-clamp-2 text-sm">{template.description}</p>
                 )}
-                <div className="text-muted-foreground flex items-center justify-between text-xs">
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
                   <span>Institutional baseline</span>
                   <span>
                     {template._count.versions} version
                     {template._count.versions !== 1 ? "s" : ""}
                   </span>
                 </div>
-                <Badge variant="outline" className="w-fit text-xs">
-                  {template.template_type === "COURSE_BOUND" ? "Course-bound" : "Program-wide"}
-                </Badge>
-                {template.is_faculty_accessible && (
-                  <Badge variant="outline" className="text-xs">
-                    Faculty Access
+                <div className="flex flex-wrap gap-2">
+                  <Badge variant="outline" className="w-fit text-xs">
+                    {template.template_type === "COURSE_BOUND" ? "Course-bound" : "Program-wide"}
                   </Badge>
-                )}
+                  {template.is_faculty_accessible && (
+                    <Badge variant="outline" className="text-xs">
+                      Faculty Access
+                    </Badge>
+                  )}
+                </div>
               </CardContent>
             </Card>
           ))}
