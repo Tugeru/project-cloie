@@ -385,7 +385,7 @@ describe("publishCourseBoundEvaluation", () => {
       const phUserId = "ph-user-1";
       resolveAuthSessionMock.mockResolvedValue({
         activeRole: ROLES.PROGRAM_HEAD,
-        roles: [ROLES.FACULTY, ROLES.PROGRAM_HEAD],
+        roles: [ROLES.PROGRAM_HEAD],
         userId: phUserId,
       });
       programHeadAssignmentFindManyMock.mockResolvedValue([{ program_id: "program-1" }]);
@@ -523,7 +523,7 @@ describe("publishCourseBoundEvaluation", () => {
       const phUserId = "ph-user-1";
       resolveAuthSessionMock.mockResolvedValue({
         activeRole: ROLES.PROGRAM_HEAD,
-        roles: [ROLES.FACULTY, ROLES.PROGRAM_HEAD],
+        roles: [ROLES.PROGRAM_HEAD],
         userId: phUserId,
       });
       programHeadAssignmentFindManyMock.mockResolvedValue([{ program_id: "program-1" }]);
