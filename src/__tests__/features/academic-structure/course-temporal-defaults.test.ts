@@ -136,6 +136,20 @@ describe("Course temporal defaults schema", () => {
         expect(hasTermError).toBe(true);
       }
     });
+
+    it("should reject term when semester is undefined", () => {
+      const result = createCourseSchema.safeParse({
+        ...baseCourseData,
+        default_semester: undefined,
+        default_term: AcademicTerm.FIRST_TERM,
+      });
+
+      expect(result.success).toBe(false);
+      if (!result.success) {
+        const hasSemesterError = result.error.issues.some((issue) => issue.message.includes("Semester must be set"));
+        expect(hasSemesterError).toBe(true);
+      }
+    });
   });
 
   describe("update schema validates temporal defaults", () => {
@@ -177,3 +191,35 @@ describe("Course temporal defaults schema", () => {
     });
   });
 });
+
+import { createProgramHeadCourseSchema, updateProgramHeadCourseSchema } from "@/features/academic-structure/schemas/program-head-course";
+
+describe("Program Head Course Schema", () => {
+  const basePHCourseData = {
+    code: "TESTPH1",
+    title: "PH Course",
+    course_scope: CourseScope.PROGRAM_SPECIFIC,
+    major_id: undefined,
+    description: undefined,
+  };
+
+  it("should accept PROGRAM_SPECIFIC scope", () => {
+    const result = createProgramHeadCourseSchema.safeParse(basePHCourseData);
+    expect(result.success).toBe(true);
+  });
+
+  it("should reject GENERAL_EDUCATION scope", () => {
+    const result = createProgramHeadCourseSchema.safeParse({
+      ...basePHCourseData,
+      course_scope: CourseScope.GENERAL_EDUCATION,
+    });
+    expect(result.success).toBe(false);
+    if (!result.success) {
+      const hasScopeError = result.error.issues.some((issue) =>
+        issue.message.includes("only create program-specific")
+      );
+      expect(hasScopeError).toBe(true);
+    }
+  });
+});
+

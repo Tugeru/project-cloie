@@ -33,9 +33,18 @@ const programHeadCourseFields = {
     message: "Program Heads can only create program-specific courses.",
   }),
   major_id: optionalUuidField,
-  default_year_level: z.nativeEnum(YearLevel).optional(),
-  default_semester: z.nativeEnum(AcademicSemester).optional(),
-  default_term: z.nativeEnum(AcademicTerm).nullable().optional(),
+  default_year_level: z.preprocess(
+    (value) => (value === "" || value == null ? undefined : value),
+    z.nativeEnum(YearLevel).optional()
+  ),
+  default_semester: z.preprocess(
+    (value) => (value === "" || value == null ? undefined : value),
+    z.nativeEnum(AcademicSemester).optional()
+  ),
+  default_term: z.preprocess(
+    (value) => (value === "" || value == null || value === "null" ? null : value),
+    z.nativeEnum(AcademicTerm).nullable().optional()
+  ),
 };
 
 function validateSemesterTerm(
@@ -51,6 +60,12 @@ function validateSemesterTerm(
         path: ["default_semester"],
       });
     }
+  } else if (data.default_term !== undefined && data.default_term !== null) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Semester must be set if term is set.",
+      path: ["default_semester"],
+    });
   }
 }
 
