@@ -53,7 +53,7 @@ async function auditNullSections() {
     });
 
     if (sampleRows.length === 10) {
-      console.error("... and more (showing first 10 of", count, "rows)");
+      console.error(`... and more (showing first 10 of ${count} rows)`);
     }
 
     console.error("\nAction required:");
