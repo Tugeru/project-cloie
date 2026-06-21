@@ -17,6 +17,7 @@ import type {
 } from "@/features/evaluations/types";
 import type { TemplateStructure } from "@/features/instruments/types";
 import { AssignmentPicker, type AssignmentOption } from "./assignment-picker";
+import { Info } from "lucide-react";
 
 type PublicationContext = {
   bindings: Array<{
@@ -77,7 +78,9 @@ export function PublishCourseBoundEvaluationFormV2({
 
   // Determine if deploying on-behalf (Issue #43)
   const selectedAssignment = assignments.find((a) => a.id === selectedAssignmentId);
-  const isOnBehalf = deployerUserId && selectedAssignment && deployerUserId !== selectedAssignment.facultyId;
+  const isOnBehalf = Boolean(
+    deployerUserId && selectedAssignment && deployerUserId !== selectedAssignment.facultyId
+  );
 
   // Preview state
   const [previewRespondents, setPreviewRespondents] = useState<PreviewRespondent[]>([]);
@@ -223,8 +226,9 @@ export function PublishCourseBoundEvaluationFormV2({
       </div>
 
       {isOnBehalf && selectedAssignment && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="py-4">
+        <Card className="bg-blue-50 border-blue-200" role="status">
+          <CardContent className="py-4 flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-800 shrink-0 mt-0.5" />
             <p className="text-sm text-blue-800">
               <strong>Note:</strong> You are deploying this evaluation on behalf of{" "}
               <span className="font-semibold">{selectedAssignment.facultyName || "the assigned faculty member"}</span>.
