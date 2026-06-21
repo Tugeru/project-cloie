@@ -182,11 +182,9 @@ export default async function StatusPage({ params, searchParams }: PageProps) {
 
           <div className="flex flex-col gap-3 pt-2">
             {config.showRetry && (
-              <Button asChild className="w-full" variant="default">
-                <Link href="/portal">
-                  <ArrowLeft className="size-4 mr-2" />
-                  Back to Role Selection
-                </Link>
+              <Button render={<Link href="/portal" />} className="w-full" variant="default">
+                <ArrowLeft className="size-4 mr-2" />
+                Back to Role Selection
               </Button>
             )}
 
