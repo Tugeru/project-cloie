@@ -1671,9 +1671,7 @@ async function seedCourseAssignments(
   const courseAssignments = [
     // BSIT courses - Faculty assignments
     { courseCode: "IT-OD-401", programCode: "BSIT", facultyId: U.FAC_BSIT, yearLevel: YearLevel.FOURTH_YEAR, section: "MORNING" },
-    { courseCode: "IT-CM-301", programCode: "BSIT", facultyId: U.FAC_BSIT, yearLevel: YearLevel.THIRD_YEAR, section: "MORNING" },
-    { courseCode: "IT-OS-201", programCode: "BSIT", facultyId: U.FAC_BSIT, yearLevel: YearLevel.SECOND_YEAR, section: "AFTERNOON" },
-    { courseCode: "IT-IM-101", programCode: "BSIT", facultyId: U.FAC_BSIT, yearLevel: YearLevel.FIRST_YEAR, section: "MORNING" },
+    { courseCode: "IT201", programCode: "BSIT", facultyId: U.FAC_BSIT, yearLevel: YearLevel.SECOND_YEAR, section: "MORNING" },
 
     // BSBA courses
     { courseCode: "MKT301", programCode: "BSBA", facultyId: U.FAC_BSBA, yearLevel: YearLevel.FOURTH_YEAR, section: "MORNING" },
@@ -1685,11 +1683,9 @@ async function seedCourseAssignments(
 
     // BEED courses
     { courseCode: "BEED301", programCode: "BEED", facultyId: U.FAC_BSED, yearLevel: YearLevel.THIRD_YEAR, section: "MORNING" },
-    { courseCode: "MATH101", programCode: "BEED", facultyId: U.FAC_BSED, yearLevel: YearLevel.FIRST_YEAR, section: "AFTERNOON" },
 
     // BSHM courses
     { courseCode: "HM401", programCode: "BSHM", facultyId: U.FAC_BSHM, yearLevel: YearLevel.FOURTH_YEAR, section: "EVENING" },
-    { courseCode: "FOOD201", programCode: "BSHM", facultyId: U.FAC_BSHM, yearLevel: YearLevel.SECOND_YEAR, section: "EVENING" },
 
     // BSSW courses
     { courseCode: "SW301", programCode: "BSSW", facultyId: U.FAC_BSED, yearLevel: YearLevel.THIRD_YEAR, section: "MORNING" },
@@ -2089,7 +2085,7 @@ async function seedTemplates() {
 // E. Evaluations & Deployments
 // ═══════════════════════════════════════════════════════════════════════════════
 
-async function seedEvaluations(
+export async function seedEvaluations(
   pMap: Map<string, { id: string }>,
   cMap: Map<string, { id: string; code: string; title: string }>,
   ciloMap: Map<string, { id: string; description: string; order: number }[]>,
@@ -2109,6 +2105,7 @@ async function seedEvaluations(
     where: { template: { code: "INDUSTRY_EVAL" }, version_number: 1 },
   });
   // YearLevel is now an enum, not a database table
+  const y2 = YearLevel.SECOND_YEAR;
   const y3 = YearLevel.THIRD_YEAR;
   const y4 = YearLevel.FOURTH_YEAR;
 
@@ -2294,7 +2291,7 @@ async function seedEvaluations(
       progId: bsit.id,
       progCode: "BSIT",
       progName: "Bachelor of Science in Information Technology",
-      ylId: y4,
+      ylId: y2,
       respondents: [U.STU_BSIT, U.GRAD_BSIT],
     },
     {
@@ -3264,11 +3261,13 @@ async function main() {
   console.log("\n✅ Seed complete!");
 }
 
-main()
-  .catch((e) => {
-    console.error("❌ Seed failed:", e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+if (!process.env.VITEST) {
+  main()
+    .catch((e) => {
+      console.error("❌ Seed failed:", e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}
