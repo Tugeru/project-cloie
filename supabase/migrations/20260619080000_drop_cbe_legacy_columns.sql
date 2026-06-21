@@ -49,9 +49,7 @@ COMMENT ON COLUMN course_bound_evaluations.term_instance_id IS
 COMMENT ON COLUMN course_bound_evaluations.deployed_by IS 
   'User who deployed this evaluation (for on-behalf deployment, Issue #43).';
 
-COMMIT;
-
--- Log success
+-- Log success (before COMMIT, so notice fires within the transaction)
 DO $$
 BEGIN
   RAISE NOTICE 'Issue #45: Successfully dropped legacy CBE columns';
@@ -62,3 +60,5 @@ BEGIN
   RAISE NOTICE '  - section';
   RAISE NOTICE '  - idx_course_bound_evaluations_term_course_faculty_section';
 END $$;
+
+COMMIT;
