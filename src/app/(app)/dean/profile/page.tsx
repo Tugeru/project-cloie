@@ -9,7 +9,7 @@ export default async function DeanProfilePage() {
   const session = await resolveAuthSession();
 
   if (!session) {
-    redirect("/login");
+    redirect("/portal");
   }
 
   const user = await prisma.user.findUnique({

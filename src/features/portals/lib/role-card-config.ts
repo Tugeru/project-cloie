@@ -61,3 +61,15 @@ export const ROLE_CARDS: RoleCardConfig[] = [
     category: "self_service_external",
   },
 ];
+
+export const ROLE_CARDS_STAFF = ROLE_CARDS.filter(
+  (r) =>
+    r.category === "pre_provisioned_admin" ||
+    r.category === "provisioned_faculty" ||
+    r.role === ROLES.FACULTY
+);
+
+export const ROLE_CARDS_RESPONDENT = ROLE_CARDS.filter(
+  (r) =>
+    r.role === ROLES.STUDENT || r.role === ROLES.ALUMNI || r.role === ROLES.INDUSTRY_PARTNER
+);

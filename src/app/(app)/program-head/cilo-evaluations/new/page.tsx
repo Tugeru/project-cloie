@@ -27,7 +27,7 @@ export default async function NewProgramHeadCiloEvaluationPage({
   const session = await resolveAuthSession();
 
   if (!session) {
-    redirect("/login");
+    redirect("/portal");
   }
 
   const redirectPath = ensureRoleAccess({

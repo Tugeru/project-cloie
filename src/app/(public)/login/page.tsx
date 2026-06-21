@@ -1,8 +1,9 @@
+import { redirect } from "next/navigation";
 import Image from "next/image";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { GoogleSignInButton } from "@/features/auth/components/google-signin-button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, GraduationCap, Users } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 
 export default async function LoginPage({
   searchParams,
@@ -12,9 +13,14 @@ export default async function LoginPage({
   const resolvedSearchParams = await searchParams;
   const error = resolvedSearchParams?.error;
 
+  // Bare /login with no error — redirect to the main portal
+  if (!error) {
+    redirect("/portal");
+  }
+
   return (
     <div className="relative z-10 mx-auto w-full max-w-md">
-      {/* Header Section */}
+      {/* Header */}
       <div className="mb-8 flex flex-col items-center">
         <div className="mb-5 flex items-center gap-4">
           <Image
@@ -35,19 +41,13 @@ export default async function LoginPage({
         </div>
         <h1 className="text-display-md font-bold tracking-tight text-primary">System CLOIE</h1>
         <p className="mt-2 text-center text-text-secondary">
-          System for Comprehensive Learning Outcomes
-          <br />
-          and Instructional Evaluation
+          System for Comprehensive Learning Outcomes and Instructional Evaluation
         </p>
-        <p className="mt-1 text-label-md text-primary">Assumption College of Davao</p>
       </div>
 
-      {/* Error Alerts */}
+      {/* Error Alert */}
       {error === "auth-failure" && (
-        <Alert
-          variant="destructive"
-          className="mb-6 border-danger/20 bg-danger-soft"
-        >
+        <Alert variant="destructive" className="mb-6 border-danger/20 bg-danger-soft">
           <AlertCircle className="size-5 shrink-0 text-danger" />
           <div className="ml-3">
             <AlertTitle className="text-danger">Authentication Failed</AlertTitle>
@@ -58,78 +58,28 @@ export default async function LoginPage({
         </Alert>
       )}
 
-      {/* Main Card */}
+      {/* Back to portal link */}
       <Card className="border-border bg-surface shadow-lg">
-        <CardHeader className="space-y-3 pt-8 pb-6 text-center">
-          <CardTitle className="text-heading-lg font-bold text-text-primary">Welcome Back!</CardTitle>
+        <CardHeader className="space-y-3 pb-6 pt-8 text-center">
+          <CardTitle className="text-heading-lg font-bold text-text-primary">Welcome Back</CardTitle>
           <CardDescription className="text-body-md mx-auto max-w-[280px] text-text-secondary">
-            Sign in with your ACD Google account to access your dashboard.
+            Return to the portal selection to choose your role.
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-6 pb-8">
-          {/* Faculty/Staff Option */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-center gap-2 text-sm font-medium text-text-secondary">
-              <Users className="size-4 text-primary" />
-              
-            </div>
-            <GoogleSignInButton />
-          </div>
+          <GoogleSignInButton />
 
-          {/* Divider */}
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <span className="w-full border-t border-border" />
-            </div>
-            <div className="relative flex justify-center">
-              <span className="bg-surface px-4 text-label-sm font-medium tracking-wider text-text-muted uppercase">
-                or
-              </span>
-            </div>
-          </div>
-
-          {/* Student Option */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-center gap-2 text-sm font-medium text-text-secondary">
-              <GraduationCap className="size-4 text-secondary" />
-              <span>New Students</span>
-            </div>
-            <GoogleSignInButton intent="student" />
-          </div>
-
-          {/* Footer Links */}
-          <div className="pt-4 text-center">
-            <p className="text-caption text-text-muted">
-              By signing in, you agree to our{" "}
-              <a
-                href="#"
-                className="underline-offset-2 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
-              >
-                Terms
-              </a>{" "}
-              and{" "}
-              <a
-                href="#"
-                className="underline-offset-2 transition-colors hover:text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
-              >
-                Privacy Policy
-              </a>
-            </p>
+          <div className="text-center">
+            <a
+              href="/portal"
+              className="text-caption text-text-muted hover:text-text-primary transition-colors"
+            >
+              Go to portal selection →
+            </a>
           </div>
         </CardContent>
       </Card>
-
-      {/* Help Link */}
-      <p className="mt-6 text-center text-body-sm text-text-secondary">
-        Need help?{" "}
-        <a
-          href="mailto:support@acdeducation.com"
-          className="font-medium text-primary underline-offset-2 transition-colors hover:text-primary-hover hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 rounded"
-        >
-          Contact IT Support
-        </a>
-      </p>
     </div>
   );
 }

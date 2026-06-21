@@ -1,6 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import PortalPage from "@/app/(public)/portal/page";
+import StaffPortalPage from "@/app/(public)/portal/staff/page";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 
 const { resolveAuthSessionMock } = vi.hoisted(() => ({
@@ -22,34 +22,34 @@ vi.mock("@/features/portals", () => ({
   ),
 }));
 
-describe("PortalPage", () => {
+describe("StaffPortalPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders respondent portal with 3 cards when no session is active", async () => {
+  it("renders staff portal with 4 cards when no session is active", async () => {
     resolveAuthSessionMock.mockResolvedValue(null);
 
-    const page = await PortalPage();
+    const page = await StaffPortalPage();
     render(page);
 
-    expect(screen.getByText("Welcome to System CLOIE")).toBeInTheDocument();
-    expect(screen.getByTestId("card-count").textContent).toBe("3");
-    expect(screen.getByText(/Go to Staff Portal/)).toBeInTheDocument();
+    expect(screen.getByText("ACD Staff & Faculty Portal")).toBeInTheDocument();
+    expect(screen.getByTestId("card-count").textContent).toBe("4");
+    expect(screen.getByText(/Back to portal selection/)).toBeInTheDocument();
   });
 
   it("renders with session info when user is already signed in", async () => {
     resolveAuthSessionMock.mockResolvedValue({
       userId: "user-123",
-      email: "user@example.com",
-      roles: [],
-      profileGate: { status: "ROLE_SELECTION_REQUIRED" },
+      email: "staff@acd.edu.ph",
+      roles: [{ role: "FACULTY" }],
+      profileGate: { status: "COMPLETE" },
     });
 
-    const page = await PortalPage();
+    const page = await StaffPortalPage();
     render(page);
 
-    expect(screen.getByText("Welcome to System CLOIE")).toBeInTheDocument();
-    expect(screen.getByTestId("card-count").textContent).toBe("3");
+    expect(screen.getByText("ACD Staff & Faculty Portal")).toBeInTheDocument();
+    expect(screen.getByTestId("card-count").textContent).toBe("4");
   });
 });
