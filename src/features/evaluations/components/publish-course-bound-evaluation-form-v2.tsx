@@ -270,10 +270,8 @@ export function PublishCourseBoundEvaluationFormV2({
                 </p>
               </div>
               {!isOnBehalf && (
-                <Button asChild type="button" variant="outline">
-                  <Link href={`/faculty/tools/${publicationContext.template.id}/edit`}>
-                    Edit Template
-                  </Link>
+                <Button render={<Link href={`/faculty/tools/${publicationContext.template.id}/edit`} />} type="button" variant="outline">
+                  Edit Template
                 </Button>
               )}
             </div>

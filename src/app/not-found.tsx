@@ -13,8 +13,8 @@ export default function NotFound() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Button asChild>
-            <Link href="/">Return Home</Link>
+          <Button render={<Link href="/" />}>
+            Return Home
           </Button>
         </CardContent>
       </Card>

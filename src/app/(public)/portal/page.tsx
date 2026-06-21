@@ -56,11 +56,9 @@ export default async function PortalPage() {
                   </Button>
                 </form>
                 {isComplete && (
-                  <Button asChild size="sm">
-                    <Link href="/dashboard">
-                      Go to Dashboard
-                      <ArrowRight className="size-4 ml-2" />
-                    </Link>
+                  <Button render={<Link href="/dashboard" />} size="sm">
+                    Go to Dashboard
+                    <ArrowRight className="size-4 ml-2" />
                   </Button>
                 )}
               </div>

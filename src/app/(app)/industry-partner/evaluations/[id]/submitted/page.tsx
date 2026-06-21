@@ -36,10 +36,8 @@ export default async function IndustryPartnerSubmittedPage({
 
   return (
     <div className="motion-safe:animate-in motion-safe:fade-in space-y-6 motion-safe:duration-500">
-      <Button asChild variant="ghost" size="sm" className="-ml-2">
-        <Link href="/industry-partner/evaluations">
-          <ArrowLeft className="mr-2 size-4" /> Back to Evaluations
-        </Link>
+      <Button render={<Link href="/industry-partner/evaluations" />} variant="ghost" size="sm" className="-ml-2">
+        <ArrowLeft className="mr-2 size-4" /> Back to Evaluations
       </Button>
 
       <SubmittedResponseReview

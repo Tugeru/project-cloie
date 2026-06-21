@@ -32,10 +32,8 @@ export default async function AlumniSubmittedPage({ params }: { params: Promise<
 
   return (
     <div className="motion-safe:animate-in motion-safe:fade-in space-y-6 motion-safe:duration-500">
-      <Button asChild variant="ghost" size="sm" className="-ml-2">
-        <Link href="/alumni/evaluations">
-          <ArrowLeft className="mr-2 size-4" /> Back to Evaluations
-        </Link>
+      <Button render={<Link href="/alumni/evaluations" />} variant="ghost" size="sm" className="-ml-2">
+        <ArrowLeft className="mr-2 size-4" /> Back to Evaluations
       </Button>
 
       <SubmittedResponseReview
