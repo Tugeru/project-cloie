@@ -4,6 +4,7 @@
 DO $$
 DECLARE
   null_count INTEGER;
+  r RECORD;
 BEGIN
   -- Check for any remaining NULL course_assignment_id
   SELECT COUNT(*) INTO null_count
@@ -14,6 +15,18 @@ BEGIN
     RAISE EXCEPTION 'Cannot enforce NOT NULL constraint: % course_bound_evaluations still have NULL course_assignment_id. Run backfill migration first.', null_count;
   END IF;
   
+  -- Audit: log each duplicate CBE that will be deleted (cascades to Responses)
+  FOR r IN
+    SELECT cbe1.id, cbe1.course_assignment_id, cbe1.created_at
+    FROM course_bound_evaluations cbe1
+    JOIN course_bound_evaluations cbe2 ON cbe1.course_assignment_id = cbe2.course_assignment_id
+    WHERE cbe1.created_at > cbe2.created_at
+      AND cbe1.course_assignment_id IS NOT NULL
+  LOOP
+    RAISE NOTICE 'Removing duplicate CBE: id=% course_assignment_id=% created_at=%',
+      r.id, r.course_assignment_id, r.created_at;
+  END LOOP;
+
   -- Delete duplicate CBEs keeping the oldest (by created_at)
   DELETE FROM course_bound_evaluations cbe1
   USING course_bound_evaluations cbe2
