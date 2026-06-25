@@ -57,9 +57,6 @@ prisma/*.db-journal
 AGENTS.md
 skills-lock.json
 
-# project docs 
-cloie-prd.md
-cloie-srs.md
 
 # IDE
 .idea
