@@ -292,6 +292,9 @@ export async function deleteStudentAcademicContext(userId: string): Promise<Serv
   if (!allowedRoles.includes(session.activeRole)) {
     return { success: false, error: "Insufficient permissions." };
   }
+  if (userId === session.userId) {
+    return { success: false, error: "Cannot modify own account." };
+  }
 
   const profile = await prisma.studentAcademicProfile.findUnique({
     where: { user_id: userId },
@@ -504,6 +507,9 @@ export async function deleteIndustryPartnerProfile(userId: string): Promise<Serv
   const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
   if (!allowedRoles.includes(session.activeRole)) {
     return { success: false, error: "Insufficient permissions." };
+  }
+  if (userId === session.userId) {
+    return { success: false, error: "Cannot modify own account." };
   }
 
   const profile = await prisma.industryPartnerProfile.findUnique({

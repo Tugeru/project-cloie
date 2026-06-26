@@ -1,6 +1,9 @@
 "use server";
 
+import { SystemRole } from "@prisma/client";
 import { revalidatePath } from "next/cache";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { ROLES } from "@/lib/constants/roles";
 import {
   createBaselineTemplateWithStructureSchema,
   updateBaselineTemplateWithStructureSchema,
@@ -20,6 +23,15 @@ function revalidateAdminTools() {
 }
 
 export async function createAdminTemplateAction(formData: FormData): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   const raw = {
     name: formData.get("name"),
     description: formData.get("description"),
@@ -60,6 +72,15 @@ export async function createAdminTemplateAction(formData: FormData): Promise<Act
 }
 
 export async function updateAdminTemplateAction(formData: FormData): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   const raw = {
     id: formData.get("id"),
     name: formData.get("name"),
@@ -115,6 +136,14 @@ export async function toggleAdminTemplateActiveAction(
 }
 
 export async function duplicateAdminTemplateAction(id: string): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
   const result = await duplicateBaselineTemplate(id);
 
   if (!result.success) {
@@ -126,6 +155,14 @@ export async function duplicateAdminTemplateAction(id: string): Promise<ActionRe
 }
 
 export async function deleteAdminTemplateAction(id: string): Promise<ActionResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
   const result = await deleteBaselineTemplate(id);
 
   if (!result.success) {
