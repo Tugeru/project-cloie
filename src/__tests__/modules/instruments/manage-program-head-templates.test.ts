@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { EvaluationTemplateType } from "@prisma/client";
 import { ROLES } from "@/lib/constants/roles";
 import { createPrismaUniqueConstraintError } from "@/__tests__/helpers/prisma-test-helpers";
 
@@ -199,6 +200,7 @@ describe("manage-program-head-templates", () => {
     const result = await createProgramHeadTemplate({
       name: "Industry Partners Evaluation Tool",
       description: "For evaluating industry partners.",
+      template_type: EvaluationTemplateType.PROGRAM_WIDE,
       is_faculty_accessible: false,
       structure: VALID_STRUCTURE,
     });
@@ -234,6 +236,7 @@ describe("manage-program-head-templates", () => {
 
     const result = await createProgramHeadTemplate({
       name: "Test Template",
+      template_type: EvaluationTemplateType.PROGRAM_WIDE,
       is_faculty_accessible: false,
       structure: VALID_STRUCTURE,
     });
@@ -269,6 +272,7 @@ describe("manage-program-head-templates", () => {
 
     await createProgramHeadTemplate({
       name: "Test Template",
+      template_type: EvaluationTemplateType.PROGRAM_WIDE,
       is_faculty_accessible: false,
       structure: VALID_STRUCTURE,
     });
@@ -317,6 +321,7 @@ describe("manage-program-head-templates", () => {
       id: TEMPLATE_ID,
       name: "Updated Name",
       description: "Updated description",
+      template_type: EvaluationTemplateType.COURSE_BOUND,
       is_faculty_accessible: true,
       structure: VALID_STRUCTURE,
     });
@@ -337,6 +342,7 @@ describe("manage-program-head-templates", () => {
     const result = await updateProgramHeadTemplate({
       id: "baseline-1",
       name: "Attempt update",
+      template_type: EvaluationTemplateType.PROGRAM_WIDE,
       is_faculty_accessible: false,
       structure: VALID_STRUCTURE,
     });
@@ -504,6 +510,7 @@ describe("manage-program-head-templates", () => {
 
     const result = await createProgramHeadTemplate({
       name: "Duplicate Template",
+      template_type: EvaluationTemplateType.PROGRAM_WIDE,
       is_faculty_accessible: false,
       structure: VALID_STRUCTURE,
     });
@@ -521,6 +528,7 @@ describe("manage-program-head-templates", () => {
 
     const result = await createProgramHeadTemplate({
       name: "Test",
+      template_type: EvaluationTemplateType.PROGRAM_WIDE,
       is_faculty_accessible: false,
       structure: VALID_STRUCTURE,
     });
@@ -540,6 +548,7 @@ describe("manage-program-head-templates", () => {
 
     const result = await createProgramHeadTemplate({
       name: "Test",
+      template_type: EvaluationTemplateType.PROGRAM_WIDE,
       is_faculty_accessible: false,
       structure: VALID_STRUCTURE,
     });

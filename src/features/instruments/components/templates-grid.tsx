@@ -56,13 +56,15 @@ export function TemplatesGrid({ templates }: TemplatesGridProps) {
         return (
           <Card key={template.id} className="relative">
             <CardHeader>
-              <div className="flex items-start justify-between gap-2">
-                <div className="min-w-0 flex-1 space-y-1">
-                  <CardTitle className="truncate text-base font-bold">{template.name}</CardTitle>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1 space-y-1">
+                    <CardTitle className="line-clamp-2 text-base font-bold">{template.name}</CardTitle>
+                  </div>
+                  <Badge variant={isOwned ? "outline" : "default"} className="shrink-0">
+                    {isOwned ? "My Copy" : "Shared"}
+                  </Badge>
                 </div>
-                <Badge variant={isOwned ? "outline" : "default"} className="shrink-0">
-                  {isOwned ? "My Copy" : "Shared"}
-                </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">

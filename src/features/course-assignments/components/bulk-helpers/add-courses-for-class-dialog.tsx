@@ -56,9 +56,10 @@ export function AddCoursesForClassDialog({
   const [termInstanceId, setTermInstanceId] = useState<string | null>(null);
   const [programId, setProgramId] = useState<string>(availablePrograms[0]?.id ?? "");
   const [yearLevel, setYearLevel] = useState<YearLevel>(YearLevel.FIRST_YEAR);
-  const [section, setSection] = useState<StudentSection | null>(null);
+  const [section, setSection] = useState<StudentSection>(StudentSection.MORNING);
   const [selectedFaculty, setSelectedFaculty] = useState<FacultySearchResult | null>(null);
   const [selectedCourses, setSelectedCourses] = useState<Set<string>>(new Set());
+  const [itemErrors, setItemErrors] = useState<Record<string, string>>({});
 
   const handleToggleCourse = (courseId: string) => {
     const newSelected = new Set(selectedCourses);
@@ -77,8 +78,10 @@ export function AddCoursesForClassDialog({
     }
 
     setIsSubmitting(true);
+    setItemErrors({});
 
-    const assignments = Array.from(selectedCourses).map((courseId) => ({
+    const selectedCourseIds = Array.from(selectedCourses);
+    const assignments = selectedCourseIds.map((courseId) => ({
       termInstanceId,
       facultyId: selectedFaculty.id,
       courseId,
@@ -91,16 +94,31 @@ export function AddCoursesForClassDialog({
 
     setIsSubmitting(false);
 
-    if (result.success) {
-      showToast(`Created ${result.created} course assignments successfully.`, "success");
-      if (result.errors.length > 0) {
-        showToast(`${result.errors.length} assignments failed to create.`, "error");
+    const errorMap: Record<string, string> = {};
+    result.errors.forEach(({ index, error }) => {
+      const courseId = selectedCourseIds[index];
+      if (courseId) {
+        errorMap[courseId] = error;
       }
+    });
+    setItemErrors(errorMap);
+
+    if (result.success && result.errors.length === 0) {
+      showToast(`Created ${result.created} course assignments successfully.`, "success");
       resetForm();
       onOpenChange(false);
       onSuccess?.();
+    } else if (result.success) {
+      showToast(`Created ${result.created} course assignments successfully.`, "success");
+      showToast(
+        `${result.errors.length} assignment(s) failed to create. Review the errors below.`,
+        "warning"
+      );
     } else {
-      showToast("Failed to create course assignments.", "error");
+      showToast(
+        result.errors[0]?.error || "Failed to create course assignments.",
+        "error"
+      );
     }
   };
 
@@ -109,9 +127,10 @@ export function AddCoursesForClassDialog({
     setTermInstanceId(null);
     setProgramId(availablePrograms[0]?.id ?? "");
     setYearLevel(YearLevel.FIRST_YEAR);
-    setSection(null);
+    setSection(StudentSection.MORNING);
     setSelectedFaculty(null);
     setSelectedCourses(new Set());
+    setItemErrors({});
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -137,7 +156,7 @@ export function AddCoursesForClassDialog({
               <Label>Academic Term</Label>
               <TermInstancePicker
                 termInstances={termInstances}
-                value={termInstanceId ?? undefined}
+                value={termInstanceId ?? ""}
                 onChange={setTermInstanceId}
               />
             </div>
@@ -153,7 +172,7 @@ export function AddCoursesForClassDialog({
               availablePrograms={availablePrograms}
               onProgramChange={setProgramId}
               onYearLevelChange={setYearLevel}
-              onSectionChange={setSection}
+              onSectionChange={(value) => value && setSection(value)}
             />
           </div>
         )}
@@ -184,15 +203,22 @@ export function AddCoursesForClassDialog({
             </div>
             <div className="max-h-[300px] overflow-auto space-y-2 border rounded-md p-2">
               {availableCourses.map((course) => (
-                <div key={course.id} className="flex items-center space-x-2">
-                  <Checkbox
-                    id={`course-${course.id}`}
-                    checked={selectedCourses.has(course.id)}
-                    onCheckedChange={() => handleToggleCourse(course.id)}
-                  />
-                  <Label htmlFor={`course-${course.id}`} className="flex-1 cursor-pointer">
-                    <span className="font-medium">{course.code}</span> — {course.title}
-                  </Label>
+                <div key={course.id} className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`course-${course.id}`}
+                      checked={selectedCourses.has(course.id)}
+                      onCheckedChange={() => handleToggleCourse(course.id)}
+                    />
+                    <Label htmlFor={`course-${course.id}`} className="flex-1 cursor-pointer">
+                      <span className="font-medium">{course.code}</span> — {course.title}
+                    </Label>
+                  </div>
+                  {itemErrors[course.id] && (
+                    <p className="text-sm text-destructive pl-6" role="alert">
+                      {itemErrors[course.id]}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>

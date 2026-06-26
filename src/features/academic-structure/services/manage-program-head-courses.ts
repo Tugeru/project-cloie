@@ -105,6 +105,9 @@ export async function createProgramHeadCourse(
         course_scope: CourseScope.PROGRAM_SPECIFIC,
         program_id: programId,
         major_id: majorId,
+        default_year_level: input.default_year_level ?? null,
+        default_semester: input.default_semester ?? null,
+        default_term: input.default_term ?? null,
       },
     });
 
@@ -188,6 +191,9 @@ export async function updateProgramHeadCourse(
         course_scope: CourseScope.PROGRAM_SPECIFIC,
         program_id: existingCourse.program_id,
         major_id: majorId,
+        default_year_level: input.default_year_level ?? null,
+        default_semester: input.default_semester ?? null,
+        default_term: input.default_term ?? null,
       },
     });
 

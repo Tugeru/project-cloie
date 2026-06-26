@@ -114,7 +114,10 @@ describe("getStudentCourseBoundEvaluationSession", () => {
       id: "assignment-1",
       course_bound: {
         activation_at: new Date("2026-05-15T00:00:00.000Z"),
-        course: { title: "Capstone 1" },
+        course_assignment: {
+          course: { title: "Capstone 1" },
+          program: { name: "BSIT" },
+        },
         deadline_at: new Date("2026-05-20T00:00:00.000Z"),
         instrument: {
           structure_snapshot: [
@@ -128,7 +131,6 @@ describe("getStudentCourseBoundEvaluationSession", () => {
           ],
           template: { name: "Post-Term CILO Evaluation Tool" },
         },
-        program: { name: "BSIT" },
         status: "SCHEDULED",
       },
       response: null,
@@ -149,7 +151,10 @@ describe("getStudentCourseBoundEvaluationSession", () => {
       id: "assignment-1",
       course_bound: {
         activation_at: new Date("2026-04-01T00:00:00.000Z"),
-        course: { title: "Capstone 1" },
+        course_assignment: {
+          course: { title: "Capstone 1" },
+          program: { name: "BSIT" },
+        },
         deadline_at: new Date("2026-05-20T00:00:00.000Z"),
         instrument: {
           structure_snapshot: [
@@ -164,7 +169,6 @@ describe("getStudentCourseBoundEvaluationSession", () => {
           ],
           template: { name: "Post-Term CILO Evaluation Tool" },
         },
-        program: { name: "BSIT" },
         status: "ACTIVE",
       },
       response: {
@@ -195,7 +199,10 @@ describe("getStudentCourseBoundEvaluationSession", () => {
       id: "assignment-1",
       course_bound: {
         activation_at: new Date("2026-05-15T00:00:00.000Z"),
-        course: { title: "Capstone 1" },
+        course_assignment: {
+          course: { title: "Capstone 1" },
+          program: { name: "BSIT" },
+        },
         deadline_at: new Date("2026-05-20T00:00:00.000Z"),
         instrument: {
           structure_snapshot: [
@@ -209,7 +216,6 @@ describe("getStudentCourseBoundEvaluationSession", () => {
           ],
           template: { name: "Post-Term CILO Evaluation Tool" },
         },
-        program: { name: "BSIT" },
         status: "SCHEDULED",
       },
       response: null,

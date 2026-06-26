@@ -20,7 +20,7 @@ export const updateCourseAssignmentSchema = z.object({
   assignmentId: z.string().uuid(),
   programId: z.string().uuid().optional(),
   yearLevel: z.nativeEnum(YearLevel).optional(),
-  section: z.nativeEnum(StudentSection).nullable().optional(),
+  section: z.nativeEnum(StudentSection).optional(),
 });
 
 /**

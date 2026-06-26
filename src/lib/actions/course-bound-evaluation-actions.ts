@@ -1,17 +1,20 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 import { listFacultyCourseContexts } from "@/features/evaluations/services/list-faculty-course-contexts";
 import {
   loadFacultyManagedCilos,
-  saveFacultyManagedCilos,
 } from "@/features/evaluations/services/manage-faculty-cilos";
+import { ROLES } from "@/lib/constants/roles";
 import { previewCourseBoundRespondents } from "@/features/evaluations/services/preview-course-bound-respondents";
 import { publishCourseBoundEvaluation } from "@/features/evaluations/services/publish-course-bound-evaluation";
 import type {
   FacultyManagedCiloContext,
-  FacultyManagedCiloSaveInput,
   PreviewCourseBoundRespondentsInput,
+  PreviewCourseBoundRespondentsResult,
   PublishCourseBoundEvaluationInput,
+  PublishCourseBoundEvaluationResult,
 } from "@/features/evaluations/types";
 
 export async function listFacultyCourseContextsAction() {
@@ -20,20 +23,48 @@ export async function listFacultyCourseContextsAction() {
 
 export async function publishCourseBoundEvaluationAction(
   payload: PublishCourseBoundEvaluationInput
-) {
-  return await publishCourseBoundEvaluation(payload);
+): Promise<PublishCourseBoundEvaluationResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+
+  const allowedRoles: string[] = [ROLES.FACULTY, ROLES.PROGRAM_HEAD, ROLES.DEAN, ROLES.SECRETARY];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
+
+  const payloadWithDeployer = {
+    ...payload,
+    deployerId: session.userId,
+  };
+  const result = await publishCourseBoundEvaluation(payloadWithDeployer);
+  
+  if (result.success) {
+    revalidatePath("/faculty/tools");
+    revalidatePath("/program-head/cilo-reviews");
+    revalidatePath("/dean/cilo-reviews");
+  }
+
+  return result;
 }
 
 export async function previewCourseBoundRespondentsAction(
   payload: PreviewCourseBoundRespondentsInput
-) {
+): Promise<PreviewCourseBoundRespondentsResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { error: "Authentication required.", success: false };
+  }
+
+  const allowedRoles: string[] = [ROLES.FACULTY, ROLES.PROGRAM_HEAD, ROLES.DEAN, ROLES.SECRETARY];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { error: "Insufficient permissions.", success: false };
+  }
+
   return await previewCourseBoundRespondents(payload);
 }
 
 export async function loadFacultyManagedCilosAction(payload: FacultyManagedCiloContext) {
   return await loadFacultyManagedCilos(payload);
-}
-
-async function saveFacultyManagedCilosAction(payload: FacultyManagedCiloSaveInput) {
-  return await saveFacultyManagedCilos(payload);
 }

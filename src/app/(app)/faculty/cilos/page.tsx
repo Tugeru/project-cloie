@@ -17,7 +17,7 @@ export default async function FacultyCilosPage({ searchParams }: FacultyCilosPag
   const { term: termInstanceId } = await searchParams;
 
   if (!session) {
-    redirect("/login");
+    redirect("/portal");
   }
 
   // Fetch courses (optionally filtered by term) and term instances

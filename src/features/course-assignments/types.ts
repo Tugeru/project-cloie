@@ -10,7 +10,7 @@ export type CourseAssignmentItem = {
   courseId: string;
   programId: string;
   yearLevel: YearLevel;
-  section: StudentSection | null;
+  section: StudentSection;
   assignedBy: string | null;
   isActive: boolean;
   createdAt: Date;
@@ -35,7 +35,7 @@ export type CreateCourseAssignmentInput = {
   courseId: string;
   programId: string;
   yearLevel: YearLevel;
-  section?: StudentSection | null;
+  section: StudentSection;
 };
 
 /**
@@ -45,7 +45,7 @@ export type UpdateCourseAssignmentInput = {
   assignmentId: string;
   programId?: string;
   yearLevel?: YearLevel;
-  section?: StudentSection | null;
+  section?: StudentSection;
 };
 
 /**

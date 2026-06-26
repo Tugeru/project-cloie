@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CourseScope } from "@prisma/client";
+import { AcademicSemester, AcademicTerm, CourseScope, YearLevel } from "@prisma/client";
 import { Archive, Edit, Plus, Search, Users } from "lucide-react";
 import { TermInstancePicker } from "@/features/academic-calendar/components/term-instance-picker";
 import { CourseRowAssignmentsSheet } from "@/features/course-assignments/components/course-row-assignments-sheet";
@@ -33,6 +33,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
+import { YEAR_LEVEL_OPTIONS } from "@/lib/constants/year-levels";
+import { SEMESTER_OPTIONS, TERM_OPTIONS } from "@/lib/constants/academic";
 import {
   createProgramHeadCourseAction,
   toggleProgramHeadCourseActiveAction,
@@ -195,6 +197,19 @@ function CourseFormDialog({
   const [scopeType, setScopeType] = useState<"program-wide" | "major-specific">(
     course?.major_id ? "major-specific" : "program-wide"
   );
+  const [yearLevel, setYearLevel] = useState<YearLevel | "">(
+    course?.default_year_level ?? ""
+  );
+  const [semester, setSemester] = useState<AcademicSemester | "">(
+    course?.default_semester ?? ""
+  );
+  const [term, setTerm] = useState<AcademicTerm | "">(
+    course?.default_semester === AcademicSemester.SUMMER
+      ? ""
+      : (course?.default_term ?? "")
+  );
+
+  const isSummer = semester === AcademicSemester.SUMMER;
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -206,6 +221,11 @@ function CourseFormDialog({
     if (scopeType === "program-wide") {
       formData.delete("major_id");
     }
+
+    // Append temporal fields
+    formData.set("default_year_level", yearLevel);
+    formData.set("default_semester", semester);
+    formData.set("default_term", isSummer ? "" : term);
 
     startTransition(async () => {
       const action =
@@ -301,6 +321,93 @@ function CourseFormDialog({
             />
           </div>
 
+          <div className="border-border-muted bg-surface-alt grid gap-4 rounded-lg border p-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <Label htmlFor="year-level">
+                Year Level <span className="text-text-muted text-xs font-normal">(default)</span>
+              </Label>
+              <Select value={yearLevel} onValueChange={(v) => setYearLevel(v as YearLevel)}>
+                <SelectTrigger id="year-level">
+                  <SelectValue placeholder="Select year level">
+                    {yearLevel
+                      ? (YEAR_LEVEL_OPTIONS.find((o) => o.value === yearLevel)?.label ?? "Select year level")
+                      : "Select year level"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {YEAR_LEVEL_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="semester">
+                Semester <span className="text-text-muted text-xs font-normal">(default)</span>
+              </Label>
+              <Select
+                value={semester}
+                onValueChange={(v) => {
+                  const nextSemester = v as AcademicSemester;
+                  setSemester(nextSemester);
+                  if (nextSemester === AcademicSemester.SUMMER) {
+                    setTerm("");
+                  }
+                }}
+              >
+                <SelectTrigger id="semester">
+                  <SelectValue placeholder="Select semester">
+                    {semester
+                      ? (SEMESTER_OPTIONS.find((o) => o.value === semester)?.label ?? "Select semester")
+                      : "Select semester"}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">None</SelectItem>
+                  {SEMESTER_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="term">
+                Term <span className="text-text-muted text-xs font-normal">(default)</span>
+              </Label>
+              <Select
+                value={isSummer ? "" : term}
+                onValueChange={(v) => setTerm(v as AcademicTerm)}
+                disabled={isSummer}
+              >
+                <SelectTrigger id="term">
+                  <SelectValue placeholder={isSummer ? "N/A" : "Select term"}>
+                    {term
+                      ? (TERM_OPTIONS.find((o) => o.value === term)?.label ?? "Select term")
+                      : null}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  {!isSummer && (
+                    <>
+                      <SelectItem value={AcademicTerm.FIRST_TERM}>1st Term</SelectItem>
+                      <SelectItem value={AcademicTerm.SECOND_TERM}>2nd Term</SelectItem>
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+              {isSummer && (
+                <p className="text-muted-foreground text-xs">Summer semester has no terms</p>
+              )}
+            </div>
+          </div>
+
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
@@ -329,6 +436,7 @@ export function ProgramHeadCoursesCatalog({
   const [majorFilter, setMajorFilter] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
+  const [createDialogKey, setCreateDialogKey] = useState(0);
   const [editingCourse, setEditingCourse] = useState<ProgramHeadCourseItem | null>(null);
   const [selectedTermId, setSelectedTermId] = useState<string | null>(null);
 
@@ -603,6 +711,7 @@ export function ProgramHeadCoursesCatalog({
               <Button
                 variant="outline"
                 size="sm"
+                aria-label="Go to previous page"
                 disabled={safePage <= 1}
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
               >
@@ -611,6 +720,7 @@ export function ProgramHeadCoursesCatalog({
               <Button
                 variant="outline"
                 size="sm"
+                aria-label="Go to next page"
                 disabled={safePage >= totalPages}
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
               >
@@ -623,15 +733,20 @@ export function ProgramHeadCoursesCatalog({
 
       {/* Create Dialog */}
       <CourseFormDialog
+        key={`create-${createDialogKey}`}
         mode="create"
         majors={majors}
         open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
+        onOpenChange={(open) => {
+          if (open) setCreateDialogKey((k) => k + 1);
+          setCreateDialogOpen(open);
+        }}
       />
 
       {/* Edit Dialog */}
       {editingCourse && (
         <CourseFormDialog
+          key={editingCourse.id}
           mode="edit"
           majors={majors}
           course={editingCourse}

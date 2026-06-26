@@ -9,7 +9,7 @@ export default async function FacultyAddCiloPage() {
   const session = await resolveAuthSession();
 
   if (!session) {
-    redirect("/login");
+    redirect("/portal");
   }
 
   const result = await listFacultyCoursesWithCilos();

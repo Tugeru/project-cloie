@@ -12,7 +12,6 @@ export const publishCentralDeploymentSchema = z
     target_stakeholder: z.enum(["STUDENT", "ALUMNI", "INDUSTRY_PARTNER"]),
     // Phase 9: term_instance_id is required (source of truth)
     term_instance_id: z.string().uuid(),
-    term: z.nativeEnum(AcademicTerm).optional(),
     major_id: z.string().uuid().optional(),
     year_level: z.nativeEnum(YearLevel).optional(),
     activation_at: z.coerce.date().optional(),

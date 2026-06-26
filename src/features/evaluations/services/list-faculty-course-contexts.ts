@@ -41,14 +41,13 @@ export async function listFacultyCourseContexts(
 
   const contexts: FacultyCourseContext[] = courses.map((course) => {
     const isGeneralEducation = course.course_scope === CourseScope.GENERAL_EDUCATION;
-    const isMajorSpecific =
-      course.course_scope === CourseScope.MAJOR_SPECIFIC || Boolean(course.major_id);
+    const isMajorSpecific = Boolean(course.major_id);
 
     return {
       courseCode: course.code,
       courseId: course.id,
       courseTitle: course.title,
-      courseType: isMajorSpecific ? CourseScope.MAJOR_SPECIFIC : course.course_scope,
+      courseType: course.course_scope,
       majorId: course.major_id,
       majorName: course.major?.name ?? null,
       programCode: course.program?.code ?? "",

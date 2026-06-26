@@ -69,7 +69,7 @@ export async function createCourseAssignment(
         course_id: input.courseId,
         program_id: input.programId,
         year_level: input.yearLevel,
-        section: input.section ?? null,
+        section: input.section,
         is_active: true,
         ...(authSession?.userId ? { assigned_by: authSession.userId } : {}),
       },
@@ -116,7 +116,7 @@ export async function updateCourseAssignment(
       data: {
         ...(input.programId && { program_id: input.programId }),
         ...(input.yearLevel && { year_level: input.yearLevel }),
-        ...(input.section !== undefined && { section: input.section ?? null }),
+        ...(input.section && { section: input.section }),
       },
     });
 
@@ -256,7 +256,7 @@ export async function deleteCourseAssignment(
  * - Successful creations persist even if some items fail
  * - Returns detailed per-item error reporting
  * - Caller receives: { success: boolean, created: number, errors: [...] }
- * - success=true only when ALL items succeed (errors.length === 0)
+ * - success=true when AT LEAST ONE item was created; success=false means a total failure
  *
  * This design prioritizes user experience: users don't lose progress on
  * successful items when one item in the batch has an issue.
@@ -323,5 +323,5 @@ export async function bulkCreateCourseAssignments(
     }
   }
 
-  return { success: errors.length === 0, created, errors };
+  return { success: created > 0, created, errors };
 }

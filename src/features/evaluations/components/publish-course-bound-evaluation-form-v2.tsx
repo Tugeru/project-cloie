@@ -17,6 +17,7 @@ import type {
 } from "@/features/evaluations/types";
 import type { TemplateStructure } from "@/features/instruments/types";
 import { AssignmentPicker, type AssignmentOption } from "./assignment-picker";
+import { Info } from "lucide-react";
 
 type PublicationContext = {
   bindings: Array<{
@@ -50,6 +51,9 @@ interface PublishCourseBoundEvaluationFormV2Props {
   publishAction: (
     payload: PublishCourseBoundEvaluationInput
   ) => Promise<PublishCourseBoundEvaluationResult>;
+  deployerUserId?: string;
+  deployerName?: string;
+  successRedirectPath?: string;
 }
 
 /**
@@ -61,6 +65,9 @@ export function PublishCourseBoundEvaluationFormV2({
   previewAction,
   publicationContext,
   publishAction,
+  deployerUserId,
+  deployerName,
+  successRedirectPath = "/faculty/tools",
 }: PublishCourseBoundEvaluationFormV2Props) {
   // Step state
   const [step, setStep] = useState<Step>("configure");
@@ -70,6 +77,12 @@ export function PublishCourseBoundEvaluationFormV2({
   const [selectedAssignmentId, setSelectedAssignmentId] = useState<string | null>(null);
   const [activationSchedule, setActivationSchedule] = useState("");
   const [deadline, setDeadline] = useState("");
+
+  // Determine if deploying on-behalf (Issue #43)
+  const selectedAssignment = assignments.find((a) => a.id === selectedAssignmentId);
+  const isOnBehalf = Boolean(
+    deployerUserId && selectedAssignment && deployerUserId !== selectedAssignment.facultyId
+  );
 
   // Preview state
   const [previewRespondents, setPreviewRespondents] = useState<PreviewRespondent[]>([]);
@@ -83,9 +96,6 @@ export function PublishCourseBoundEvaluationFormV2({
   const router = useRouter();
 
   const fallbackPublishErrorMessage = "Unable to publish evaluation right now. Please try again.";
-
-  // Get selected assignment details
-  const selectedAssignment = assignments.find((a) => a.id === selectedAssignmentId);
 
   const bindingByCiloId = new Map(
     publicationContext.bindings.map((binding) => [binding.ciloId, binding])
@@ -192,7 +202,7 @@ export function PublishCourseBoundEvaluationFormV2({
       }
 
       const toastMessage = `Evaluation published successfully! ${result.data.assignmentCount} assignment(s) created.`;
-      router.push(`/faculty/tools?toast=${encodeURIComponent(toastMessage)}`);
+      router.push(`${successRedirectPath}?toast=${encodeURIComponent(toastMessage)}`);
       return;
     } catch {
       setError(fallbackPublishErrorMessage);
@@ -216,6 +226,19 @@ export function PublishCourseBoundEvaluationFormV2({
           CILO-to-question bindings come from the saved faculty template.
         </p>
       </div>
+
+      {isOnBehalf && selectedAssignment && (
+        <Card className="bg-blue-50 border-blue-200" role="status">
+          <CardContent className="py-4 flex items-start gap-3">
+            <Info className="h-5 w-5 text-blue-800 shrink-0 mt-0.5" />
+            <p className="text-sm text-blue-800">
+              <strong>Note:</strong> You are deploying this evaluation on behalf of{" "}
+              <span className="font-semibold">{selectedAssignment.facultyName || "the assigned faculty member"}</span>.
+              Question customization is disabled for on-behalf deployments.
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
         <section className="border-border bg-card space-y-4 rounded-xl border p-5">
@@ -248,11 +271,11 @@ export function PublishCourseBoundEvaluationFormV2({
                   published evaluation.
                 </p>
               </div>
-              <Button asChild type="button" variant="outline">
-                <Link href={`/faculty/tools/${publicationContext.template.id}/edit`}>
+              {!isOnBehalf && (
+                <Button render={<Link href={`/faculty/tools/${publicationContext.template.id}/edit`} />} type="button" variant="outline">
                   Edit Template
-                </Link>
-              </Button>
+                </Button>
+              )}
             </div>
 
             <ol className="space-y-3">

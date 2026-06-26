@@ -10,7 +10,7 @@ export default async function FacultyDashboardPage() {
   const session = await resolveAuthSession();
 
   if (!session) {
-    redirect("/login");
+    redirect("/portal");
   }
 
   const dashboard = await getFacultyDashboard(session.userId);

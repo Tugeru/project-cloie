@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { searchFacultyPool } from "@/features/course-assignments/services/search-faculty-pool";
 import * as authModule from "@/features/auth/services/resolve-auth-session";
+import { ROLES } from "@/lib/constants/roles";
+import { createAuthSessionSnapshot } from "@/__tests__/helpers/auth-session";
 
 vi.mock("@/features/auth/services/resolve-auth-session");
 vi.mock("@/lib/db/prisma", () => ({
@@ -13,17 +15,17 @@ vi.mock("@/lib/db/prisma", () => ({
 }));
 
 describe("search-faculty-pool", () => {
-  const mockProgramHeadSession = {
+  const mockProgramHeadSession = createAuthSessionSnapshot({
     userId: "ph-1",
     email: "ph@test.com",
-    roles: ["PROGRAM_HEAD"],
-  };
+    roles: [ROLES.PROGRAM_HEAD],
+  });
 
-  const mockFacultySession = {
+  const mockFacultySession = createAuthSessionSnapshot({
     userId: "faculty-1",
     email: "faculty@test.com",
-    roles: ["FACULTY"],
-  };
+    roles: [ROLES.FACULTY],
+  });
 
   it("should allow program head to search faculty", async () => {
     vi.mocked(authModule.resolveAuthSession).mockResolvedValue(mockProgramHeadSession);

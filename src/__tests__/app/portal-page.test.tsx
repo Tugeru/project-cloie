@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import PortalPage from "@/app/(public)/portal/page";
+import type { RoleCardConfig } from "@/features/portals/lib/role-card-config";
 import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
 
 const { resolveAuthSessionMock } = vi.hoisted(() => ({
@@ -11,17 +12,43 @@ vi.mock("@/features/auth/services/resolve-auth-session", () => ({
   resolveAuthSession: resolveAuthSessionMock,
 }));
 
+interface MockPortalShellProps {
+  title: string;
+  subtitle: string;
+  cards: RoleCardConfig[];
+  session?: { email: string; isComplete: boolean } | null;
+  backLink?: { label: string; href: string };
+}
+
 vi.mock("@/features/portals", () => ({
-  ROLE_CARDS: [],
-  RoleSelectionCard: () => <div data-testid="role-card" />,
+  PortalShell: ({ title, subtitle, cards, session, backLink }: MockPortalShellProps) => (
+    <div data-testid="portal-shell">
+      <h1>{title}</h1>
+      <p>{subtitle}</p>
+      {session && <p>Signed in as {session.email}</p>}
+      <span data-testid="card-count">{cards.length}</span>
+      {backLink && <a href={backLink.href}>{backLink.label}</a>}
+    </div>
+  ),
 }));
 
-describe("PortalPage Sign Out", () => {
+describe("PortalPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders sign out form pointing to /api/auth/logout when user session is active", async () => {
+  it("renders respondent portal with 3 cards when no session is active", async () => {
+    resolveAuthSessionMock.mockResolvedValue(null);
+
+    const page = await PortalPage();
+    render(page);
+
+    expect(screen.getByText("Welcome to System CLOIE")).toBeInTheDocument();
+    expect(screen.getByTestId("card-count").textContent).toBe("3");
+    expect(screen.getByText(/Go to Staff Portal/)).toBeInTheDocument();
+  });
+
+  it("renders with session info when user is already signed in", async () => {
     resolveAuthSessionMock.mockResolvedValue({
       userId: "user-123",
       email: "user@example.com",
@@ -32,12 +59,8 @@ describe("PortalPage Sign Out", () => {
     const page = await PortalPage();
     render(page);
 
-    const signOutButton = screen.getByRole("button", { name: /sign out/i });
-    expect(signOutButton).toBeInTheDocument();
-
-    const form = signOutButton.closest("form");
-    expect(form).not.toBeNull();
-    expect(form!.getAttribute("action")).toBe("/api/auth/logout");
-    expect(form!.getAttribute("method")).toBe("post");
+    expect(screen.getByText("Welcome to System CLOIE")).toBeInTheDocument();
+    expect(screen.getByTestId("card-count").textContent).toBe("3");
+    expect(screen.getByText(/Signed in as user@example.com/)).toBeInTheDocument();
   });
 });

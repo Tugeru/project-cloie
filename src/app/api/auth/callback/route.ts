@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getSiteUrl } from "@/lib/utils/site-url";
 import { resolveAuthSessionFromUser } from "@/features/auth/services/resolve-auth-session";
 import { resolvePostLoginDestination } from "@/features/auth/services/resolve-post-login-destination";
 import { validateRoleDomain } from "@/features/auth/services/validate-role-domain";
@@ -22,10 +23,34 @@ const VALID_INTENTS: Record<string, SystemRole> = {
   "program_head": SystemRole.PROGRAM_HEAD,
 };
 
+function getNameParts(meta: Record<string, unknown>): { first: string; last: string } | null {
+  const given = typeof meta.given_name === "string" ? meta.given_name.trim() : "";
+  if (given) {
+    const family = typeof meta.family_name === "string" ? meta.family_name.trim() : "";
+    return { first: given, last: family };
+  }
+
+  const full = typeof meta.full_name === "string" ? meta.full_name.trim() : "";
+  if (full) {
+    const parts = full.split(/\s+/);
+    if (parts.length === 1) return { first: parts[0], last: "" };
+    return { first: parts.slice(0, -1).join(" "), last: parts[parts.length - 1] };
+  }
+
+  const name = typeof meta.name === "string" ? meta.name.trim() : "";
+  if (name) {
+    const parts = name.split(/\s+/);
+    if (parts.length === 1) return { first: parts[0], last: "" };
+    return { first: parts.slice(0, -1).join(" "), last: parts[parts.length - 1] };
+  }
+
+  return null;
+}
+
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || origin;
+  const siteUrl = getSiteUrl(origin);
 
   if (!code) {
     return NextResponse.redirect(`${siteUrl}/login?error=auth-failure`);
@@ -75,8 +100,9 @@ export async function GET(request: Request) {
           });
         } else {
           const meta = data.user.user_metadata || {};
-          const googleFirstName = meta.given_name || meta.first_name || "System";
-          const googleLastName = meta.family_name || meta.last_name || "Admin";
+          const parsed = getNameParts(meta);
+          const googleFirstName = parsed?.first ?? "System";
+          const googleLastName = parsed?.last ?? "Admin";
 
           return tx.user.create({
             data: {
@@ -115,8 +141,9 @@ export async function GET(request: Request) {
 
     if (matchedUser) {
       const meta = data.user.user_metadata || {};
-      const googleFirstName = meta.given_name || meta.first_name || "";
-      const googleLastName = meta.family_name || meta.last_name || "";
+      const parsed = getNameParts(meta);
+      const googleFirstName = parsed?.first ?? "";
+      const googleLastName = parsed?.last ?? "";
 
       dbUser = await prisma.user.update({
         where: { id: matchedUser.id },
@@ -218,8 +245,9 @@ export async function GET(request: Request) {
 
         // Create domain user and their single role record
         const meta = data.user.user_metadata || {};
-        const googleFirstName = meta.given_name || meta.first_name || "User";
-        const googleLastName = meta.family_name || meta.last_name || "Name";
+        const parsed = getNameParts(meta);
+        const googleFirstName = parsed?.first ?? "User";
+        const googleLastName = parsed?.last ?? "Name";
 
         dbUser = await prisma.user.create({
           data: {

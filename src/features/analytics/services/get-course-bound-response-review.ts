@@ -39,16 +39,12 @@ export async function getCourseBoundResponseReview(
       id: responseId,
       status: "SUBMITTED",
       assignment: {
-        is: {
-          course_bound: {
-            is: {
-              ...buildReviewerEvaluationScope({
-                programScope,
-                reviewerId: authSession.userId,
-                reviewerRole,
-              }),
-            },
-          },
+        course_bound: {
+          ...buildReviewerEvaluationScope({
+            programScope,
+            reviewerId: authSession.userId,
+            reviewerRole,
+          }),
         },
       },
     },
@@ -57,17 +53,24 @@ export async function getCourseBoundResponseReview(
         include: {
           course_bound: {
             include: {
-              course: true,
+              course_assignment: {
+                include: {
+                  course: {
+                    include: {
+                      major: true,
+                    },
+                  },
+                  program: true,
+                  term_instance: {
+                    include: {
+                      school_year: true,
+                    },
+                  },
+                },
+              },
               instrument: {
                 include: {
                   template: true,
-                },
-              },
-              major: true,
-              program: true,
-              term_instance: {
-                include: {
-                  school_year: true,
                 },
               },
             },
@@ -84,6 +87,8 @@ export async function getCourseBoundResponseReview(
   }
 
   const evaluation = response.assignment.course_bound;
+  const ca = evaluation.course_assignment;
+
   const sections = (
     Array.isArray(evaluation.instrument.structure_snapshot)
       ? evaluation.instrument.structure_snapshot
@@ -141,7 +146,7 @@ export async function getCourseBoundResponseReview(
       };
     });
 
-  const ti = evaluation.term_instance;
+  const ti = ca.term_instance;
   const termLabel = ti.term ? `${ti.term}` : "";
   const termInstanceLabel = termLabel
     ? `${ti.school_year.code} — ${ti.semester} — ${termLabel}`
@@ -149,11 +154,11 @@ export async function getCourseBoundResponseReview(
 
   return {
     termInstanceLabel,
-    courseTitle: evaluation.course.title,
+    courseTitle: ca.course.title,
     evaluationId: evaluation.id,
     evaluationTitle: evaluation.deployment_name ?? evaluation.instrument.template.name,
     overallMean: mean(response.quant_items.map((item) => item.rating_value)),
-    programLabel: evaluation.major?.name ?? evaluation.program.name,
+    programLabel: ca.course.major?.name ?? ca.program.name,
     responseId: response.id,
     respondentLabel: buildAnonymizedRespondentLabel(response.id),
     reviewerRole,

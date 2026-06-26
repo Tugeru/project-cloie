@@ -47,6 +47,7 @@ describe("listCourseBoundReviewItems", () => {
     resolveReviewerProgramScopeMock.mockResolvedValue(["program-1"]);
     courseBoundEvaluationFindManyMock.mockResolvedValue([
       {
+        id: "eval-1",
         term_instance: { semester: "SECOND", term: "FIRST_TERM", school_year: { code: "2025-2026" } },
         assignments: [
           {
@@ -66,12 +67,12 @@ describe("listCourseBoundReviewItems", () => {
             },
           },
         ],
-        course: { title: "Software Engineering" },
         deadline_at: new Date("2026-01-10T10:00:00.000Z"),
-        id: "eval-1",
         instrument: { template: { name: "Post-Term CILO Evaluation Tool" } },
-        major: null,
-        program: { id: "program-1", name: "BSIT" },
+        course_assignment: {
+          course: { title: "Software Engineering", major: null },
+          program: { id: "program-1", name: "BSIT" },
+        },
       },
     ]);
 
@@ -96,8 +97,10 @@ describe("listCourseBoundReviewItems", () => {
     expect(courseBoundEvaluationFindManyMock).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expect.objectContaining({
-          faculty_id: "faculty-1",
-          program_id: { in: ["program-1"] },
+          course_assignment: {
+            faculty_id: "faculty-1",
+            program_id: { in: ["program-1"] },
+          },
         }),
       })
     );
@@ -116,7 +119,7 @@ describe("listCourseBoundReviewItems", () => {
     });
     expect(courseBoundEvaluationFindManyMock).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: expect.not.objectContaining({ program_id: expect.anything() }),
+        where: expect.not.objectContaining({ course_assignment: expect.anything() }),
       })
     );
   });
@@ -145,12 +148,13 @@ describe("listCourseBoundReviewItems", () => {
             },
           },
         ],
-        course: { title: "Software Engineering" },
+        course_assignment: {
+          course: { title: "Software Engineering", major: null },
+          program: { id: "program-1", name: "BSIT" },
+        },
         deadline_at: new Date("2026-01-10T10:00:00.000Z"),
         id: "eval-1",
         instrument: { template: { name: "Post-Term CILO Evaluation Tool" } },
-        major: null,
-        program: { id: "program-1", name: "BSIT" },
       },
     ]);
 

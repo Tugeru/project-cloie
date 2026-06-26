@@ -54,6 +54,7 @@ export type CourseBoundCiloQuestionBindingInput = {
 /**
  * Phase 9: Simplified input using course assignment ID.
  * All class identity (term, program, year level, section) is resolved from the assignment.
+ * Issue #43: deployerId tracks who deployed (for on-behalf deployments by PH/Dean/Secretary).
  */
 export type PublishCourseBoundEvaluationInput = {
   assignmentId: string;
@@ -62,6 +63,7 @@ export type PublishCourseBoundEvaluationInput = {
   deploymentName: string;
   respondentIds?: string[]; // Final list of respondent IDs after preview/exclude
   templateId: string;
+  deployerId?: string;
 };
 
 export type PublishCourseBoundEvaluationResult = ServiceResult<{

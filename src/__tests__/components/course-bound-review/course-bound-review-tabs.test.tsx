@@ -41,13 +41,14 @@ vi.mock("@/features/analytics/components/qualitative-word-cloud", () => ({
 }));
 
 const detail: CourseBoundReviewDetail = {
-  academicYear: "2025-2026",
   courseTitle: "Capstone 2",
   deadlineAt: new Date("2026-01-10T10:00:00.000Z"),
   evaluationId: "eval-1",
   evaluationTitle: "Post-Term CILO Evaluation Tool",
   overallMean: 4.25,
   programLabel: "BSIT",
+  termInstanceLabel: "2025-2026 • 1st Semester",
+  ciloMetrics: [],
   responseCards: [
     {
       overallMean: 4,
@@ -71,8 +72,6 @@ const detail: CourseBoundReviewDetail = {
       ],
     },
   ],
-  semester: "2ND",
-  term: "REGULAR",
   wordCloudTokens: [
     { text: "clear", value: 3 },
     { text: "helpful", value: 2 },

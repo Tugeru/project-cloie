@@ -88,6 +88,7 @@ export function ProgramHeadToolsPage({
   program,
 }: ProgramHeadToolsPageProps) {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const defaultTab = searchParams.get("tab") === "published" ? "published" : "templates";
 
   return (
@@ -102,7 +103,7 @@ export function ProgramHeadToolsPage({
         </div>
       </div>
 
-      <Tabs defaultValue={defaultTab} className="w-full">
+      <Tabs value={defaultTab} onValueChange={(v) => router.push(`/program-head/tools?tab=${v}`)} className="w-full">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
           <TabsList variant="line" className="h-auto gap-4">
             <TabsTrigger value="templates" className="px-1 py-2.5 text-sm">
@@ -363,20 +364,20 @@ function BaselineCard({ baseline }: { baseline: InstitutionalBaselineItem }) {
   return (
     <div className="bg-surface group border-outline-variant hover:border-outline relative flex flex-col overflow-hidden rounded-xl border transition-all">
       {/* Header */}
-      <div className="flex items-start justify-between gap-3 p-4">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <h3 className="font-body text-on-surface truncate text-base font-semibold">
+      <div className="flex flex-col gap-2 p-4">
+        <div className="flex items-start justify-between gap-2">
+          <div className="min-w-0 flex-1">
+            <h3 className="font-body text-on-surface line-clamp-2 text-base font-semibold">
               {baseline.name}
             </h3>
-            <Badge variant="outline" className="shrink-0">
-              Institutional
-            </Badge>
           </div>
-          <p className="font-body text-on-surface-variant mt-1 line-clamp-2 text-sm">
-            {baseline.description || "No description"}
-          </p>
+          <Badge variant="outline" className="shrink-0">
+            Institutional
+          </Badge>
         </div>
+        <p className="font-body text-on-surface-variant line-clamp-2 text-sm">
+          {baseline.description || "No description"}
+        </p>
       </div>
 
       {/* Meta row */}

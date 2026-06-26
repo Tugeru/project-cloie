@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma, type SystemRole } from "@prisma/client";
 import { prisma } from "@/lib/db/prisma";
 import type {
   CreateBaselineTemplateInput,
@@ -9,6 +9,8 @@ import type {
 
 import { type ServiceResult } from "@/lib/utils/service-result";
 import { isUniqueConstraintError } from "@/lib/utils/prisma-errors";
+import { resolveAuthSession } from "@/features/auth/services/resolve-auth-session";
+import { ROLES } from "@/lib/constants/roles";
 
 const emptyStructure: Prisma.InputJsonValue = [];
 
@@ -68,6 +70,15 @@ export async function getBaselineTemplate(id: string) {
 export async function createBaselineTemplate(
   input: CreateBaselineTemplateInput
 ): Promise<ServiceResult<{ id: string }>> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   try {
     const result = await prisma.$transaction(async (tx) => {
       const template = await tx.instrumentTemplate.create({
@@ -114,6 +125,15 @@ export async function createBaselineTemplate(
 export async function createBaselineTemplateWithStructure(
   input: CreateBaselineTemplateWithStructureInput
 ): Promise<ServiceResult<{ id: string }>> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   const structureJson = input.structure as unknown as Prisma.InputJsonValue;
 
   try {
@@ -162,6 +182,15 @@ export async function createBaselineTemplateWithStructure(
 export async function updateBaselineTemplate(
   input: UpdateBaselineTemplateInput
 ): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   const existing = await prisma.instrumentTemplate.findUnique({
     where: { id: input.id },
     select: { program_id: true },
@@ -211,6 +240,15 @@ export async function updateBaselineTemplate(
 export async function updateBaselineTemplateWithStructure(
   input: UpdateBaselineTemplateWithStructureInput
 ): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   const existing = await prisma.instrumentTemplate.findUnique({
     where: { id: input.id },
     select: { program_id: true, _count: { select: { versions: true } } },
@@ -275,6 +313,15 @@ export async function toggleBaselineTemplateActive(
   id: string,
   is_active: boolean
 ): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   const existing = await prisma.instrumentTemplate.findUnique({
     where: { id },
     select: { program_id: true },
@@ -304,6 +351,15 @@ export async function toggleBaselineTemplateActive(
 // ---------------------------------------------------------------------------
 
 export async function deleteBaselineTemplate(id: string): Promise<ServiceResult> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   const existing = await prisma.instrumentTemplate.findUnique({
     where: { id },
     select: { program_id: true },
@@ -332,6 +388,15 @@ export async function deleteBaselineTemplate(id: string): Promise<ServiceResult>
 export async function duplicateBaselineTemplate(
   id: string
 ): Promise<ServiceResult<{ id: string }>> {
+  const session = await resolveAuthSession();
+  if (!session || !session.activeRole) {
+    return { success: false, error: "Authentication required." };
+  }
+  const allowedRoles: SystemRole[] = [ROLES.SECRETARY, ROLES.DEAN];
+  if (!allowedRoles.includes(session.activeRole)) {
+    return { success: false, error: "Insufficient permissions." };
+  }
+
   const original = await prisma.instrumentTemplate.findUnique({
     where: { id },
     select: {

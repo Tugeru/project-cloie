@@ -3,7 +3,10 @@
 import { YearLevel, StudentSection } from "@prisma/client";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import { YEAR_LEVEL_OPTIONS, STUDENT_SECTION_OPTIONS } from "@/lib/constants/academic";
+import { getYearLevelDisplay } from "@/lib/constants/year-levels";
 
 interface ClassIdentityFieldsProps {
   programId: string;
@@ -14,6 +17,7 @@ interface ClassIdentityFieldsProps {
   onYearLevelChange: (value: YearLevel) => void;
   onSectionChange: (value: StudentSection | null) => void;
   disabled?: boolean;
+  suggestedYearLevel?: YearLevel | null;
 }
 
 export function ClassIdentityFields({
@@ -25,7 +29,11 @@ export function ClassIdentityFields({
   onYearLevelChange,
   onSectionChange,
   disabled = false,
+  suggestedYearLevel,
 }: ClassIdentityFieldsProps) {
+  const hasHint = suggestedYearLevel != null;
+  const hintMatches = hasHint && yearLevel === suggestedYearLevel;
+
   return (
     <div className="space-y-4">
       <div className="space-y-2">
@@ -53,7 +61,25 @@ export function ClassIdentityFields({
 
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="year-level">Year Level</Label>
+          <div className="flex items-center gap-2">
+            <Label htmlFor="year-level">Year Level</Label>
+            {hasHint && (
+              <Badge
+                variant={hintMatches ? "secondary" : "outline"}
+                className={cn(
+                  "text-xs",
+                  !hintMatches &&
+                    "border-amber-200 bg-amber-50 text-amber-800 hover:border-amber-200 hover:bg-amber-50"
+                )}
+              >
+                {hintMatches
+                  ? `Course default: ${getYearLevelDisplay(suggestedYearLevel)}`
+                  : `Course default: ${getYearLevelDisplay(
+                      suggestedYearLevel
+                    )} (selected: ${getYearLevelDisplay(yearLevel)})`}
+              </Badge>
+            )}
+          </div>
           <Select
             value={yearLevel}
             onValueChange={(value) => onYearLevelChange(value as YearLevel)}

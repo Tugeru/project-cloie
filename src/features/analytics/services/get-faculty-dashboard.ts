@@ -56,7 +56,7 @@ export async function getFacultyDashboard(userId: string): Promise<FacultyDashbo
   // 1. Active evaluations published by this faculty
   const activeEvaluations = await prisma.courseBoundEvaluation.count({
     where: {
-      faculty_id: userId,
+      course_assignment: { faculty_id: userId },
       status: { in: [DeploymentStatus.ACTIVE, DeploymentStatus.SCHEDULED] },
     },
   });
@@ -67,7 +67,9 @@ export async function getFacultyDashboard(userId: string): Promise<FacultyDashbo
       status: ResponseStatus.SUBMITTED,
       deployment_type: "COURSE_BOUND",
       assignment: {
-        course_bound: { faculty_id: userId },
+        course_bound: {
+          course_assignment: { faculty_id: userId },
+        },
       },
     },
   });
@@ -76,7 +78,9 @@ export async function getFacultyDashboard(userId: string): Promise<FacultyDashbo
   const pendingResponses = await prisma.evaluationAssignment.count({
     where: {
       response: null,
-      course_bound: { faculty_id: userId },
+      course_bound: {
+        course_assignment: { faculty_id: userId },
+      },
     },
   });
 
@@ -88,12 +92,14 @@ export async function getFacultyDashboard(userId: string): Promise<FacultyDashbo
         status: ResponseStatus.SUBMITTED,
         deployment_type: "COURSE_BOUND",
         assignment: {
-          course_bound: { faculty_id: userId },
+          course_bound: {
+            course_assignment: { faculty_id: userId },
+          },
         },
       },
     },
   });
-  const overallMean = overallMeanResult._avg.rating_value
+  const overallMean = overallMeanResult._avg?.rating_value
     ? roundToTwo(overallMeanResult._avg.rating_value)
     : null;
 
@@ -101,11 +107,15 @@ export async function getFacultyDashboard(userId: string): Promise<FacultyDashbo
 
   const evaluationsWithResponses = await prisma.courseBoundEvaluation.findMany({
     where: {
-      faculty_id: userId,
+      course_assignment: { faculty_id: userId },
       status: { in: [DeploymentStatus.ACTIVE, DeploymentStatus.CLOSED] },
     },
     select: {
-      course: { select: { code: true, title: true } },
+      course_assignment: {
+        select: {
+          course: { select: { code: true, title: true } },
+        },
+      },
       assignments: {
         where: {
           response: { status: ResponseStatus.SUBMITTED },
@@ -133,9 +143,9 @@ export async function getFacultyDashboard(userId: string): Promise<FacultyDashbo
   >();
 
   for (const evaluation of evaluationsWithResponses) {
-    const key = evaluation.course.code;
+    const key = evaluation.course_assignment.course.code;
     const existing = courseMap.get(key) ?? {
-      courseTitle: evaluation.course.title,
+      courseTitle: evaluation.course_assignment.course.title,
       totalRating: 0,
       ratingCount: 0,
       responseCount: 0,
@@ -173,7 +183,9 @@ export async function getFacultyDashboard(userId: string): Promise<FacultyDashbo
         status: ResponseStatus.SUBMITTED,
         deployment_type: "COURSE_BOUND",
         assignment: {
-          course_bound: { faculty_id: userId },
+          course_bound: {
+            course_assignment: { faculty_id: userId },
+          },
         },
       },
     },

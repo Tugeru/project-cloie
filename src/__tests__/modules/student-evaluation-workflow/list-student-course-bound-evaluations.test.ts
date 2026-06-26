@@ -135,6 +135,7 @@ describe("buildStudentEvaluationListItem", () => {
         deadlineAt: new Date("2026-05-20T00:00:00.000Z"),
         evaluationId: "evaluation-1",
         evaluationTitle: "Post-Term CILO Evaluation Tool",
+        facultyName: "Dr. Test Faculty",
         href: "/student/evaluations/evaluation-1",
         now: new Date("2026-05-10T00:00:00.000Z"),
         programLabel: "BSIT • 4th Year",
@@ -158,6 +159,7 @@ describe("buildStudentEvaluationListItem", () => {
       deploymentType: "COURSE_BOUND",
       evaluationId: "evaluation-1",
       evaluationTitle: "Post-Term CILO Evaluation Tool",
+      facultyName: "Dr. Test Faculty",
       href: "/student/evaluations/evaluation-1",
       progress: 50,
       programLabel: "BSIT • 4th Year",
@@ -192,13 +194,15 @@ describe("listStudentCourseBoundEvaluations", () => {
         id: "assignment-scheduled",
         course_bound: {
           activation_at: new Date("2026-05-15T00:00:00.000Z"),
-          course: { title: "Capstone 1" },
+          course_assignment: {
+            course: { title: "Capstone 1" },
+            program: { name: "BSIT" },
+          },
           deadline_at: new Date("2026-05-20T00:00:00.000Z"),
           instrument: {
             structure_snapshot: [{ key: "section-a", title: "Section A" }],
             template: { name: "Scheduled Evaluation" },
           },
-          program: { name: "BSIT" },
           status: "SCHEDULED",
         },
         response: null,
@@ -208,13 +212,15 @@ describe("listStudentCourseBoundEvaluations", () => {
         id: "assignment-expired",
         course_bound: {
           activation_at: new Date("2026-05-01T00:00:00.000Z"),
-          course: { title: "Networks" },
+          course_assignment: {
+            course: { title: "Networks" },
+            program: { name: "BSIT" },
+          },
           deadline_at: new Date("2026-05-05T00:00:00.000Z"),
           instrument: {
             structure_snapshot: [{ key: "section-b", title: "Section B" }],
             template: { name: "Expired Evaluation" },
           },
-          program: { name: "BSIT" },
           status: "ACTIVE",
         },
         response: null,
@@ -224,13 +230,15 @@ describe("listStudentCourseBoundEvaluations", () => {
         id: "assignment-submitted",
         course_bound: {
           activation_at: new Date("2026-05-01T00:00:00.000Z"),
-          course: { title: "Databases" },
+          course_assignment: {
+            course: { title: "Databases" },
+            program: { name: "BSIT" },
+          },
           deadline_at: new Date("2026-05-05T00:00:00.000Z"),
           instrument: {
             structure_snapshot: [{ key: "section-c", title: "Section C" }],
             template: { name: "Submitted Evaluation" },
           },
-          program: { name: "BSIT" },
           status: "ACTIVE",
         },
         response: {
@@ -269,13 +277,15 @@ describe("listStudentCourseBoundEvaluations", () => {
         id: "assignment-1",
         course_bound: {
           activation_at: new Date("2026-04-01T00:00:00.000Z"),
-          course: { title: "Capstone 1" },
+          course_assignment: {
+            course: { title: "Capstone 1" },
+            program: { name: "BSIT" },
+          },
           deadline_at: new Date("2026-05-20T00:00:00.000Z"),
           instrument: {
             structure_snapshot: [{ key: "section-a", title: "Section A" }],
             template: { name: "Post-Term CILO Evaluation Tool" },
           },
-          program: { name: "BSIT" },
           status: "ACTIVE",
         },
         response: {
@@ -291,13 +301,15 @@ describe("listStudentCourseBoundEvaluations", () => {
         id: "assignment-2",
         course_bound: {
           activation_at: new Date("2026-04-01T00:00:00.000Z"),
-          course: { title: "Networks" },
+          course_assignment: {
+            course: { title: "Networks" },
+            program: { name: "BSIT" },
+          },
           deadline_at: new Date("2026-05-10T00:00:00.000Z"),
           instrument: {
             structure_snapshot: [{ key: "section-b", title: "Section B" }],
             template: { name: "Midterm Evaluation" },
           },
-          program: { name: "BSIT" },
           status: "ACTIVE",
         },
         response: {

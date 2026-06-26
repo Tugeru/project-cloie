@@ -2,6 +2,8 @@ import { describe, expect, it, vi } from "vitest";
 import { YearLevel } from "@prisma/client";
 import { listStudentsForClass } from "@/features/enrollments/services/list-students-for-class";
 import * as authModule from "@/features/auth/services/resolve-auth-session";
+import { ROLES } from "@/lib/constants/roles";
+import { createAuthSessionSnapshot } from "@/__tests__/helpers/auth-session";
 
 vi.mock("@/features/auth/services/resolve-auth-session");
 vi.mock("@/lib/db/prisma", () => ({
@@ -13,17 +15,17 @@ vi.mock("@/lib/db/prisma", () => ({
 }));
 
 describe("list-students-for-class", () => {
-  const mockFacultySession = {
+  const mockFacultySession = createAuthSessionSnapshot({
     userId: "faculty-1",
     email: "faculty@test.com",
-    roles: ["FACULTY"],
-  };
+    roles: [ROLES.FACULTY],
+  });
 
-  const mockStudentSession = {
+  const mockStudentSession = createAuthSessionSnapshot({
     userId: "student-1",
     email: "student@test.com",
-    roles: ["STUDENT"],
-  };
+    roles: [ROLES.STUDENT],
+  });
 
   it("should return error when student tries to access", async () => {
     vi.mocked(authModule.resolveAuthSession).mockResolvedValue(mockStudentSession);

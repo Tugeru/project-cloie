@@ -1,5 +1,11 @@
 import { loadEnvConfig } from "@next/env";
-import { AcademicSemester, AcademicTerm, DeploymentStatus, YearLevel } from "@prisma/client";
+import {
+  AcademicSemester,
+  AcademicTerm,
+  DeploymentStatus,
+  StudentSection,
+  YearLevel,
+} from "@prisma/client";
 import { pathToFileURL } from "node:url";
 
 import { prisma } from "../src/lib/db/prisma";
@@ -202,11 +208,36 @@ async function main() {
     );
   }
 
-  let evaluation = await prisma.courseBoundEvaluation.findFirst({
+  const section = StudentSection.MORNING;
+
+  let courseAssignment = await prisma.courseAssignment.findFirst({
     where: {
       term_instance_id: termInstance.id,
       course_id: course.id,
       faculty_id: faculty.id,
+      program_id: program.id,
+      year_level: yearLevel,
+      section,
+    },
+  });
+
+  if (!courseAssignment) {
+    courseAssignment = await prisma.courseAssignment.create({
+      data: {
+        term_instance_id: termInstance.id,
+        course_id: course.id,
+        faculty_id: faculty.id,
+        program_id: program.id,
+        year_level: yearLevel,
+        section,
+      },
+    });
+  }
+
+  let evaluation = await prisma.courseBoundEvaluation.findFirst({
+    where: {
+      term_instance_id: termInstance.id,
+      course_assignment_id: courseAssignment.id,
       instrument_version_id: instrumentVersion.id,
     },
   });
@@ -217,7 +248,6 @@ async function main() {
         term_instance_id: termInstance.id,
         activation_at: new Date(),
         cilos_snapshot: [],
-        course_id: course.id,
         course_info_snapshot: {
           code: course.code,
           programCode: program.code,
@@ -225,9 +255,8 @@ async function main() {
         },
         deadline_at: startOfNextWeek(),
         deployment_name: "Outline Defense Demo CILO Evaluation",
-        faculty_id: faculty.id,
         instrument_version_id: instrumentVersion.id,
-        program_id: program.id,
+        course_assignment_id: courseAssignment.id,
         published_at: new Date(),
         status: DeploymentStatus.ACTIVE,
       },

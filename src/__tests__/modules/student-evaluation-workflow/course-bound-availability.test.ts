@@ -1,3 +1,4 @@
+import { DeploymentStatus } from "@prisma/client";
 import { describe, expect, it } from "vitest";
 
 import { isCourseBoundEvaluationAvailable } from "@/features/responses/services/course-bound-availability";
@@ -35,7 +36,7 @@ describe("isCourseBoundEvaluationAvailable", () => {
         {
           activation_at: new Date("2026-05-01T00:00:00.000Z"),
           deadline_at: new Date("2026-05-20T00:00:00.000Z"),
-          status: "INACTIVE",
+          status: DeploymentStatus.CLOSED,
         },
         new Date("2026-05-16T00:00:00.000Z")
       )

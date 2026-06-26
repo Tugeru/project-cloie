@@ -2,6 +2,7 @@
 
 import { useState, ElementType } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { getSiteUrl } from "@/lib/utils/site-url";
 import { Button } from "@/components/ui/button";
 import { 
   Loader2, 
@@ -42,7 +43,7 @@ export function RoleSelectionCard({ config }: RoleSelectionCardProps) {
       const supabase = createClient();
 
       const intentParam = `?intent=${config.role.toLowerCase().replace("_", "-")}`;
-      const redirectTo = `${window.location.origin}/api/auth/callback${intentParam}`;
+      const redirectTo = `${getSiteUrl()}/api/auth/callback${intentParam}`;
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",

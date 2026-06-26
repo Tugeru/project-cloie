@@ -28,17 +28,11 @@ export async function listFacultyAnalyticsEvaluations(
   }
 
   try {
-    // Get faculty's affiliated programs
-    const affiliations = await prisma.facultyProgramAffiliation.findMany({
-      where: { faculty_id: session.userId },
-      select: { program_id: true },
-    });
-
-    const programIds = affiliations.map((a) => a.program_id);
-
     // Build where clause with filters
     const where: Record<string, unknown> = {
-      faculty_id: session.userId,
+      course_assignment: {
+        faculty_id: session.userId,
+      },
     };
 
     // Status filter - if not specified, include all except ARCHIVED by default
@@ -51,7 +45,9 @@ export async function listFacultyAnalyticsEvaluations(
     }
 
     if (filters.courseIds && filters.courseIds.length > 0) {
-      where.course_id = { in: filters.courseIds };
+      (where.course_assignment as Record<string, unknown>).course_id = {
+        in: filters.courseIds,
+      };
     }
 
     if (filters.dateFrom || filters.dateTo) {
@@ -68,17 +64,21 @@ export async function listFacultyAnalyticsEvaluations(
       where,
       orderBy: [{ published_at: "desc" }, { created_at: "desc" }],
       include: {
-        course: {
+        course_assignment: {
           select: {
-            id: true,
-            code: true,
-            title: true,
-          },
-        },
-        program: {
-          select: {
-            id: true,
-            name: true,
+            course: {
+              select: {
+                id: true,
+                code: true,
+                title: true,
+              },
+            },
+            program: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
         },
         term_instance: {
@@ -116,14 +116,16 @@ export async function listFacultyAnalyticsEvaluations(
         ? `${ti.school_year.code} — ${ti.semester} — ${termLabel}`
         : `${ti.school_year.code} — ${ti.semester}`;
 
+      const ca = evalItem.course_assignment;
+
       return {
         id: evalItem.id,
         deploymentName: evalItem.deployment_name,
-        courseId: evalItem.course.id,
-        courseCode: evalItem.course.code,
-        courseTitle: evalItem.course.title,
-        programId: evalItem.program.id,
-        programName: evalItem.program.name,
+        courseId: ca.course.id,
+        courseCode: ca.course.code,
+        courseTitle: ca.course.title,
+        programId: ca.program.id,
+        programName: ca.program.name,
         termInstanceLabel,
         schoolYearCode: ti.school_year.code,
         status: evalItem.status,

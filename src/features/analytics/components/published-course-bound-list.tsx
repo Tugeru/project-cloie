@@ -63,8 +63,8 @@ export function PublishedCourseBoundList({
                     </p>
                   </div>
 
-                  <Button asChild>
-                    <Link href={`${detailBasePath}/${item.evaluationId}`}>Review Evaluation</Link>
+                  <Button render={<Link href={`${detailBasePath}/${item.evaluationId}`} />}>
+                    Review Evaluation
                   </Button>
                 </CardContent>
               </Card>

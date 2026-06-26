@@ -319,7 +319,7 @@ export function FacultyCilosCourseList({
     } else if (typeFilter === "general_education") {
       result = result.filter((c) => c.courseScope === "GENERAL_EDUCATION");
     } else if (typeFilter === "major_specific") {
-      result = result.filter((c) => c.courseScope === "MAJOR_SPECIFIC" || c.majorId !== null);
+      result = result.filter((c) => c.majorId !== null);
     }
 
     if (searchTerm.trim()) {
@@ -350,14 +350,14 @@ export function FacultyCilosCourseList({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-2">
           <h1 className="text-heading-lg">Manage CILOs</h1>
           <p className="text-body-md text-text-secondary">
             View and manage Course-Intended Learning Outcomes for your affiliated program courses.
           </p>
         </div>
-        <Button render={<Link href="/faculty/cilos/new" />}>
+        <Button render={<Link href="/faculty/cilos/new" />} className="shrink-0">
           <Plus className="mr-2 size-4" />
           Add New CILO
         </Button>

@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type ToastKind = "success" | "error";
+type ToastKind = "success" | "error" | "warning";
 
 type ToastMessage = {
   id: number;
@@ -83,7 +83,8 @@ export function ToastProvider() {
   return (
     <div className="fixed right-4 bottom-4 z-[100] flex w-[min(420px,calc(100vw-2rem))] flex-col gap-2">
       {toasts.map((toast) => {
-        const Icon = toast.kind === "success" ? CheckCircle2 : XCircle;
+        const Icon =
+          toast.kind === "success" ? CheckCircle2 : toast.kind === "warning" ? AlertTriangle : XCircle;
         return (
           <div
             key={toast.id}
@@ -91,6 +92,8 @@ export function ToastProvider() {
               "bg-surface flex items-start gap-3 rounded-lg border px-4 py-3 text-sm shadow-lg",
               toast.kind === "success"
                 ? "border-green-200 text-green-800"
+                : toast.kind === "warning"
+                ? "border-yellow-200 text-yellow-800"
                 : "border-red-200 text-red-800"
             )}
           >

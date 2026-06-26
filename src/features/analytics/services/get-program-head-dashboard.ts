@@ -68,7 +68,7 @@ export async function getProgramHeadDashboard(
     }),
     prisma.courseBoundEvaluation.count({
       where: {
-        course: { program_id: programId },
+        course_assignment: { program_id: programId },
         status: { in: [DeploymentStatus.ACTIVE, DeploymentStatus.SCHEDULED] },
       },
     }),
@@ -89,7 +89,7 @@ export async function getProgramHeadDashboard(
         deployment_type: "COURSE_BOUND" as const,
         assignment: {
           course_bound: {
-            course: { program_id: programId },
+            course_assignment: { program_id: programId },
           },
         },
       },
@@ -112,7 +112,7 @@ export async function getProgramHeadDashboard(
           },
           {
             course_bound: {
-              course: { program_id: programId },
+              course_assignment: { program_id: programId },
             },
           },
         ],
@@ -130,7 +130,7 @@ export async function getProgramHeadDashboard(
       },
     },
   });
-  const overallMean = overallMeanResult._avg.rating_value
+  const overallMean = overallMeanResult._avg?.rating_value
     ? roundToTwo(overallMeanResult._avg.rating_value)
     : null;
 

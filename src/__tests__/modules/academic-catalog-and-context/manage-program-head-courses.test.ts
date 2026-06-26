@@ -90,6 +90,9 @@ describe("manage-program-head-courses", () => {
         course_scope: CourseScope.PROGRAM_SPECIFIC,
         program_id: PROGRAM_ID,
         major_id: null,
+        default_semester: null,
+        default_term: null,
+        default_year_level: null,
       },
     });
   });
@@ -118,6 +121,9 @@ describe("manage-program-head-courses", () => {
         course_scope: CourseScope.PROGRAM_SPECIFIC,
         program_id: PROGRAM_ID,
         major_id: MAJOR_ID,
+        default_semester: null,
+        default_term: null,
+        default_year_level: null,
       },
     });
   });
@@ -246,6 +252,9 @@ describe("manage-program-head-courses", () => {
         course_scope: CourseScope.PROGRAM_SPECIFIC,
         program_id: PROGRAM_ID,
         major_id: null,
+        default_semester: null,
+        default_term: null,
+        default_year_level: null,
       },
     });
   });

@@ -883,129 +883,198 @@ async function seedFoundation() {
   }
 
   console.log("  → Courses...");
-  const cDefs: { code: string; title: string; scope: CourseScope; pc?: string; mk?: string }[] = [
+  const cDefs: {
+    code: string;
+    title: string;
+    scope: CourseScope;
+    pc?: string;
+    mk?: string;
+    yl?: YearLevel;
+    sem?: AcademicSemester;
+    trm?: AcademicTerm;
+  }[] = [
     {
       code: "GEGS101",
       title: "General Education Foundations",
       scope: CourseScope.GENERAL_EDUCATION,
+      yl: YearLevel.FIRST_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "NSTP1",
       title: "National Service Training Program 1",
       scope: CourseScope.GENERAL_EDUCATION,
+      yl: YearLevel.FIRST_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "IT101",
       title: "Introduction to Computing",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSIT",
+      yl: YearLevel.FIRST_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "IT-OD-401",
       title: "Outline Defense Demo Course",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSIT",
+      yl: YearLevel.FOURTH_YEAR,
+      sem: AcademicSemester.SECOND,
+      trm: AcademicTerm.SECOND_TERM,
     },
     {
       code: "IT301",
       title: "Web Development and Design",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSIT",
+      yl: YearLevel.THIRD_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "EDUC101",
       title: "Foundations of Teaching and Learning",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSED",
+      yl: YearLevel.FIRST_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "EDUC201",
       title: "Curriculum Development",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSED",
+      yl: YearLevel.SECOND_YEAR,
+      sem: AcademicSemester.SECOND,
+      trm: AcademicTerm.SECOND_TERM,
     },
     {
       code: "ENG201",
       title: "Language Across the Curriculum",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSED",
       mk: "BSED:English",
+      yl: YearLevel.SECOND_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "MATH201",
       title: "Mathematics in the Modern World",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSED",
       mk: "BSED:Mathematics",
+      yl: YearLevel.SECOND_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "BEED101",
       title: "Child and Adolescent Development",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BEED",
+      yl: YearLevel.FIRST_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "BEED201",
       title: "Inclusive Education",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BEED",
+      yl: YearLevel.SECOND_YEAR,
+      sem: AcademicSemester.SECOND,
+      trm: AcademicTerm.SECOND_TERM,
     },
     {
       code: "BA101",
       title: "Introduction to Business",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSBA",
+      yl: YearLevel.FIRST_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "MKT301",
       title: "Strategic Marketing",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSBA",
       mk: "BSBA:Marketing Management",
+      yl: YearLevel.THIRD_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "HRDM302",
       title: "People Development and Training",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSBA",
       mk: "BSBA:Human Resource Development Management",
+      yl: YearLevel.THIRD_YEAR,
+      sem: AcademicSemester.SECOND,
+      trm: AcademicTerm.SECOND_TERM,
     },
     {
       code: "FIN303",
       title: "Financial Analysis and Planning",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSBA",
       mk: "BSBA:Financial Management",
+      yl: YearLevel.THIRD_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "SW101",
       title: "Introduction to Social Work",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSSW",
+      yl: YearLevel.FIRST_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "SW201",
       title: "Community Development Practice",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSSW",
+      yl: YearLevel.SECOND_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "HM101",
       title: "Introduction to Hospitality Management",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSHM",
+      yl: YearLevel.FIRST_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "HM201",
       title: "Food and Beverage Management",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSHM",
+      yl: YearLevel.SECOND_YEAR,
+      sem: AcademicSemester.SECOND,
+      trm: AcademicTerm.SECOND_TERM,
     },
     {
       code: "HM301",
       title: "Hotel Operations and Front Office",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSHM",
+      yl: YearLevel.THIRD_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     // ── New courses ──────────────────────────────────────────────────────────
     // BSIT
@@ -1014,33 +1083,48 @@ async function seedFoundation() {
       title: "Data Structures and Algorithms",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSIT",
+      yl: YearLevel.SECOND_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "IT401",
       title: "Systems Administration and Maintenance",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSIT",
+      yl: YearLevel.FOURTH_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "IT-CAP-401",
       title: "Capstone Project 1",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSIT",
+      yl: YearLevel.FOURTH_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     // BSBA
     {
       code: "FIN101",
       title: "Financial Accounting",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSBA",
       mk: "BSBA:Financial Management",
+      yl: YearLevel.FIRST_YEAR,
+      sem: AcademicSemester.SECOND,
+      trm: AcademicTerm.SECOND_TERM,
     },
     {
       code: "HRDM201",
       title: "Organizational Behavior and Management",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSBA",
       mk: "BSBA:Human Resource Development Management",
+      yl: YearLevel.SECOND_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     // BSED
     {
@@ -1048,13 +1132,19 @@ async function seedFoundation() {
       title: "Assessment and Evaluation in Education",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSED",
+      yl: YearLevel.THIRD_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "SCI201",
       title: "Science and Technology in Society",
-      scope: CourseScope.MAJOR_SPECIFIC,
+      scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSED",
       mk: "BSED:Science",
+      yl: YearLevel.SECOND_YEAR,
+      sem: AcademicSemester.SECOND,
+      trm: AcademicTerm.SECOND_TERM,
     },
     // BSHM
     {
@@ -1062,12 +1152,18 @@ async function seedFoundation() {
       title: "Events Management",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSHM",
+      yl: YearLevel.FOURTH_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "HM302",
       title: "Tourism and Travel Management",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSHM",
+      yl: YearLevel.THIRD_YEAR,
+      sem: AcademicSemester.SECOND,
+      trm: AcademicTerm.SECOND_TERM,
     },
     // BEED
     {
@@ -1075,18 +1171,27 @@ async function seedFoundation() {
       title: "Teaching Practicum in Elementary Education",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BEED",
+      yl: YearLevel.THIRD_YEAR,
+      sem: AcademicSemester.SECOND,
+      trm: AcademicTerm.SECOND_TERM,
     },
     {
       code: "BEED201B",
       title: "Assessment of Student Learning in Elementary Grades",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BEED",
+      yl: YearLevel.SECOND_YEAR,
+      sem: AcademicSemester.SECOND,
+      trm: AcademicTerm.SECOND_TERM,
     },
     {
       code: "BEED102",
       title: "Educational Psychology and Learning Theories",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BEED",
+      yl: YearLevel.FIRST_YEAR,
+      sem: AcademicSemester.SECOND,
+      trm: AcademicTerm.SECOND_TERM,
     },
     // BSSW
     {
@@ -1094,18 +1199,27 @@ async function seedFoundation() {
       title: "Social Welfare and Social Work in the Philippines",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSSW",
+      yl: YearLevel.THIRD_YEAR,
+      sem: AcademicSemester.FIRST,
+      trm: AcademicTerm.FIRST_TERM,
     },
     {
       code: "SW202",
       title: "Case Work and Social Group Work",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSSW",
+      yl: YearLevel.SECOND_YEAR,
+      sem: AcademicSemester.SECOND,
+      trm: AcademicTerm.SECOND_TERM,
     },
     {
       code: "SW401",
       title: "Field Practice in Social Work",
       scope: CourseScope.PROGRAM_SPECIFIC,
       pc: "BSSW",
+      yl: YearLevel.FOURTH_YEAR,
+      sem: AcademicSemester.SECOND,
+      trm: AcademicTerm.SECOND_TERM,
     },
   ];
   const cMap = new Map<string, { id: string; code: string; title: string }>();
@@ -1119,6 +1233,9 @@ async function seedFoundation() {
         is_active: true,
         program_id: d.pc ? (pMap.get(d.pc)?.id ?? null) : null,
         major_id: d.mk ? (mMap.get(d.mk)?.id ?? null) : null,
+        default_year_level: d.yl ?? null,
+        default_semester: d.sem ?? null,
+        default_term: d.trm ?? null,
       },
       create: {
         code: d.code,
@@ -1128,6 +1245,9 @@ async function seedFoundation() {
         is_active: true,
         program_id: d.pc ? (pMap.get(d.pc)?.id ?? null) : null,
         major_id: d.mk ? (mMap.get(d.mk)?.id ?? null) : null,
+        default_year_level: d.yl ?? null,
+        default_semester: d.sem ?? null,
+        default_term: d.trm ?? null,
       },
     });
     cMap.set(d.code, { id: c.id, code: c.code, title: c.title });
@@ -1551,9 +1671,7 @@ async function seedCourseAssignments(
   const courseAssignments = [
     // BSIT courses - Faculty assignments
     { courseCode: "IT-OD-401", programCode: "BSIT", facultyId: U.FAC_BSIT, yearLevel: YearLevel.FOURTH_YEAR, section: "MORNING" },
-    { courseCode: "IT-CM-301", programCode: "BSIT", facultyId: U.FAC_BSIT, yearLevel: YearLevel.THIRD_YEAR, section: "MORNING" },
-    { courseCode: "IT-OS-201", programCode: "BSIT", facultyId: U.FAC_BSIT, yearLevel: YearLevel.SECOND_YEAR, section: "AFTERNOON" },
-    { courseCode: "IT-IM-101", programCode: "BSIT", facultyId: U.FAC_BSIT, yearLevel: YearLevel.FIRST_YEAR, section: "MORNING" },
+    { courseCode: "IT201", programCode: "BSIT", facultyId: U.FAC_BSIT, yearLevel: YearLevel.SECOND_YEAR, section: "MORNING" },
 
     // BSBA courses
     { courseCode: "MKT301", programCode: "BSBA", facultyId: U.FAC_BSBA, yearLevel: YearLevel.FOURTH_YEAR, section: "MORNING" },
@@ -1565,11 +1683,9 @@ async function seedCourseAssignments(
 
     // BEED courses
     { courseCode: "BEED301", programCode: "BEED", facultyId: U.FAC_BSED, yearLevel: YearLevel.THIRD_YEAR, section: "MORNING" },
-    { courseCode: "MATH101", programCode: "BEED", facultyId: U.FAC_BSED, yearLevel: YearLevel.FIRST_YEAR, section: "AFTERNOON" },
 
     // BSHM courses
     { courseCode: "HM401", programCode: "BSHM", facultyId: U.FAC_BSHM, yearLevel: YearLevel.FOURTH_YEAR, section: "EVENING" },
-    { courseCode: "FOOD201", programCode: "BSHM", facultyId: U.FAC_BSHM, yearLevel: YearLevel.SECOND_YEAR, section: "EVENING" },
 
     // BSSW courses
     { courseCode: "SW301", programCode: "BSSW", facultyId: U.FAC_BSED, yearLevel: YearLevel.THIRD_YEAR, section: "MORNING" },
@@ -1969,7 +2085,7 @@ async function seedTemplates() {
 // E. Evaluations & Deployments
 // ═══════════════════════════════════════════════════════════════════════════════
 
-async function seedEvaluations(
+export async function seedEvaluations(
   pMap: Map<string, { id: string }>,
   cMap: Map<string, { id: string; code: string; title: string }>,
   ciloMap: Map<string, { id: string; description: string; order: number }[]>,
@@ -1989,6 +2105,7 @@ async function seedEvaluations(
     where: { template: { code: "INDUSTRY_EVAL" }, version_number: 1 },
   });
   // YearLevel is now an enum, not a database table
+  const y2 = YearLevel.SECOND_YEAR;
   const y3 = YearLevel.THIRD_YEAR;
   const y4 = YearLevel.FOURTH_YEAR;
 
@@ -2015,6 +2132,9 @@ async function seedEvaluations(
   };
 
   const cbEval1AssignmentId = assignmentMap.get("IT-OD-401");
+  if (!cbEval1AssignmentId) {
+    throw new Error("Missing course assignment for IT-OD-401");
+  }
 
   const existingCbEval1 = await prisma.courseBoundEvaluation.findFirst({
     where: {
@@ -2024,12 +2144,8 @@ async function seedEvaluations(
   });
 
   const cbEval1Data = {
-    course_id: itCourse.id,
     deployment_name: "IT-OD-401 Post-Term CILO Evaluation",
     instrument_version_id: ciloVer.id,
-    program_id: bsit.id,
-    major_id: null,
-    faculty_id: U.FAC_BSIT,
     cilos_snapshot: ciloSnap1,
     course_info_snapshot: courseSnap1,
     activation_at: new Date("2026-04-01T08:00:00Z"),
@@ -2091,7 +2207,6 @@ async function seedEvaluations(
     description: c.description,
     order: c.order,
   }));
-  const mktMajor = await prisma.major.findFirst({ where: { name: "Marketing Management" } });
   const courseSnap2: Prisma.InputJsonValue = {
     courseCode: mktCourse.code,
     courseTitle: mktCourse.title,
@@ -2100,6 +2215,9 @@ async function seedEvaluations(
   };
 
   const cbEval2AssignmentId = assignmentMap.get("MKT301");
+  if (!cbEval2AssignmentId) {
+    throw new Error("Missing course assignment for MKT301");
+  }
 
   const existingCbEval2 = await prisma.courseBoundEvaluation.findFirst({
     where: {
@@ -2109,12 +2227,8 @@ async function seedEvaluations(
   });
 
   const cbEval2Data = {
-    course_id: mktCourse.id,
     deployment_name: "MKT301 Post-Term CILO Evaluation",
     instrument_version_id: ciloVer.id,
-    program_id: bsba.id,
-    major_id: mktMajor?.id ?? null,
-    faculty_id: U.FAC_BSBA,
     cilos_snapshot: ciloSnap2,
     course_info_snapshot: courseSnap2,
     activation_at: new Date("2026-04-01T08:00:00Z"),
@@ -2177,9 +2291,7 @@ async function seedEvaluations(
       progId: bsit.id,
       progCode: "BSIT",
       progName: "Bachelor of Science in Information Technology",
-      majorId: null as string | null,
-      facultyId: U.FAC_BSIT,
-      ylId: y4,
+      ylId: y2,
       respondents: [U.STU_BSIT, U.GRAD_BSIT],
     },
     {
@@ -2189,8 +2301,6 @@ async function seedEvaluations(
       progId: bsba.id,
       progCode: "BSBA",
       progName: "Bachelor of Science in Business Administration",
-      majorId: (await prisma.major.findFirst({ where: { name: "Financial Management" } }))?.id ?? null,
-      facultyId: U.FAC_BSBA,
       ylId: y4,
       respondents: [U.STU_BSBA_G, U.STU_BSBA],
     },
@@ -2201,8 +2311,6 @@ async function seedEvaluations(
       progId: bsed.id,
       progCode: "BSED",
       progName: "Bachelor of Secondary Education",
-      majorId: null,
-      facultyId: U.FAC_BSED,
       ylId: y3,
       respondents: [U.STU_BSED],
     },
@@ -2213,8 +2321,6 @@ async function seedEvaluations(
       progId: bshm.id,
       progCode: "BSHM",
       progName: "Bachelor of Science in Hospitality Management",
-      majorId: null,
-      facultyId: U.FAC_BSHM,
       ylId: y4,
       respondents: [U.STU_BSHM_G, U.STU_BSHM],
     },
@@ -2225,8 +2331,6 @@ async function seedEvaluations(
       progId: beed.id,
       progCode: "BEED",
       progName: "Bachelor of Elementary Education",
-      majorId: null,
-      facultyId: U.FAC_BSED,
       ylId: y4,
       respondents: [U.STU_BEED],
     },
@@ -2237,8 +2341,6 @@ async function seedEvaluations(
       progId: bssw.id,
       progCode: "BSSW",
       progName: "Bachelor of Science in Social Work",
-      majorId: null,
-      facultyId: U.FAC_BSED,
       ylId: y4,
       respondents: [] as string[],
     },
@@ -2260,6 +2362,9 @@ async function seedEvaluations(
     };
 
     const cbAssignmentId = assignmentMap.get(def.courseCode);
+    if (!cbAssignmentId) {
+      throw new Error(`Missing course assignment for ${def.courseCode}`);
+    }
 
     const existingCb = await prisma.courseBoundEvaluation.findFirst({
       where: {
@@ -2269,12 +2374,8 @@ async function seedEvaluations(
     });
 
     const cbData = {
-      course_id: course.id,
       deployment_name: def.deployName,
       instrument_version_id: ciloVer.id,
-      program_id: def.progId,
-      major_id: def.majorId,
-      faculty_id: def.facultyId,
       cilos_snapshot: ciloSnap,
       course_info_snapshot: courseSnap,
       activation_at: new Date("2026-04-10T08:00:00Z"),
@@ -3160,11 +3261,13 @@ async function main() {
   console.log("\n✅ Seed complete!");
 }
 
-main()
-  .catch((e) => {
-    console.error("❌ Seed failed:", e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+if (!process.env.VITEST) {
+  main()
+    .catch((e) => {
+      console.error("❌ Seed failed:", e);
+      process.exit(1);
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}

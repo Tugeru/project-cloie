@@ -27,7 +27,7 @@ export default async function NewFacultyCiloEvaluationPage({
   const session = await resolveAuthSession();
 
   if (!session) {
-    redirect("/login");
+    redirect("/portal");
   }
 
   const redirectPath = ensureRoleAccess({
@@ -83,7 +83,7 @@ export default async function NewFacultyCiloEvaluationPage({
     }
   }
 
-  // Fetch full assignment details to get term_instance_id and program_id
+  // Fetch full assignment details to get term_instance_id, program_id, and faculty info
   if (assignmentOptions.length > 0) {
     const assignmentIds = assignmentOptions.map(a => a.id);
     const fullAssignments = await prisma.courseAssignment.findMany({
@@ -92,6 +92,14 @@ export default async function NewFacultyCiloEvaluationPage({
         id: true,
         term_instance_id: true,
         program_id: true,
+        faculty_id: true,
+        faculty: {
+          select: {
+            id: true,
+            first_name: true,
+            last_name: true,
+          },
+        },
       },
     });
     
@@ -102,6 +110,10 @@ export default async function NewFacultyCiloEvaluationPage({
       if (full) {
         option.termInstanceId = full.term_instance_id;
         option.programId = full.program_id;
+        option.facultyId = full.faculty_id;
+        option.facultyName = full.faculty
+          ? `${full.faculty.first_name} ${full.faculty.last_name}`.trim()
+          : undefined;
       }
     }
   }

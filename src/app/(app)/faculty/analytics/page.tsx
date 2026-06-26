@@ -10,7 +10,7 @@ export default async function FacultyAnalyticsPage() {
   const session = await resolveAuthSession();
 
   if (!session) {
-    redirect("/login");
+    redirect("/portal");
   }
 
   const redirectPath = ensureRoleAccess({
@@ -37,7 +37,11 @@ export default async function FacultyAnalyticsPage() {
   // Get available filter options
   const [termInstances, courses] = await Promise.all([
     prisma.courseBoundEvaluation.findMany({
-      where: { faculty_id: session.userId },
+      where: {
+        course_assignment: {
+          faculty_id: session.userId,
+        },
+      },
       select: {
         term_instance: {
           select: {

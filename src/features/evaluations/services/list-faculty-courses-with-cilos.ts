@@ -86,7 +86,7 @@ export async function listFacultyCoursesWithCilos(
     let scopeLabel = "Program-Specific";
     if (c.course_scope === CourseScope.GENERAL_EDUCATION) {
       scopeLabel = "General Education";
-    } else if (c.course_scope === CourseScope.MAJOR_SPECIFIC || c.major_id) {
+    } else if (c.major_id) {
       scopeLabel = "Major-Specific";
     }
 

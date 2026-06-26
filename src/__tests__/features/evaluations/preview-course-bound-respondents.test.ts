@@ -7,16 +7,22 @@ const {
   findUniqueAssignmentMock,
   listStudentsForClassMock,
   resolveAuthSessionMock,
+  programHeadAssignmentFindManyMock,
 } = vi.hoisted(() => ({
   findUniqueAssignmentMock: vi.fn(),
   listStudentsForClassMock: vi.fn(),
   resolveAuthSessionMock: vi.fn(),
+  programHeadAssignmentFindManyMock: vi.fn(),
 }));
 
 vi.mock("@/lib/db/prisma", () => ({
   prisma: {
     courseAssignment: {
       findUnique: findUniqueAssignmentMock,
+      findFirst: findUniqueAssignmentMock,
+    },
+    programHeadAssignment: {
+      findMany: programHeadAssignmentFindManyMock,
     },
   },
 }));
@@ -42,20 +48,27 @@ const MOCK_ASSIGNMENT = {
     code: "BSCS",
     name: "BS Computer Science",
   },
+  course: {
+    id: "course-1",
+    code: "CS-101",
+    title: "Intro to Computer Science",
+    course_scope: "PROGRAM_SPECIFIC",
+  },
 };
 
 describe("previewCourseBoundRespondents", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    programHeadAssignmentFindManyMock.mockResolvedValue([]);
   });
 
-  it("rejects unauthorized access when session is missing or user is not faculty", async () => {
+  it("rejects unauthorized access when session is missing", async () => {
     resolveAuthSessionMock.mockResolvedValue(null);
 
     const result = await previewCourseBoundRespondents({ assignmentId: "assignment-1" });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toBe("Faculty authentication is required.");
+      expect(result.error).toBe("Authentication required.");
     }
   });
 
@@ -77,7 +90,7 @@ describe("previewCourseBoundRespondents", () => {
     const result = await previewCourseBoundRespondents({ assignmentId: "assignment-1" });
     expect(result.success).toBe(false);
     if (!result.success) {
-      expect(result.error).toBe("You do not have access to this course assignment.");
+      expect(result.error).toBe("Only the assigned faculty member can deploy this evaluation.");
     }
   });
 

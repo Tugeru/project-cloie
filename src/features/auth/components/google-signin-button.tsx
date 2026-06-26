@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/lib/supabase/client";
+import { getSiteUrl } from "@/lib/utils/site-url";
 import { Loader2 } from "lucide-react";
 
 export function GoogleSignInButton({ intent }: { intent?: "student" | "faculty" }) {
@@ -14,7 +15,7 @@ export function GoogleSignInButton({ intent }: { intent?: "student" | "faculty" 
       const supabase = createClient();
 
       const intentParam = intent ? `?intent=${intent}` : "";
-      const redirectTo = `${window.location.origin}/api/auth/callback${intentParam}`;
+      const redirectTo = `${getSiteUrl()}/api/auth/callback${intentParam}`;
       console.log("[GoogleSignIn] redirectTo:", redirectTo);
 
       const { data, error } = await supabase.auth.signInWithOAuth({

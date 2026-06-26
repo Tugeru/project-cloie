@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FacultyPublishedEvaluationsTable } from "@/features/evaluations/components/faculty-published-evaluations-table";
 import type { FacultyTemplateItem } from "../services/list-faculty-templates";
@@ -13,6 +15,9 @@ type FacultyToolsPageProps = {
 };
 
 export function FacultyToolsPage({ evaluations, program, templates }: FacultyToolsPageProps) {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState("templates");
+
   return (
     <div className="space-y-8">
       <div className="space-y-2">
@@ -26,7 +31,7 @@ export function FacultyToolsPage({ evaluations, program, templates }: FacultyToo
         </p>
       </div>
 
-      <Tabs defaultValue="templates" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList variant="line" className="h-auto gap-4">
           <TabsTrigger value="templates" className="px-1 py-2.5 text-sm">
             Templates

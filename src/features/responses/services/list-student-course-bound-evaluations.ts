@@ -139,15 +139,27 @@ export async function listStudentCourseBoundEvaluations(): Promise<{
     include: {
       course_bound: {
         include: {
-          course: true,
-          faculty: { select: { first_name: true, last_name: true } },
+          course_assignment: {
+            include: {
+              course: {
+                include: {
+                  major: true,
+                },
+              },
+              program: true,
+              faculty: {
+                select: {
+                  first_name: true,
+                  last_name: true,
+                },
+              },
+            },
+          },
           instrument: {
             include: {
               template: true,
             },
           },
-          major: true,
-          program: true,
         },
       },
       response: {
@@ -174,6 +186,8 @@ export async function listStudentCourseBoundEvaluations(): Promise<{
         return [];
       }
 
+      const ca = courseBound.course_assignment;
+
       const sections = mapStructureSnapshotToSections(courseBound.instrument.structure_snapshot);
       const section = sections[0] ?? buildFallbackSection();
       const session: StudentEvaluationSession = {
@@ -198,16 +212,16 @@ export async function listStudentCourseBoundEvaluations(): Promise<{
 
       return buildStudentEvaluationListItem({
         assignmentId: assignment.id,
-        courseTitle: courseBound.course.title,
+        courseTitle: ca.course.title,
         deadlineAt: courseBound.deadline_at,
         evaluationId: assignment.id,
         evaluationTitle: courseBound.deployment_name ?? courseBound.instrument.template.name,
-        facultyName: courseBound.faculty
-          ? `${courseBound.faculty.first_name} ${courseBound.faculty.last_name}`
+        facultyName: ca.faculty
+          ? `${ca.faculty.first_name} ${ca.faculty.last_name}`
           : null,
         href,
         now,
-        programLabel: courseBound.major?.name ?? courseBound.program.name,
+        programLabel: ca.course.major?.name ?? ca.program.name,
         section,
         session,
       });
