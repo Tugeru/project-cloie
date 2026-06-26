@@ -60,7 +60,7 @@ describe.skipIf(!process.env.DATABASE_URL)("CourseAssignment.section NOT NULL co
     });
 
     // After Issue #38, this should throw a NOT NULL constraint violation
-    await expect(createPromise).rejects.toThrow();
+    await expect(createPromise).rejects.toThrow(/NOT NULL|section|violates/i);
   });
 
   it("should accept CourseAssignment creation with valid section", async () => {

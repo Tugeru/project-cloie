@@ -164,6 +164,7 @@ export function CourseAssignmentFormDialog({
     setSelectedFaculty(null);
     setShowCrossProgramWarning(false);
     setHasTouchedYearLevel(false);
+    previousCourseId.current = null;
   };
 
   const handleOpenChange = (open: boolean) => {

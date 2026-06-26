@@ -63,7 +63,7 @@ export function AddMergedClassesDialog({
   phProgramScope,
   onSuccess,
 }: AddMergedClassesDialogProps) {
-  const [step, setStep] = useState<"term" | "course" | "class" | "faculty" | "programs">("term");
+  const [step, setStep] = useState<"term" | "course" | "class" | "faculty" | "programs">(defaultTermInstanceId ? "course" : "term");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [termInstanceId, setTermInstanceId] = useState<string | null>(defaultTermInstanceId ?? null);

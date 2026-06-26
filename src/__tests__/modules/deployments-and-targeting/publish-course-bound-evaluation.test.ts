@@ -83,6 +83,7 @@ const MOCK_ASSIGNMENT = {
     major_id: null,
     major: null,
     title: "Capstone 1",
+    course_scope: "PROGRAM_SPECIFIC",
   },
   program: { code: "BSIT", id: "program-1", name: "BS Information Technology" },
   term_instance: {
