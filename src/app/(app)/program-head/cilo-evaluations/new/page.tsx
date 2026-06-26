@@ -162,6 +162,7 @@ export default async function NewProgramHeadCiloEvaluationPage({
       publishAction={publishCourseBoundEvaluationAction}
       deployerUserId={session.userId}
       deployerName={deployerName}
+      successRedirectPath="/program-head/tools"
     />
   );
 }

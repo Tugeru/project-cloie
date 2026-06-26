@@ -1,9 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { YearLevel } from "@prisma/client";
 
+const { mockPush } = vi.hoisted(() => ({ mockPush: vi.fn() }));
+
 vi.mock("next/navigation", () => ({
-  useRouter: () => ({ push: vi.fn(), replace: vi.fn(), refresh: vi.fn() }),
+  useRouter: () => ({ push: mockPush, replace: vi.fn(), refresh: vi.fn() }),
   usePathname: () => "/faculty/tools/publish",
   useSearchParams: () => new URLSearchParams(),
 }));
@@ -45,6 +47,9 @@ import { PublishCourseBoundEvaluationFormV2 } from "@/features/evaluations/compo
 import type { AssignmentOption } from "@/features/evaluations/components/assignment-picker";
 
 describe("PublishCourseBoundEvaluationFormV2", () => {
+  beforeEach(() => {
+    mockPush.mockClear();
+  });
   const publicationContext = {
     bindings: [
       {
@@ -220,6 +225,145 @@ describe("PublishCourseBoundEvaluationFormV2", () => {
     expect(screen.getByRole("combobox")).toBeDisabled();
     expect(screen.getByText(/no assignments available/i)).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /preview respondents/i })).toBeDisabled();
+  });
+
+  it("redirects to successRedirectPath when provided on publish", async () => {
+    const previewAction = vi.fn().mockResolvedValue({
+      success: true,
+      data: [
+        {
+          email: "alice@school.edu",
+          firstName: "Alice",
+          lastName: "Adams",
+          majorId: null,
+          majorName: null,
+          programCode: "BSCS",
+          programId: "program-1",
+          programName: "BS Computer Science",
+          section: "MORNING",
+          studentId: "S001",
+          userId: "user-1",
+          yearLevel: YearLevel.FIRST_YEAR,
+        },
+      ],
+    });
+    const publishAction = vi.fn().mockResolvedValue({
+      success: true,
+      data: {
+        assignmentCount: 1,
+        evaluationId: "eval-1",
+        status: "ACTIVE",
+        targetCount: 1,
+      },
+    });
+
+    render(
+      <PublishCourseBoundEvaluationFormV2
+        assignments={assignments}
+        publicationContext={publicationContext}
+        previewAction={previewAction}
+        publishAction={publishAction}
+        successRedirectPath="/program-head/tools"
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText(/deployed evaluation name/i), {
+      target: { value: "CS101 Post-Term CILO Evaluation" },
+    });
+
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "assignment-1" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /preview respondents/i }));
+
+    await waitFor(() => {
+      expect(previewAction).toHaveBeenCalledTimes(1);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /publish evaluation/i })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: /publish evaluation/i }));
+
+    await waitFor(() => {
+      expect(publishAction).toHaveBeenCalledTimes(1);
+    });
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(
+        expect.stringContaining("/program-head/tools")
+      );
+    });
+  });
+
+  it("redirects to /faculty/tools by default when no successRedirectPath provided", async () => {
+    const previewAction = vi.fn().mockResolvedValue({
+      success: true,
+      data: [
+        {
+          email: "bob@school.edu",
+          firstName: "Bob",
+          lastName: "Brown",
+          majorId: null,
+          majorName: null,
+          programCode: "BSCS",
+          programId: "program-1",
+          programName: "BS Computer Science",
+          section: "MORNING",
+          studentId: "S002",
+          userId: "user-2",
+          yearLevel: YearLevel.FIRST_YEAR,
+        },
+      ],
+    });
+    const publishAction = vi.fn().mockResolvedValue({
+      success: true,
+      data: {
+        assignmentCount: 1,
+        evaluationId: "eval-2",
+        status: "ACTIVE",
+        targetCount: 1,
+      },
+    });
+
+    render(
+      <PublishCourseBoundEvaluationFormV2
+        assignments={assignments}
+        publicationContext={publicationContext}
+        previewAction={previewAction}
+        publishAction={publishAction}
+      />
+    );
+
+    fireEvent.change(screen.getByLabelText(/deployed evaluation name/i), {
+      target: { value: "CS101 Default Redirect" },
+    });
+
+    fireEvent.change(screen.getByRole("combobox"), {
+      target: { value: "assignment-1" },
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: /preview respondents/i }));
+
+    await waitFor(() => {
+      expect(previewAction).toHaveBeenCalledTimes(1);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /publish evaluation/i })).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByRole("button", { name: /publish evaluation/i }));
+
+    await waitFor(() => {
+      expect(publishAction).toHaveBeenCalledTimes(1);
+    });
+
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(
+        expect.stringContaining("/faculty/tools")
+      );
+    });
   });
 
   it("shows all assignments without a term filter", () => {

@@ -98,21 +98,26 @@ async function searchFile(filePath: string): Promise<Finding[]> {
           // or just test the current line for direct references.
           
           // If the pattern is multiline-like, let's test it on a slice.
-          // For simplicity, we check if the pattern matches a block of 3 lines around the current line.
-          const contextSlice = lines.slice(Math.max(0, i - 1), Math.min(lines.length, i + 2)).join("\n");
+          // For simplicity, we check if the pattern matches a block of 5 lines around the current line.
+          const contextSlice = lines.slice(Math.max(0, i - 2), Math.min(lines.length, i + 3)).join("\n");
           
           if (pattern.test(contextSlice)) {
-            // Additional check to avoid false positives:
-            // Ensure the line itself actually contains the column name
-            if (line.includes(column)) {
-              findings.push({
-                file: filePath,
-                line: lineNum,
-                column,
-                lineContent: trimmed,
-              });
-              break; // Don't report the same line multiple times for the same column
-            }
+            // Additional checks to avoid false positives:
+
+            // 1. Ensure the line itself actually contains the column name
+            if (!line.includes(column)) continue;
+
+            // 2. Skip if the column is inside a course_assignment nested block
+            // (course_assignment.faculty_id uses the NEW schema, not the legacy column)
+            if (trimmed.includes("course_assignment:")) continue;
+
+            findings.push({
+              file: filePath,
+              line: lineNum,
+              column,
+              lineContent: trimmed,
+            });
+            break; // Don't report the same line multiple times for the same column
           }
         }
       }

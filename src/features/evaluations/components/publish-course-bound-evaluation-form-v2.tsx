@@ -53,6 +53,7 @@ interface PublishCourseBoundEvaluationFormV2Props {
   ) => Promise<PublishCourseBoundEvaluationResult>;
   deployerUserId?: string;
   deployerName?: string;
+  successRedirectPath?: string;
 }
 
 /**
@@ -66,6 +67,7 @@ export function PublishCourseBoundEvaluationFormV2({
   publishAction,
   deployerUserId,
   deployerName,
+  successRedirectPath = "/faculty/tools",
 }: PublishCourseBoundEvaluationFormV2Props) {
   // Step state
   const [step, setStep] = useState<Step>("configure");
@@ -200,7 +202,7 @@ export function PublishCourseBoundEvaluationFormV2({
       }
 
       const toastMessage = `Evaluation published successfully! ${result.data.assignmentCount} assignment(s) created.`;
-      router.push(`/faculty/tools?toast=${encodeURIComponent(toastMessage)}`);
+      router.push(`${successRedirectPath}?toast=${encodeURIComponent(toastMessage)}`);
       return;
     } catch {
       setError(fallbackPublishErrorMessage);
