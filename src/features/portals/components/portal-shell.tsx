@@ -43,14 +43,15 @@ export function PortalShell({
           )}
 
           {/* Navigation Actions */}
-          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+          <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
             {backLink && (
               <Button
                 variant="ghost"
                 size="sm"
+                className="w-full whitespace-normal sm:w-auto sm:whitespace-nowrap"
                 render={<Link href={backLink.href} />}
               >
-                <Home className="size-4 mr-1.5" />
+                <Home className="size-4 shrink-0 mr-1.5" />
                 {backLink.label}
               </Button>
             )}
@@ -59,15 +60,16 @@ export function PortalShell({
               <Button
                 variant="outline"
                 size="sm"
+                className="w-full whitespace-normal sm:w-auto sm:whitespace-nowrap"
                 render={<Link href={crossLink.href} />}
               >
                 {crossLink.href.includes("staff") ? (
-                  <Building2 className="size-4 mr-1.5" />
+                  <Building2 className="size-4 shrink-0 mr-1.5" />
                 ) : (
-                  <Users className="size-4 mr-1.5" />
+                  <Users className="size-4 shrink-0 mr-1.5" />
                 )}
                 {crossLink.label}
-                <ArrowRight className="size-4 ml-1.5" />
+                <ArrowRight className="size-4 shrink-0 ml-1.5" />
               </Button>
             )}
           </div>
