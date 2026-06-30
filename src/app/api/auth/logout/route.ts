@@ -15,7 +15,7 @@ export async function POST(request: Request) {
   cookieStore.delete(DEV_AUTH_COOKIE_NAME);
 
   // Return to portal page after logout
-  return NextResponse.redirect(`${siteUrl}/portal`);
+  return NextResponse.redirect(`${siteUrl}/portal/respondents`);
 }
 
 export async function GET(request: Request) {

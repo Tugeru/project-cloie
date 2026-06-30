@@ -94,7 +94,7 @@ describe("Onboarding Actions - resetIncompleteRoleClaim", () => {
       profileGate: { status: "STUDENT_ONBOARDING_REQUIRED" },
     });
 
-    await expect(resetIncompleteRoleClaim()).rejects.toThrow(`${REDIRECT_ERROR}:/portal`);
+    await expect(resetIncompleteRoleClaim()).rejects.toThrow(`${REDIRECT_ERROR}:/portal/respondents`);
 
     expect(deleteManyUserRoleMock).toHaveBeenCalledWith({
       where: { user_id: "user-123" },
@@ -108,7 +108,7 @@ describe("Onboarding Actions - resetIncompleteRoleClaim", () => {
       profileGate: { status: "COMPLETE" },
     });
 
-    await expect(resetIncompleteRoleClaim()).rejects.toThrow(`${REDIRECT_ERROR}:/portal`);
+    await expect(resetIncompleteRoleClaim()).rejects.toThrow(`${REDIRECT_ERROR}:/portal/respondents`);
 
     expect(deleteManyUserRoleMock).not.toHaveBeenCalled();
   });
@@ -116,7 +116,7 @@ describe("Onboarding Actions - resetIncompleteRoleClaim", () => {
   it("redirects to /portal when there is no authenticated session", async () => {
     resolveAuthSessionMock.mockResolvedValue(null);
 
-    await expect(resetIncompleteRoleClaim()).rejects.toThrow(`${REDIRECT_ERROR}:/portal`);
+    await expect(resetIncompleteRoleClaim()).rejects.toThrow(`${REDIRECT_ERROR}:/portal/respondents`);
 
     expect(deleteManyUserRoleMock).not.toHaveBeenCalled();
   });

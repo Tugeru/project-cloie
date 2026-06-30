@@ -10,7 +10,7 @@ export default async function FacultyAnalyticsPage() {
   const session = await resolveAuthSession();
 
   if (!session) {
-    redirect("/portal");
+    redirect("/portal/respondents");
   }
 
   const redirectPath = ensureRoleAccess({

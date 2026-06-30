@@ -16,7 +16,7 @@ export default async function AlumniEvaluationPage({
   const session = await resolveAuthSession();
 
   if (!session) {
-    redirect("/portal");
+    redirect("/portal/respondents");
   }
 
   const { id: deploymentId } = await params;

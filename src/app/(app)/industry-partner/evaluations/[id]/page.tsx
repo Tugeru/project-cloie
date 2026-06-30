@@ -16,7 +16,7 @@ export default async function IndustryPartnerEvaluationPage({
   const session = await resolveAuthSession();
 
   if (!session) {
-    redirect("/portal");
+    redirect("/portal/respondents");
   }
 
   const { id: deploymentId } = await params;

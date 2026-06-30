@@ -47,7 +47,7 @@ describe("SessionGuard", () => {
     resolveAuthSessionMock.mockResolvedValue(null);
 
     await expect(SessionGuard({ children: <div>Protected</div> })).rejects.toThrow(
-      `${REDIRECT_ERROR}:/portal`
+      `${REDIRECT_ERROR}:/portal/respondents`
     );
   });
 

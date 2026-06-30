@@ -6,7 +6,7 @@ export function ensureRoleAccess(input: {
   unauthorizedPath?: string;
 }): string | null {
   if (!input.activeRole) {
-    return "/portal";
+    return "/portal/respondents";
   }
 
   if (input.allowedRoles.includes(input.activeRole)) {

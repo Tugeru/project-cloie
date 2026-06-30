@@ -61,7 +61,7 @@ describe("resolveProfileGate — Faculty", () => {
 describe("resolvePostLoginDestination — Faculty", () => {
   it("routes FACULTY_ONBOARDING_REQUIRED to /onboarding?intent=faculty", () => {
     const destination = resolvePostLoginDestination({
-      requestedPath: "/portal",
+      requestedPath: "/portal/respondents",
       intent: null,
       activeRole: ROLES.FACULTY,
       profileGate: { status: "FACULTY_ONBOARDING_REQUIRED", intent: "faculty" },

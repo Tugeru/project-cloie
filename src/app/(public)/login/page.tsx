@@ -15,7 +15,7 @@ export default async function LoginPage({
 
   // Bare /login with no error — redirect to the main portal
   if (!error) {
-    redirect("/portal");
+    redirect("/portal/respondents");
   }
 
   return (
@@ -72,7 +72,7 @@ export default async function LoginPage({
 
           <div className="text-center">
             <a
-              href="/portal"
+              href="/portal/respondents"
               className="text-caption text-text-muted hover:text-text-primary transition-colors"
             >
               Go to portal selection →

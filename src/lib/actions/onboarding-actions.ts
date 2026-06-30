@@ -160,5 +160,5 @@ export async function resetIncompleteRoleClaim() {
     });
   }
 
-  redirect("/portal");
+  redirect("/portal/respondents");
 }

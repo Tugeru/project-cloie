@@ -1,6 +1,9 @@
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { RoleSelectionCard } from "./role-selection-card";
 import { SessionBanner } from "./session-banner";
 import type { RoleCardConfig } from "../lib/role-card-config";
+import { ArrowRight, Building2, Users, Home } from "lucide-react";
 
 interface PortalShellProps {
   title: string;
@@ -11,9 +14,17 @@ interface PortalShellProps {
     isComplete: boolean;
   } | null;
   backLink?: { label: string; href: string };
+  crossLink?: { label: string; href: string };
 }
 
-export function PortalShell({ title, subtitle, cards, session, backLink }: PortalShellProps) {
+export function PortalShell({
+  title,
+  subtitle,
+  cards,
+  session,
+  backLink,
+  crossLink,
+}: PortalShellProps) {
   return (
     <div className="relative min-h-screen bg-background selection:bg-primary/10">
       {/* Dynamic Background */}
@@ -27,18 +38,39 @@ export function PortalShell({ title, subtitle, cards, session, backLink }: Porta
           <h1 className="text-display-sm mb-4 text-text-primary">{title}</h1>
           <p className="text-body-lg text-text-secondary">{subtitle}</p>
 
-          {session && <SessionBanner email={session.email} isComplete={session.isComplete} />}
-
-          {backLink && (
-            <div className="mt-4">
-              <a
-                href={backLink.href}
-                className="text-caption text-text-muted hover:text-text-primary transition-colors"
-              >
-                {backLink.label}
-              </a>
-            </div>
+          {session && (
+            <SessionBanner email={session.email} isComplete={session.isComplete} />
           )}
+
+          {/* Navigation Actions */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            {backLink && (
+              <Button
+                variant="ghost"
+                size="sm"
+                render={<Link href={backLink.href} />}
+              >
+                <Home className="size-4 mr-1.5" />
+                {backLink.label}
+              </Button>
+            )}
+
+            {crossLink && (
+              <Button
+                variant="outline"
+                size="sm"
+                render={<Link href={crossLink.href} />}
+              >
+                {crossLink.href.includes("staff") ? (
+                  <Building2 className="size-4 mr-1.5" />
+                ) : (
+                  <Users className="size-4 mr-1.5" />
+                )}
+                {crossLink.label}
+                <ArrowRight className="size-4 ml-1.5" />
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

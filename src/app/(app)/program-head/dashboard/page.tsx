@@ -11,7 +11,7 @@ export default async function ProgramHeadDashboardPage() {
   const session = await resolveAuthSession();
 
   if (!session) {
-    redirect("/portal");
+    redirect("/portal/respondents");
   }
 
   // Resolve the program head's active program assignment

@@ -27,7 +27,7 @@ export default async function OnboardingPage({
   } = await supabase.auth.getUser();
 
   if (error || !user) {
-    redirect("/portal");
+    redirect("/portal/respondents");
   }
 
   const session = await resolveAuthSessionFromUser({

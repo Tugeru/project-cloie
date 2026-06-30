@@ -5,7 +5,7 @@ import { ensureRoleAccess } from "@/features/auth/policies/ensure-role-access";
 describe("ensureRoleAccess", () => {
   it("redirects anonymous access to portal", () => {
     expect(ensureRoleAccess({ activeRole: null, allowedRoles: [ROLES.SECRETARY] })).toBe(
-      "/portal"
+      "/portal/respondents"
     );
   });
 

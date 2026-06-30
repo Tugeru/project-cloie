@@ -75,7 +75,7 @@ export default function Home() {
               title="Students, Alumni & Partners"
               description="Participate in evaluations, surveys, and feedback programs."
               roles={["Student", "Alumni", "Industry Partner"]}
-              href="/portal"
+              href="/portal/respondents"
               badge="Any Google account"
             />
           </div>

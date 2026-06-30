@@ -465,7 +465,7 @@ export function StudentProfileForm({
             onClick={async () => {
               const supabase = createClient();
               await supabase.auth.signOut();
-              router.push("/portal");
+              router.push("/portal/respondents");
             }}
           >
             <ArrowLeft className="size-4" />

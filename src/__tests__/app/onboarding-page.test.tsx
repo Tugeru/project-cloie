@@ -129,7 +129,7 @@ describe("OnboardingPage", () => {
     });
 
     await expect(OnboardingPage({ searchParams: Promise.resolve({}) })).rejects.toThrow(
-      `${REDIRECT_ERROR}:/portal`
+      `${REDIRECT_ERROR}:/portal/respondents`
     );
   });
 

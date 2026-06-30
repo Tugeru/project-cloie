@@ -51,7 +51,7 @@ describe("resolveProfileGate — deferred enrollment", () => {
 describe("resolvePostLoginDestination — DEFERRED_ENROLLMENT routes to /student/dashboard", () => {
   it("routes DEFERRED_ENROLLMENT to /student/dashboard", () => {
     const destination = resolvePostLoginDestination({
-      requestedPath: "/portal",
+      requestedPath: "/portal/respondents",
       intent: null,
       activeRole: ROLES.STUDENT,
       profileGate: { status: "DEFERRED_ENROLLMENT" },
