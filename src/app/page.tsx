@@ -20,7 +20,7 @@ export default function Home() {
               className="shrink-0 object-contain"
             />
             <div className="space-y-0">
-              <p className="text-title-md font-bold text-text-primary">CLOIE</p>
+              <p className="text-title-md font-bold text-text-primary">System CLOIE</p>
               <p className="text-caption text-text-muted">Assumption College of Davao</p>
             </div>
           </div>
@@ -29,12 +29,22 @@ export default function Home() {
 
       <main className="relative z-10 flex flex-col items-center justify-center px-4 py-20 sm:px-6 sm:py-28 lg:px-8">
         <div className="mx-auto max-w-3xl text-center motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-4 motion-safe:duration-700 motion-safe:fill-mode-backwards">
-          {/* ACD Institutional Logo */}
-          <div className="mx-auto mb-6 flex justify-center">
+          {/* Institutional & System Logos */}
+          <div className="mx-auto mb-6 flex items-center justify-center gap-4 sm:gap-5">
             <div className="relative flex size-24 items-center justify-center rounded-full bg-white shadow-sm ring-4 ring-primary/10 sm:size-28">
               <Image
                 src="/logos/acd-logo.png"
                 alt="Assumption College of Davao"
+                width={80}
+                height={80}
+                className="object-contain"
+                priority
+              />
+            </div>
+            <div className="relative flex size-24 items-center justify-center rounded-full bg-white shadow-sm ring-4 ring-primary/10 sm:size-28">
+              <Image
+                src="/logos/cloie-logo.png"
+                alt="CLOIE"
                 width={80}
                 height={80}
                 className="object-contain"
