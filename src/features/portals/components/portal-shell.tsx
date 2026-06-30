@@ -48,7 +48,7 @@ export function PortalShell({
               <Button
                 variant="ghost"
                 size="sm"
-                className="w-full whitespace-normal sm:w-auto sm:whitespace-nowrap"
+                className="w-full min-w-0 whitespace-normal break-words sm:w-auto sm:whitespace-nowrap h-auto"
                 render={<Link href={backLink.href} />}
               >
                 <Home className="size-4 shrink-0 mr-1.5" />
@@ -60,7 +60,7 @@ export function PortalShell({
               <Button
                 variant="outline"
                 size="sm"
-                className="w-full whitespace-normal sm:w-auto sm:whitespace-nowrap"
+                className="w-full min-w-0 whitespace-normal break-words sm:w-auto sm:whitespace-nowrap h-auto"
                 render={<Link href={crossLink.href} />}
               >
                 {crossLink.href.includes("staff") ? (
